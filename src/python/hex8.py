@@ -1,5 +1,6 @@
 import numpy as np
 import unittest
+import os
 
 """Definition of a Hex8 element"""
 
@@ -256,6 +257,37 @@ def convert_V_to_M(V,shape):
 #Testing suite
     
 class TestHex8(unittest.TestCase):
+
+    f                    = None
+    original_directory   = ""
+    output_file_name     = r"hex8_unittests.txt"
+    output_file_location = r".\tests\unittests"
+    currentResult        = None
+    @classmethod
+    def setUpClass(self):
+        """Setup method"""
+        output_file = os.path.join(self.output_file_location,self.output_file_name)
+        if(os.path.isfile(output_file)):
+            os.remove(output_file)
+        self.f = open(output_file,"w+")
+    @classmethod
+    def tearDownClass(self):
+        """Teardown method"""
+        self.f.close()
+        
+    def setUp(self):
+        pass
+        
+    def tearDown(self):
+        ok = self.currentResult.wasSuccessful()
+        tname = self.id().split(".")[-1]
+        self.f.write(tname+"\t&\t"+str(ok)+"\n")
+        
+    def run(self, result=None):
+        """Redefine run to keep track of results"""
+        self.currentResult = result
+        unittest.TestCase.run(self,result)
+            
         
     def test_Hex8_shape_function(self):
         """Test the shape function for a Hex8 element"""

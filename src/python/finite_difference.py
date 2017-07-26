@@ -1,5 +1,6 @@
 import numpy as np
 import unittest
+import os
 
 def finite_difference(fxn,x0,h,accuracy_order=2): #Test Function Written
     """Compute the finite difference derivative of a function in the direction of h"""
@@ -47,6 +48,37 @@ def get_coefficients(accuracy_order):
     return first_derivative_coeffs[accuracy_order/2-1]
     
 class TestMicroElement(unittest.TestCase):
+
+    f                    = None
+    original_directory   = ""
+    output_file_name     = r"finite_difference_unittests.txt"
+    output_file_location = r".\tests\unittests"
+    currentResult        = None
+    @classmethod
+    def setUpClass(self):
+        """Setup method"""
+        output_file = os.path.join(self.output_file_location,self.output_file_name)
+        if(os.path.isfile(output_file)):
+            os.remove(output_file)
+        self.f = open(output_file,"w+")
+    @classmethod
+    def tearDownClass(self):
+        """Teardown method"""
+        self.f.close()
+        
+    def setUp(self):
+        pass
+        
+    def tearDown(self):
+        ok = self.currentResult.wasSuccessful()
+        tname = self.id().split(".")[-1]
+        self.f.write(tname+"\t&\t"+str(ok)+"\n")
+        
+    def run(self, result=None):
+        """Redefine run to keep track of results"""
+        self.currentResult = result
+        unittest.TestCase.run(self,result)
+
     def test_finite_difference(self):
         """Test the finite difference function"""
         #Test 1

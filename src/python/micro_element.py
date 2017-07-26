@@ -1,6 +1,7 @@
 import numpy as np
 import hex8
 import unittest
+import os
 import finite_difference as fd
 import micromorphic_linear_elasticity as micro_LE
 from hex8 import T_to_V_mapping as T2V
@@ -3874,6 +3875,36 @@ def compute_dho_stressdUn(dMdC,dMdPhi,dMdGamma,dCdU,dPhidU,dGammadU):
     return dMdU
     
 class TestMicroElement(unittest.TestCase):
+
+    f                    = None
+    original_directory   = ""
+    output_file_name     = r"micro_element_unittests.txt"
+    output_file_location = r".\tests\unittests"
+    currentResult        = None
+    @classmethod
+    def setUpClass(self):
+        """Setup method"""
+        output_file = os.path.join(self.output_file_location,self.output_file_name)
+        if(os.path.isfile(output_file)):
+            os.remove(output_file)
+        self.f = open(output_file,"w+")
+    @classmethod
+    def tearDownClass(self):
+        """Teardown method"""
+        self.f.close()
+        
+    def setUp(self):
+        pass
+        
+    def tearDown(self):
+        ok = self.currentResult.wasSuccessful()
+        tname = self.id().split(".")[-1]
+        self.f.write(tname+"\t&\t"+str(ok)+"\n")
+        
+    def run(self, result=None):
+        """Redefine run to keep track of results"""
+        self.currentResult = result
+        unittest.TestCase.run(self,result)
 
     def test_interpolate_dof(self):
         """Test the interpolate dof function"""

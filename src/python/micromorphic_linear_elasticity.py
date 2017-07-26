@@ -1,6 +1,8 @@
 import numpy as np
 import hex8
 import finite_difference as fd
+import unittest
+import os
 """
 ==================================
 | Micromorphic Linear Elasticity |
@@ -287,3 +289,35 @@ def micromorphic_linear_elasticity(F,chi,grad_chi,params):
     M                   = compute_linear_elastic_higher_order_stress(CFOT,Gamma)
     dSdC,dSdPhi,dSdGamma,dSigmadC,dSigmadPhi,dSigmadGamma,dMdC,dMdPhi,dMdGamma = compute_linear_elastic_tangents(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma)
     return CAUCHY,SIGMA,M,dSdC,dSdPhi,dSdGamma,dSigmadC,dSigmadPhi,dSigmadGamma,dMdC,dMdPhi,dMdGamma
+    
+class TestMicro_LE(unittest.TestCase):
+
+    f                    = None
+    original_directory   = ""
+    output_file_name     = r"micromorphic_linear_elasticity.txt"
+    output_file_location = r".\tests\unittests"
+    currentResult        = None
+    @classmethod
+    def setUpClass(self):
+        """Setup method"""
+        output_file = os.path.join(self.output_file_location,self.output_file_name)
+        if(os.path.isfile(output_file)):
+            os.remove(output_file)
+        self.f = open(output_file,"w+")
+    @classmethod
+    def tearDownClass(self):
+        """Teardown method"""
+        self.f.close()
+        
+    def setUp(self):
+        pass
+        
+    def tearDown(self):
+        ok = self.currentResult.wasSuccessful()
+        tname = self.id().split(".")[-1]
+        self.f.write(tname+"\t&\t"+str(ok)+"\n")
+        
+    def run(self, result=None):
+        """Redefine run to keep track of results"""
+        self.currentResult = result
+        unittest.TestCase.run(self,result)
