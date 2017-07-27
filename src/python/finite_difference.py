@@ -5,6 +5,7 @@ import os
 def finite_difference(fxn,x0,h,accuracy_order=2): #Test Function Written
     """Compute the finite difference derivative of a function in the direction of h"""
     
+    #x0 = np.reshape(x0,[len(x0),1])
     deltah_multipliers = get_deltah_multipliers(accuracy_order)
     coefficients  = get_coefficients(accuracy_order)
     

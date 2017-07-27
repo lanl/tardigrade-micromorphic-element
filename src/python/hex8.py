@@ -69,6 +69,13 @@ def get_jacobian(nodal_global_coords,xi_vec): #Test function written
         J += vector_dyadic_product(node_local_grad,nodal_global_coords[n])
     return J
     
+def invert_3x3_matrix_V(V):
+    """Invert a 3x3 matrix where the matrix is
+    given in vector form"""
+    A = convert_V_to_T(V,[3,3])
+    deta,Ainv = invert_3x3_matrix(A)
+    return deta,reduce_tensor_to_vector_form(Ainv)
+    
 def invert_3x3_matrix(a): #Test function written
     """Invert a 3x3 matrix"""
     A      = np.empty([3,3])    
@@ -156,6 +163,19 @@ def matrix_dot(A,B): #Test function written
                 C[i,j] += A[i,k]*B[k,j]
     return C
     
+def matrix_dot_V(A,B): #Test function written
+    """Compute the dot product of two matrices in vector form"""
+    C = np.zeros([9,])
+    for i in range(3):
+        for j in range(3):
+            Cindx = T_to_V_mapping([i,j],[3,3])
+            
+            for k in range(3):
+                Aindx = T_to_V_mapping([i,k],[3,3])
+                Bindx = T_to_V_mapping([k,j],[3,3])
+                C[Cindx] += A[Aindx]*B[Bindx]
+    return C
+    
 def matrix_Tdot(A,B): #Test function written
     """Compute the dot product of a transposed matrix and a matrix"""
     C = np.zeros([3,3])
@@ -163,6 +183,19 @@ def matrix_Tdot(A,B): #Test function written
         for j in range(3):
             for k in range(3):
                 C[i,j] += A[k,i]*B[k,j]
+    return C
+    
+def matrix_Tdot_V(A,B): #Test function written
+    """Compute the dot product of a transposed matrix and a matrix in vector form"""
+    C = np.zeros([9,])
+    for i in range(3):
+        for j in range(3):
+            Cindx = T_to_V_mapping([i,j],[3,3])
+            
+            for k in range(3):
+                Aindx = T_to_V_mapping([k,i],[3,3])
+                Bindx = T_to_V_mapping([k,j],[3,3])
+                C[Cindx] += A[Aindx]*B[Bindx]
     return C
     
 def matrix_Tdot_TOT(A,B): #Test function written
@@ -192,17 +225,21 @@ def vector_dot_matrix(v,A): #Test function written
             w[j] += v[i]*A[i,j]
     return w
     
-def reduce_tensor_to_matrix_form(A):
+def reduce_tensor_to_matrix_form(A): #Test function written
     """Reduce a tensor to matrix form"""
     
     #Get the shape of the tensor
     shape = A.shape
     
     #Put the tensor in vector form
-    V = np.reshape(A,[A.size])
+    V = reduce_tensor_to_vector_form(A)
     
     #Convert vector to matrix
     return convert_V_to_M(V,shape)
+    
+def reduce_tensor_to_vector_form(A): #Test function written (included in reduce_tensor_to_matrix_form)
+    """Reduce a tensor to its vector form"""
+    return np.reshape(A,[A.size])
     
 def T_to_V_mapping(indices,shape): #Test function written
     """Map the indices to the vector index"""
@@ -214,7 +251,7 @@ def T_to_V_mapping(indices,shape): #Test function written
         
     return index
     
-def V_to_T_mapping(index,shape):
+def V_to_T_mapping(index,shape): #Test function written
     """Map a vector index to the tensor indices"""
     
     indices = np.zeros([len(shape),])
@@ -225,11 +262,24 @@ def V_to_T_mapping(index,shape):
         index  %= factor
     return indices
     
-def convert_V_to_M(V,shape):
-    """Convert a vector to its matrix form"""
-    
+def V_to_M_mapping(index,shape): #Test function written (contained in convert_V_to_M)
+    """Map a vector index to the matrix indices"""
     #Define the mapping of the vector
     mapping = [(0,0),(1,1),(2,2),(1,2),(0,2),(0,1),(2,1),(2,0),(1,0)]
+    #Get tensor indices
+    indices = V_to_T_mapping(index,shape)
+    #Get mapping index
+    map_index = [i for i in range(9) if ((mapping[i][0]==indices[0]) and (mapping[i][1]==indices[1]))][0]
+    #Get mapping factors
+    factors = [int(reduce(lambda x, y: x*y, shape[(n+1):-1],1)) for n in range(len(indices))[2:-1]]
+    #Get matrix indices
+    i = int(map_index+len(mapping)*sum([f*i for f,i in zip(factors,indices[2:-1])]))
+    j = int(indices[-1] if len(indices)>2 else 0)
+    return i,j
+    
+    
+def convert_V_to_M(V,shape): #Test function written
+    """Convert a vector to its matrix form"""
     
     #Compute the size of the matrix
     Ndim = int(shape[-1] if len(shape)>2 else 1)
@@ -240,19 +290,29 @@ def convert_V_to_M(V,shape):
     
     #Iterate through all members of V
     for index in range(len(V)):
-        #Get tensor indices
-        indices = V_to_T_mapping(index,shape)
-        #Get mapping index
-        map_index = [i for i in range(9) if ((mapping[i][0]==indices[0]) and (mapping[i][1]==indices[1]))][0]
-        #Get mapping factors
-        factors = [int(reduce(lambda x, y: x*y, shape[(n+1):-1],1)) for n in range(len(indices))[2:-1]]
-        #Get row index
-        rindex = int(map_index+len(mapping)*sum([f*i for f,i in zip(factors,indices[2:-1])]))
-        cindex = int(indices[-1] if len(indices)>2 else 0)
-        
-        M[rindex,cindex] = V[index]
+        i,j = V_to_M_mapping(index,shape)
+        M[i,j] = V[index]
     return M
-        
+    
+def convert_M_to_V(M,shape):
+    """Convert a matrix to its vector form"""
+    
+    #Compute the size of the vector
+    Vdim = M.shape[0]*M.shape[1]
+    
+    #Initialize the empty vector
+    V = np.zeros([Vdim,])
+    
+    #Iterate through all members of V
+    for index in range(Vdim):
+        #Get tensor indices
+        i,j = V_to_M_mapping(index,shape)
+        V[index] = M[i,j]
+    return V
+    
+def convert_V_to_T(V,shape):
+    """Convert a vector to its tensor form"""
+    return np.reshape(V,shape)
     
 #Testing suite
     
@@ -349,6 +409,13 @@ class TestHex8(unittest.TestCase):
         A = np.reshape(np.array([1,2,3,4,5,6,7,8,6]).astype(float),[3,3])
         self.assertEqual(np.isclose(np.linalg.det(A),invert_3x3_matrix(A)[0]),True)
         self.assertEqual(np.allclose(np.linalg.inv(A),invert_3x3_matrix(A)[1]),True)
+        
+    def test_invert_3x3_matrix_V(self):
+        """Test the matrix in vector form inversion function"""
+        A = np.reshape(np.array([1,2,3,4,5,6,7,8,6]).astype(float),[3,3])
+        V = reduce_tensor_to_vector_form(A)
+        self.assertEqual(np.isclose(np.linalg.det(A),invert_3x3_matrix_V(V)[0]),True)
+        self.assertEqual(np.allclose(reduce_tensor_to_vector_form(np.linalg.inv(A)),invert_3x3_matrix_V(V)[1]),True)
         
     def test_get_jacobian(self):
         """Test the get_jacobian function"""
@@ -481,12 +548,28 @@ class TestHex8(unittest.TestCase):
         Cdot = matrix_dot(A,B)
         self.assertEqual(np.allclose(C,Cdot),True)
         
+    def test_matrix_dot_V(self):
+        """Test the matrix dot product in vector form"""
+        A = np.reshape(np.random.rand(9),[3,3])
+        B = np.reshape(np.random.rand(9),[3,3])
+        C = np.reshape(A.dot(B),[9,])
+        Cdot = matrix_dot_V(np.reshape(A,[9,]),np.reshape(B,[9,]))
+        self.assertEqual(np.allclose(C,Cdot),True)
+        
     def test_matrix_Tdot(self):
         """Test the matrix transpose dot product"""
         A = np.reshape(np.random.rand(9),[3,3])
         B = np.reshape(np.random.rand(9),[3,3])
         C = (A.T).dot(B)
         Cdot = matrix_Tdot(A,B)
+        self.assertEqual(np.allclose(C,Cdot),True)
+        
+    def test_matrix_Tdot_V(self):
+        """Test the matrix transpose dot product in vector form"""
+        A = np.reshape(np.random.rand(9),[3,3])
+        B = np.reshape(np.random.rand(9),[3,3])
+        C = np.reshape((A.T).dot(B),[9,])
+        Cdot = matrix_dot_V(np.reshape(A.T,[9,]),np.reshape(B,[9,]))
         self.assertEqual(np.allclose(C,Cdot),True)
         
     def test_matrix_Tdot_TOT(self):
@@ -523,6 +606,10 @@ class TestHex8(unittest.TestCase):
         #print answers
         
         self.assertEqual(np.allclose(results,answers),True)
+        
+        #Test 2
+        A = np.reshape(range(9),[3,3])
+        indices = [(0,0),(1,2),(2,2)]
         
     def test_V_to_T_mapping(self):
         """Test the mapping from the vector index to the tensor indices"""
@@ -570,6 +657,46 @@ class TestHex8(unittest.TestCase):
             for i in range(9):
                 mi,mj = mapping[i]
                 answers[i,j] = A[mi,mj]
+        self.assertEqual(np.allclose(results,answers),True)
+        
+    def test_convert_M_to_V(self):
+        """Test the conversion of a vector to a matrix"""
+        
+        #Test 1
+        V        = range(3*3*4*6*5)
+        shape    = [3,3,4,6,5]
+        A        = np.reshape(V,shape)
+        results  = convert_V_to_M(V,shape)
+        
+        answers  = reduce_tensor_to_matrix_form(A)
+                        
+        self.assertEqual(np.allclose(results,answers),True)
+        
+        #Test 2
+        V = range(3*3)
+        shape = [3,3]
+        A = np.reshape(V,shape)
+        results = convert_V_to_M(V,shape)
+        answers = reduce_tensor_to_matrix_form(A)
+        self.assertEqual(np.allclose(results,answers),True)
+        
+    def test_convert_V_to_T(self):
+        #Test 1
+        V        = range(3*3*4*6*5)
+        shape    = [3,3,4,6,5]
+        A        = np.reshape(V,shape)
+        results  = convert_V_to_T(V,shape)
+        
+        answers  = A
+                        
+        self.assertEqual(np.allclose(results,answers),True)
+        
+        #Test 2
+        V = range(3*3)
+        shape = [3,3]
+        A = np.reshape(V,shape)
+        results = convert_V_to_T(V,shape)
+        answers = A
         self.assertEqual(np.allclose(results,answers),True)
         
     def test_reduce_tensor_to_matrix_form(self):
