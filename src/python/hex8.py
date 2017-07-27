@@ -216,6 +216,12 @@ def get_symm_matrix(A): #Test function written
             Asymm[i,j] = 0.5*(A[i,j]+A[j,i])
     return Asymm
     
+def get_symm_matrix_V(V):
+    """Get the symmetric part of a matrix in vector form"""
+    A = convert_V_to_T(V,[3,3])
+    Asymm = get_symm_matrix(A)
+    return reduce_tensor_to_vector_form(Asymm)
+    
 def vector_dot_matrix(v,A): #Test function written
     """Compute the vector resulting from a vector dotted with a matrix"""
     w = np.zeros([3,])
@@ -249,17 +255,17 @@ def T_to_V_mapping(indices,shape): #Test function written
     for n,i in enumerate(indices):
         index += i*reduce(lambda x, y: x*y, shape[(n+1):],1)
         
-    return index
+    return int(index)
     
 def V_to_T_mapping(index,shape): #Test function written
     """Map a vector index to the tensor indices"""
     
-    indices = np.zeros([len(shape),])
+    indices = np.zeros([len(shape),]).astype(int)
     
     for n,i in enumerate(range(len(shape))):
         factor     = int(reduce(lambda x, y: x*y, shape[(n+1):],1))
         indices[n] = int(index)/int(reduce(lambda x, y: x*y, shape[(n+1):],1))
-        index  %= factor
+        index  %= int(factor)
     return indices
     
 def V_to_M_mapping(index,shape): #Test function written (contained in convert_V_to_M)
@@ -594,6 +600,15 @@ class TestHex8(unittest.TestCase):
         Asymm = 0.5*(A+A.T)
         AsymmA = get_symm_matrix(A)
         self.assertEqual(np.allclose(Asymm,AsymmA),True)
+        
+    def test_get_symm_matrix_V(self):
+        """Test getting the symmetric part of a matrix in vector form"""
+        V      = np.array(range(9))
+        Asymm  = get_symm_matrix_V(V)
+        At     = convert_V_to_T(V,[3,3])
+        AsymmT = 0.5*(At+At.T)
+        AsymmT = reduce_tensor_to_vector_form(AsymmT)
+        self.assertTrue(np.allclose(Asymm,AsymmT))
         
     def test_T_to_V_mapping(self):
         """Test the mapping from the tensor indices to the vector form index"""
