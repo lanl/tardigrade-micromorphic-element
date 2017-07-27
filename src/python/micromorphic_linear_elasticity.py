@@ -321,3 +321,6 @@ class TestMicro_LE(unittest.TestCase):
         """Redefine run to keep track of results"""
         self.currentResult = result
         unittest.TestCase.run(self,result)
+
+if __name__ == '__main__':
+    unittest.main()
