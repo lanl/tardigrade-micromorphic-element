@@ -3,22 +3,29 @@ import hex8
 import finite_difference as fd
 import unittest
 import os
+
+from hex8 import T_to_V_mapping as T2V
+from hex8 import V_to_T_mapping as V2T
+
 """
-==================================
-| Micromorphic Linear Elasticity |
-==================================
-
-A constitutive model for micromorphic
-linear elasticity. Written in a style
-which will be simple to port to Abaqus
-for use in finite element simulations.
-
-Model derived from a quadratic form of
-the Helmholtz free energy detailed in
-"Nonlinear Micromorphic Continuum 
-Mechanics and Finite Strain 
-Elastoplasticity" by Dr. Richard Regueiro
-with expansions by Nathan Miller
+==============================================
+|                                            |
+|       Micromorphic Linear Elasticity       |
+|                                            |
+==============================================
+|                                            |
+| A constitutive model for micromorphic      |
+| linear elasticity. Written in a style      |
+| which will be simple to port to Abaqus     |
+| for use in finite element simulations.     |
+|                                            |
+| Model derived from a quadratic form of     |
+| the Helmholtz free energy detailed in      |
+| "Nonlinear Micromorphic Continuum          |
+| Mechanics and Finite Strain                |
+| Elastoplasticity" by Dr. Richard Regueiro  |
+| with expansions by Nathan Miller           |
+==============================================
 """
 
 #Compute strain measures
@@ -42,7 +49,7 @@ def compute_dCinvdC(C):
 
 ###### Form Stiffness Tensors ######
 
-def form_stiffness_tensors(params):
+def form_stiffness_tensors(PARAMS): #Test function written
     """Form the stiffness tensors"""
     LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS = PARAMS
     AFOT = form_A(LAMBDA,MU)
@@ -51,32 +58,35 @@ def form_stiffness_tensors(params):
     DFOT = form_D(TAU,SIGMA)
     return AFOT,BFOT,CFOT,DFOT
     
-def form_A(LAMBDA,MU):
+def form_A(LAMBDA,MU): #Test function written
     """Form the A stiffness tensor"""
-    A = np.zeros([3,3,3,3])
+    A = np.zeros([3*3*3*3])
     I = np.eye(3)
     for k in range(3):
         for l in range(3):
             for m in range(3):
                 for n in range(3):
-                    A[k,l,m,n] = LAMBDA*I[k,l]*I[m,n] + MU*(I[k,m]*I[l,n]+I[k,n]*I[l,m])
+                    KLMN = T2V([k,l,m,n],[3,3,3,3])
+                    A[KLMN] = LAMBDA*I[k,l]*I[m,n] + MU*(I[k,m]*I[l,n]+I[k,n]*I[l,m])
     return A
     
-def form_B(ETA,TAU,KAPPA,NU,SIGMA):
+def form_B(ETA,TAU,KAPPA,NU,SIGMA): #Test function written
     """Form the B stiffness tensor"""
-    B = np.zeros([3,3,3,3])
+    B = np.zeros([3*3*3*3])
     I = np.eye(3)
     for k in range(3):
         for l in range(3):
             for m in range(3):
                 for n in range(3):
-                    B[k,l,m,n] = (ETA-TAU)*I[k,l]*I[m,n]+KAPPA*I[k,m]*I[l,n]+NU*I[k,n]*I[l,m]\
-                                 -SIGMA*(I[k,m]*I[l,n]+I[k,n]*I[l,m])
+                    KLMN = T2V([k,l,m,n],[3,3,3,3])
+                    B[KLMN] = (ETA-TAU)*I[k,l]*I[m,n]+KAPPA*I[k,m]*I[l,n]+NU*I[k,n]*I[l,m]\
+                              -SIGMA*(I[k,m]*I[l,n]+I[k,n]*I[l,m])
+    return B
                                  
-def form_C(TAUS):
+def form_C(TAUS): #Test function written
     """Form the C stiffness tensor"""
     TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11 = TAUS
-    C = np.zeros([3,3,3,3,3,3])
+    C = np.zeros([3*3*3*3*3*3])
     I = np.eye(3)
     for k in range(3):
         for l in range(3):
@@ -84,23 +94,27 @@ def form_C(TAUS):
                 for n in range(3):
                     for p in range(3):
                         for q in range(3):
-                            C[k,l,m,n,p,q] = TAU1*(I[k,l]*I[m,n]*I[p,q]+I[k,q]*I[l,m]*I[n,p])\
-                                            +TAU2*(I[k,l]*I[m,p]*I[n,q]+I[k,m]*I[l,q]*I[n,p])\
-                                            +TAU3*I[k,l]*I[m,q]*I[n,p]+TAU4*I[k,n]*I[l,m]*I[p,q]\
-                                            +TAU5*(I[k,m]*I[l,n]*I[p,q]+I[k,p]*I[l,m]*I[n,q])\
-                                            +TAU6*I[k,m]*I[l,p]*I[n,q]+TAU7*I[k,n]*I[l,p]*I[m,q]\
-                                            +TAU8*(I[k,p]*I[l,q]*I[m,n]+I[k,q]*I[l,n]*I[m,p])+TAU9*I[k,n]*I[l,q]*I[m,p]\
-                                            +TAU10*I[k,p]*I[l,n]*I[m,q]+TAU11*I[k,q]*I[l,p]*I[m,n]
+                            KLMNPQ = T2V([k,l,m,n,p,q],[3,3,3,3,3,3])
+                            C[KLMNPQ] = TAU1*(I[k,l]*I[m,n]*I[p,q]+I[k,q]*I[l,m]*I[n,p])\
+                                       +TAU2*(I[k,l]*I[m,p]*I[n,q]+I[k,m]*I[l,q]*I[n,p])\
+                                       +TAU3*I[k,l]*I[m,q]*I[n,p]+TAU4*I[k,n]*I[l,m]*I[p,q]\
+                                       +TAU5*(I[k,m]*I[l,n]*I[p,q]+I[k,p]*I[l,m]*I[n,q])\
+                                       +TAU6*I[k,m]*I[l,p]*I[n,q]+TAU7*I[k,n]*I[l,p]*I[m,q]\
+                                       +TAU8*(I[k,p]*I[l,q]*I[m,n]+I[k,q]*I[l,n]*I[m,p])+TAU9*I[k,n]*I[l,q]*I[m,p]\
+                                       +TAU10*I[k,p]*I[l,n]*I[m,q]+TAU11*I[k,q]*I[l,p]*I[m,n]
+    return C
 
-def form_D(TAU,SIGMA):
+def form_D(TAU,SIGMA): #Test function written
     """Form the D stiffness Matrix"""
-    D = np.zeros([3,3])
+    D = np.zeros([3*3*3*3])
     I = np.eye(3)
     for k in range(3):
-        for j in range(3):
+        for l in range(3):
             for m in range(3):
                 for n in range(3):
-                    D[k,l,m,n] = TAU*I[k,l]*I[m,n]+SIGMA*(I[k,m]*I[l,n]+I[k,n]*I[l,m])       
+                    KLMN = T2V([k,l,m,n],[3,3,3,3])
+                    D[KLMN] = TAU*I[k,l]*I[m,n]+SIGMA*(I[k,m]*I[l,n]+I[k,n]*I[l,m])
+    return D
     
 ###### Compute Stresses ######
     
@@ -321,6 +335,116 @@ class TestMicro_LE(unittest.TestCase):
         """Redefine run to keep track of results"""
         self.currentResult = result
         unittest.TestCase.run(self,result)
+        
+    def test_form_A(self):
+        """Test forming the A stiffness tensor"""
+        LAMBDA = 2.4
+        MU     = 6.7
+        
+        A = form_A(LAMBDA,MU)
+        
+        I = np.eye(3)
+        At = np.zeros([3,3,3,3])
+        
+        for K in range(3):
+            for L in range(3):
+                for M in range(3):
+                    for N in range(3):
+                        At[K,L,M,N] = LAMBDA*I[K,L]*I[M,N] + MU*(I[K,M]*I[L,N] + I[K,N]*I[L,M])
+        At = hex8.reduce_tensor_to_vector_form(At)
+        
+        self.assertEqual(np.allclose(A,At),True)
+        
+    def test_form_B(self):
+        """Test forming the B stiffness tensor"""
+        ETA,TAU,KAPPA,NU,SIGMA = 2.4,5.1,5.6,8.2,2.
+        
+        B  = form_B(ETA,TAU,KAPPA,NU,SIGMA)
+        
+        I  = np.eye(3)
+        Bt = np.zeros([3,3,3,3])
+        
+        for K in range(3):
+            for L in range(3):
+                for M in range(3):
+                    for N in range(3):
+                        Bt[K,L,M,N] = (ETA-TAU)*I[K,L]*I[M,N] + KAPPA*I[K,M]*I[L,N] + NU*I[K,N]*I[L,M]\
+                                      -SIGMA*(I[K,M]*I[L,N]+I[K,N]*I[L,M])
+        Bt = hex8.reduce_tensor_to_vector_form(Bt)                        
+        self.assertEqual(np.allclose(B,Bt),True)
+        
+    def test_form_C(self):
+        """Test forming the C stiffness tensor"""
+        TAUS = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+         
+        C = form_C(TAUS)
+        I = np.eye(3)
+        
+        Ct = np.zeros([3,3,3,3,3,3])
+        
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11 = TAUS
+        
+        for K in range(3):
+            for L in range(3):
+                for M in range(3):
+                    for N in range(3):
+                        for P in range(3):
+                            for Q in range(3):
+                                Ct[K,L,M,N,P,Q] = TAU1*(I[K,L]*I[M,N]*I[P,Q] + I[K,Q]*I[L,M]*I[N,P])\
+                                                 +TAU2*(I[K,L]*I[M,P]*I[N,Q] + I[K,M]*I[L,Q]*I[N,P])\
+                                                 +TAU3*I[K,L]*I[M,Q]*I[N,P]  + TAU4*I[K,N]*I[L,M]*I[P,Q]\
+                                                 +TAU5*(I[K,M]*I[L,N]*I[P,Q] + I[K,P]*I[L,M]*I[N,Q])\
+                                                 +TAU6*I[K,M]*I[L,P]*I[N,Q]  + TAU7*I[K,N]*I[L,P]*I[M,Q]\
+                                                 +TAU8*(I[K,P]*I[L,Q]*I[M,N] + I[K,Q]*I[L,N]*I[M,P])\
+                                                 +TAU9*I[K,N]*I[L,Q]*I[M,P]  + TAU10*I[K,P]*I[L,N]*I[M,Q]\
+                                                 +TAU11*I[K,Q]*I[L,P]*I[M,N]
+        Ct = hex8.reduce_tensor_to_vector_form(Ct)
+        
+        self.assertEqual(np.allclose(C,Ct),True)
 
+    def test_form_D(self):
+        """Test forming the D stiffness tensor"""
+        TAU   = 5.1
+        SIGMA = 2.
+        
+        I = np.eye(3)
+        
+        D = form_D(TAU,SIGMA)
+        
+        Dt = np.zeros([3,3,3,3])
+        
+        for K in range(3):
+            for L in range(3):
+                for M in range(3):
+                    for N in range(3):
+                        Dt[K,L,M,N] = TAU*I[K,L]*I[M,N]+SIGMA*(I[K,M]*I[L,N]+I[K,N]*I[L,M])
+        Dt = hex8.reduce_tensor_to_vector_form(Dt)
+        
+        self.assertEqual(np.allclose(D,Dt),True)
+        
+    def test_form_stiffness_tensors(self):
+        """Test forming the stiffness tensors"""
+        LAMBDA = 2.4
+        MU     = 6.7
+        ETA    = 2.4
+        TAU    = 5.1
+        KAPPA  = 5.6
+        NU     = 8.2
+        SIGMA  = 2.
+        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        
+        A,B,C,D = form_stiffness_tensors(PARAMS)
+        
+        At = form_A(LAMBDA,MU)
+        Bt = form_B(ETA,TAU,KAPPA,NU,SIGMA)
+        Ct = form_C(TAUS)
+        Dt = form_D(TAU,SIGMA)
+        
+        self.assertTrue(np.allclose(A,At))
+        self.assertTrue(np.allclose(B,Bt))
+        self.assertTrue(np.allclose(C,Ct))
+        self.assertTrue(np.allclose(D,Dt))
+        
 if __name__ == '__main__':
     unittest.main()
