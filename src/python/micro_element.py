@@ -7,14 +7,18 @@ import micromorphic_linear_elasticity as micro_LE
 from hex8 import T_to_V_mapping as T2V
 from hex8 import V_to_T_mapping as V2T
 
-"""Definition of a 3D Micromorphic Element"""
-
-###### Main Subroutine ######
-# Intended to mimic an      #
-# Abaqus UEL to allow for   #
-# easy transfer between     #
-# codes                     #
-#############################
+"""===========================================
+|                                         |
+| Definition of a 3D Micromorphic Element |
+|                                         |
+===========================================
+| Intended to mimic an Abaqus UEL to      |
+| allow easy transfer between codes. This |
+| code has not been written for speed but |
+| for more clarity while minimizing the   |
+| dependence upon specialized python      |
+| functions in the non-testing areas.     |
+==========================================="""
 
 def UEL(RHS,AMATRX,SVARS,ENERGY,NDOFEL,NRHS,NSVARS,\
         PROPS,NPROPS,COORDS,MCRD,NNODE,U,DU,V,A,JTYPE,TIME,DTIME,\
@@ -412,7 +416,7 @@ def get_deformation_measures(F,chi,grad_chi): #Test function written
     return C,Phi,Gamma
     
 ###### Compute Derivatives of Deformation Measures ######
-def compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU):
+def compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU): #Test function written
     """Compute the derivatives of the deformation measures"""
     dCdU     = compute_dCdU(F,dFdU)
     dPhidU   = compute_dPhidU(F,chi,dFdU,dchidU)
@@ -518,131 +522,6 @@ def compute_dPhidUn(n,F,chi,dFdU,dchidU): #Test function written (part of test_c
                     
                     dPhidUn[IJK] += chi[iJ]*dFdU[iIK] + F[iI]*dchidU[iJK]
     return dPhidUn
-    # dPhidUn = np.zeros([9,12])
-    # #Set the indices
-    # I1  = 0
-    # I2  = 1
-    # I3  = 2
-    # I4  = 3
-    # I5  = 4
-    # I6  = 5
-    # I7  = 6
-    # I8  = 7
-    # I9  = 8
-    # I10 = 9
-    # I11 = 10
-    # I12 = 11
-    
-    # #Extract the required values
-    # F11 = F[I1,I1]
-    # F22 = F[I2,I2]
-    # F33 = F[I3,I3]
-    # F23 = F[I2,I3]
-    # F13 = F[I1,I3]
-    # F12 = F[I1,I2]
-    # F32 = F[I3,I2]
-    # F31 = F[I3,I1]
-    # F21 = F[I2,I1]
-    
-    # chi11 = chi[I1,I1]
-    # chi22 = chi[I2,I2]
-    # chi33 = chi[I3,I3]
-    # chi23 = chi[I2,I3]
-    # chi13 = chi[I1,I3]
-    # chi12 = chi[I1,I2]
-    # chi32 = chi[I3,I2]
-    # chi31 = chi[I3,I1]
-    # chi21 = chi[I2,I1]
-    
-    # dFdU11 = dFdU[I1,  12*n]
-    # dFdU22 = dFdU[I2,12*n+1]
-    # dFdU33 = dFdU[I3,12*n+2]
-    # dFdU23 = dFdU[I4,12*n+1]
-    # dFdU13 = dFdU[I5,  12*n]
-    # dFdU12 = dFdU[I6,  12*n]
-    # dFdU32 = dFdU[I7,12*n+2]
-    # dFdU31 = dFdU[I8,12*n+2]
-    # dFdU21 = dFdU[I9,12*n+1]
-    
-    # dchidU11 = dchidU[I1, I4+12*n]
-    # dchidU22 = dchidU[I2, I5+12*n]
-    # dchidU33 = dchidU[I3, I6+12*n]
-    # dchidU23 = dchidU[I4, I7+12*n]
-    # dchidU13 = dchidU[I5, I8+12*n]
-    # dchidU12 = dchidU[I6, I9+12*n]
-    # dchidU32 = dchidU[I7,I10+12*n]
-    # dchidU31 = dchidU[I8,I11+12*n]
-    # dchidU21 = dchidU[I9,I12+12*n]
-    
-    # #Assemble the submatrix
-    # #Column 1
-    # dPhidUn[I1,I1]  = chi11*dFdU11
-    # dPhidUn[I2,I1]  = chi12*dFdU12
-    # dPhidUn[I3,I1]  = chi13*dFdU13
-    # dPhidUn[I4,I1]  = chi13*dFdU12
-    # dPhidUn[I5,I1]  = chi13*dFdU11
-    # dPhidUn[I6,I1]  = chi12*dFdU11
-    # dPhidUn[I7,I1]  = chi12*dFdU13
-    # dPhidUn[I8,I1]  = chi11*dFdU13
-    # dPhidUn[I9,I1]  = chi11*dFdU12
-    # #Column 2
-    # dPhidUn[I1,I2]  = chi21*dFdU21 
-    # dPhidUn[I2,I2]  = chi22*dFdU22
-    # dPhidUn[I3,I2]  = chi23*dFdU23
-    # dPhidUn[I4,I2]  = chi23*dFdU22
-    # dPhidUn[I5,I2]  = chi23*dFdU21
-    # dPhidUn[I6,I2]  = chi22*dFdU21
-    # dPhidUn[I7,I2]  = chi22*dFdU23
-    # dPhidUn[I8,I2]  = chi21*dFdU23
-    # dPhidUn[I9,I2]  = chi21*dFdU22
-    # #Column 3
-    # dPhidUn[I1,I3]  = chi31*dFdU31
-    # dPhidUn[I2,I3]  = chi32*dFdU32
-    # dPhidUn[I3,I3]  = chi33*dFdU33
-    # dPhidUn[I4,I3]  = chi33*dFdU32
-    # dPhidUn[I5,I3]  = chi33*dFdU31
-    # dPhidUn[I6,I3]  = chi32*dFdU31
-    # dPhidUn[I7,I3]  = chi32*dFdU33
-    # dPhidUn[I8,I3]  = chi31*dFdU33
-    # dPhidUn[I9,I3]  = chi31*dFdU32
-    # #Column  4
-    # dPhidUn[I1,I4]  = F11*dchidU11
-    # dPhidUn[I8,I4]  = F13*dchidU11
-    # dPhidUn[I9,I4]  = F12*dchidU11
-    # #Column  5
-    # dPhidUn[I2,I5]  = F22*dchidU22
-    # dPhidUn[I6,I5]  = F21*dchidU22
-    # dPhidUn[I7,I5]  = F23*dchidU22
-    # #Column  6
-    # dPhidUn[I3,I6]  = F33*dchidU33
-    # dPhidUn[I4,I6]  = F32*dchidU33
-    # dPhidUn[I5,I6]  = F31*dchidU33
-    # #Column  7
-    # dPhidUn[I3,I7]  = F23*dchidU23
-    # dPhidUn[I4,I7]  = F22*dchidU23
-    # dPhidUn[I5,I7]  = F21*dchidU23
-    # #Column  8
-    # dPhidUn[I3,I8]  = F13*dchidU13
-    # dPhidUn[I4,I8]  = F12*dchidU13
-    # dPhidUn[I5,I8]  = F11*dchidU13
-    # #Column  9
-    # dPhidUn[I2,I9]  = F12*dchidU12
-    # dPhidUn[I6,I9]  = F11*dchidU12
-    # dPhidUn[I7,I9]  = F13*dchidU12
-    # #Column 10
-    # dPhidUn[I2,I10] = F32*dchidU32
-    # dPhidUn[I6,I10] = F31*dchidU32
-    # dPhidUn[I7,I10] = F33*dchidU32
-    # #Column 11
-    # dPhidUn[I1,I11] = F31*dchidU31
-    # dPhidUn[I8,I11] = F33*dchidU31
-    # dPhidUn[I9,I11] = F32*dchidU31
-    # #Column 12
-    # dPhidUn[I1,I12] = F21*dchidU21
-    # dPhidUn[I8,I12] = F23*dchidU21
-    # dPhidUn[I9,I12] = F22*dchidU21
-    
-    return dPhidUn
     
 def compute_dGammadU(F,grad_chi,dFdU,dgrad_chidU): #Test function written
     """Compute the derivative of the deformation measure
@@ -679,315 +558,7 @@ def compute_dGammadUn(n,F,grad_chi,dFdU,dgrad_chidU): #Test function written (co
                         iJLK = T2V([i,J,L,K+12*n],[3,3,3,96])
                     
                         dGammadUn[IJLK] += grad_chi[iJL]*dFdU[iIK]+F[iI]*dgrad_chidU[iJLK]
-    return dGammadUn
-    # #Initialize the array
-    # dGammadUn = np.zeros([27,12])
-    
-    # #Set the indices
-    # I1  = 0
-    # I2  = 1
-    # I3  = 2
-    # I4  = 3
-    # I5  = 4
-    # I6  = 5
-    # I7  = 6
-    # I8  = 7
-    # I9  = 8
-    # I10 = 9
-    # I11 = 10
-    # I12 = 11
-    
-    # #Extract the required values
-    
-    # #Extract F
-    # F11 = F[I1,I1]
-    # F22 = F[I2,I2]
-    # F33 = F[I3,I3]
-    # F23 = F[I2,I3]
-    # F13 = F[I1,I3]
-    # F12 = F[I1,I2]
-    # F32 = F[I3,I2]
-    # F31 = F[I3,I1]
-    # F21 = F[I2,I1]
-    
-    # #Extract the gradient of chi
-    # grad_chi111 = grad_chi[I1,I1,I1]
-    # grad_chi221 = grad_chi[I2,I2,I1]
-    # grad_chi331 = grad_chi[I3,I3,I1]
-    # grad_chi231 = grad_chi[I2,I3,I1]
-    # grad_chi131 = grad_chi[I1,I3,I1]
-    # grad_chi121 = grad_chi[I1,I2,I1]
-    # grad_chi321 = grad_chi[I3,I2,I1]
-    # grad_chi311 = grad_chi[I3,I1,I1]
-    # grad_chi211 = grad_chi[I2,I1,I1]
-    
-    # grad_chi112 = grad_chi[I1,I1,I2]
-    # grad_chi222 = grad_chi[I2,I2,I2]
-    # grad_chi332 = grad_chi[I3,I3,I2]
-    # grad_chi232 = grad_chi[I2,I3,I2]
-    # grad_chi132 = grad_chi[I1,I3,I2]
-    # grad_chi122 = grad_chi[I1,I2,I2]
-    # grad_chi322 = grad_chi[I3,I2,I2]
-    # grad_chi312 = grad_chi[I3,I1,I2]
-    # grad_chi212 = grad_chi[I2,I1,I2]
-    
-    # grad_chi113 = grad_chi[I1,I1,I3]
-    # grad_chi223 = grad_chi[I2,I2,I3]
-    # grad_chi333 = grad_chi[I3,I3,I3]
-    # grad_chi233 = grad_chi[I2,I3,I3]
-    # grad_chi133 = grad_chi[I1,I3,I3]
-    # grad_chi123 = grad_chi[I1,I2,I3]
-    # grad_chi323 = grad_chi[I3,I2,I3]
-    # grad_chi313 = grad_chi[I3,I1,I3]
-    # grad_chi213 = grad_chi[I2,I1,I3]
-    
-    # #Extract dFdU
-    # dFdU11 = dFdU[I1,  12*n]
-    # dFdU22 = dFdU[I2,12*n+1]
-    # dFdU33 = dFdU[I3,12*n+2]
-    # dFdU23 = dFdU[I4,12*n+1]
-    # dFdU13 = dFdU[I5,  12*n]
-    # dFdU12 = dFdU[I6,  12*n]
-    # dFdU32 = dFdU[I7,12*n+2]
-    # dFdU31 = dFdU[I8,12*n+2]
-    # dFdU21 = dFdU[I9,12*n+1]
-    
-    # #Extract dgrad_chidU
-    # dgrad_chidU111 = dgrad_chidU[   I1, I4+12*n]
-    # dgrad_chidU221 = dgrad_chidU[   I2, I5+12*n]
-    # dgrad_chidU331 = dgrad_chidU[   I3, I6+12*n]
-    # dgrad_chidU231 = dgrad_chidU[   I4, I7+12*n]
-    # dgrad_chidU131 = dgrad_chidU[   I5, I8+12*n]
-    # dgrad_chidU121 = dgrad_chidU[   I6, I9+12*n]
-    # dgrad_chidU321 = dgrad_chidU[   I7,I10+12*n]
-    # dgrad_chidU311 = dgrad_chidU[   I8,I11+12*n]
-    # dgrad_chidU211 = dgrad_chidU[   I9,I12+12*n]
-    
-    # dgrad_chidU112 = dgrad_chidU[ I1+9, I4+12*n]
-    # dgrad_chidU222 = dgrad_chidU[ I2+9, I5+12*n]
-    # dgrad_chidU332 = dgrad_chidU[ I3+9, I6+12*n]
-    # dgrad_chidU232 = dgrad_chidU[ I4+9, I7+12*n]
-    # dgrad_chidU132 = dgrad_chidU[ I5+9, I8+12*n]
-    # dgrad_chidU122 = dgrad_chidU[ I6+9, I9+12*n]
-    # dgrad_chidU322 = dgrad_chidU[ I7+9,I10+12*n]
-    # dgrad_chidU312 = dgrad_chidU[ I8+9,I11+12*n]
-    # dgrad_chidU212 = dgrad_chidU[ I9+9,I12+12*n]
-    
-    # dgrad_chidU113 = dgrad_chidU[I1+18, I4+12*n]
-    # dgrad_chidU223 = dgrad_chidU[I2+18, I5+12*n]
-    # dgrad_chidU333 = dgrad_chidU[I3+18, I6+12*n]
-    # dgrad_chidU233 = dgrad_chidU[I4+18, I7+12*n]
-    # dgrad_chidU133 = dgrad_chidU[I5+18, I8+12*n]
-    # dgrad_chidU123 = dgrad_chidU[I6+18, I9+12*n]
-    # dgrad_chidU323 = dgrad_chidU[I7+18,I10+12*n]
-    # dgrad_chidU313 = dgrad_chidU[I8+18,I11+12*n]
-    # dgrad_chidU213 = dgrad_chidU[I9+18,I12+12*n]
-    
-    # #Assemble the submatrix
-    # #Column 1
-
-    # #print I1+9
-    # #print I1+18
-    # #print dFdU11*grad_chi112
-    
-    # dGammadUn[   I1,I1] = dFdU11*grad_chi111
-    # dGammadUn[   I2,I1] = dFdU12*grad_chi121
-    # dGammadUn[   I3,I1] = dFdU13*grad_chi131
-    # dGammadUn[   I4,I1] = dFdU12*grad_chi131
-    # dGammadUn[   I5,I1] = dFdU11*grad_chi131
-    # dGammadUn[   I6,I1] = dFdU11*grad_chi121
-    # dGammadUn[   I7,I1] = dFdU13*grad_chi121
-    # dGammadUn[   I8,I1] = dFdU13*grad_chi111
-    # dGammadUn[   I9,I1] = dFdU12*grad_chi111
-    # dGammadUn[ I1+9,I1] = dFdU11*grad_chi112
-    # dGammadUn[ I2+9,I1] = dFdU12*grad_chi122
-    # dGammadUn[ I3+9,I1] = dFdU13*grad_chi132
-    # dGammadUn[ I4+9,I1] = dFdU12*grad_chi132
-    # dGammadUn[ I5+9,I1] = dFdU11*grad_chi132
-    # dGammadUn[ I6+9,I1] = dFdU11*grad_chi122
-    # dGammadUn[ I7+9,I1] = dFdU13*grad_chi122
-    # dGammadUn[ I8+9,I1] = dFdU13*grad_chi112
-    # dGammadUn[ I9+9,I1] = dFdU12*grad_chi112
-    # dGammadUn[I1+18,I1] = dFdU11*grad_chi113
-    # dGammadUn[I2+18,I1] = dFdU12*grad_chi123
-    # dGammadUn[I3+18,I1] = dFdU13*grad_chi133
-    # dGammadUn[I4+18,I1] = dFdU12*grad_chi133
-    # dGammadUn[I5+18,I1] = dFdU11*grad_chi133
-    # dGammadUn[I6+18,I1] = dFdU11*grad_chi123
-    # dGammadUn[I7+18,I1] = dFdU13*grad_chi123
-    # dGammadUn[I8+18,I1] = dFdU13*grad_chi113
-    # dGammadUn[I9+18,I1] = dFdU12*grad_chi113
-
-    # #Column 2
-
-    # dGammadUn[   I1,I2] = dFdU21*grad_chi211
-    # dGammadUn[   I2,I2] = dFdU22*grad_chi221
-    # dGammadUn[   I3,I2] = dFdU23*grad_chi231
-    # dGammadUn[   I4,I2] = dFdU22*grad_chi231
-    # dGammadUn[   I5,I2] = dFdU21*grad_chi231
-    # dGammadUn[   I6,I2] = dFdU21*grad_chi221
-    # dGammadUn[   I7,I2] = dFdU23*grad_chi221
-    # dGammadUn[   I8,I2] = dFdU23*grad_chi211
-    # dGammadUn[   I9,I2] = dFdU22*grad_chi211
-    # dGammadUn[ I1+9,I2] = dFdU21*grad_chi212
-    # dGammadUn[ I2+9,I2] = dFdU22*grad_chi222
-    # dGammadUn[ I3+9,I2] = dFdU23*grad_chi232
-    # dGammadUn[ I4+9,I2] = dFdU22*grad_chi232
-    # dGammadUn[ I5+9,I2] = dFdU21*grad_chi232
-    # dGammadUn[ I6+9,I2] = dFdU21*grad_chi222
-    # dGammadUn[ I7+9,I2] = dFdU23*grad_chi222
-    # dGammadUn[ I8+9,I2] = dFdU23*grad_chi212
-    # dGammadUn[ I9+9,I2] = dFdU22*grad_chi212
-    # dGammadUn[I1+18,I2] = dFdU21*grad_chi213
-    # dGammadUn[I2+18,I2] = dFdU22*grad_chi223
-    # dGammadUn[I3+18,I2] = dFdU23*grad_chi233
-    # dGammadUn[I4+18,I2] = dFdU22*grad_chi233
-    # dGammadUn[I5+18,I2] = dFdU21*grad_chi233
-    # dGammadUn[I6+18,I2] = dFdU21*grad_chi223
-    # dGammadUn[I7+18,I2] = dFdU23*grad_chi223
-    # dGammadUn[I8+18,I2] = dFdU23*grad_chi213
-    # dGammadUn[I9+18,I2] = dFdU22*grad_chi213
-
-    # #Column 3
-
-    # dGammadUn[   I1,I3] = dFdU31*grad_chi311
-    # dGammadUn[   I2,I3] = dFdU32*grad_chi321
-    # dGammadUn[   I3,I3] = dFdU33*grad_chi331
-    # dGammadUn[   I4,I3] = dFdU32*grad_chi331
-    # dGammadUn[   I5,I3] = dFdU31*grad_chi331
-    # dGammadUn[   I6,I3] = dFdU31*grad_chi321
-    # dGammadUn[   I7,I3] = dFdU33*grad_chi321
-    # dGammadUn[   I8,I3] = dFdU33*grad_chi311
-    # dGammadUn[   I9,I3] = dFdU32*grad_chi311
-    # dGammadUn[ I1+9,I3] = dFdU31*grad_chi312
-    # dGammadUn[ I2+9,I3] = dFdU32*grad_chi322
-    # dGammadUn[ I3+9,I3] = dFdU33*grad_chi332
-    # dGammadUn[ I4+9,I3] = dFdU32*grad_chi332
-    # dGammadUn[ I5+9,I3] = dFdU31*grad_chi332
-    # dGammadUn[ I6+9,I3] = dFdU31*grad_chi322
-    # dGammadUn[ I7+9,I3] = dFdU33*grad_chi322
-    # dGammadUn[ I8+9,I3] = dFdU33*grad_chi312
-    # dGammadUn[ I9+9,I3] = dFdU32*grad_chi312
-    # dGammadUn[I1+18,I3] = dFdU31*grad_chi313
-    # dGammadUn[I2+18,I3] = dFdU32*grad_chi323
-    # dGammadUn[I3+18,I3] = dFdU33*grad_chi333
-    # dGammadUn[I4+18,I3] = dFdU32*grad_chi333
-    # dGammadUn[I5+18,I3] = dFdU31*grad_chi333
-    # dGammadUn[I6+18,I3] = dFdU31*grad_chi323
-    # dGammadUn[I7+18,I3] = dFdU33*grad_chi323
-    # dGammadUn[I8+18,I3] = dFdU33*grad_chi313
-    # dGammadUn[I9+18,I3] = dFdU32*grad_chi313
-
-    # #Column 4
-
-    # dGammadUn[   I1,I4] = F11*dgrad_chidU111
-    # dGammadUn[   I8,I4] = F13*dgrad_chidU111
-    # dGammadUn[   I9,I4] = F12*dgrad_chidU111
-    # dGammadUn[ I1+9,I4] = F11*dgrad_chidU112
-    # dGammadUn[ I8+9,I4] = F13*dgrad_chidU112
-    # dGammadUn[ I9+9,I4] = F12*dgrad_chidU112
-    # dGammadUn[I1+18,I4] = F11*dgrad_chidU113
-    # dGammadUn[I8+18,I4] = F13*dgrad_chidU113
-    # dGammadUn[I9+18,I4] = F12*dgrad_chidU113
-
-    # #Column 5
-
-    # dGammadUn[   I2,I5] = F22*dgrad_chidU221
-    # dGammadUn[   I6,I5] = F21*dgrad_chidU221
-    # dGammadUn[   I7,I5] = F23*dgrad_chidU221
-    # dGammadUn[ I2+9,I5] = F22*dgrad_chidU222
-    # dGammadUn[ I6+9,I5] = F21*dgrad_chidU222
-    # dGammadUn[ I7+9,I5] = F23*dgrad_chidU222
-    # dGammadUn[I2+18,I5] = F22*dgrad_chidU223
-    # dGammadUn[I6+18,I5] = F21*dgrad_chidU223
-    # dGammadUn[I7+18,I5] = F23*dgrad_chidU223
-
-    # #Column 6
-
-    # dGammadUn[   I3,I6] = F33*dgrad_chidU331
-    # dGammadUn[   I4,I6] = F32*dgrad_chidU331
-    # dGammadUn[   I5,I6] = F31*dgrad_chidU331
-    # dGammadUn[ I3+9,I6] = F33*dgrad_chidU332
-    # dGammadUn[ I4+9,I6] = F32*dgrad_chidU332
-    # dGammadUn[ I5+9,I6] = F31*dgrad_chidU332
-    # dGammadUn[I3+18,I6] = F33*dgrad_chidU333
-    # dGammadUn[I4+18,I6] = F32*dgrad_chidU333
-    # dGammadUn[I5+18,I6] = F31*dgrad_chidU333
-
-    # #Column 7
-
-    # dGammadUn[   I3,I7] = F23*dgrad_chidU231
-    # dGammadUn[   I4,I7] = F22*dgrad_chidU231
-    # dGammadUn[   I5,I7] = F21*dgrad_chidU231
-    # dGammadUn[ I3+9,I7] = F23*dgrad_chidU232
-    # dGammadUn[ I4+9,I7] = F22*dgrad_chidU232
-    # dGammadUn[ I5+9,I7] = F21*dgrad_chidU232
-    # dGammadUn[I3+18,I7] = F23*dgrad_chidU233
-    # dGammadUn[I4+18,I7] = F22*dgrad_chidU233
-    # dGammadUn[I5+18,I7] = F21*dgrad_chidU233
-
-    # #Column 8
-
-    # dGammadUn[   I3,I8] = F13*dgrad_chidU131
-    # dGammadUn[   I4,I8] = F12*dgrad_chidU131
-    # dGammadUn[   I5,I8] = F11*dgrad_chidU131
-    # dGammadUn[ I3+9,I8] = F13*dgrad_chidU132
-    # dGammadUn[ I4+9,I8] = F12*dgrad_chidU132
-    # dGammadUn[ I5+9,I8] = F11*dgrad_chidU132
-    # dGammadUn[I3+18,I8] = F13*dgrad_chidU133
-    # dGammadUn[I4+18,I8] = F12*dgrad_chidU133
-    # dGammadUn[I5+18,I8] = F11*dgrad_chidU133
-
-    # #Column 9
-
-    # dGammadUn[   I2,I9] = F12*dgrad_chidU121
-    # dGammadUn[   I6,I9] = F11*dgrad_chidU121
-    # dGammadUn[   I7,I9] = F13*dgrad_chidU121
-    # dGammadUn[ I2+9,I9] = F12*dgrad_chidU122
-    # dGammadUn[ I6+9,I9] = F11*dgrad_chidU122
-    # dGammadUn[ I7+9,I9] = F13*dgrad_chidU122
-    # dGammadUn[I2+18,I9] = F12*dgrad_chidU123
-    # dGammadUn[I6+18,I9] = F11*dgrad_chidU123
-    # dGammadUn[I7+18,I9] = F13*dgrad_chidU123
-
-    # #Column 10
-
-    # dGammadUn[   I2,I10] = F32*dgrad_chidU321
-    # dGammadUn[   I6,I10] = F31*dgrad_chidU321
-    # dGammadUn[   I7,I10] = F33*dgrad_chidU321
-    # dGammadUn[ I2+9,I10] = F32*dgrad_chidU322
-    # dGammadUn[ I6+9,I10] = F31*dgrad_chidU322
-    # dGammadUn[ I7+9,I10] = F33*dgrad_chidU322
-    # dGammadUn[I2+18,I10] = F32*dgrad_chidU323
-    # dGammadUn[I6+18,I10] = F31*dgrad_chidU323
-    # dGammadUn[I7+18,I10] = F33*dgrad_chidU323
-
-    # #Column 11
-
-    # dGammadUn[   I1,I11] = F31*dgrad_chidU311
-    # dGammadUn[   I8,I11] = F33*dgrad_chidU311
-    # dGammadUn[   I9,I11] = F32*dgrad_chidU311
-    # dGammadUn[ I1+9,I11] = F31*dgrad_chidU312
-    # dGammadUn[ I8+9,I11] = F33*dgrad_chidU312
-    # dGammadUn[ I9+9,I11] = F32*dgrad_chidU312
-    # dGammadUn[I1+18,I11] = F31*dgrad_chidU313
-    # dGammadUn[I8+18,I11] = F33*dgrad_chidU313
-    # dGammadUn[I9+18,I11] = F32*dgrad_chidU313
-
-    # #Column 12
-
-    # dGammadUn[   I1,I12] = F21*dgrad_chidU211
-    # dGammadUn[   I8,I12] = F23*dgrad_chidU211
-    # dGammadUn[   I9,I12] = F22*dgrad_chidU211
-    # dGammadUn[ I1+9,I12] = F21*dgrad_chidU212
-    # dGammadUn[ I8+9,I12] = F23*dgrad_chidU212
-    # dGammadUn[ I9+9,I12] = F22*dgrad_chidU212
-    # dGammadUn[I1+18,I12] = F21*dgrad_chidU213
-    # dGammadUn[I8+18,I12] = F23*dgrad_chidU213
-    # dGammadUn[I9+18,I12] = F22*dgrad_chidU213
-    
-    # return dGammadUn
-    
+    return dGammadUn    
     
 ###### Residual and Residual Gradient Calculations ######
     
@@ -3841,7 +3412,6 @@ class TestMicroElement(unittest.TestCase):
         self.assertEqual(np.allclose(chi,hex8.convert_M_to_V(hex8.reduce_tensor_to_matrix_form(chia),[3,3])),True)
         self.assertEqual(np.allclose(grad_chi,hex8.reduce_tensor_to_vector_form(grad_chia)),True)
         
-        
     def test_compute_F(self):
         """Test the computation of the deformation gradient"""
         
@@ -4327,6 +3897,39 @@ class TestMicroElement(unittest.TestCase):
         self.assertEqual(np.allclose(dchidUt,dchidU),True)
         self.assertEqual(np.allclose(dgrad_chidUt,dgrad_chidU),True)
         
+    def test_compute_DM_derivatives(self):
+        """Test the computation of the deformation measure derivatives"""
+        #Define the node coordinates
+        rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
+                   [-1.,-1., 1.],[1.,-1., 1.],[1.,1., 1.],[-1.,1., 1.]]
+        #Identify a point
+        Xs,Ys,Zs = zip(*rcoords)
+        X=sum(Xs)/len(Xs)
+        Y=sum(Ys)/len(Ys)
+        Z=sum(Zs)/len(Zs)
+        xi_vec = np.array([0.1,-0.27,0.3])
+        
+        #Get quantities of interest
+        Fanalytic,ccoords          = self._get_deformation_gradient_values(rcoords,[X,Y,Z])
+        chia,grad_chia,phi_vectors = self._get_chi_values(rcoords,[X,Y,Z])
+        
+        #Compute u
+        u_vecs = [[cc1-rc1,cc2-rc2,cc3-rc3] for (cc1,cc2,cc3),(rc1,rc2,rc3) in zip(ccoords,rcoords)]
+        #Create the dof vector
+        U = np.concatenate([np.concatenate((u_vec,phi_vec)) for u_vec,phi_vec in zip(u_vecs,phi_vectors)])
+        
+        F,chi,grad_chi          = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
+        dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
+        dCdU,dPhidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
+        
+        dCdUt     = compute_dCdU(F,dFdU)
+        dPhidUt   = compute_dPhidU(F,chi,dFdU,dchidU)
+        dGammadUt = compute_dGammadU(F,grad_chi,dFdU,dgrad_chidU)
+        
+        self.assertEqual(np.allclose(dCdUt,        dCdU),True)
+        self.assertEqual(np.allclose(dPhidUt,    dPhidU),True)
+        self.assertEqual(np.allclose(dGammadUt,dGammadU),True)
+        
     def _get_deformation_gradient_values(self,rcoords,X_vec):
         """Get the values required to compute the deformation gradient for testing"""
         #Define the deformation gradient
@@ -4457,7 +4060,6 @@ class TestMicroElement(unittest.TestCase):
                         chi32(c1,c2,c3),  chi31(c1,c2,c3),  chi21(c1,c2,c3)] for c1,c2,c3 in rcoords]
         
         return chi,grad_chi,phi_vectors
-        
         
     def _flatten_list(self,l):
         """Flatten list of lists"""
