@@ -1,2 +1,11 @@
 *.pyc
 *.pdf
+*.aux
+*.nav
+*.snm
+*.toc
+src/python/tests/unittests/*.txt
+doc/TheoryManual/*.out
+doc/TheoryManual/*.log
+doc/TheoryManual/*.gz
+test_results.txt
