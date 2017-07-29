@@ -32,7 +32,7 @@ from hex8 import V_to_T_mapping as V2T
 def get_deformation_measures(F,chi,grad_chi): #Test function written
     """Compute and return the deformation measures"""
     C   = hex8.matrix_Tdot_V(F,F)
-    Phi = hex8.matrix_Tdot_V(F,chi)
+    Psi = hex8.matrix_Tdot_V(F,chi)
     
     Gamma = np.zeros([27,])
     for I in range(3):
@@ -44,7 +44,7 @@ def get_deformation_measures(F,chi,grad_chi): #Test function written
                     Gindx = T2V([i,J,K],[3,3,3]) #Identify the index of the grad_chi vector
                     Gamma[index] += F[Findx]*grad_chi[Gindx]
     #Gamma = hex8.matrix_Tdot_TOT(F,grad_chi)
-    return C,Phi,Gamma
+    return C,Psi,Gamma
     
 #Compute strain measures
 
@@ -242,10 +242,10 @@ def compute_tangents(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma): #Test functio
     
     #Compute tangents
     dSdC,    dSigmadC,    dMdC     = compute_stress_derivatives_wrt_C(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cinv,Gamma,I,dCinvdC)
-    dSdPhi,  dSigmadPhi,  dMdPhi   = compute_stress_derivatives_wrt_Psi(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cinv,I)
+    dSdPsi,  dSigmadPsi,  dMdPsi   = compute_stress_derivatives_wrt_Psi(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cinv,I)
     dSdGamma,dSigmadGamma,dMdGamma = compute_stress_derivatives_wrt_Gamma(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cinv,Gamma)
     
-    return dSdC,dSdPhi,dSdGamma,dSigmadC,dSigmadPhi,dSigmadGamma,dMdC,dMdPhi,dMdGamma
+    return dSdC,dSdPsi,dSdGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma
 
 def compute_stress_derivatives_wrt_C(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cinv,Gamma,Iten,dCinvdC): #Test function written
     """Compute the stress derivatives w.r.t. C"""
@@ -399,7 +399,7 @@ def compute_stress_derivatives_wrt_Gamma(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cin
     
 ###### Call the model ######
 
-def micromorphic_linear_elasticity(F,chi,grad_chi,params):
+def micromorphic_linear_elasticity(F,chi,grad_chi,params): #Test function written
     """A constitutive model for micromorphic linear elasticity"""
     C,Psi,Gamma         = get_deformation_measures(F,chi,grad_chi)
     E_macro,E_micro     = compute_strain_measures(C,Psi)
@@ -581,13 +581,13 @@ class TestMicro_LE(unittest.TestCase):
         chi = np.array(range(9,18))
         
         C   = hex8.matrix_Tdot_V(F,F)
-        Phi = hex8.matrix_Tdot_V(F,chi)
+        Psi = hex8.matrix_Tdot_V(F,chi)
         I   = hex8.reduce_tensor_to_vector_form(np.eye(3))
         
-        E_macro,E_micro = compute_strain_measures(C,Phi)
+        E_macro,E_micro = compute_strain_measures(C,Psi)
         
         E_macrot = 0.5*(C-I)
-        E_microt = Phi-I
+        E_microt = Psi-I
         
         self.assertTrue(np.allclose(E_macro,E_macrot))
         self.assertTrue(np.allclose(E_micro,E_microt))
@@ -629,7 +629,7 @@ class TestMicro_LE(unittest.TestCase):
         
         C   = hex8.matrix_Tdot_V(F,F)
         Cinv = hex8.invert_3x3_matrix_V(C)[1]
-        Phi = hex8.matrix_Tdot_V(F,chi)
+        Psi = hex8.matrix_Tdot_V(F,chi)
         
         Gamma = np.zeros([27,])
         
@@ -644,7 +644,7 @@ class TestMicro_LE(unittest.TestCase):
         
         Iten = hex8.reduce_tensor_to_vector_form(np.eye(3))
         
-        E_micro,E_macro = compute_strain_measures(C,Phi)
+        E_micro,E_macro = compute_strain_measures(C,Psi)
         
         pk2   = compute_pk2_stress(AS,BS,CS,DS,E_macro,E_micro,C,Gamma)[0]
         
@@ -709,7 +709,7 @@ class TestMicro_LE(unittest.TestCase):
         
         C   = hex8.matrix_Tdot_V(F,F)
         Cinv = hex8.invert_3x3_matrix_V(C)[1]
-        Phi = hex8.matrix_Tdot_V(F,chi)
+        Psi = hex8.matrix_Tdot_V(F,chi)
         
         Gamma = np.zeros([27,])
         
@@ -724,7 +724,7 @@ class TestMicro_LE(unittest.TestCase):
         
         Iten = hex8.reduce_tensor_to_vector_form(np.eye(3))
         
-        E_micro,E_macro = compute_strain_measures(C,Phi)
+        E_micro,E_macro = compute_strain_measures(C,Psi)
         
         _,TEMP1,TEMP2   = compute_pk2_stress(AS,BS,CS,DS,E_macro,E_micro,C,Gamma)
         symm_stress     = compute_symmetric_stress(TEMP1,TEMP2)
@@ -789,7 +789,7 @@ class TestMicro_LE(unittest.TestCase):
         
         C   = hex8.matrix_Tdot_V(F,F)
         Cinv = hex8.invert_3x3_matrix_V(C)[1]
-        Phi = hex8.matrix_Tdot_V(F,chi)
+        Psi = hex8.matrix_Tdot_V(F,chi)
         
         Gamma = np.zeros([27,])
         
@@ -835,7 +835,7 @@ class TestMicro_LE(unittest.TestCase):
         
         C   = hex8.matrix_Tdot_V(F,F)
         Cinv = hex8.invert_3x3_matrix_V(C)[1]
-        Phi = hex8.matrix_Tdot_V(F,chi)
+        Psi = hex8.matrix_Tdot_V(F,chi)
         
         Gamma = np.zeros([27,])
         
@@ -848,7 +848,7 @@ class TestMicro_LE(unittest.TestCase):
                         iJK = T2V([i,J,K],[3,3,3])
                         Gamma[IJK] += F[iI]*grad_chi[iJK]
         
-        E_micro,E_macro = compute_strain_measures(C,Phi)
+        E_micro,E_macro = compute_strain_measures(C,Psi)
         
         PK2T,TERM1,TERM2 = compute_pk2_stress(AS,BS,CS,DS,E_macro,E_micro,C,Gamma)
         SIGMAT           = compute_symmetric_stress(TERM1,TERM2)
