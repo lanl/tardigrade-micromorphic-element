@@ -401,7 +401,7 @@ def compute_dgrad_chidUn(n,xi_vec,nodal_global_coords_reference): #Test function
 def get_deformation_measures(F,chi,grad_chi): #Test function written
     """Compute and return the deformation measures"""
     C   = hex8.matrix_Tdot_V(F,F)
-    Phi = hex8.matrix_Tdot_V(F,chi)
+    Psi = hex8.matrix_Tdot_V(F,chi)
     
     Gamma = np.zeros([27,])
     for I in range(3):
@@ -413,7 +413,7 @@ def get_deformation_measures(F,chi,grad_chi): #Test function written
                     Gindx = T2V([i,J,K],[3,3,3]) #Identify the index of the grad_chi vector
                     Gamma[index] += F[Findx]*grad_chi[Gindx]
     #Gamma = hex8.matrix_Tdot_TOT(F,grad_chi)
-    return C,Phi,Gamma
+    return C,Psi,Gamma
     
 ###### Compute Derivatives of Deformation Measures ######
 def compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU): #Test function written
@@ -504,7 +504,7 @@ def compute_dPsidU(F,chi,dFdU,dchidU): #Test function written
     return dPsidU
     
 def compute_dPsidUn(n,F,chi,dFdU,dchidU): #Test function written (part of test_compute_dPsidU)
-    """Compute a submatrix of the derivative of the deformation measure Phi with 
+    """Compute a submatrix of the derivative of the deformation measure Psi with 
     respect to the dof vector n goes from 0 to 7
     """
     dPsidUn = np.zeros([9*12])
@@ -652,11 +652,11 @@ def compute_stress(F,chi,grad_chi,params,state_variables):
             
 ###### Compute Tangents ######
     
-def compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU):
+def compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU): #Test function written
     """Compute the derivative of the second piola kirchhoff stress
     with respect to the degree of freedom vector"""
     
-    dpk2dU = np.zeros([9*96])
+    dpk2dU = np.zeros([9*96,])
     
     for n in range(8):
         dpk2dUn = compute_dpk2dUn(n,dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)
@@ -667,7 +667,7 @@ def compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU):
                 
     return dpk2dU
     
-def compute_dpk2dUn(n,dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU):
+def compute_dpk2dUn(n,dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU): #Test function written (part of dpk2dU test)
     """Compute a submatrix of the derivative of the second piola kirchhoff stress
     with respect to the degree of freedom vector"""
     
@@ -676,22 +676,22 @@ def compute_dpk2dUn(n,dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU):
     for I in range(3):
         for J in range(3):
             for K in range(12):
-                
+                IJK = T2V([I,J,K],[3,3,12])
                 for L in range(3):
                     for M in range(3):
-                        IJLM = T2V([I,J,L,M],[3,3,3,3])
-                        LMK  = T2V([L,M,K+n*12],[3,3,96])
-                        dpk2dU[IJK] += dpk2dC[IJLM]*dCdU[LMK] + dpk2dPsi[IJLM]*dPsidU[LMK]
+                        IJLM = T2V([I,J,L,M],   [3,3,3,3])
+                        LMK  = T2V([L,M,K+n*12], [3,3,96])
+                        dpk2dUn[IJK] += dpk2dC[IJLM]*dCdU[LMK] + dpk2dPsi[IJLM]*dPsidU[LMK]
                         
                 for L in range(3):
                     for M in range(3):
                         for N in range(3):
                             IJLMN = T2V([I,J,L,M,N],[3,3,3,3,3])
                             LMNK  = T2V([L,M,N,K+n*12],[3,3,3,96])
-                            dpk2dU[IJK] += dpk2dGamma[IJLMN]*dGammadU[LMNK]
-    return dpk2dU
+                            dpk2dUn[IJK] += dpk2dGamma[IJLMN]*dGammadU[LMNK]
+    return dpk2dUn
     
-def compute_dsymmetric_stressdU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGammadU):
+def compute_dsymmetric_stressdU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGammadU): #Test function written
     """Compute the derivative of the symmetric stress with respect 
     to the degree of freedom vector"""
     
@@ -700,14 +700,14 @@ def compute_dsymmetric_stressdU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGa
     
     return compute_dpk2dU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGammadU)
     
-def compute_dho_stressdU(dMdC,dMdPhi,dMdGamma,dCdU,dPsidU,dGammadU):
+def compute_dho_stressdU(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU):
     """Compute the derivative of the symmetric stress with respect
     to the degree of freedom vector"""
     
     dMdU = np.zeros([3*3*3*96])
     
     for n in range(8):
-        dMdUn = compute_dho_stressdUn(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU)
+        dMdUn = compute_dho_stressdUn(n,dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU)
         for I in range(3):
             for J in range(3):
                 for K in range(3):
@@ -715,7 +715,7 @@ def compute_dho_stressdU(dMdC,dMdPhi,dMdGamma,dCdU,dPsidU,dGammadU):
                         dMdU[T2V([I,J,K,L+n*12],[3,3,3,96])] = dMdUn[T2V([I,J,K,L],[3,3,3,12])]
     return dMdU
       
-def compute_dho_stressdUn(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU):
+def compute_dho_stressdUn(n,dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU): #Test function written
     """Compute a submatrix of the derivative of the symmetric stress with respect
     to the degree of freedom vector"""
     
@@ -729,7 +729,7 @@ def compute_dho_stressdUn(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU):
                     for O in range(3):
                         for P in range(3):
                             IJKOP = T2V([I,J,K,O,P],[3,3,3,3,3])
-                            OPL   = T2V([O,P,P+n*12],[3,3,96])
+                            OPL   = T2V([O,P,L+n*12],[3,3,96])
                             
                             dMdUn[IJKL] += dMdC[IJKOP]*dCdU[OPL] + dMdPsi[IJKOP]*dPsidU[OPL]
                             
@@ -1118,15 +1118,15 @@ class TestMicroElement(unittest.TestCase):
         U = np.concatenate([np.concatenate((u_vec,phi_vec)) for u_vec,phi_vec in zip(u_vecs,phi_vectors)])
         
         #Define a helper function for the gradient calculation
-        def Phi_parser(Uin):
+        def Psi_parser(Uin):
             """Function which parses U for the computation of F"""
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F       = compute_F(xi_vec,node_xs,rcoords)
             chi     = compute_chi(xi_vec,node_phis)
-            Phi     = hex8.matrix_Tdot_V(F,chi)
-            Phi     = hex8.convert_V_to_M(Phi,[3,3])
-            return np.reshape(Phi,[9,])
+            Psi     = hex8.matrix_Tdot_V(F,chi)
+            Psi     = hex8.convert_V_to_M(Psi,[3,3])
+            return np.reshape(Psi,[9,])
             
         #Compute required measures
         F      = compute_F(xi_vec,ccoords,rcoords)
@@ -1135,7 +1135,7 @@ class TestMicroElement(unittest.TestCase):
         dchidU = compute_dchidU(xi_vec)
             
         #Compute the gradients
-        dPsidUn = fd.numeric_gradient(Phi_parser,U,1e-6)
+        dPsidUn = fd.numeric_gradient(Psi_parser,U,1e-6)
         dPsidU  = compute_dPsidU(F,chi,dFdU,dchidU)
         
         self.assertEqual(np.allclose(dPsidUn.T,hex8.convert_V_to_M(dPsidU,[3,3,96])),True)
@@ -1315,6 +1315,177 @@ class TestMicroElement(unittest.TestCase):
         self.assertEqual(np.allclose(dPsidUt,    dPsidU),True)
         self.assertEqual(np.allclose(dGammadUt,dGammadU),True)
         
+    def _test_compute_dpk2dU(self):
+        """Test for the computation of the derivative of the Second
+        Piola Kirchhoff stress w.r.t. the degree of freedom vector."""
+        #Define the material parameters
+        LAMBDA = 2.4
+        MU     = 6.7
+        ETA    = 2.4
+        TAU    = 5.1
+        KAPPA  = 5.6
+        NU     = 8.2
+        SIGMA  = 2.
+        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        
+        #Define the node coordinates
+        rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
+                   [-1.,-1., 1.],[1.,-1., 1.],[1.,1., 1.],[-1.,1., 1.]]
+        #Identify a point
+        Xs,Ys,Zs = zip(*rcoords)
+        X=sum(Xs)/len(Xs)
+        Y=sum(Ys)/len(Ys)
+        Z=sum(Zs)/len(Zs)
+        xi_vec = np.array([0.1,-0.27,0.3])
+        
+        #Get quantities of interest
+        Fanalytic,ccoords          = self._get_deformation_gradient_values(rcoords,[X,Y,Z])
+        chia,grad_chia,phi_vectors = self._get_chi_values(rcoords,[X,Y,Z])
+        
+        #Compute u
+        u_vecs = [[cc1-rc1,cc2-rc2,cc3-rc3] for (cc1,cc2,cc3),(rc1,rc2,rc3) in zip(ccoords,rcoords)]
+        #Create the dof vector
+        U = np.concatenate([np.concatenate((u_vec,phi_vec)) for u_vec,phi_vec in zip(u_vecs,phi_vectors)])
+        
+        def PK2_parser(Uin):
+            """Function which parses U for the computation of F"""
+            node_us,node_phis = parse_dof_vector(Uin)
+            node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
+            F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
+            PK2 = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)[0]
+            PK2     = hex8.convert_V_to_M(PK2,[3,3])
+            return np.reshape(PK2,[9,])
+        
+        
+        F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
+        dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
+        dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        dPK2dUn = fd.numeric_gradient(PK2_parser,U,1e-6)
+        dPK2dU  = compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)
+        
+        #print dPK2dUn.T
+        #print hex8.convert_V_to_M(dPK2dU,[3,3,96])
+        #print dPK2dUn.T-hex8.convert_V_to_M(dPK2dU,[3,3,96])
+        #print max(hex8.convert_M_to_V(dPK2dUn.T,[3,3,96])-dPK2dU,key=abs)
+        
+        self.assertTrue(np.allclose(dPK2dUn.T,hex8.convert_V_to_M(dPK2dU,[3,3,96]),atol=1e-5,rtol=1e-5))
+        
+    def _test_compute_dSigmadU(self):
+        """Test for the computation of the derivative of the symmetric 
+        stress w.r.t. the degree of freedom vector."""
+        #Define the material parameters
+        LAMBDA = 2.4
+        MU     = 6.7
+        ETA    = 2.4
+        TAU    = 5.1
+        KAPPA  = 5.6
+        NU     = 8.2
+        SIGMA  = 2.
+        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        
+        #Define the node coordinates
+        rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
+                   [-1.,-1., 1.],[1.,-1., 1.],[1.,1., 1.],[-1.,1., 1.]]
+        #Identify a point
+        Xs,Ys,Zs = zip(*rcoords)
+        X=sum(Xs)/len(Xs)
+        Y=sum(Ys)/len(Ys)
+        Z=sum(Zs)/len(Zs)
+        xi_vec = np.array([0.1,-0.27,0.3])
+        
+        #Get quantities of interest
+        Fanalytic,ccoords          = self._get_deformation_gradient_values(rcoords,[X,Y,Z])
+        chia,grad_chia,phi_vectors = self._get_chi_values(rcoords,[X,Y,Z])
+        
+        #Compute u
+        u_vecs = [[cc1-rc1,cc2-rc2,cc3-rc3] for (cc1,cc2,cc3),(rc1,rc2,rc3) in zip(ccoords,rcoords)]
+        #Create the dof vector
+        U = np.concatenate([np.concatenate((u_vec,phi_vec)) for u_vec,phi_vec in zip(u_vecs,phi_vectors)])
+        
+        def Sigma_parser(Uin):
+            """Function which parses U for the computation of F"""
+            node_us,node_phis = parse_dof_vector(Uin)
+            node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
+            F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
+            Sigma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)[1]
+            Sigma     = hex8.convert_V_to_M(Sigma,[3,3])
+            return np.reshape(Sigma,[9,])
+        
+        
+        F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
+        dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
+        dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        dSigmadUn = fd.numeric_gradient(Sigma_parser,U,1e-6)
+        dSigmadU  = compute_dsymmetric_stressdU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGammadU)
+        
+        #print dSigmadUn.T
+        #print hex8.convert_V_to_M(dSigmadU,[3,3,96])
+        #print dSigmadUn.T-hex8.convert_V_to_M(dSigmadU,[3,3,96])
+        #print max(hex8.convert_M_to_V(dSigmadUn.T,[3,3,96])-dSigmadU,key=abs)
+        
+        self.assertTrue(np.allclose(dSigmadUn.T,hex8.convert_V_to_M(dSigmadU,[3,3,96]),atol=1e-5,rtol=1e-5))
+        
+    def test_compute_dho_stressdU(self):
+        """Test for the computation of the derivative of the higher 
+        order w.r.t. the degree of freedom vector."""
+        #Define the material parameters
+        LAMBDA = 2.4
+        MU     = 6.7
+        ETA    = 2.4
+        TAU    = 5.1
+        KAPPA  = 5.6
+        NU     = 8.2
+        SIGMA  = 2.
+        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        
+        #Define the node coordinates
+        rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
+                   [-1.,-1., 1.],[1.,-1., 1.],[1.,1., 1.],[-1.,1., 1.]]
+        #Identify a point
+        Xs,Ys,Zs = zip(*rcoords)
+        X=sum(Xs)/len(Xs)
+        Y=sum(Ys)/len(Ys)
+        Z=sum(Zs)/len(Zs)
+        xi_vec = np.array([0.1,-0.27,0.3])
+        
+        #Get quantities of interest
+        Fanalytic,ccoords          = self._get_deformation_gradient_values(rcoords,[X,Y,Z])
+        chia,grad_chia,phi_vectors = self._get_chi_values(rcoords,[X,Y,Z])
+        
+        #Compute u
+        u_vecs = [[cc1-rc1,cc2-rc2,cc3-rc3] for (cc1,cc2,cc3),(rc1,rc2,rc3) in zip(ccoords,rcoords)]
+        #Create the dof vector
+        U = np.concatenate([np.concatenate((u_vec,phi_vec)) for u_vec,phi_vec in zip(u_vecs,phi_vectors)])
+        
+        def M_parser(Uin):
+            """Function which parses U for the computation of F"""
+            node_us,node_phis = parse_dof_vector(Uin)
+            node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
+            F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
+            M = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)[2]
+            M     = hex8.convert_V_to_T(M,[3,3,3])
+            return self._TOTtensor_to_vector(M)
+        
+        
+        F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
+        dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
+        dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        dMdUn = fd.numeric_gradient(M_parser,U,1e-6)
+        dMdU = compute_dho_stressdU(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU)
+        
+        #print dMdUn.T
+        #print hex8.convert_V_to_M(dMdU,[3,3,3,96])
+        #print dMdUn.T-hex8.convert_V_to_M(dMdU,[3,3,3,96])
+        #print max(hex8.convert_M_to_V(dMdUn.T,[3,3,3,96])-dMdU,key=abs)
+        
+        self.assertTrue(np.allclose(dMdUn.T,hex8.convert_V_to_M(dMdU,[3,3,3,96]),atol=1e-5,rtol=1e-5))
+        
     def _get_deformation_gradient_values(self,rcoords,X_vec):
         """Get the values required to compute the deformation gradient for testing"""
         #Define the deformation gradient
@@ -1450,7 +1621,7 @@ class TestMicroElement(unittest.TestCase):
         """Flatten list of lists"""
         return [item for sublist in l for item in sublist]
         
-    def SOTtensor_to_vector(self,T):
+    def _SOTtensor_to_vector(self,T):
         """Convert a second order tensor to vector form"""
         V = np.zeros([9,])
         V[0] = T[0,0]
@@ -1464,7 +1635,7 @@ class TestMicroElement(unittest.TestCase):
         V[8] = T[1,0]
         return V
         
-    def TOTtensor_to_vector(self,T):
+    def _TOTtensor_to_vector(self,T):
         """Convert a third order tensor to vector form"""
         V = np.zeros([27,])
         for i in range(3):
