@@ -124,6 +124,13 @@ def form_D(TAU,SIGMA): #Test function written
     return D
     
 ###### Compute Stresses ######
+
+def compute_stresses(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma): #Test function written
+    """Compute all of the stress values"""
+    CAUCHY,TERM1,TERM2  = compute_pk2_stress(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma)
+    SIGMA               = compute_symmetric_stress(TERM1,TERM2)
+    M                   = compute_ho_stress(CFOT,Gamma)
+    return CAUCHY,SIGMA,M
     
 def compute_pk2_stress(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma): #Test function written
     """Compute the Second Piola Kirchhoff Stress returns PK2 and other useful terms"""
@@ -134,7 +141,6 @@ def compute_pk2_stress(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma): #Test funct
     
     TERM1  = np.zeros([9,])
     TERM2  = np.zeros([9,])
-    
     for i in range(3):
         for j in range(3):
             IJ = T2V([i,j],[3,3])
@@ -143,7 +149,6 @@ def compute_pk2_stress(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma): #Test funct
                     IJKL = T2V([i,j,k,l],[3,3,3,3])
                     KL   = T2V([k,l],[3,3])
                     TERM1[IJ] += AFOT[IJKL]*E_macro[KL] + DFOT[IJKL]*E_micro[KL]
-    
     for i in range(3):
         for j in range(3):
             IJ = T2V([i,j],[3,3])
@@ -189,7 +194,7 @@ def compute_symmetric_stress(TERM1,TERM2): #Test function written
             SIGMA[IJ] = TERM1[IJ]+2*TERM2_SYMM[IJ]
     return SIGMA
     
-def compute_ho_stress(CFOT,Gamma):
+def compute_ho_stress(CFOT,Gamma): #Test function written
     """Get the higher order stress"""
     M = np.zeros([27,])
     for k in range(3):
@@ -211,8 +216,8 @@ def compute_tangents(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma):
     constitutive model"""
     
     #Common Terms
-    I    = np.eye(3)
-    Cinv = hex8.invert_3x3_matrix(C)
+    I    = np.array([1,0,0,0,1,0,0,0,1]).astype(float)#np.eye(3)
+    Cinv = hex8.invert_3x3_matrix_V(C)
     
     #Compute dCinvdC
     dCinvdC = compute_dCinvdC(Cinv)
@@ -224,17 +229,17 @@ def compute_tangents(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma):
     
     return dSdC,dSdPhi,dSdGamma,dSigmadC,dSigmadPhi,dSigmadGamma,dMdC,dMdPhi,dMdGamma
 
-def compute_stress_derivatives_wrt_C(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cinv,I,dCinvdC):
+def compute_stress_derivatives_wrt_C(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cinv,Gamma,Iten,dCinvdC):
     """Compute the stress derivatives w.r.t. C"""
-    
     #Initialize tangents with respect to C
-    dSdC     = np.zeros([3,3,3,3])
-    dSigmadC = np.zeros([3,3,3,3])
-    dMdC     = np.zeros([3,3,3,3,3])
+    dSdC     = np.zeros([3*3*3*3])
+    dSigmadC = np.zeros([3*3*3*3])
+    dMdC     = np.zeros([3*3*3*3*3])
     
     #Useful terms for computation to prevent repetition
-    TERM1 = np.zeros([3,3,3,3])
-    TERM2 = np.zeros([3,3,3,3])
+    TERM1 = np.zeros([3*3*3*3])
+    TERM2 = np.zeros([3*3*3*3])
+    TERM3 = np.zeros([3*3*3*3])
     
     #Compute dCinvdC
     dCinvdC = compute_dCinvdC(Cinv)
@@ -244,24 +249,54 @@ def compute_stress_derivatives_wrt_C(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cinv,I,
         for J in range(3):
             for O in range(3):
                 for P in range(3):
-                    TERM1[I,J,O,P] = AFOT[I,J,O,P]
+                    IJOP = T2V([I,J,O,P],[3,3,3,3])
+                    JIOP = T2V([J,I,O,P],[3,3,3,3])
+                    TERM1[IJOP] = 0.5*AFOT[IJOP]
                     
+    # for I in range(3):
+        # for J in range(3):
+            # for O in range(3):
+                # for P in range(3):
+                    # IJOP = T2V([I,J,O,P],[3,3,3,3])
+                    # JIOP = T2V([J,I,O,P],[3,3,3,3])
+                    for Q in range(3):
+                        IQOP = T2V([I,Q,O,P],[3,3,3,3])
+                        JQOP = T2V([J,Q,O,P],[3,3,3,3])
+                        for R in range(3):
+                            JROP = T2V([J,R,O,P],[3,3,3,3])
+                            RQ   = T2V([R,Q],[3,3])
+                            JR   = T2V([J,R],[3,3])
+                            IR   = T2V([I,R],[3,3])
+                            TERM2[IJOP] += 0.5*DFOT[IQOP]*(E_micro[RQ]+Iten[RQ])*Cinv[JR]
+                            TERM3[IJOP] += 0.5*DFOT[JQOP]*(E_micro[RQ]+Iten[RQ])*Cinv[IR]
                     for Q in range(3):
                         for R in range(3):
-                            TERM1[I,J,O,P] += DFOT[I,Q,O,P]*(E_micro[R,Q]+I[R,Q])*Cinv[J,R]
-                    
                             for K in range(3):
                                 for L in range(3):
-                                    TERM2[I,J,O,P] += (BFOT[I,Q,K,L]*E_micro[K,L]+DFOT[I,Q,K,L]*E_macro[K,L])*(E_micro[R,Q]+I[R,Q])*dCinvdC[J,R,O,P]
+                                    RQ = T2V([R,Q],[3,3])
+                                    IROP = T2V([I,R,O,P],[3,3,3,3])
+                                    JROP = T2V([J,R,O,P],[3,3,3,3])
+                                    IQKL = T2V([I,Q,K,L],[3,3,3,3])
+                                    JQKL = T2V([J,Q,K,L],[3,3,3,3])
+                                    KL = T2V([K,L],[3,3])
+                                    TERM2[IJOP] += (BFOT[IQKL]*E_micro[KL]+DFOT[IQKL]*E_macro[KL])*(E_micro[RQ]+Iten[RQ])*dCinvdC[JROP]
+                                    TERM3[IJOP] += (BFOT[JQKL]*E_micro[KL]+DFOT[JQKL]*E_macro[KL])*(E_micro[RQ]+Iten[RQ])*dCinvdC[IROP]
                                     
                             for L in range(3):
                                 for M in range(3):
                                     for N in range(3):
-                                        TERM2[I,J,O,P] += CFOT[I,Q,R,L,M,N]*Gamma[L,M,N]*Gamma[S,Q,R]*dCinvdC[J,S,O,P]
-                                        
-                    dSdC[I,J,O,P]     = TERM1[I,J,O,P] + TERM2[I,J,O,P]
-                    dSigmadC[I,J,O,P] = TERM1[I,J,O,P] + (TERM2[I,J,O,P]+TERM2[J,I,O,P])
-    
+                                        IQRLMN = T2V([I,Q,R,L,M,N],[3,3,3,3,3,3])
+                                        JQRLMN = T2V([J,Q,R,L,M,N],[3,3,3,3,3,3])
+                                        LMN = T2V([L,M,N],[3,3,3])
+                                        for S in range(3):
+                                            SQR  = T2V([S,Q,R],[3,3,3])
+                                            ISOP = T2V([I,S,O,P],[3,3,3,3])
+                                            JSOP = T2V([J,S,O,P],[3,3,3,3])
+                                            TERM2[IJOP] += CFOT[IQRLMN]*Gamma[LMN]*Gamma[SQR]*dCinvdC[JSOP]
+                                            TERM3[IJOP] += CFOT[JQRLMN]*Gamma[LMN]*Gamma[SQR]*dCinvdC[ISOP]
+                    dSdC[IJOP]     = TERM1[IJOP] + TERM2[IJOP]
+                    dSigmadC[IJOP] = TERM1[IJOP] + (TERM2[IJOP]+TERM3[IJOP])#(TERM2[IJOP]+TERM2[JIOP])
+    #dSdC = hex8.reduce_tensor_to_vector_form(dSdC)
     return dSdC,dSigmadC,dMdC
     
 def compute_stress_derivatives_wrt_Phi(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cinv,I):
@@ -324,11 +359,9 @@ def micromorphic_linear_elasticity(F,chi,grad_chi,params):
     """A constitutive model for micromorphic linear elasticity"""
     C,Phi,Gamma         = get_deformation_measures(F,chi,grad_chi)
     AFOT,BFOT,CFOT,DFOT = form_stiffness_tensors(params)
-    CAUCHY,TERM1,TERM2  = compute_pk2_stress(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma)
-    SIGMA               = compute_symmetric_stress(TERM1,TERM2)
-    M                   = compute_higher_order_stress(CFOT,Gamma)
+    PK2,SIGMA,M         = compute_stresses(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma)
     dSdC,dSdPhi,dSdGamma,dSigmadC,dSigmadPhi,dSigmadGamma,dMdC,dMdPhi,dMdGamma = compute_tangents(AFOT,BFOT,CFOT,DFOT,E_macro,E_micro,C,Gamma)
-    return CAUCHY,SIGMA,M,dSdC,dSdPhi,dSdGamma,dSigmadC,dSigmadPhi,dSigmadGamma,dMdC,dMdPhi,dMdGamma
+    return PK2,SIGMA,M,dSdC,dSdPhi,dSdGamma,dSigmadC,dSigmadPhi,dSigmadGamma,dMdC,dMdPhi,dMdGamma
     
 class TestMicro_LE(unittest.TestCase):
 
@@ -712,5 +745,146 @@ class TestMicro_LE(unittest.TestCase):
                                 Mt[IJK] += CS[IJKLMN]*Gamma[LMN]
         self.assertTrue(np.allclose(Mten,Mt))
 
+    def test_compute_stresses(self):
+        """Test the computation of all of the stress measures"""
+        LAMBDA = 2.4
+        MU     = 6.7
+        ETA    = 2.4
+        TAU    = 5.1
+        KAPPA  = 5.6
+        NU     = 8.2
+        SIGMA  = 2.
+        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        
+        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        
+        F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
+        chi      = np.array(range(9,18)).astype(float)
+        grad_chi = np.array(range(18,45)).astype(float)
+        
+        C   = hex8.matrix_Tdot_V(F,F)
+        Cinv = hex8.invert_3x3_matrix_V(C)[1]
+        Phi = hex8.matrix_Tdot_V(F,chi)
+        
+        Gamma = np.zeros([27,])
+        
+        for I in range(3):
+            for J in range(3):
+                for K in range(3):
+                    IJK = T2V([I,J,K],[3,3,3])
+                    for i in range(3):
+                        iI  = T2V([i,I],[3,3])
+                        iJK = T2V([i,J,K],[3,3,3])
+                        Gamma[IJK] += F[iI]*grad_chi[iJK]
+        
+        E_micro,E_macro = compute_strain_measures(C,Phi)
+        
+        PK2T,TERM1,TERM2 = compute_pk2_stress(AS,BS,CS,DS,E_macro,E_micro,C,Gamma)
+        SIGMAT           = compute_symmetric_stress(TERM1,TERM2)
+        MT               = compute_ho_stress(CS,Gamma)
+        PK2,SIGMA,M      = compute_stresses(AS,BS,CS,DS,E_macro,E_micro,C,Gamma)
+        
+        self.assertTrue(np.allclose(PK2T,    PK2))
+        self.assertTrue(np.allclose(SIGMAT,SIGMA))
+        self.assertTrue(np.allclose(MT,        M))
+        
+    def test_compute_stress_derivatives_wrt_C(self):
+        """Test the computation of the stress derivatives wrt C"""
+        LAMBDA = 2.4
+        MU     = 6.7
+        ETA    = 2.4
+        TAU    = 5.1
+        KAPPA  = 5.6
+        NU     = 8.2
+        SIGMA  = 2.
+        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        
+        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        
+        F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
+        chi      = np.array(range(9,18)).astype(float)
+        grad_chi = np.array(range(18,45)).astype(float)
+        Iten     = np.array([1,0,0,0,1,0,0,0,1]).astype(float)
+        
+        C   = hex8.matrix_Tdot_V(F,F)
+        Cinv = hex8.invert_3x3_matrix_V(C)[1]
+        Psi = hex8.matrix_Tdot_V(F,chi)
+        
+        #Ften = hex8.convert_V_to_T(F,[3,3])
+        #Cten = np.einsum('iI,iJ',Ften,Ften)
+        
+        Gamma = np.zeros([27,])
+        
+        for I in range(3):
+            for J in range(3):
+                for K in range(3):
+                    IJK = T2V([I,J,K],[3,3,3])
+                    for i in range(3):
+                        iI  = T2V([i,I],[3,3])
+                        iJK = T2V([i,J,K],[3,3,3])
+                        Gamma[IJK] += F[iI]*grad_chi[iJK]
+        
+        Iten = hex8.reduce_tensor_to_vector_form(np.eye(3))
+        E_macro,E_micro = compute_strain_measures(C,Psi)
+        
+        def parse_pk2(Ci):
+            E_macroi,E_microi = compute_strain_measures(Ci,Psi)
+            pk2   = compute_pk2_stress(AS,BS,CS,DS,E_macroi,E_microi,Ci,Gamma)[0]
+            return pk2
+            
+        def parse_symmetric_stress(Ci):
+            E_macroi,E_microi = compute_strain_measures(Ci,Psi)
+            _,TERM1,TERM2     = compute_pk2_stress(AS,BS,CS,DS,E_macroi,E_microi,Ci,Gamma)
+            return compute_symmetric_stress(TERM1,TERM2)
+        
+        #print "\nNumeric gradient"
+        #Test the gradient of PK2
+        dpk2dCT = fd.numeric_gradient(parse_pk2,C,1e-6)
+        dpk2dCT = self._convert_difference(dpk2dCT)
+        dpk2dCT = hex8.reduce_tensor_to_vector_form(dpk2dCT)
+        #print hex8.convert_V_to_M(dpk2dCT,[3,3,3,3])       
+        
+        dCinvdC = compute_dCinvdC(Cinv)
+        
+        dpk2dC,dSigmadC,dMdC  = compute_stress_derivatives_wrt_C(E_macro,E_micro,AS,BS,CS,DS,Cinv,Gamma,Iten,dCinvdC)
+        #print hex8.convert_V_to_M(dpk2dC,[3,3,3,3])
+        
+        #print "\nSecond Piola Kirchhoff"
+        #print "Numeric:\n",dpk2dCT
+        #print "Analytic:\n",dpk2dC
+        #print "Difference:\n",dpk2dCT-dpk2dC
+        
+        self.assertTrue(np.allclose(dpk2dCT,dpk2dC))
+        
+        #Test the gradient of the symmetric stress
+        dSigmadCT = fd.numeric_gradient(parse_symmetric_stress,C,1e-6)
+        dSigmadCT = self._convert_difference(dSigmadCT)
+        dSigmadCT = hex8.reduce_tensor_to_vector_form(dSigmadCT)
+        
+        # print "\nSymmetric stress"
+        # print "Numeric:\n",dSigmadCT
+        # print "Analytic:\n",dSigmadC
+        # print "Difference:\n",dSigmadCT-dSigmadC
+        
+        self.assertTrue(np.allclose(dSigmadCT,dSigmadC))
+        
+        #Test the gradient of the higher order stress
+        self.assertTrue(np.allclose(dMdC,np.zeros([3*3*3*3*3])))
+        
+    def _convert_difference(self,A):
+        """Convert the finite difference representation to tensor form"""
+        #print A.shape
+        Aten = np.zeros([3,3,3,3])
+        for i in range(9):
+            it,jt = V2T(i,[3,3])
+            #print "Row: ",mapping[j]
+            for j in range(9):
+                kt,lt = V2T(j,[3,3])
+                #print "Col: ",mapping[j]
+                Aten[kt,lt,it,jt] = A[i,j]
+        return Aten
+        
 if __name__ == '__main__':
     unittest.main()
