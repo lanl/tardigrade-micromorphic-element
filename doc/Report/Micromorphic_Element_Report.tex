@@ -1,0 +1,71 @@
+%\documentclass[11pt]{article}
+\documentclass{asme2ej}
+\usepackage{amsmath,amssymb,graphicx,bm}
+\usepackage{listings, color, subcaption, placeins}
+\usepackage{undertilde}
+\usepackage{algorithm,algpseudocode}
+\graphicspath{{./}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% If you want to define a new command, you can do it like this:
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\e}{\bm{e}}
+\newcommand{\TEN}[1]{\underline{\underline{#1}}}
+\newcommand{\VEC}[1]{\utilde{#1}}
+\newcommand{\UVEC}[1]{\underline{#1}}
+\newcommand{\PK}[1]{\TEN{\tau}^{(#1)}}
+\newcommand{\cauchy}{\TEN{\sigma}}
+\newcommand{\st}{$^{\text{st}}$}
+\newcommand{\nd}{$^{\text{nd}}$}
+\newcommand\defeq{\mathrel{\stackrel{\makebox[0pt]{\mbox{\normalfont\tiny def}}}{=}}}
+
+\graphicspath{{./images/}}
+
+%% If you want to use a function like ''sin'' or ''cos'', you can do it like this
+%% (we probably won't have much use for this)
+% \DeclareMathOperator{\sin}{sin}   %% just an example (it's already defined)
+
+
+\begin{document}
+\title{A Constitutive Model for Porous Polymer-Bonded Granular Materials}
+\author{Nathan Miller}
+
+\maketitle
+
+\begin{abstract}
+Polymer bonded granular materials are important engineering materials commonly arising in materials as diverse as asphalt and rocket propellants. These materials exhibit complex behavior which is strongly influenced by the interactions of the constituent materials. Experimentation on the polymer bonded explosives PBX~9501 and PBX~9502 reveals features of viscoelasticity, viscoplasticity, and a weakening of the elastic moduli which evolves viscously e.g. a, ``viscodamage.''
+
+Previous modeling attempts have used a damaging parameter to keep track of this behavior. While effective, this approach involves some amount of obfuscation of the physical mechanisms at play. We seek in this paper to develop a model which captures the weakening of the moduli by the evolution of the porosity, defined as
+\begin{align*}
+\phi &\defeq \frac{dv^v}{dv}
+\end{align*}
+where $dv^v$ is the differential volume occupied by the voids and $dv$ is the total differential volume both in the current configuration.
+\end{abstract}
+
+%\input{./tex_files/nomenclature}
+%
+%\input{./tex_files/introduction}
+%
+%\input{./tex_files/mpm_derivation}
+%
+%\input{./tex_files/verification}
+%
+%\input{./tex_files/discussion}
+%
+%\input{./tex_files/conclusion}
+
+\input{./tex/derivation}
+
+\input{./tex/implementation}
+
+\FloatBarrier
+
+\bibliographystyle{asme2ej}
+\bibliography{mpm}
+
+\end{document}
