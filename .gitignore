@@ -9,3 +9,9 @@ doc/TheoryManual/*.out
 doc/TheoryManual/*.log
 doc/TheoryManual/*.gz
 test_results.txt
+doc/Proposal/*.bbl
+doc/Proposal/*.blg
+doc/Report/*.bbl
+doc/Report/*.blg
+doc/Proposal/*.synctex.gz
+doc/Report/*.synctex.gz
