@@ -213,6 +213,29 @@ def parse_dof_vector(U): #Test function written
     node_us   = [node_dofs[i][:3]   for i in range(8)]
     node_phis = [node_dofs[i][3:12] for i in range(8)]
     return node_us,node_phis
+
+###### Integrate the element ######
+def integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PARAMS,STATEVARS,ORDER_QUAD):
+    """Integrate the element"""
+    
+    R = np.zeros([96,])
+    J = np.zeros([96,96])
+    
+    for i in range(ORDER_QUAD**2):
+        xi_vec = PQ[i]
+        W      = WQ[i]
+        
+        ccoords = [None]*8
+        for n in range(8):
+            ccoords[n] = COORDS[n]+UN[n]
+        
+        Rp,Jp = compute_residuals_jacobians_gpt(xi_vec,UN,PHIN,ccoords,COORDS,PARAMS,STATEVARS,W)
+    
+        for i in range(96):
+            R[i] += Rp[i]
+            for j in range(96):
+                J[i,j] += Jp[i,j]
+    return R,J
     
 ###### Compute Fundamental Quantities ######
 
