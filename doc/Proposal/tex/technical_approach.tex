@@ -95,4 +95,10 @@ where the superscript numbers indicate the node number. This is a $96 \times 96$
 \mathcal{U}_I^{n+1} &= \mathcal{U}_I^{n} + \left(\mathcal{J}^{e}\right)_{IJ}^{-1}\mathcal{R}_J
 \end{align*}
 
-At this time we will neglect kinetic effects unless there is enough time to implement this feature in the code.
+where iterations will continue until the convergence of the residual vector is achieved. At this time we will neglect kinetic effects unless there is enough time to implement this feature in the code.
+
+We note that boundary conditions are enforced by either removing the relevant rows and columns in the residual and jacobian in the case of a zero boundary condition or by first computing the resultant force, subtracting it from the residual, and then removing the rows and columns in the case of a non-zero boundary condition.
+
+The matrix equation will be solved, at least initially, by using the solve function in numpy (\verb|numpy.linalg.solve|). This solver calls the \verb|LAPACK| routine \verb|_gesv| (\cite{bib:numpy.linalg.solve}). This should provide a relatively quick solution of the matrix equation which is beneficial since the code is, primarily, to be used to verify the eventual Fortran subroutine.
+
+\FloatBarrier
