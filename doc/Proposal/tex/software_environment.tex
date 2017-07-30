@@ -1,0 +1,34 @@
+\section{Software Environment}
+
+\subsection{Language}
+
+The language which will be utilized for the model will be Python 2.7. The language has been chosen both for its utility as well as its generality. The numpy library will be utilized for storing arrays though only one and two dimensional arrays will be utilized. This is to avoid the use of higher dimensional arrays. Fortran allows up to seven dimensions but a general solution is sought.
+
+All other additional libraries to be used are either included, or generated as a part of the project. A convenient distribution of python which contains all of these libraries natively is Anaconda (\verb|www.continuum.io|). The distribution is available for download for free online.
+
+\subsection{Implementation Design}
+
+The code will be divided into four major modules with additional modules included as needed.
+
+\begin{table}[htb!]
+\centering
+\begin{tabular}{|c|l|}
+\hline
+\verb|fea_driver.py| & A module containing the finite element driver program which will\\
+& handle the construction and solution of a finite element model\\
+\hline
+\verb|micro_element.py| & A module containing the commands required for the micromorphic\\
+& implementation of the hexehedral element. The format of the major\\
+& function call has been chosen to mirror the Abaqus UEL subroutine\\
+\hline
+\verb|hex8.py| & A module containing utility commands as well as commands specific\\
+& to the eight node hexehedral element\\
+\hline
+\verb|micromorphic_linear_elasticity.py| & A subroutine containing an implementation of a micromorphic linear\\
+& elastic constitutive model\\
+\hline
+\end{tabular}
+\end{table}
+
+As mentioned previously, the implemented code will not utilize the higher dimensional array capabilities of numpy in order to maintain generality and ease of porting to Fortan in the future. This will cause the code to run significantly slower than if numpy array indexing was utilized.
+
