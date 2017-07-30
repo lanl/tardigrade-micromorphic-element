@@ -250,8 +250,27 @@ def reduce_tensor_to_vector_form(A): #Test function written (included in reduce_
 def T_to_V_mapping(indices,shape): #Test function written
     """Map the indices to the vector index"""
     
-    index = 0
+    if(len(indices)!=len(shape)):
+        print "\nError: The number of indices should equal the\n"+\
+              "       dimension of the tensor.\n"
+        raise ValueError()
+        
+    #Specific Cases
+    if(len(shape)==1):
+        return indices[0]
+    if(len(shape)==2):
+        return indices[0]*shape[1]+indices[1]
+    if(len(shape)==3):
+        return indices[0]*shape[1]*shape[2] + indices[1]*shape[2]+indices[2]
+    if(len(shape)==4):
+        return indices[0]*shape[1]*shape[2]*shape[3] + indices[1]*shape[2]*shape[3] + indices[2]*shape[3] + indices[3]
+    if(len(shape)==5):
+        return indices[0]*shape[1]*shape[2]*shape[3]*shape[4] + indices[1]*shape[2]*shape[3]*shape[4] + indices[2]*shape[3]*shape[4] + indices[3]*shape[4] + indices[4]
+    if(len(shape)==6):
+        return indices[0]*shape[1]*shape[2]*shape[3]*shape[4]*shape[5] + indices[1]*shape[2]*shape[3]*shape[4]*shape[5] + indices[2]*shape[3]*shape[4]*shape[5] + indices[3]*shape[4]*shape[5] + indices[4]*shape[5] + indices[5]
     
+    #General case
+    index = 0
     for n,i in enumerate(indices):
         index += i*reduce(lambda x, y: x*y, shape[(n+1):],1)
         
@@ -623,8 +642,67 @@ class TestHex8(unittest.TestCase):
         self.assertEqual(np.allclose(results,answers),True)
         
         #Test 2
-        A = np.reshape(range(9),[3,3])
-        indices = [(0,0),(1,2),(2,2)]
+        a = range(9)
+        A = np.reshape(a,[3,3])
+        indices = [(1,2),(1,1),(1,0)]
+        mapping = [T_to_V_mapping(i,A.shape) for i in indices]
+        results = [A[i,j] for i,j in indices]
+        answers = [a[m] for m in mapping]
+        self.assertTrue(np.allclose(results,answers))
+        
+        #Test 3
+        a = range(3)
+        A = np.reshape(a,[3])
+        indices = [(1,),(0,)]
+        mapping = [T_to_V_mapping(i,A.shape) for i in indices]
+        results = [A[i] for i in indices]
+        answers = [a[m] for m in mapping]
+        self.assertTrue(np.allclose(results,answers))
+        
+        #Test 4
+        a = range(2*6*3)
+        A = np.reshape(a,[2,6,3])
+        indices = [(1,4,0),(0,0,2),(1,5,0)]
+        mapping = [T_to_V_mapping(i,A.shape) for i in indices]
+        results = [A[i,j,k] for i,j,k in indices]
+        answers = [a[m] for m in mapping]
+        self.assertTrue(np.allclose(results,answers))
+        
+        #Test 5
+        a = range(5*2*6*9*3)
+        A = np.reshape(a,[5,2,6,9,3])
+        indices = [(4,1,5,8,0),(0,0,3,3,2),(1,1,0,2,2)]
+        mapping = [T_to_V_mapping(i,A.shape) for i in indices]
+        results = [A[i,j,k,l,m] for i,j,k,l,m in indices]
+        answers = [a[m] for m in mapping]
+        self.assertTrue(np.allclose(results,answers))
+        
+        #Test 6
+        a = range(4*6*2*1*7*9)
+        A = np.reshape(a,[4,6,2,1,7,9])
+        indices = [(2,1,1,0,3,5),(0,0,1,0,6,6),(1,1,1,0,5,7)]
+        mapping = [T_to_V_mapping(i,A.shape) for i in indices]
+        results = [A[i,j,k,l,m,n] for i,j,k,l,m,n in indices]
+        answers = [a[m] for m in mapping]
+        self.assertTrue(np.allclose(results,answers))
+        
+        #Test 7
+        a = range(6*4*5*6*3*9*3)
+        A = np.reshape(a,[6,4,5,6,3,9,3])
+        indices = [(2,1,1,0,2,5,1),(0,0,1,0,0,6,1),(1,1,1,0,1,7,0)]
+        mapping = [T_to_V_mapping(i,A.shape) for i in indices]
+        results = [A[i,j,k,l,m,n,o] for i,j,k,l,m,n,o in indices]
+        answers = [a[m] for m in mapping]
+        self.assertTrue(np.allclose(results,answers))
+        
+        #Test 8 (should fail)
+        print "\nExecuting Test 8: Should observe Error!\n"
+        try:
+            T_to_V_mapping([2,1,3],[1,0])
+            self.assertTrue(False)
+        except:
+            self.assertTrue(True)
+            print "\nTest 8 passed!\n"
         
     def test_V_to_T_mapping(self):
         """Test the mapping from the vector index to the tensor indices"""
