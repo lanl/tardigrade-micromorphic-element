@@ -200,9 +200,12 @@ def UEL(RHS,AMATRX,SVARS,ENERGY,NDOFEL,NRHS,NSVARS,\
     UN,PHIN    = parse_dof_vector(U)
     DUN,DPHIN  = parse_dof_vector(DU)
     
-    #Parse the LFLAGS array
-    if(LFLAGS[2]==1):
-        print "Derp"
+    #Only integrate the element currently
+    return integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PARAMS,STATEVARS,ORDER_QUAD)
+    
+    # #Parse the LFLAGS array
+    # if(LFLAGS[2]==1):
+        # print "Derp"
         
 ###### Extract degrees of freedom ######
 def parse_dof_vector(U): #Test function written
@@ -229,12 +232,12 @@ def integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PARAMS,STATEVARS,ORDER_QUAD
         for n in range(8):
             ccoords[n] = COORDS[n]+UN[n]
         
-        Rp,Jp = compute_residuals_jacobians_gpt(xi_vec,UN,PHIN,ccoords,COORDS,PARAMS,STATEVARS,W)
+        Rp,Jp = compute_residuals_jacobians_gpt(xi_vec,UN,PHIN,ccoords,COORDS,PARAMS,STATEVARS)
     
         for i in range(96):
-            R[i] += Rp[i]
+            R[i] += Rp[i]*W
             for j in range(96):
-                J[i,j] += Jp[i,j]
+                J[i,j] += Jp[i,j]*W
     return R,J
     
 ###### Compute Fundamental Quantities ######
@@ -585,7 +588,7 @@ def compute_dGammadUn(n,F,grad_chi,dFdU,dgrad_chidU): #Test function written (co
     
 ###### Residual and Residual Gradient Calculations ######
     
-def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords_current,nodal_global_coords_reference,params,state_variables,W):
+def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords_current,nodal_global_coords_reference,params,state_variables):
     """Compute the residuals and jacobian at a given gauss point"""
     F,chi,grad_chi                   = interpolate_dof(xi_vec,node_phis,nodal_global_coords_current,nodal_global_coords_reference)
     dFdU,dchidU,dgrad_chidU          = compute_fundamental_derivatives(xi_vec,nodal_global_coords_reference)
@@ -601,8 +604,8 @@ def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords
     dRFMOMdU = compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdU,dFdU,dchidU,dpk2dU,dSigmadU,dMdU)
     
     #Form the contributions of the element residual and jacobian at the gauss point
-    R = form_residual_gpt(RBLM,RFMOM,W)
-    J = form_jacobian_gpt(dRBLMdU,dRFMOMdU,W)
+    R = form_residual_gpt(RBLM,RFMOM)
+    J = form_jacobian_gpt(dRBLMdU,dRFMOMdU)
     
     return R,J
     
@@ -734,19 +737,19 @@ def compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdU,dFdU,dchidU,dpk2dU,dSigmadU,dMdU):
                         dFMOMdU[ijL] -= dNdU[n][K]*T
     return dFMOMdU
         
-def form_residual_gpt(RBLM,RFMOM,W):
+def form_residual_gpt(RBLM,RFMOM):
     """Form the residual from the residuals of the two PDEs"""
     
     R = np.zeros([96,])
     
     for n in range(8):
         for i in range(3):
-            R[i+n*12] = RBLM[i+n*3]*W
+            R[i+n*12] = RBLM[i+n*3]
         for i in range(3,12):
-            R[i+n*12] = RBLM[i+n*9]*W
+            R[i+n*12] = RBLM[i+n*9]
     return R
     
-def form_jacobian_gpt(dRBLMdU,dRFMOMdU,W):
+def form_jacobian_gpt(dRBLMdU,dRFMOMdU):
     """Form the element jacobian from the residuals of the two PDEs"""
     
     J = np.zeros([96,96])
@@ -754,10 +757,10 @@ def form_jacobian_gpt(dRBLMdU,dRFMOMdU,W):
     for n in range(8):
         for i in range(3):
             for j in range(96):
-                J[i+n*12,j] = -dRBLMdU[i+n*3,j]*W
+                J[i+n*12,j] = -dRBLMdU[i+n*3,j]
         for i in range(3,12):
             for j in range(96):
-                J[i+n*12,j] = -dRFMOMdU[i+n*9,j]*W
+                J[i+n*12,j] = -dRFMOMdU[i+n*9,j]
     return J
     
 ###### Stress/Strain Calculations ######
