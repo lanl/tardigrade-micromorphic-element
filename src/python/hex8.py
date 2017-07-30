@@ -259,15 +259,30 @@ def T_to_V_mapping(indices,shape): #Test function written
     if(len(shape)==1):
         return indices[0]
     if(len(shape)==2):
-        return indices[0]*shape[1]+indices[1]
+        return   indices[0]*shape[1]\
+               + indices[1]
     if(len(shape)==3):
-        return indices[0]*shape[1]*shape[2] + indices[1]*shape[2]+indices[2]
+        return   indices[0]*shape[1]*shape[2]\
+               + indices[1]*shape[2]\
+               + indices[2]
     if(len(shape)==4):
-        return indices[0]*shape[1]*shape[2]*shape[3] + indices[1]*shape[2]*shape[3] + indices[2]*shape[3] + indices[3]
+        return   indices[0]*shape[1]*shape[2]*shape[3]\
+               + indices[1]*shape[2]*shape[3]\
+               + indices[2]*shape[3]\
+               + indices[3]
     if(len(shape)==5):
-        return indices[0]*shape[1]*shape[2]*shape[3]*shape[4] + indices[1]*shape[2]*shape[3]*shape[4] + indices[2]*shape[3]*shape[4] + indices[3]*shape[4] + indices[4]
+        return   indices[0]*shape[1]*shape[2]*shape[3]*shape[4]\
+               + indices[1]*shape[2]*shape[3]*shape[4]\
+               + indices[2]*shape[3]*shape[4]\
+               + indices[3]*shape[4]\
+               + indices[4]
     if(len(shape)==6):
-        return indices[0]*shape[1]*shape[2]*shape[3]*shape[4]*shape[5] + indices[1]*shape[2]*shape[3]*shape[4]*shape[5] + indices[2]*shape[3]*shape[4]*shape[5] + indices[3]*shape[4]*shape[5] + indices[4]*shape[5] + indices[5]
+        return   indices[0]*shape[1]*shape[2]*shape[3]*shape[4]*shape[5]\
+               + indices[1]*shape[2]*shape[3]*shape[4]*shape[5]\
+               + indices[2]*shape[3]*shape[4]*shape[5]\
+               + indices[3]*shape[4]*shape[5]\
+               + indices[4]*shape[5]\
+               + indices[5]
     
     #General case
     index = 0
