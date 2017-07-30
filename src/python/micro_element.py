@@ -562,35 +562,44 @@ def compute_dGammadUn(n,F,grad_chi,dFdU,dgrad_chidU): #Test function written (co
     
 ###### Residual and Residual Gradient Calculations ######
     
-def compute_residuals_gpt(xi_vec,node_us,node_phis,nodal_global_coords_current,nodal_global_coords_reference,params,state_variables):
-    """Compute the residuals at a given gauss point"""
-    F,chi,grad_chi      = interpolate_dof(xi_vec,node_phis,nodal_global_coords_current,nodal_global_coords_reference)
-    N,grad_N_ref,detJ   = hex8.Hex8_get_shape_function_info(n,xi_vec,nodal_global_coords)
-    PK2,SIGMA,M         = compute_stress(F,chi,grad_chi,params,state_variables)
+def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords_current,nodal_global_coords_reference,params,state_variables,W):
+    """Compute the residuals and jacobian at a given gauss point"""
+    F,chi,grad_chi                   = interpolate_dof(xi_vec,node_phis,nodal_global_coords_current,nodal_global_coords_reference)
+    dFdU,dchidU,dgrad_chidU          = compute_fundamental_derivatives(xi_vec,nodal_global_coords_reference)
+    N,grad_N_ref,detJhat             = hex8.Hex8_get_shape_function_info(n,xi_vec,nodal_global_coords) #TODO make for all nodes!
+    PK2,SIGMA,M,dPK2dU,dSigmadU,dMdU = compute_stress(F,chi,grad_chi,params,state_variables)
     
-    RBLM = compute_BLM_residual(N,grad_N_ref,detJ,PK2,SIGMA,M,RHO0)
-    RMOM = compute_FMOM_residual(N,grad_N_ref,detJ,PK2,SIGMA,M,RHO0)
+    #Compute the residuals at the gauss point
+    RBLM  = compute_BLM_residual_gpt(N,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0)
+    RFMOM = compute_FMOM_residual_gpt(N,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0)
     
-    return np.vstack([RBLM,RMOM])
+    #Compute the derivatives of the residuals w.r.t. the dof vector at the gauss point
+    dRBLMdU  = compute_dBLMdU(dNdXes,PK2,F,dpk2dU,dFdU,detJhat)
+    dRFMOMdU = compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdU,dFdU,dchidU,dpk2dU,dSigmadU,dMdU)
     
-def compute_BLM_residual_gpt(N,F,grad_N_ref,detJ,PK2,TRACTION,SIGMA,M,RHO0,ACCEL,BODYF):
+    #Form the contributions of the element residual and jacobian at the gauss point
+    R = form_residual_gpt(RBLM,RFMOM,W)
+    J = form_jacobian_gpt(dRBLMdU,dRFMOMdU,W)
+    
+    return R,J
+    
+def compute_BLM_residual_gpt(N_values,F,grad_N_ref_vectors,detJhat,PK2,SIGMA,M,RHO0,ACCEL,BODYF,dxidX,TRACTION):
     """Compute the residual of the balance of linear momentum"""
-    RBLM = compute_resid_fint_fkin_bf(N,F,grad_N_ref,detJ,PK2,SIGMA,M,RHO0,ACCEL,BODYF)
-    RBLM += compute_BLM_resid_tracation(N,F,grad_N_ref,detJ,TRACTION,SIGMA,M,RHO0,ACCEL,BODYF)
+    RBLM = np.zeros([3*8])
+    
+    for n in range(8): #Iterate through the nodes
+        FTRACT = compute_BLM_resid_traction(N,F,dxidX,detJhat)#Compute the traction residual
+        for j in range(3):
+            RBLM[j+n*3] = FTRACT[j]
+            for I in range(3):
+                for J in range(3):
+                    IJ = T2V([I,J],[3,3])
+                    jJ = T2V([j,J],[3,3])
+                    RBLM[j+n*3] += (N[n]*RHO0*(BODYF[j]-ACCEL[j])-grad_N_ref_vectors[n][I]*PK2[IJ]*F[jJ])*detJhat #Compute the stress, body force, and kinematic residuals
+    
     return RBLM
     
-def compute_resid_fint_fkin_bf(N,F,grad_N_ref,detJ,PK2,SIGMA,M,RHO0,ACCEL,BODYF):
-    """Compute the residual resulting from the kinematic, body, and internal forces"""
-    RBLM = np.zeros([3,])
-    for j in range(3):
-        RBLM[j] = N*RHO0*(BODYF[j]-ACCEL[j])*detJ
-        for I in range(3):
-            for J in range(3):
-                RBLM[j] -= grad_N_ref[I]*PK2[I,J]*F[j,J]*detJ
-    
-    return RBLM
-    
-def compute_BLM_resid_traction(N,F,grad_N_ref,detJ,TRACTION,SIGMA,M,RHO0,ACCEL,BODYF):
+def compute_BLM_resid_traction(N,F,dxidX,detJhat):
     """Compute the residual from the applied traction"""
     ORDER = 2
     GP,W = hex8.get_face_gpw(ORDER)
@@ -601,46 +610,132 @@ def compute_BLM_resid_traction(N,F,grad_N_ref,detJ,TRACTION,SIGMA,M,RHO0,ACCEL,B
     
     return RES
     
-def compute_dBLMdU():
+def compute_dBLMdU(dNdXes,PK2,F,dpk2dU,dFdU,detJhat):
     """Compute the derivative of the balance of linear momentum with respect to the degree of freedom vector"""
-    #TODO
     
+    dBLMdU = np.zeros([3*8,96])
     
-def compute_FMOM_residual_gpt(N,F,grad_N_ref,detJ,PK2,SIGMA,M,RHO0,GYRATION,BODYCOUPLE):
-    """Compute the residual of the balance of first moment of momentum"""
-    RFMOM = compute_resid_Sint_Skin_bC(N,F,grad_N_ref,detJ,PK2,SIGMA,M,RHO0,GYRATION,BODYCOUPLE)
-    RFMOM += compute_FMOM_resid_traction(N,F,grad_N_ref,detJ,COUPLE_TRACTION,M)
-    return RFMOM
-    
-def compute_resid_Sint_Skin_bC(N,F,grad_N_ref,detJ,PK2,SIGMA,M,RHO0,GYRATION,BODYCOUPLE):
-    """Compute the residual resulting from the kinematic, body, and internal forces"""
-    RES = np.zeros([3,3])
-    
-    for i in range(3):
+    for n in range(8):
+        #dFTRACTdU = compute_dBLMtractiondU() #Compute the derivative of the traction w.r.t. U
         for j in range(3):
-            RES[i,j] = RHO0*(BODYCOUPLE[j,i]-GYRATION[j,i])*N*detJ
-            
             for I in range(3):
                 for J in range(3):
-                    RES[i,j] += N*(F[i,I]*(PK2[I,J] - SIGMA[I,J])*F[j,J])*detJ
-                    for K in range(3):
-                        RES[i,j] -= grad_N_ref[K]*F[j,J]*chi[i,I]*M[K,J,I]
-    return RES
+                    IJ = T2V9[I,J],[3,3])
+                    jJ = T2V([j,J],[3,3])
+                    for K in range(96):
+                        IJK = T2V([I,J,K],[3,3,96])
+                        jJK = T2V([j,J,K],[3,3,96])
+                        dBLMdU[j+n*3,K] = dNdXes[n][I]*(dpk2dU[IJK]*F[jJ]+PK2[IJ]*dFdU[jJK])*detJhat
+    return dBLMdU
+    
+# I think this term drops out
+#def compute_dBLMtractiondU():
+#    """Compute the gradient of the traction w.r.t. the degree of freedom vector"""
+#    RES = np.zeros([3,])
+#    
+#    #TODO
+#    
+#    return RES
+    
+def compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE):
+    """Compute the residual of the balance of first moment of momentum"""
+    RFMOM = np.zeros([9*8])
+    for n in range(8):
+        TRACTMOM = compute_FMOM_resid_traction() #Compute the couple traction residual
+        for i in range(3):
+            for j in range(3):
+                ij = T2V([i,j],[3,3])
+                ji = T2V([j,i],[3,3])
+                RFMOM[ij+n*9] = TRACTMOM[ij]
+                
+                for I in range(3):
+                    iI = T2V([i,I],[3,3])
+                    for J in range(3):
+                        jJ = T2V([j,J],[3,3])
+                        IJ = T2V([I,J],[3,3])
+                        
+                        RFMOM[ij] += N[n]*(F[iI]*(PK2[IJ]-SIGMA[IJ])*F[jJ] + RHO0*(BODYCOUPLE[ji]-MICROSPIN[ji]) #Add lower order contributions
+                        
+                        for K in range(3):
+                            KJI = T2V([K,J,I],[3,3,3])
+                            RFMOM[ij+n*9] -= grad_N_ref[n][K]*F[jJ]*chi[iI]*M[KJI] #Add contribution of higher order stress
+            RFMOM[ij+n*9] *= detJhat #Include det(Jhat)
+    return RFMOM
     
 def compute_FMOM_resid_traction(N,F,grad_N_ref,detJ,COUPLE_TRACTION,SIGMA,M,RHO0,ACCEL,BODYF):
     """Compute the residual from the applied traction"""
     ORDER = 2
     GP,W = hex8.get_face_gpw(ORDER)
     
-    RES = np.zeros([3,])
+    RES = np.zeros([9,])
     
     #TODO
     
     return RES
     
-def compute_dFMOMdU():
+def compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdU,dFdU,dchidU,dpk2dU,dSigmadU,dMdU):
     """Compute the derivative of the balance of first moment of momentum with respect to the degree of freedom vector"""
-    #TODO
+    
+    dFMOMdU = np.zeros([9*8,96])
+    
+    for n in range(9):
+        for i in range(3):
+            for j in range(3):
+                ij = T2V([i,j],[3,3])
+                for L in range(12):
+                    ijL = T2V([i,j,L+n*12],[3,3,96])
+                    
+                    for I in range(3):
+                        iI  = T2V([i,I],[3,3])
+                        iIL = T2V([i,I,L+n*12],[3,3,96])
+                        for J in range(3):
+                            IJL = T2V([I,J,L+n*12],[3,3,96])
+                            jJ = T2V([j,J],[3,3])
+                            jJL = T2V([j,J,L+n*12],[3,3,96])
+                            dFMOMdU[ij+n*12,L] += N[n]*(dFdU[iIL]*(PK2[IJ]-SIGMA[IJ])*F[jJ]\
+                                                          + F[iI]*(dpk2dU[IJL] - dSigmadU[IJL])*F[jJ]\
+                                                          + F[iI]*(PK2[IJ]-SIGMA[IJ])*dFdU[jJL])
+                    
+                    for K in range(3):
+                        ijKL = T2V([i,j,K,L+n*12],[3,3,3,96])
+                        T    = 0.
+                        for I in range(3):
+                            iI = T2V([i,I],[3,3])
+                            iIL = T2V([i,I,L+n*12],[3,3,96])
+                            for J in range(3):
+                                jJ = T2V([j,J],[3,3])
+                                jJL = T2V([j,J,L+n*12],[j,J,L])
+                                KJI = T2V([K,J,I],[3,3,3])
+                                KJIL = T2V([K,J,I,L+n*12],[3,3,3,96])
+                                T += dFdU[jJL]*chi[iI]*M[KJI] + F[jJ]*dchidU[iIL]M[K,J,I] + F[jJ]*chi[iI]*dMdU[KJIL]
+                        dFMOMdU[ijL] -= dNdU[n][K]*T
+    return dFMOMdU
+        
+def form_residual_gpt(RBLM,RFMOM,W):
+    """Form the residual from the residuals of the two PDEs"""
+    
+    R = np.zeros([96,])
+    
+    for n in range(8):
+        for i in range(3):
+            R[i+n*12] = RBLM[i+n*3]*W
+        for i in range(3,12):
+            R[i+n*12] = RBLM[i+n*9]*W
+    return R
+    
+def form_jacobian_gpt(dRBLMdU,dRFMOMdU,W):
+    """Form the element jacobian from the residuals of the two PDEs"""
+    
+    J = np.zeros([96,96])
+    
+    for n in range(8):
+        for i in range(3):
+            for j in range(96):
+                J[i+n*12,j] = -dRBLMdU[i+n*3,j]*W
+        for i in range(3,12):
+            for j in range(96):
+                J[i+n*12,j] = -dRFMOMdU[i+n*9,j]*W
+    return J
     
 ###### Stress/Strain Calculations ######
     
@@ -700,7 +795,7 @@ def compute_dsymmetric_stressdU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGa
     
     return compute_dpk2dU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGammadU)
     
-def compute_dho_stressdU(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU):
+def compute_dho_stressdU(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU): #Test function written
     """Compute the derivative of the symmetric stress with respect
     to the degree of freedom vector"""
     
@@ -715,7 +810,7 @@ def compute_dho_stressdU(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU):
                         dMdU[T2V([I,J,K,L+n*12],[3,3,3,96])] = dMdUn[T2V([I,J,K,L],[3,3,3,12])]
     return dMdU
       
-def compute_dho_stressdUn(n,dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU): #Test function written
+def compute_dho_stressdUn(n,dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU): #Test function written (part of dho_stressdU)
     """Compute a submatrix of the derivative of the symmetric stress with respect
     to the degree of freedom vector"""
     
@@ -1315,7 +1410,7 @@ class TestMicroElement(unittest.TestCase):
         self.assertEqual(np.allclose(dPsidUt,    dPsidU),True)
         self.assertEqual(np.allclose(dGammadUt,dGammadU),True)
         
-    def _test_compute_dpk2dU(self):
+    def test_compute_dpk2dU(self):
         """Test for the computation of the derivative of the Second
         Piola Kirchhoff stress w.r.t. the degree of freedom vector."""
         #Define the material parameters
@@ -1372,7 +1467,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dPK2dUn.T,hex8.convert_V_to_M(dPK2dU,[3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def _test_compute_dSigmadU(self):
+    def test_compute_dSigmadU(self):
         """Test for the computation of the derivative of the symmetric 
         stress w.r.t. the degree of freedom vector."""
         #Define the material parameters
