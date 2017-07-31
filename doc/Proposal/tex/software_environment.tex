@@ -36,13 +36,13 @@ As mentioned previously, the implemented code will not utilize the higher dimens
 
 \subsection{Test Strategy}
 
-The verification test strategy will be broken into two components, small unit tests and larger regression tests. At this time no validation simulations are intended as the model will need to be calibrated to unavailable data. Future efforts will pursue this aim.
+The verification test strategy will be broken into two components, small unit tests and larger regression tests. At this time no validation simulations are intended as the model will need to be calibrated to as yet unavailable data. Future efforts will pursue this aim.
 
 \subsubsection{Unit Tests}
 
 Unit tests are defined as tests which are performed to ensure a small functions capability in performing its required task correctly. These functions are, typically, not exercises of the primary functions of the code, but rather functions which are used in code execution. An example of a test which falls under this category would be the exercise of a indexing function which converts tensor notation to an index in a 1D array.
 
-These verification tests are performed by using the \verb|unittest| module in python. This module allows verification tests to be performed by issuing the command \verb|>python module_name.py -v| where \verb|module_name.py| is the name of the python module. The results of these tests will be stored in \verb|\src\python\tests\unittests\*_unittests.tex| and will be added to the final \LaTeX~report.
+These verification tests are performed by using the \verb|unittest| module in python. This module allows verification tests to be performed by issuing the command \verb|>python *.py -v| where \verb|*.py| is the name of the python module. The results of these tests will be stored in \verb|\src\python\tests\unittests\*_unittests.tex| and will be added to the final \LaTeX~report.
 
 If possible, all subroutines in every module should have at least one test problem which show that the code is performing as intended. In particular, it is important to show that the residuals and their tangents are consistent with each other. To this end, a utility module \verb|finite_difference.py| has been developed which allows the analytic derivatives to be evaluated against a numeric standard. In conjunction with purely analytic solutions this will help to verify the capabilities of the subroutines.
 

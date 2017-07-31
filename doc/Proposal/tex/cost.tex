@@ -1,2 +1,56 @@
 \section{Cost Estimates}
 
+Work on this approach began in May of this year with the intent of having a demonstration code by the 11th of August. Most of these tasks will be worked on simultaneously as they are not independent.
+
+\subsection{Theoretical Development - 2 months}
+The theory for the partial differential equations is still largely unknown in the engineering community so it is worth while to re-derive the equations of motion by hand. Work on this began in earnest in May of this year and continued through June. The constitutive equations for linear elasticity have also been re-derived and are included in the theory manual.
+
+\subsection{Implementation Strategy - 1 week}
+
+While the partial differential equations are not well known, the finite element method is a standard approach. The implementation and derivation of the relevant equations for this implementation have taken place and documented in the theory manual. The implementation of the finite element model follows a so-called, ``Total Lagrangian,'' formulation to minimize additional derivatives. This task has been completed.
+
+\subsection{Development of Utility Routines - 4 weeks}
+
+The utility routines are used to assist in the effective computation of the residuals and tangents required for the finite element simulation. These routines are anticipated to be under development for the bulk of the project as new needs are identified. As each new routine comes online, unit test functions should be written to verify the routine is behaving as expected. The major routines have been completed with documentation. The task is on schedule.
+
+\subsection{Implementation of Residuals and Tangents - 2 weeks}
+
+The global stiffness matrix is formed through the element tangents which are the perturbations of the residual with respect to the degree of freedom vector. The tangents are currently implemented though test functions still need to be written to verify the residuals and tangents are being computed correctly and consistently with each other. The verification will be handled using a finite difference utility routine which has been constructed. The residual calculations are on schedule to be completed and have relevant test functions by August 1st.
+
+\subsection{Finite Element Driver - 1 week}
+
+The finite element driver is the program which will read in the input deck and utilize the micromorphic finite element to solve the partial differential equations. The input parser is currently under development and the remainder of the code is on schedule to be completed by August 5th.
+
+\subsection{Manufactured Solutions - 1 week}
+
+The manufactured solutions and the test harness are still upcoming since the code is not capable of running a test case yet. Once the tangents have been created it is anticipated that the manufactured solutions will be largely simple to implement though the testing and automatic documentation may take some time. The task is slated to be completed by August 10th.
+
+\subsection{Documentation/Report - 1 week}
+
+Documentation is being generated for the code both in terms of the theory manual in the form of the theory notes as well as a programmer's manual, developer's manual, and final report. The mechanisms to automatically generate the final report need to be developed along with the manuals for using and modifying the code. The documentation is scheduled for completion by August 10th.
+
+\begin{table}[htb!]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Task & Dates & Status\\
+\hline
+\hline
+Derive equations of motion & May 01 - June 11 & \cellcolor{green!25}Completed\\
+\hline
+Implementation strategy & June 11 - June 18 & \cellcolor{green!25}Completed\\
+\hline
+Development of utility routines & June 11 - August 11 & \cellcolor{yellow!25} On schedule\\
+\hline
+Implementation of residuals and tangents & June 20 - August 01 & \cellcolor{yellow!25} On schedule\\
+\hline
+Finite Element Driver & August 2 - August 5 & \cellcolor{blue!25} Upcoming\\
+\hline
+Manufactured Solutions & August 6 - August 10 & \cellcolor{blue!25} Upcoming\\
+\hline
+Documentation/Report & August 6 - August 10 & \cellcolor{yellow!25} On schedule\\
+\hline
+\end{tabular}
+\caption{Development status of the micromorphic finite element implementation}
+\label{table:development_status}
+\end{table}
