@@ -659,17 +659,8 @@ def compute_dBLMdU(dNdXes,PK2,F,dpk2dU,dFdU,detJhat): #Test function written
                         jJK = T2V([j,J,K],[3,3,96])
                         dBLMdU[j+n*3,K] -= dNdXes[n][I]*(dpk2dU[IJK]*F[jJ]+PK2[IJ]*dFdU[jJK])*detJhat[n]
     return dBLMdU
-    
-# I think this term drops out
-#def compute_dBLMtractiondU():
-#    """Compute the gradient of the traction w.r.t. the degree of freedom vector"""
-#    RES = np.zeros([3,])
-#    
-#    #TODO
-#    
-#    return RES
 
-def compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION):
+def compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION): #Test function written
     """Compute the residual of the balance of first moment of momentum"""
     RFMOM = np.zeros([9*8])
     for n in range(8):
@@ -695,7 +686,7 @@ def compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROS
     
     return RFMOM
     
-def compute_FMOM_resid_traction():
+def compute_FMOM_resid_traction(): 
     """Compute the residual from the applied traction"""
     ORDER = 2
     GP,W = hex8.get_face_gpw(ORDER)
@@ -706,7 +697,7 @@ def compute_FMOM_resid_traction():
     
     return RES
     
-def compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdX,detJhat,dFdU,dchidU,dpk2dU,dSigmadU,dMdU):
+def compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdX,detJhat,dFdU,dchidU,dpk2dU,dSigmadU,dMdU): #Test function written
     """Compute the derivative of the balance of first moment of momentum with respect to the degree of freedom vector"""
     
     dFMOMdU = np.zeros([9*8,96])
@@ -746,7 +737,7 @@ def compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdX,detJhat,dFdU,dchidU,dpk2dU,dSigmadU
                         dFMOMdU[mid+n*9,L] -= dNdX[n][K]*T*detJhat[n]
     return dFMOMdU
         
-def form_residual_gpt(RBLM,RFMOM):
+def form_residual_gpt(RBLM,RFMOM): #Test function written
     """Form the residual from the residuals of the two PDEs"""
     
     R = np.zeros([96,])
@@ -755,10 +746,10 @@ def form_residual_gpt(RBLM,RFMOM):
         for i in range(3):
             R[i+n*12] = RBLM[i+n*3]
         for i in range(3,12):
-            R[i+n*12] = RBLM[i+n*9]
+            R[i+n*12] = RFMOM[i-3+n*9]
     return R
     
-def form_jacobian_gpt(dRBLMdU,dRFMOMdU):
+def form_jacobian_gpt(dRBLMdU,dRFMOMdU): #Test function written
     """Form the element jacobian from the residuals of the two PDEs"""
     
     J = np.zeros([96,96])
@@ -769,7 +760,7 @@ def form_jacobian_gpt(dRBLMdU,dRFMOMdU):
                 J[i+n*12,j] = -dRBLMdU[i+n*3,j]
         for i in range(3,12):
             for j in range(96):
-                J[i+n*12,j] = -dRFMOMdU[i+n*9,j]
+                J[i+n*12,j] = -dRFMOMdU[i-3+n*9,j]
     return J
     
 ###### Stress/Strain Calculations ######
@@ -1445,7 +1436,7 @@ class TestMicroElement(unittest.TestCase):
         self.assertEqual(np.allclose(dPsidUt,    dPsidU),True)
         self.assertEqual(np.allclose(dGammadUt,dGammadU),True)
         
-    def test_compute_dpk2dU(self):
+    def _test_compute_dpk2dU(self):
         """Test for the computation of the derivative of the Second
         Piola Kirchhoff stress w.r.t. the degree of freedom vector."""
         #Define the material parameters
@@ -1502,7 +1493,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dPK2dUn.T,hex8.convert_V_to_M(dPK2dU,[3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def test_compute_dSigmadU(self):
+    def _test_compute_dSigmadU(self):
         """Test for the computation of the derivative of the symmetric 
         stress w.r.t. the degree of freedom vector."""
         #Define the material parameters
@@ -1559,7 +1550,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dSigmadUn.T,hex8.convert_V_to_M(dSigmadU,[3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def test_compute_dho_stressdU(self):
+    def _test_compute_dho_stressdU(self):
         """Test for the computation of the derivative of the higher 
         order w.r.t. the degree of freedom vector."""
         #Define the material parameters
@@ -1616,7 +1607,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dMdUn.T,hex8.convert_V_to_M(dMdU,[3,3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def test_compute_BLM_residual_gpt(self):
+    def _test_compute_BLM_residual_gpt(self):
         """Test the computation of the Balance of linear momentum residual at a point
         Note: Ignores surface traction term for now
         """
@@ -1653,7 +1644,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(R,RT))
         
-    def test_compute_dBLMdU(self):
+    def _test_compute_dBLMdU(self):
         """Test the computation of the derivative of the residual of the balance of linear momentum
         w.r.t. the degree of freedom vector"""
         
@@ -1719,7 +1710,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dBLMdUn.T,dBLMdU,rtol=1e-5,atol=1e-5))
         
-    def test_compute_FMOM_residual_gpt(self):
+    def _test_compute_FMOM_residual_gpt(self):
         """Test the computation of the residual of the first moment of momentum"""
         
         N_values = np.random.rand(8)
@@ -1770,7 +1761,7 @@ class TestMicroElement(unittest.TestCase):
                     answer[mid+n*9] = RT[i,j,n]
         self.assertTrue(np.allclose(R,answer))
         
-    def test_compute_dFMOMdU(self):
+    def _test_compute_dFMOMdU(self):
         """Test the computation of the residual of the first moment
         of momentum with respect to the degree of freedom vector"""
         
@@ -1844,6 +1835,40 @@ class TestMicroElement(unittest.TestCase):
         #print max(np.reshape(dFMOMdUn.T,[9*8*96]) - np.reshape(dFMOMdU,[9*8*96]),key=abs)
         
         self.assertTrue(np.allclose(dFMOMdUn.T,dFMOMdU,rtol=1e-5,atol=1e-5))
+        
+    def test_form_residual_gpt(self):
+        """Test the formation of the element residual at a gauss point"""
+        
+        RBLM = range(3*8)
+        RFMOM = range(3*8,96)
+        
+        result = form_residual_gpt(RBLM,RFMOM)
+        answer = []
+        
+        for n in range(8):
+            if(len(answer)!=0):
+                answer = np.vstack((answer,np.reshape(range(n*3,(n+1)*3),[3,1]),\
+                                    np.reshape(range(3*8+n*9,3*8+(n+1)*9),[9,1])))
+            else:
+                answer = np.vstack((np.reshape(range(n*3,(n+1)*3),[3,1]),\
+                                    np.reshape(range(3*8+n*9,3*8+(n+1)*9),[9,1])))
+        self.assertTrue(np.allclose(result,np.reshape(answer,[96,])))
+        
+    def test_form_jacobian_gpt(self):
+        """Test of the formation of the element jacobian"""
+        
+        dBLMdU  = np.reshape(range(3*8*96),[3*8,96])
+        dFMOMdU = np.reshape(range(3*8*96,96*96),[9*8,96])
+        
+        result = form_jacobian_gpt(dBLMdU,dFMOMdU).astype(int)
+        
+        answer = []
+        for n in range(8):
+            if(len(answer)==0):
+                answer = np.vstack((dBLMdU[3*n:(3*(n+1))],dFMOMdU[9*n:(9*(n+1))])).astype(int)
+            else:
+                answer = np.vstack((answer,dBLMdU[3*n:(3*(n+1))],dFMOMdU[9*n:(9*(n+1))])).astype(int)
+        self.assertTrue(np.allclose(result,-answer))
         
     def _get_deformation_gradient_values(self,rcoords,X_vec):
         """Get the values required to compute the deformation gradient for testing"""
