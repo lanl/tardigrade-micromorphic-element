@@ -17,6 +17,13 @@ def Hex8_shape_function(n,xi_vec): #Test function written
     nc1,nc2,nc3 = Hex8_node_coords(n)
     return 0.125*(1+xi1*nc1)*(1+xi2*nc2)*(1+xi3*nc3)
     
+def get_shape_functions(xi_vec): #Test function written
+    """Get all the shape function values at a point"""
+    Ns = np.zeros([8,])
+    for n in range(8):
+        Ns[n] = Hex8_shape_function(n,xi_vec)
+    return Ns
+    
 def Hex8_local_grad_shape_function(n,xi_vec): #Test function written
     """Compute the gradient of the shape function w.r.t. the local coordinates"""
     xi1,xi2,xi3 = xi_vec
@@ -37,11 +44,29 @@ def Hex8_global_grad_shape_function(n,xi_vec,nodal_global_coords): #Test functio
     local_grad        = Hex8_local_grad_shape_function(n,xi_vec)
     return np.dot(Jinv,local_grad),detJ
     
-def Hex8_get_shape_function_info(n,xi_vec,nodal_global_coords):
+def get_global_gradients(xi_vec,nodal_global_coords): 
+    """Get all of the gradients of the shape function with respect to the provided coordinates"""
+    dNdXs = np.zeros([8,3])
+    detJs = np.zeros([8,])
+    
+    for n in range(8):
+        dNndX,detJsn = Hex8_global_grad_shape_function(n,xi_vec,nodal_global_coords)
+        for i in range(3):
+            dNdXs[n,i] = dNndX[i]
+        detJs[n] = detJsn
+    return dNdXs,detJs
+    
+def Hex8_get_shape_function_info(n,xi_vec,nodal_global_coords): #Test function written
     """Compute and return the shape function value, the global reference gradient of the shape function"""
     N           = Hex8_shape_function(n,xi_vec)
     grad_N,detJ = Hex8_global_grad_shape_function(n,xi_vec,nodal_global_coords)
     return N,grad_N,detJ
+    
+def get_all_shape_function_info(xi_vec,nodal_global_coords): #Test function written
+    """Get all of the shape function info"""
+    N = get_shape_functions(xi_vec)
+    dNdXs,detJs = get_global_gradients(xi_vec,nodal_global_coords)
+    return N,dNdXs,detJs
     
 def Hex8_node_coords(n): #Test function written
     """Get the local coordinates for node n (0-7)"""
@@ -402,6 +427,19 @@ class TestHex8(unittest.TestCase):
         result = [ len([val for val in t if abs(val)>1e-9]) for t in temp]
         self.assertEqual(np.allclose(result,1),True)
         
+    def test_get_shape_functions(self):
+        """Test the aquisition of all of the shape functions"""
+        #Test 1
+        xi_vec = [0.,0.,0.]
+        result = get_shape_functions(xi_vec)
+        self.assertEqual(np.allclose(result,0.125),True)
+        
+        #Test 2
+        coords = [Hex8_node_coords(n) for n in range(8)]
+        temp = [get_shape_functions(nlc) for nlc in coords ]
+        result = [ len([val for val in t if abs(val)>1e-9]) for t in temp]
+        self.assertEqual(np.allclose(result,1),True)
+        
     def test_Hex8_shape_function_loc(self):
         """Test the shape function for a Hex8 element"""
         #Test 1
@@ -432,6 +470,16 @@ class TestHex8(unittest.TestCase):
         
         self.assertEqual(np.allclose(gradients,self._numeric_sfglobal_gradient(xi_vec,gcoords),atol=1e-4,rtol=1e-4),True)
         
+    def test_get_global_gradients(self):
+        """Get all of the global gradients and determinants of the jacobians of the shape functions"""
+        xi_vec = [-.65,.23,.9]
+        gcoords = [[0,0,0],[1.5,0,0],[1.0,1,0],[0,1,0],\
+                   [0,0,1],[1.5,0,1],[1.0,1,1],[0,1,1]]
+        
+        gradients = get_global_gradients(xi_vec,gcoords)[0]
+        gradients = [gradients[n,:] for n in range(8)]
+        self.assertEqual(np.allclose(gradients,self._numeric_sfglobal_gradient(xi_vec,gcoords),atol=1e-4,rtol=1e-4),True)
+        
     def test_Hex8_get_shape_function_info(self):
         """Test the Hex8_get_shape_function_info function"""
         xi_vec = [-.65,.23,.9]
@@ -443,6 +491,17 @@ class TestHex8(unittest.TestCase):
         
         self.assertEqual(np.allclose(Ns,[Hex8_shape_function(n,xi_vec) for n in range(8)]),True)
         self.assertEqual(np.allclose(gradients,self._numeric_sfglobal_gradient(xi_vec,gcoords),atol=1e-4,rtol=1e-4),True)
+        
+    def test_get_all_shape_function_info(self):
+        """Test get all of the shape function info at a point"""
+        xi_vec = [-.65,.23,.9]
+        gcoords = [[0,0,0],[1.5,0,0],[1.0,1,0],[0,1,0],\
+                   [0,0,1],[1.5,0,1],[1.0,1,1],[0,1,1]]
+        Ns,gradients,detJs = get_all_shape_function_info(xi_vec,gcoords)
+        gradients = [gradients[n,:] for n in range(8)]
+        self.assertEqual(np.allclose(Ns,[Hex8_shape_function(n,xi_vec) for n in range(8)]),True)
+        self.assertEqual(np.allclose(gradients,self._numeric_sfglobal_gradient(xi_vec,gcoords),atol=1e-4,rtol=1e-4),True)
+        
         
     def test_invert_3x3_matrix(self):
         """Test the matrix inversion function"""
