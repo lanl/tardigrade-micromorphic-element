@@ -6,6 +6,7 @@ import finite_difference as fd
 import micromorphic_linear_elasticity as micro_LE
 from hex8 import T_to_V_mapping as T2V
 from hex8 import V_to_T_mapping as V2T
+from hex8 import V_to_M_mapping as V2M
 
 """===========================================
 |                                         |
@@ -667,17 +668,18 @@ def compute_dBLMdU(dNdXes,PK2,F,dpk2dU,dFdU,detJhat): #Test function written
 #    #TODO
 #    
 #    return RES
-    
-def compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE):
+
+def compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION):
     """Compute the residual of the balance of first moment of momentum"""
     RFMOM = np.zeros([9*8])
     for n in range(8):
-        TRACTMOM = compute_FMOM_resid_traction() #Compute the couple traction residual
+        TRACTMOM = np.zeros([9,])# TODO: ADD THIS! compute_FMOM_resid_traction() #Compute the couple traction residual
         for i in range(3):
             for j in range(3):
                 ij = T2V([i,j],[3,3])
                 ji = T2V([j,i],[3,3])
-                RFMOM[ij+n*9] = TRACTMOM[ij]
+                mid,_ = V2M(ij,[3,3]) #Provide the mapping to the correct index
+                RFMOM[mid+n*9] = TRACTMOM[ij] + N[n]*RHO0*(BODYCOUPLE[ji]-MICROSPIN[ji])*detJhat[n]
                 
                 for I in range(3):
                     iI = T2V([i,I],[3,3])
@@ -685,14 +687,15 @@ def compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROS
                         jJ = T2V([j,J],[3,3])
                         IJ = T2V([I,J],[3,3])
                         
-                        RFMOM[ij] += N[n]*(F[iI]*(PK2[IJ]-SIGMA[IJ])*F[jJ] + RHO0*(BODYCOUPLE[ji]-MICROSPIN[ji]))*detJhat[n] #Add lower order contributions
+                        RFMOM[mid+n*9] += N[n]*F[iI]*(PK2[IJ]-SIGMA[IJ])*F[jJ]*detJhat[n] #Add lower order contributions
                         
                         for K in range(3):
                             KJI = T2V([K,J,I],[3,3,3])
-                            RFMOM[ij+n*9] -= grad_N_ref[n][K]*F[jJ]*chi[iI]*M[KJI]*detJhat[n] #Add contribution of higher order stress
+                            RFMOM[mid+n*9] -= grad_N_ref[n][K]*F[jJ]*chi[iI]*M[KJI]*detJhat[n] #Add contribution of higher order stress
+    
     return RFMOM
     
-def compute_FMOM_resid_traction(N,F,grad_N_ref,detJ,COUPLE_TRACTION,SIGMA,M,RHO0,ACCEL,BODYF):
+def compute_FMOM_resid_traction():
     """Compute the residual from the applied traction"""
     ORDER = 2
     GP,W = hex8.get_face_gpw(ORDER)
@@ -1730,9 +1733,40 @@ class TestMicroElement(unittest.TestCase):
         
         MICROSPIN = np.random.rand(3*3)
         BODYCOUPLE = np.random.rand(3*3)
-        COUPLE_TRACTION = np.zeros([3*3*8])
+        COUPLE_TRACTION = np.zeros([3*3])
         
-        R = compute_FMOM_residual_gpt(N,F,chi,grad_N_ref_vectors,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION)
+        R = compute_FMOM_residual_gpt(N_values,F,chi,grad_N_ref_vectors,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION)
+        
+        F     = hex8.convert_V_to_T(F,[3,3])
+        chi   = hex8.convert_V_to_T(chi,[3,3])
+        PK2   = hex8.convert_V_to_T(PK2,[3,3])
+        SIGMA = hex8.convert_V_to_T(SIGMA,[3,3])
+        M     = hex8.convert_V_to_T(M,[3,3,3])
+        dxidX = hex8.convert_V_to_T(dxidX,[3,3])
+        MICROSPIN = hex8.convert_V_to_T(MICROSPIN,[3,3])
+        BODYCOUPLE = hex8.convert_V_to_T(BODYCOUPLE,[3,3])
+        COUPLE_TRACTION = hex8.convert_V_to_T(COUPLE_TRACTION,[3,3])
+        
+        RT = np.zeros([3,3,8])
+        
+        for n in range(8):
+            for i in range(3):
+                for j in range(3):
+                    RT[i,j,n] = N_values[n]*RHO0*(BODYCOUPLE[j,i]-MICROSPIN[j,i])*detJhat[n]
+                    
+                    for I in range(3):
+                        for J in range(3):
+                            RT[i,j,n] += N_values[n]*F[i,I]*(PK2[I,J] - SIGMA[I,J])*F[j,J]*detJhat[n]
+                            for K in range(3):
+                                RT[i,j,n] -= grad_N_ref_vectors[n,K]*F[j,J]*chi[i,I]*M[K,J,I]*detJhat[n]
+        answer = np.zeros([8*9,])
+        for n in range(8):
+            for i in range(3):
+                for j in range(3):
+                    vid   = T2V([i,j],[3,3])
+                    mid,_ = V2M(vid,[3,3])
+                    answer[mid+n*9] = RT[i,j,n]
+        self.assertTrue(np.allclose(R,answer))
         
     def _get_deformation_gradient_values(self,rcoords,X_vec):
         """Get the values required to compute the deformation gradient for testing"""
