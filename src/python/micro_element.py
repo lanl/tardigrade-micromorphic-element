@@ -724,7 +724,7 @@ def compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdU,dFdU,dchidU,dpk2dU,dSigmadU,dMdU):
                             jJL = T2V([j,J,L+n*12],[3,3,96])
                             dFMOMdU[ij+n*12,L] += N[n]*(dFdU[iIL]*(PK2[IJ]-SIGMA[IJ])*F[jJ]\
                                                           + F[iI]*(dpk2dU[IJL] - dSigmadU[IJL])*F[jJ]\
-                                                          + F[iI]*(PK2[IJ]-SIGMA[IJ])*dFdU[jJL])
+                                                          + F[iI]*(PK2[IJ]-SIGMA[IJ])*dFdU[jJL])*detJhat[n]
                     
                     for K in range(3):
                         ijKL = T2V([i,j,K,L+n*12],[3,3,3,96])
@@ -738,7 +738,7 @@ def compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdU,dFdU,dchidU,dpk2dU,dSigmadU,dMdU):
                                 KJI = T2V([K,J,I],[3,3,3])
                                 KJIL = T2V([K,J,I,L+n*12],[3,3,3,96])
                                 T += dFdU[jJL]*chi[iI]*M[KJI] + F[jJ]*dchidU[iIL]*M[K,J,I] + F[jJ]*chi[iI]*dMdU[KJIL]
-                        dFMOMdU[ijL] -= dNdU[n][K]*T
+                        dFMOMdU[ijL] -= dNdU[n][K]*T*detJhat[n]
     return dFMOMdU
         
 def form_residual_gpt(RBLM,RFMOM):
@@ -1611,7 +1611,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dMdUn.T,hex8.convert_V_to_M(dMdU,[3,3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def test_compute_BLM_residual_gpt(self):
+    def _test_compute_BLM_residual_gpt(self):
         """Test the computation of the Balance of linear momentum residual at a point
         Note: Ignores surface traction term for now
         """
@@ -1648,7 +1648,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(R,RT))
         
-    def test_compute_dBLMdU(self):
+    def _test_compute_dBLMdU(self):
         """Test the computation of the derivative of the residual of the balance of linear momentum
         w.r.t. the degree of freedom vector"""
         
@@ -1719,18 +1719,20 @@ class TestMicroElement(unittest.TestCase):
         
         N_values = np.random.rand(8)
         F = np.random.rand(9)
+        chi = np.random.rand(9)
         grad_N_ref_vectors = np.reshape(np.random.rand(8*3),[8,3])
         detJhat = np.random.rand(8)
         PK2 = np.random.rand(9)
         SIGMA = np.random.rand(9)
         M = np.random.rand(3*3*3)
         RHO0 = 3.4
-        BODYF = np.random.rand(3)
-        ACCEL = np.random.rand(3)
         dxidX = np.random.rand(9)
-        TRACTION = np.zeros([3*8])
         
+        MICROSPIN = np.random.rand(3*3)
+        BODYCOUPLE = np.random.rand(3*3)
+        COUPLE_TRACTION = np.zeros([3*3*8])
         
+        R = compute_FMOM_residual_gpt(N,F,chi,grad_N_ref_vectors,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION)
         
     def _get_deformation_gradient_values(self,rcoords,X_vec):
         """Get the values required to compute the deformation gradient for testing"""
