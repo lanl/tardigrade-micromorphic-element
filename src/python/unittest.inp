@@ -1,7 +1,6 @@
 #Test element for the input parser function
 *LATEX
-This is the test element for the InputParser class of \verb|fea_driver.py|. It reads in the nodes, elements, and properties for a two element mesh 
-
+This is the test element for the InputParser class of \verb|fea_driver.py|. It reads in the nodes, elements, and properties for a two element mesh.
 
 *NODES
 1,0,0,0
