@@ -592,12 +592,17 @@ def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords
     """Compute the residuals and jacobian at a given gauss point"""
     F,chi,grad_chi                   = interpolate_dof(xi_vec,node_phis,nodal_global_coords_current,nodal_global_coords_reference)
     dFdU,dchidU,dgrad_chidU          = compute_fundamental_derivatives(xi_vec,nodal_global_coords_reference)
-    N,grad_N_ref,detJhat             = hex8.Hex8_get_shape_function_info(n,xi_vec,nodal_global_coords) #TODO make for all nodes!
+    N,grad_N_ref,detJhat             = get_all_shape_function_info(xi_vec,nodal_global_coords)
     PK2,SIGMA,M,dPK2dU,dSigmadU,dMdU = compute_stress(F,chi,grad_chi,params,state_variables)
     
     #Compute the residuals at the gauss point
-    RBLM  = compute_BLM_residual_gpt(N,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0)
-    RFMOM = compute_FMOM_residual_gpt(N,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0)
+    #TODO: CALCULATE THESE!
+    ACCEL = np.zeros([3,]) #SET TO ZERO FOR NOW
+    BODYF = np.zeros([3,])
+    dxidX = np.zeros([9,])
+    TRACTION = np.zeros([3,])
+    RBLM  = compute_BLM_residual_gpt(N,grad_N_ref,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION)
+    RFMOM = compute_FMOM_residual_gpt(N,grad_N_ref,detJhat,PK2,RHO0)
     
     #Compute the derivatives of the residuals w.r.t. the dof vector at the gauss point
     dRBLMdU  = compute_dBLMdU(dNdXes,PK2,F,dpk2dU,dFdU,detJhat)
@@ -609,19 +614,19 @@ def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords
     
     return R,J
     
-def compute_BLM_residual_gpt(N_values,F,grad_N_ref_vectors,detJhat,PK2,SIGMA,M,RHO0,ACCEL,BODYF,dxidX,TRACTION):
+def compute_BLM_residual_gpt(N_values,F,grad_N_ref_vectors,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION): #Test function written
     """Compute the residual of the balance of linear momentum"""
     RBLM = np.zeros([3*8])
     
     for n in range(8): #Iterate through the nodes
-        FTRACT = compute_BLM_resid_traction(N,F,dxidX,detJhat)#Compute the traction residual
+        FTRACT = np.zeros([3,])#TODO! compute_BLM_resid_traction(N_values[n],F,dxidX[n],detJhat[n])#Compute the traction residual
         for j in range(3):
-            RBLM[j+n*3] = FTRACT[j]
+            RBLM[j+n*3] = FTRACT[j] + N_values[n]*RHO0*(BODYF[j]-ACCEL[j])*detJhat[n]
             for I in range(3):
                 for J in range(3):
                     IJ = T2V([I,J],[3,3])
                     jJ = T2V([j,J],[3,3])
-                    RBLM[j+n*3] += (N[n]*RHO0*(BODYF[j]-ACCEL[j])-grad_N_ref_vectors[n][I]*PK2[IJ]*F[jJ])*detJhat #Compute the stress, body force, and kinematic residuals
+                    RBLM[j+n*3] += -grad_N_ref_vectors[n,I]*PK2[IJ]*F[jJ]*detJhat[n] #Compute the stress, body force, and kinematic residuals
     
     return RBLM
     
@@ -636,7 +641,7 @@ def compute_BLM_resid_traction(N,F,dxidX,detJhat):
     
     return RES
     
-def compute_dBLMdU(dNdXes,PK2,F,dpk2dU,dFdU,detJhat):
+def compute_dBLMdU(dNdXes,PK2,F,dpk2dU,dFdU,detJhat): #Test function written
     """Compute the derivative of the balance of linear momentum with respect to the degree of freedom vector"""
     
     dBLMdU = np.zeros([3*8,96])
@@ -646,12 +651,12 @@ def compute_dBLMdU(dNdXes,PK2,F,dpk2dU,dFdU,detJhat):
         for j in range(3):
             for I in range(3):
                 for J in range(3):
-                    IJ = T2V9[I,J],[3,3])
+                    IJ = T2V([I,J],[3,3])
                     jJ = T2V([j,J],[3,3])
                     for K in range(96):
                         IJK = T2V([I,J,K],[3,3,96])
                         jJK = T2V([j,J,K],[3,3,96])
-                        dBLMdU[j+n*3,K] = dNdXes[n][I]*(dpk2dU[IJK]*F[jJ]+PK2[IJ]*dFdU[jJK])*detJhat
+                        dBLMdU[j+n*3,K] -= dNdXes[n][I]*(dpk2dU[IJK]*F[jJ]+PK2[IJ]*dFdU[jJK])*detJhat[n]
     return dBLMdU
     
 # I think this term drops out
@@ -680,12 +685,11 @@ def compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROS
                         jJ = T2V([j,J],[3,3])
                         IJ = T2V([I,J],[3,3])
                         
-                        RFMOM[ij] += N[n]*(F[iI]*(PK2[IJ]-SIGMA[IJ])*F[jJ] + RHO0*(BODYCOUPLE[ji]-MICROSPIN[ji]) #Add lower order contributions
+                        RFMOM[ij] += N[n]*(F[iI]*(PK2[IJ]-SIGMA[IJ])*F[jJ] + RHO0*(BODYCOUPLE[ji]-MICROSPIN[ji]))*detJhat[n] #Add lower order contributions
                         
                         for K in range(3):
                             KJI = T2V([K,J,I],[3,3,3])
-                            RFMOM[ij+n*9] -= grad_N_ref[n][K]*F[jJ]*chi[iI]*M[KJI] #Add contribution of higher order stress
-            RFMOM[ij+n*9] *= detJhat #Include det(Jhat)
+                            RFMOM[ij+n*9] -= grad_N_ref[n][K]*F[jJ]*chi[iI]*M[KJI]*detJhat[n] #Add contribution of higher order stress
     return RFMOM
     
 def compute_FMOM_resid_traction(N,F,grad_N_ref,detJ,COUPLE_TRACTION,SIGMA,M,RHO0,ACCEL,BODYF):
@@ -733,7 +737,7 @@ def compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,dNdU,dFdU,dchidU,dpk2dU,dSigmadU,dMdU):
                                 jJL = T2V([j,J,L+n*12],[j,J,L])
                                 KJI = T2V([K,J,I],[3,3,3])
                                 KJIL = T2V([K,J,I,L+n*12],[3,3,3,96])
-                                T += dFdU[jJL]*chi[iI]*M[KJI] + F[jJ]*dchidU[iIL]M[K,J,I] + F[jJ]*chi[iI]*dMdU[KJIL]
+                                T += dFdU[jJL]*chi[iI]*M[KJI] + F[jJ]*dchidU[iIL]*M[K,J,I] + F[jJ]*chi[iI]*dMdU[KJIL]
                         dFMOMdU[ijL] -= dNdU[n][K]*T
     return dFMOMdU
         
@@ -1436,7 +1440,7 @@ class TestMicroElement(unittest.TestCase):
         self.assertEqual(np.allclose(dPsidUt,    dPsidU),True)
         self.assertEqual(np.allclose(dGammadUt,dGammadU),True)
         
-    def test_compute_dpk2dU(self):
+    def _test_compute_dpk2dU(self):
         """Test for the computation of the derivative of the Second
         Piola Kirchhoff stress w.r.t. the degree of freedom vector."""
         #Define the material parameters
@@ -1493,7 +1497,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dPK2dUn.T,hex8.convert_V_to_M(dPK2dU,[3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def test_compute_dSigmadU(self):
+    def _test_compute_dSigmadU(self):
         """Test for the computation of the derivative of the symmetric 
         stress w.r.t. the degree of freedom vector."""
         #Define the material parameters
@@ -1550,7 +1554,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dSigmadUn.T,hex8.convert_V_to_M(dSigmadU,[3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def test_compute_dho_stressdU(self):
+    def _test_compute_dho_stressdU(self):
         """Test for the computation of the derivative of the higher 
         order w.r.t. the degree of freedom vector."""
         #Define the material parameters
@@ -1606,6 +1610,127 @@ class TestMicroElement(unittest.TestCase):
         #print max(hex8.convert_M_to_V(dMdUn.T,[3,3,3,96])-dMdU,key=abs)
         
         self.assertTrue(np.allclose(dMdUn.T,hex8.convert_V_to_M(dMdU,[3,3,3,96]),atol=1e-5,rtol=1e-5))
+        
+    def test_compute_BLM_residual_gpt(self):
+        """Test the computation of the Balance of linear momentum residual at a point
+        Note: Ignores surface traction term for now
+        """
+        
+        N_values = np.random.rand(8)
+        F = np.random.rand(9)
+        grad_N_ref_vectors = np.reshape(np.random.rand(8*3),[8,3])
+        detJhat = np.random.rand(8)
+        PK2 = np.random.rand(9)
+        SIGMA = np.random.rand(9)
+        M = np.random.rand(3*3*3)
+        RHO0 = 3.4
+        BODYF = np.random.rand(3)
+        ACCEL = np.random.rand(3)
+        dxidX = np.random.rand(9)
+        TRACTION = np.zeros([3*8])
+        
+        R = compute_BLM_residual_gpt(N_values,F,grad_N_ref_vectors,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION)
+        
+        F     = hex8.convert_V_to_T(F,[3,3])
+        PK2   = hex8.convert_V_to_T(PK2,[3,3])
+        SIGMA = hex8.convert_V_to_T(SIGMA,[3,3])
+        M     = hex8.convert_V_to_T(M,[3,3,3])
+        dxidX = hex8.convert_V_to_T(dxidX,[3,3])
+        
+        RT = np.zeros([3*8])
+        
+        for n in range(8):
+            for j in range(3):
+                RT[j+n*3] = N_values[n]*RHO0*(BODYF[j]-ACCEL[j])*detJhat[n]
+                for I in range(3):
+                    for J in range(3):
+                        RT[j+n*3] -= grad_N_ref_vectors[n,I]*PK2[I,J]*F[j,J]*detJhat[n]
+        
+        self.assertTrue(np.allclose(R,RT))
+        
+    def test_compute_dBLMdU(self):
+        """Test the computation of the derivative of the residual of the balance of linear momentum
+        w.r.t. the degree of freedom vector"""
+        
+        #Define the material parameters
+        RHO0   = 4.5
+        LAMBDA = 2.4
+        MU     = 6.7
+        ETA    = 2.4
+        TAU    = 5.1
+        KAPPA  = 5.6
+        NU     = 8.2
+        SIGMA  = 2.
+        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        
+        #Define the node coordinates
+        rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
+                   [-1.,-1., 1.],[1.,-1., 1.],[1.,1., 1.],[-1.,1., 1.]]
+        #Identify a point
+        Xs,Ys,Zs = zip(*rcoords)
+        X=sum(Xs)/len(Xs)
+        Y=sum(Ys)/len(Ys)
+        Z=sum(Zs)/len(Zs)
+        xi_vec = np.array([0.1,-0.27,0.3])
+        
+        #Get quantities of interest
+        Fanalytic,ccoords          = self._get_deformation_gradient_values(rcoords,[X,Y,Z])
+        chia,grad_chia,phi_vectors = self._get_chi_values(rcoords,[X,Y,Z])
+        
+        #Compute u
+        u_vecs = [[cc1-rc1,cc2-rc2,cc3-rc3] for (cc1,cc2,cc3),(rc1,rc2,rc3) in zip(ccoords,rcoords)]
+        #Create the dof vector
+        U = np.concatenate([np.concatenate((u_vec,phi_vec)) for u_vec,phi_vec in zip(u_vecs,phi_vectors)])
+        
+        #Set terms to zero for no TODO: check this!
+        ACCEL = np.zeros([3,])
+        BODYF = np.zeros([3,])
+        dxidX = np.zeros([9,])
+        TRACTION = np.zeros([3,])
+        
+        def BLM_parser(Uin):
+            node_us,node_phis = parse_dof_vector(Uin)
+            node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
+            F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
+            PK2 = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)[0]
+            N_values,grad_N_ref_vectors,detJhat = hex8.get_all_shape_function_info(xi_vec,rcoords)
+            return compute_BLM_residual_gpt(N_values,F,grad_N_ref_vectors,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION)
+        
+        _,dNdXes,detJhat = hex8.get_all_shape_function_info(xi_vec,rcoords)
+        
+        F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
+        dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
+        dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        dPK2dU  = compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)
+        dBLMdU = compute_dBLMdU(dNdXes,PK2,F,dPK2dU,dFdU,detJhat)
+        
+        dBLMdUn = fd.numeric_gradient(BLM_parser,U,1e-6)
+        
+        #print dBLMdUn.T
+        #print dBLMdU
+        #print np.reshape(dBLMdUn,[3*8*96]) - np.reshape(dBLMdU,[3*8*96])
+        
+        self.assertTrue(np.allclose(dBLMdUn.T,dBLMdU,rtol=1e-5,atol=1e-5))
+        
+    def test_compute_FMOM_residual_gpt(self):
+        """Test the computation of the residual of the first moment of momentum"""
+        
+        N_values = np.random.rand(8)
+        F = np.random.rand(9)
+        grad_N_ref_vectors = np.reshape(np.random.rand(8*3),[8,3])
+        detJhat = np.random.rand(8)
+        PK2 = np.random.rand(9)
+        SIGMA = np.random.rand(9)
+        M = np.random.rand(3*3*3)
+        RHO0 = 3.4
+        BODYF = np.random.rand(3)
+        ACCEL = np.random.rand(3)
+        dxidX = np.random.rand(9)
+        TRACTION = np.zeros([3*8])
+        
+        
         
     def _get_deformation_gradient_values(self,rcoords,X_vec):
         """Get the values required to compute the deformation gradient for testing"""
