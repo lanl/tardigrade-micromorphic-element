@@ -76,7 +76,7 @@ def compute_dCinvdC(Cinv): #Test function written
 
 def form_stiffness_tensors(PARAMS): #Test function written
     """Form the stiffness tensors"""
-    LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS = PARAMS
+    RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS = PARAMS
     AFOT = form_A(LAMBDA,MU)
     BFOT = form_B(ETA,TAU,KAPPA,NU,SIGMA)
     CFOT = form_C(TAUS)
@@ -528,6 +528,7 @@ class TestMicro_LE(unittest.TestCase):
         
     def test_form_stiffness_tensors(self):
         """Test forming the stiffness tensors"""
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -536,7 +537,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         A,B,C,D = form_stiffness_tensors(PARAMS)
         
@@ -611,6 +612,7 @@ class TestMicro_LE(unittest.TestCase):
         
     def test_compute_pk2_stress(self):
         """Test the computation of the pk2 stress"""
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -619,7 +621,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
         
@@ -691,6 +693,7 @@ class TestMicro_LE(unittest.TestCase):
 
     def test_compute_symmetric_stress(self):
         """Test the computation of the symmetric stress"""
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -699,7 +702,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
         
@@ -771,6 +774,7 @@ class TestMicro_LE(unittest.TestCase):
     
     def test_compute_ho_stress(self):
         """Test the computation of the higher order stress"""
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -779,7 +783,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
         
@@ -817,6 +821,7 @@ class TestMicro_LE(unittest.TestCase):
 
     def test_compute_stresses(self):
         """Test the computation of all of the stress measures"""
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -825,7 +830,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
         
@@ -861,6 +866,7 @@ class TestMicro_LE(unittest.TestCase):
         
     def test_compute_stress_derivatives_wrt_C(self):
         """Test the computation of the stress derivatives wrt C"""
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -869,7 +875,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
         
@@ -948,6 +954,7 @@ class TestMicro_LE(unittest.TestCase):
         Note: finite difference values delta values reduced to allow 
         convergence
         """
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -956,7 +963,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
         
@@ -1031,6 +1038,7 @@ class TestMicro_LE(unittest.TestCase):
         
     def test_compute_stress_derivatives_wrt_Gamma(self):
         """Test the computation of the stress derivatives wrt Gamma"""
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -1039,7 +1047,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
         
@@ -1115,6 +1123,7 @@ class TestMicro_LE(unittest.TestCase):
     
     def test_compute_stress_derivatives(self):
         """Test the computation of the stress derivatives"""
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -1123,7 +1132,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
         
@@ -1175,6 +1184,7 @@ class TestMicro_LE(unittest.TestCase):
         
     def test_micromorphic_linear_elasticity(self):
         """Test function for the micromorphic linear elasticity model"""
+        RHO0   = 2.9
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -1183,7 +1193,7 @@ class TestMicro_LE(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
         
