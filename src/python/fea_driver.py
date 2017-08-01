@@ -2,12 +2,16 @@ import numpy as np
 import unittest
 import os
 
+import micro_element as mel
+
 class InputParser:
     """The input parser class which reads in data from a text file"""
     
     filename      = "" #String giving the filename
     latex_string  = "" #The description of the input deck
-    nodes_coords  = [] #List of node numbers and their coordinates
+    nodes_coords  = [] #List of node numbers and their reference coordinates
+    dirichlet_bcs = [] #List of the dirichlet boundary conditions
+    ndof          = 0. #The number of degrees of freedom at each node
     nodes_dof     = [] #List of lists of degrees of freedom assocated with each node
     element_nodes = [] #List of nodes associated with each element
     properties    = [] #List of the material properties
@@ -48,8 +52,8 @@ class InputParser:
         
     def check_keywords(self,line):
         """Check a line for keywords"""
-        keywords   = ["*NODES","*DOF","*ELEMENTS","*PROPERTIES","*LATEX"]
-        parse_fxns = [self.parse_nodes, self.parse_dof, self.parse_elements, self.parse_props, self.parse_latex]
+        keywords   = ["*NODES","*DIRICHLET_BCS","*ELEMENTS","*PROPERTIES","*LATEX"]
+        parse_fxns = [self.parse_nodes, self.parse_dirichlet_bcs, self.parse_elements, self.parse_props, self.parse_latex]
         
         for key,fxn in zip(keywords,parse_fxns):
             if key in line:
@@ -66,27 +70,28 @@ class InputParser:
         """Parse the file when triggered by a node keyword"""
         if(len(line)>0):
             sline = line.split(',')
-            if(len(sline)<4):
+            if(len(sline)==2):
+                self.ndof = int(sline[1])
+                self.nodes_dof = [range(n*self.ndof,(n+1)*self.ndof) for n in range(len(self.nodes_coords))]
+            elif(len(sline)==4):
+                self.nodes_coords.append([int(sline[0]),float(sline[1]),float(sline[2]),float(sline[3])])
+            else:
                 print "Error: A node must be defined by its number,"+\
                       "       followed by its x,y,z coordinates."
                 raise ValueError()
-            else:
-                self.nodes_coords.append([int(sline[0]),float(sline[1]),float(sline[2]),float(sline[3])])
-        
-    def parse_dof(self,line):
-        """Parse the file when triggered by the dof keyword"""
+                
+    def parse_dirichlet_bcs(self,line):
+        """Parse the dirichlet boundary conditions applied at the nodes"""
         if(len(line)>0):
             sline = line.split(',')
-            if(len(sline)<13):
-                print "Error: A node must be defined by its number,"+\
-                      "       followed by its 12 dof."
-                raise ValueError()
+            if(len(sline)==3):
+                self.dirichlet_bcs.append([int(sline[0]),int(sline[1]),float(sline[2])])
             else:
-                self.nodes_dof.append([int(sline[0]), float(sline[1]), float(sline[2]), float(sline[3]),\
-                                                      float(sline[4]), float(sline[5]), float(sline[6]),\
-                                                      float(sline[7]), float(sline[8]), float(sline[9]),\
-                                                     float(sline[10]),float(sline[11]),float(sline[12])])
-        
+                print "Error: A boundary condition is defined by,"+\
+                      "       the node it is applied to, the dof"+\
+                      "       on the node, and the value of the"+\
+                      "       displacement."
+ 
     def parse_elements(self,line):
         """Parse the file when triggered by a element keyword"""
         if(len(line)>0):
@@ -146,7 +151,93 @@ class TestFEA(unittest.TestCase):
         IP = InputParser("unittest.inp")
         
         IP.read_input()
+      
+class FEAModel():
+    """The class which defines the FEA model"""
+    input      = None #Input of type InputParser
+    t0         = 0.   #Previous value of time
+    ti         = 1.   #Current value of time
+    x0         = None #Previous value of x in Ax = b
+    xi         = None #Current increment value of x in solver
+    total_ndof = None #Total number of degrees of freedom
+    RHS        = None #The right hand side vector
+    AMATRX     = None #The A matrix in Ax = b
+    RHS_bc     = None #The right hand side vector with dirichlet bcs applied
+    AMATRX_bc  = NONE #The A matrix with dirichlet bcs applied
+    gdof       = None
+    def __init__(sefl,IP_):
+        """Initialize the finite element model"""
+        self.input = IP_
+        total_ndof = len(self.input.nodes_dof)*self.input.ndof
+        self.x0    = np.zeros([self.total_ndof])
+        self.xi    = np.zeros([self.total_ndof])
+    
+    def __repr__(self):    
+        """Define the repr string"""
+        return "FEAModel({0})".format(self.input)
         
+    def assemble_RHS_and_jacobian_matrix(self):
+        """Assemble the global right hand side vector and jacobian matrix"""
+        
+        self.RHS    = np.zeros([self.total_ndof]) #Initialize the right hand side
+        self.AMATRX = np.zeros([self.total_ndof,self.total_ndof]) #Initialize the A matrix
+        
+        for e in self.input.element_nodes:
+            #Get the reference coordinates of the nodes
+            coords = [self.input.nodes_coords[i][1:] for ei in e if self.input.nodes_coords[i][0]==ei]
+            #Get the dof associated with each node in the element
+            edof = [self.input.nodes_dof[ei] for ei in e]
+            flat_edof = flatten_list(edof)
+            #Get the previous values of the dof
+            dof0  = [[self.x0[d] for d in eidof] for eidof in edof]
+            #Get the current values of the dof
+            dofi  = [[self.xi[d] for d in eidof] for eidof in edof]
+            #Create the U and DU vectors
+            U  = flatten_list(dofi)
+            U0 = flatten_list(dof0)
+            DU = [Ui-U0i for Ui,U0i in zip(U,U0)]
+            #Call the element to provide the right hand side and jacobian matrix
+            RHSe,AMATRXe = UEL(self.input.properties,len(self.input.properties),\
+                               coords,None,U,DU,self.t0,self.ti-self.t0)
+            #Assemble the global matrix
+            for i in range(self.input.ndof*8):
+                Iglob = flat_edof[i] #Get the mapping to the global degree of freedom index for i
+                self.RHS[Iglob] += RHSe[i]
+                for j in range(self.input.ndof*8):
+                    Jglob = flat_edof[j] #Get the mapping to the global degree of freedom index for j
+                    self.AMATRX[Iglob,Jglob] += AMATRXe[i,j]
+        
+    def apply_dirichlet_bcs(self):
+        """Apply the dirichlet boundary conditions to the system of equations"""
+        if(gdof==None):
+            gdof = np.zeros([len(self.input.dirichlet_bcs),]).astype(int)
+        for i,dbc in enumerate(self.input.dirichlet_bcs):
+            #Get the global dof number and value
+            gdof[i] = self.input.nodes_dof[dbc[0]][dbc[1]]
+            val     = self.input.nodes_dof[dlb[0]][dbc[2]]
+            
+            self.RHS -= self.AMATRX[:,gdof[i]]*val #Subtract this force from the right hand side
+            
+        for dof in reversed(gdof):
+            self.RHS_bc    = np.delete(self.RHS,dof,0)
+            self.AMATRX_bc = np.delete(self.AMATRX,0)
+            self.AMATRX_bc = np.delete(self.AMATRX,1)
+            
+    def solve_increment(self):
+        """Solve the currently defined increment and update xi"""
+        self.assemble_RHS_and_jacobian_matrix()
+        self.apply_dirichlet_bcs()
+        self.xi = np.linalg.solve(self.AMATRX_bc,self.RHS,bc)
+        
+def run_finite_elmement_model(input_filename):
+    """Run the finite element model identified by the input filename"""
+    IP = InputParser(input_filename)
+    IP.read_input()
+    
+def flatten_list(l):
+    """Flatten list of lists"""
+    return [item for sublist in l for item in sublist]
+    
         
 if __name__ == '__main__':
     unittest.main()
