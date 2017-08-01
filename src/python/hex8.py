@@ -154,9 +154,9 @@ def get_gpw(order): #Test function written
     
     gpw = []
     
-    for i in range(3):
-        for j in range(3):
-            for k in range(3):
+    for i in range(order):
+        for j in range(order):
+            for k in range(order):
                 P.append([p[i],p[j],p[k]])
                 W.append(w[i]*w[j]*w[k])
     return P,W
