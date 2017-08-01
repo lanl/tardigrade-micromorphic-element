@@ -21,10 +21,12 @@ from hex8 import V_to_M_mapping as V2M
 | functions in the non-testing areas.     |
 ==========================================="""
 
-def UEL(RHS,AMATRX,SVARS,ENERGY,NDOFEL,NRHS,NSVARS,\
-        PROPS,NPROPS,COORDS,MCRD,NNODE,U,DU,V,A,JTYPE,TIME,DTIME,\
-        KSTEP,KINC,JELEM,PARAMS,NDLOAD,JDLTYP,ADLMAG,PREDEF,NPREDF,\
-        LFLAGS,MLVARX,DDLMAG,MDLOAD,PNEWDT,JPROPS,NJPROP,PERIOD):
+# Abaqus format
+#def UEL(RHS,AMATRX,SVARS,ENERGY,NDOFEL,NRHS,NSVARS,\
+#        PROPS,NPROPS,COORDS,MCRD,NNODE,U,DU,V,A,JTYPE,TIME,DTIME,\
+#        KSTEP,KINC,JELEM,PARAMS,NDLOAD,JDLTYP,ADLMAG,PREDEF,NPREDF,\
+#        LFLAGS,MLVARX,DDLMAG,MDLOAD,PNEWDT,JPROPS,NJPROP,PERIOD):
+def UEL(PROPS,NPROPS,COORDS,MCRD,U,DU,TIME,DTIME): #Python definition
     """The main subroutine for the element. Intentionally mimics
     an Abaqus UEL for easy porting between versions.
     
@@ -43,7 +45,7 @@ def UEL(RHS,AMATRX,SVARS,ENERGY,NDOFEL,NRHS,NSVARS,\
                 
                  with F being the force balance equation and M being the 
                  balance of the first moment of momentum. The matrix is 
-                 organied as follows for each node in the following order
+                 organized as follows for each node in the following order
                  for a total of 96x96 terms
                  
                  
@@ -201,12 +203,12 @@ def UEL(RHS,AMATRX,SVARS,ENERGY,NDOFEL,NRHS,NSVARS,\
     UN,PHIN    = parse_dof_vector(U)
     DUN,DPHIN  = parse_dof_vector(DU)
     
-    #Only integrate the element currently
-    return integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PARAMS,STATEVARS,ORDER_QUAD)
+    #Only integrate the element currently. Returns RHS and AMATRX
+    return integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PROPS,STATEVARS,ORDER_QUAD)
     
     # #Parse the LFLAGS array
     # if(LFLAGS[2]==1):
-        # print "Derp"
+    #    print "Return RHS and AMATRX"
         
 ###### Extract degrees of freedom ######
 def parse_dof_vector(U): #Test function written
@@ -219,21 +221,21 @@ def parse_dof_vector(U): #Test function written
     return node_us,node_phis
 
 ###### Integrate the element ######
-def integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PARAMS,STATEVARS,ORDER_QUAD):
+def integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PROPS,STATEVARS,ORDER_QUAD):
     """Integrate the element"""
     
     R = np.zeros([96,])
     J = np.zeros([96,96])
     
-    for i in range(ORDER_QUAD**2):
-        xi_vec = PQ[i]
-        W      = WQ[i]
+    for gp in range(ORDER_QUAD**2):
+        xi_vec = PQ[gp]
+        W      = WQ[gp]
         
         ccoords = [None]*8
         for n in range(8):
             ccoords[n] = COORDS[n]+UN[n]
         
-        Rp,Jp = compute_residuals_jacobians_gpt(xi_vec,UN,PHIN,ccoords,COORDS,PARAMS,STATEVARS)
+        Rp,Jp = compute_residuals_jacobians_gpt(xi_vec,UN,PHIN,ccoords,COORDS,PROPS,STATEVARS)
     
         for i in range(96):
             R[i] += Rp[i]*W
@@ -589,12 +591,15 @@ def compute_dGammadUn(n,F,grad_chi,dFdU,dgrad_chidU): #Test function written (co
     
 ###### Residual and Residual Gradient Calculations ######
     
-def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords_current,nodal_global_coords_reference,params,state_variables):
+def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords_current,nodal_global_coords_reference,props,state_variables): #Test function written
     """Compute the residuals and jacobian at a given gauss point"""
+    RHO0 = props[0]
+    
     F,chi,grad_chi                   = interpolate_dof(xi_vec,node_phis,nodal_global_coords_current,nodal_global_coords_reference)
     dFdU,dchidU,dgrad_chidU          = compute_fundamental_derivatives(xi_vec,nodal_global_coords_reference)
-    N,grad_N_ref,detJhat             = get_all_shape_function_info(xi_vec,nodal_global_coords)
-    PK2,SIGMA,M,dPK2dU,dSigmadU,dMdU = compute_stress(F,chi,grad_chi,params,state_variables)
+    dCdU,dPsidU,dGammadU             = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
+    N,grad_N_ref,detJhat             = hex8.get_all_shape_function_info(xi_vec,nodal_global_coords_reference)
+    PK2,SIGMA,M,dpk2dU,dSigmadU,dMdU = compute_stress(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU,props,state_variables)
     
     #Compute the residuals at the gauss point
     #TODO: CALCULATE THESE!
@@ -602,11 +607,14 @@ def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords
     BODYF = np.zeros([3,])
     dxidX = np.zeros([9,])
     TRACTION = np.zeros([3,])
-    RBLM  = compute_BLM_residual_gpt(N,grad_N_ref,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION)
-    RFMOM = compute_FMOM_residual_gpt(N,grad_N_ref,detJhat,PK2,RHO0)
+    MICROSPIN = np.zeros([9,])
+    BODYCOUPLE = np.zeros([9,])
+    COUPLE_TRACTION = np.zeros([9,])
+    RBLM  = compute_BLM_residual_gpt(N,F,grad_N_ref,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION)
+    RFMOM = compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION)
     
     #Compute the derivatives of the residuals w.r.t. the dof vector at the gauss point
-    dRBLMdU  = compute_dBLMdU(dNdXes,PK2,F,dpk2dU,dFdU,detJhat)
+    dRBLMdU  = compute_dBLMdU(grad_N_ref,PK2,F,dpk2dU,dFdU,detJhat)
     dRFMOMdU = compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,grad_N_ref,detJhat,dFdU,dchidU,dpk2dU,dSigmadU,dMdU)
     
     #Form the contributions of the element residual and jacobian at the gauss point
@@ -765,12 +773,25 @@ def form_jacobian_gpt(dRBLMdU,dRFMOMdU): #Test function written
     
 ###### Stress/Strain Calculations ######
     
-def compute_stress(F,chi,grad_chi,params,state_variables):
+def compute_stress(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU,props,state_variables): #Test function written (part of compute_residuals_jacobians_gpt)
     """Compute the current value of the stress quantities. Returns the stress and required derivatives"""
     MODE = 1
     if MODE==1:
-        return micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,params)
+        PK2,SIGMA,M,\
+        dpk2dC,dpk2dPsi,dpk2dGamma,\
+        dSigmadC,dSigmadPsi,dSigmadGamma,\
+        dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,props)
             
+    else:
+        print "Error: Constitutive model not recognized."
+        raise
+    
+    dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
+    dpk2dU               = compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)
+    dSigmadU             = compute_dsymmetric_stressdU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGammadU)
+    dMdU                 = compute_dho_stressdU(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU)
+    return PK2,SIGMA,M,dpk2dU,dSigmadU,dMdU
+    
 ###### Compute Tangents ######
     
 def compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU): #Test function written
@@ -1439,7 +1460,8 @@ class TestMicroElement(unittest.TestCase):
     def _test_compute_dpk2dU(self):
         """Test for the computation of the derivative of the Second
         Piola Kirchhoff stress w.r.t. the degree of freedom vector."""
-        #Define the material parameters
+        #Define the material properties
+        RHO0   = 2.7
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -1448,7 +1470,7 @@ class TestMicroElement(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1474,7 +1496,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            PK2 = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)[0]
+            PK2 = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[0]
             PK2     = hex8.convert_V_to_M(PK2,[3,3])
             return np.reshape(PK2,[9,])
         
@@ -1482,7 +1504,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         dPK2dUn = fd.numeric_gradient(PK2_parser,U,1e-6)
         dPK2dU  = compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)
         
@@ -1496,7 +1518,8 @@ class TestMicroElement(unittest.TestCase):
     def _test_compute_dSigmadU(self):
         """Test for the computation of the derivative of the symmetric 
         stress w.r.t. the degree of freedom vector."""
-        #Define the material parameters
+        #Define the material properties
+        RHO0   = 2.7
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -1505,7 +1528,7 @@ class TestMicroElement(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1531,7 +1554,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            Sigma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)[1]
+            Sigma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[1]
             Sigma     = hex8.convert_V_to_M(Sigma,[3,3])
             return np.reshape(Sigma,[9,])
         
@@ -1539,7 +1562,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         dSigmadUn = fd.numeric_gradient(Sigma_parser,U,1e-6)
         dSigmadU  = compute_dsymmetric_stressdU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGammadU)
         
@@ -1553,7 +1576,8 @@ class TestMicroElement(unittest.TestCase):
     def _test_compute_dho_stressdU(self):
         """Test for the computation of the derivative of the higher 
         order w.r.t. the degree of freedom vector."""
-        #Define the material parameters
+        #Define the material properties
+        RHO0   = 2.7
         LAMBDA = 2.4
         MU     = 6.7
         ETA    = 2.4
@@ -1562,7 +1586,7 @@ class TestMicroElement(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1588,7 +1612,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            M = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)[2]
+            M = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[2]
             M     = hex8.convert_V_to_T(M,[3,3,3])
             return self._TOTtensor_to_vector(M)
         
@@ -1596,7 +1620,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         dMdUn = fd.numeric_gradient(M_parser,U,1e-6)
         dMdU = compute_dho_stressdU(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU)
         
@@ -1648,7 +1672,7 @@ class TestMicroElement(unittest.TestCase):
         """Test the computation of the derivative of the residual of the balance of linear momentum
         w.r.t. the degree of freedom vector"""
         
-        #Define the material parameters
+        #Define the material properties
         RHO0   = 4.5
         LAMBDA = 2.4
         MU     = 6.7
@@ -1658,7 +1682,7 @@ class TestMicroElement(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1689,7 +1713,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            PK2 = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)[0]
+            PK2 = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[0]
             N_values,grad_N_ref_vectors,detJhat = hex8.get_all_shape_function_info(xi_vec,rcoords)
             return compute_BLM_residual_gpt(N_values,F,grad_N_ref_vectors,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION)
         
@@ -1698,7 +1722,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         dPK2dU  = compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)
         dBLMdU = compute_dBLMdU(dNdXes,PK2,F,dPK2dU,dFdU,detJhat)
         
@@ -1765,7 +1789,7 @@ class TestMicroElement(unittest.TestCase):
         """Test the computation of the residual of the first moment
         of momentum with respect to the degree of freedom vector"""
         
-        #Define the material parameters
+        #Define the material properties
         RHO0   = 4.5
         LAMBDA = 2.4
         MU     = 6.7
@@ -1775,7 +1799,7 @@ class TestMicroElement(unittest.TestCase):
         NU     = 8.2
         SIGMA  = 2.
         TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1805,7 +1829,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            PK2,SIGMA,M,_,_,_,_,_,_,_,_,_ = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+            PK2,SIGMA,M,_,_,_,_,_,_,_,_,_ = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
             N_values,grad_N_ref_vectors,detJhat = hex8.get_all_shape_function_info(xi_vec,rcoords)
             return compute_FMOM_residual_gpt(N_values,F,chi,grad_N_ref_vectors,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION)
         
@@ -1815,7 +1839,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         
         #Compute the stress tangents
         dPK2dU   = compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)
@@ -1836,7 +1860,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dFMOMdUn.T,dFMOMdU,rtol=1e-5,atol=1e-5))
         
-    def test_form_residual_gpt(self):
+    def _test_form_residual_gpt(self):
         """Test the formation of the element residual at a gauss point"""
         
         RBLM = range(3*8)
@@ -1854,7 +1878,7 @@ class TestMicroElement(unittest.TestCase):
                                     np.reshape(range(3*8+n*9,3*8+(n+1)*9),[9,1])))
         self.assertTrue(np.allclose(result,np.reshape(answer,[96,])))
         
-    def test_form_jacobian_gpt(self):
+    def _test_form_jacobian_gpt(self):
         """Test of the formation of the element jacobian"""
         
         dBLMdU  = np.reshape(range(3*8*96),[3*8,96])
@@ -1869,6 +1893,116 @@ class TestMicroElement(unittest.TestCase):
             else:
                 answer = np.vstack((answer,dBLMdU[3*n:(3*(n+1))],dFMOMdU[9*n:(9*(n+1))])).astype(int)
         self.assertTrue(np.allclose(result,-answer))
+        
+    def _test_compute_residuals_jacobians_gpt(self):
+        """Test the computation of the residuals and jacobian"""
+        
+        #Define the material properties
+        RHO0   = 4.5
+        LAMBDA = 2.4
+        MU     = 6.7
+        ETA    = 2.4
+        TAU    = 5.1
+        KAPPA  = 5.6
+        NU     = 8.2
+        SIGMA  = 2.
+        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        
+        #Define the node coordinates
+        rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
+                   [-1.,-1., 1.],[1.,-1., 1.],[1.,1., 1.],[-1.,1., 1.]]
+        #Identify a point
+        Xs,Ys,Zs = zip(*rcoords)
+        X=sum(Xs)/len(Xs)
+        Y=sum(Ys)/len(Ys)
+        Z=sum(Zs)/len(Zs)
+        xi_vec = np.array([0.1,-0.27,0.3])
+        
+        #Get quantities of interest
+        Fanalytic,ccoords          = self._get_deformation_gradient_values(rcoords,[X,Y,Z])
+        chia,grad_chia,phi_vectors = self._get_chi_values(rcoords,[X,Y,Z])
+        
+        #Compute u
+        u_vecs = [[cc1-rc1,cc2-rc2,cc3-rc3] for (cc1,cc2,cc3),(rc1,rc2,rc3) in zip(ccoords,rcoords)]
+        #Create the dof vector
+        U = np.concatenate([np.concatenate((u_vec,phi_vec)) for u_vec,phi_vec in zip(u_vecs,phi_vectors)])
+        
+        state_variables = []
+        
+        R,J = compute_residuals_jacobians_gpt(xi_vec,u_vecs,phi_vectors,ccoords,rcoords,PROPS,state_variables)
+        
+        F,chi,grad_chi                   = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
+        dFdU,dchidU,dgrad_chidU          = compute_fundamental_derivatives(xi_vec,rcoords)
+        N,grad_N_ref,detJhat             = hex8.get_all_shape_function_info(xi_vec,rcoords)
+        PK2,SIGMA,M,dPK2dU,dSigmadU,dMdU = compute_stress(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU,PROPS,state_variables)
+    
+        #Compute the residuals at the gauss point
+        #TODO: CALCULATE THESE!
+        ACCEL = np.zeros([3,]) #SET TO ZERO FOR NOW
+        BODYF = np.zeros([3,])
+        dxidX = np.zeros([9,])
+        TRACTION = np.zeros([3,])
+        MICROSPIN = np.zeros([9,])
+        BODYCOUPLE = np.zeros([9,])
+        COUPLE_TRACTION = np.zeros([9,])
+        RBLM  = compute_BLM_residual_gpt(N,F,grad_N_ref,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION)
+        RFMOM = compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION)
+    
+        #Compute the derivatives of the residuals w.r.t. the dof vector at the gauss point
+        dRBLMdU  = compute_dBLMdU(grad_N_ref,PK2,F,dPK2dU,dFdU,detJhat)
+        dRFMOMdU = compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,grad_N_ref,detJhat,dFdU,dchidU,dPK2dU,dSigmadU,dMdU)
+    
+        #Form the contributions of the element residual and jacobian at the gauss point
+        RT = form_residual_gpt(RBLM,RFMOM)
+        JT = form_jacobian_gpt(dRBLMdU,dRFMOMdU)
+        
+        self.assertTrue(np.allclose(R,RT))
+        self.assertTrue(np.allclose(J,JT))
+        
+    def test_integrate_element(self):
+        """Test some properties of the integrated element"""
+        #Define the material properties (MPa)
+        
+        RHO0   = 1000.
+        
+        LAMBDA = 29.
+        MU     =  7.
+        ETA    = 60.
+        NU     =  8.
+        KAPPA  = 10.
+        TAU    = 10.
+        SIGMA  =  5.
+        
+        TAUS   = [0.,0.,0.,0.,0.,0.,8.,0.,0.,0.,0.]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        
+        #Define the node coordinates
+        rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
+                   [-1.,-1., 1.],[1.,-1., 1.],[1.,1., 1.],[-1.,1., 1.]]
+        #Identify a point
+        Xs,Ys,Zs = zip(*rcoords)
+        X=sum(Xs)/len(Xs)
+        Y=sum(Ys)/len(Ys)
+        Z=sum(Zs)/len(Zs)
+        xi_vec = np.array([0.1,-0.27,0.3])
+        
+        #Get quantities of interest
+        Fanalytic,ccoords          = self._get_deformation_gradient_values(rcoords,[X,Y,Z])
+        chia,grad_chia,phi_vectors = self._get_chi_values(rcoords,[X,Y,Z])
+        
+        #Compute u
+        u_vecs = [[cc1-rc1,cc2-rc2,cc3-rc3] for (cc1,cc2,cc3),(rc1,rc2,rc3) in zip(ccoords,rcoords)]
+        #Create the dof vector
+        U = np.concatenate([np.concatenate((u_vec,phi_vec)) for u_vec,phi_vec in zip(u_vecs,phi_vectors)])
+        
+        ORDER_QUAD = 2
+        PQ,WQ      = hex8.get_gpw(ORDER_QUAD)
+        RHS,AMATRX = integrate_element(PQ,WQ,u_vecs,phi_vectors,None,None,rcoords,PROPS,[],ORDER_QUAD)
+        
+        #print np.absolute(np.linalg.eig(AMATRX)[0])
+        
+        
         
     def _get_deformation_gradient_values(self,rcoords,X_vec):
         """Get the values required to compute the deformation gradient for testing"""
