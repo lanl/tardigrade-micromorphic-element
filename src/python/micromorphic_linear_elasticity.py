@@ -74,12 +74,12 @@ def compute_dCinvdC(Cinv): #Test function written
 
 ###### Form Stiffness Tensors ######
 
-def form_stiffness_tensors(PARAMS): #Test function written
+def form_stiffness_tensors(PROPS): #Test function written
     """Form the stiffness tensors"""
-    RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS = PARAMS
+    RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11 = PROPS
     AFOT = form_A(LAMBDA,MU)
     BFOT = form_B(ETA,TAU,KAPPA,NU,SIGMA)
-    CFOT = form_C(TAUS)
+    CFOT = form_C(TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11)
     DFOT = form_D(TAU,SIGMA)
     return AFOT,BFOT,CFOT,DFOT
     
@@ -108,9 +108,8 @@ def form_B(ETA,TAU,KAPPA,NU,SIGMA): #Test function written
                               -SIGMA*(I[k,m]*I[l,n]+I[k,n]*I[l,m])
     return B
                                  
-def form_C(TAUS): #Test function written
+def form_C(TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11): #Test function written
     """Form the C stiffness tensor"""
-    TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11 = TAUS
     C = np.zeros([3*3*3*3*3*3])
     I = np.eye(3)
     for k in range(3):
@@ -479,14 +478,13 @@ class TestMicro_LE(unittest.TestCase):
         
     def test_form_C(self):
         """Test forming the C stiffness tensor"""
-        TAUS = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11 =\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
          
-        C = form_C(TAUS)
+        C = form_C(TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11)
         I = np.eye(3)
         
         Ct = np.zeros([3,3,3,3,3,3])
-        
-        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11 = TAUS
         
         for K in range(3):
             for L in range(3):
@@ -536,14 +534,15 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        A,B,C,D = form_stiffness_tensors(PARAMS)
+        A,B,C,D = form_stiffness_tensors(PROPS)
         
         At = form_A(LAMBDA,MU)
         Bt = form_B(ETA,TAU,KAPPA,NU,SIGMA)
-        Ct = form_C(TAUS)
+        Ct = form_C(TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11)
         Dt = form_D(TAU,SIGMA)
         
         self.assertTrue(np.allclose(A,At))
@@ -620,10 +619,11 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        AS,BS,CS,DS = form_stiffness_tensors(PROPS)
         
         F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
         chi      = np.array(range(9,18)).astype(float)
@@ -701,10 +701,11 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        AS,BS,CS,DS = form_stiffness_tensors(PROPS)
         
         F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
         chi      = np.array(range(9,18)).astype(float)
@@ -782,10 +783,11 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        AS,BS,CS,DS = form_stiffness_tensors(PROPS)
         
         F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
         chi      = np.array(range(9,18)).astype(float)
@@ -829,10 +831,11 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        AS,BS,CS,DS = form_stiffness_tensors(PROPS)
         
         F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
         chi      = np.array(range(9,18)).astype(float)
@@ -874,10 +877,11 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        AS,BS,CS,DS = form_stiffness_tensors(PROPS)
         
         F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
         chi      = np.array(range(9,18)).astype(float)
@@ -962,10 +966,11 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        AS,BS,CS,DS = form_stiffness_tensors(PROPS)
         
         F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
         chi      = np.array(range(9,18)).astype(float)
@@ -1046,10 +1051,11 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        AS,BS,CS,DS = form_stiffness_tensors(PROPS)
         
         F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
         chi      = np.array(range(9,18)).astype(float)
@@ -1131,10 +1137,11 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        AS,BS,CS,DS = form_stiffness_tensors(PROPS)
         
         F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
         chi      = np.array(range(9,18)).astype(float)
@@ -1192,10 +1199,11 @@ class TestMicro_LE(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PARAMS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11=\
+        [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11
         
-        AS,BS,CS,DS = form_stiffness_tensors(PARAMS)
+        AS,BS,CS,DS = form_stiffness_tensors(PROPS)
         
         F        = np.array([1,4,2,2,2,3,3,2,1]).astype(float)
         chi      = np.array(range(9,18)).astype(float)
@@ -1225,7 +1233,7 @@ class TestMicro_LE(unittest.TestCase):
         
         dCinvdC = compute_dCinvdC(Cinv)
         
-        PK2,Sigma,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micromorphic_linear_elasticity(F,chi,grad_chi,PARAMS)
+        PK2,Sigma,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         
         PK2T,SigmaT,MT      = compute_stresses(AS,BS,CS,DS,E_macro,E_micro,C,Gamma)
     
@@ -1269,6 +1277,7 @@ class TestMicro_LE(unittest.TestCase):
                 lt,mt = V2T(j,[3,3])
                 Aten[lt,mt,it,jt,kt] = A[i,j]
         return Aten
+        
         
 if __name__ == '__main__':
     unittest.main()
