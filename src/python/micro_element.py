@@ -26,7 +26,7 @@ from hex8 import V_to_M_mapping as V2M
 #        PROPS,NPROPS,COORDS,MCRD,NNODE,U,DU,V,A,JTYPE,TIME,DTIME,\
 #        KSTEP,KINC,JELEM,PARAMS,NDLOAD,JDLTYP,ADLMAG,PREDEF,NPREDF,\
 #        LFLAGS,MLVARX,DDLMAG,MDLOAD,PNEWDT,JPROPS,NJPROP,PERIOD):
-def UEL(PROPS,NPROPS,COORDS,MCRD,U,DU,TIME,DTIME): #Python definition
+def UEL(PROPS,NPROPS,SVARS,NSVARS,COORDS,MCRD,U,DU,TIME,DTIME): #Python definition
     """The main subroutine for the element. Intentionally mimics
     an Abaqus UEL for easy porting between versions.
     
@@ -204,7 +204,7 @@ def UEL(PROPS,NPROPS,COORDS,MCRD,U,DU,TIME,DTIME): #Python definition
     DUN,DPHIN  = parse_dof_vector(DU)
     
     #Only integrate the element currently. Returns RHS and AMATRX
-    return integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PROPS,STATEVARS,ORDER_QUAD)
+    return integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PROPS,SVARS,ORDER_QUAD)
     
     # #Parse the LFLAGS array
     # if(LFLAGS[2]==1):
@@ -221,26 +221,35 @@ def parse_dof_vector(U): #Test function written
     return node_us,node_phis
 
 ###### Integrate the element ######
-def integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PROPS,STATEVARS,ORDER_QUAD):
+def integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PROPS,SVARS,ORDER_QUAD):
     """Integrate the element"""
     
     R = np.zeros([96,])
     J = np.zeros([96,96])
     
-    for gp in range(ORDER_QUAD**2):
+    ccoords = [None]*8
+    #Compute the current coordinates of the nodes: x = u + X
+    for n in range(8):
+        temp = np.zeros([3,])
+        for i in range(3):
+            temp[i] = COORDS[n][i] + UN[n][i] #x = u + X
+        ccoords[n] = np.copy(temp)
+    
+    #Integrate the element
+    for gp in range(len(PQ)):
+        #Get current gauss point location and weight
         xi_vec = PQ[gp]
         W      = WQ[gp]
         
-        ccoords = [None]*8
-        for n in range(8):
-            ccoords[n] = COORDS[n]+UN[n]
+        #Compute the residual and jacobian at the gauss point
+        Rp,Jp = compute_residuals_jacobians_gpt(xi_vec,UN,PHIN,ccoords,COORDS,PROPS,SVARS)
         
-        Rp,Jp = compute_residuals_jacobians_gpt(xi_vec,UN,PHIN,ccoords,COORDS,PROPS,STATEVARS)
-    
+        #Combine the residual and jacobian with the other gauss points
         for i in range(96):
             R[i] += Rp[i]*W
             for j in range(96):
                 J[i,j] += Jp[i,j]*W
+    #print R
     return R,J
     
 ###### Compute Fundamental Quantities ######
@@ -600,6 +609,10 @@ def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords
     dCdU,dPsidU,dGammadU             = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
     N,grad_N_ref,detJhat             = hex8.get_all_shape_function_info(xi_vec,nodal_global_coords_reference)
     PK2,SIGMA,M,dpk2dU,dSigmadU,dMdU = compute_stress(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU,props,state_variables)
+    
+    #print PK2
+    #print SIGMA
+    #print M
     
     #Compute the residuals at the gauss point
     #TODO: CALCULATE THESE!
@@ -1469,8 +1482,8 @@ class TestMicroElement(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = [RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11]
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1527,8 +1540,8 @@ class TestMicroElement(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = [RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11]
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1585,8 +1598,8 @@ class TestMicroElement(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = [RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11]
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1681,8 +1694,8 @@ class TestMicroElement(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = [RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11]
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1798,8 +1811,8 @@ class TestMicroElement(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = [RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11]
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1906,8 +1919,8 @@ class TestMicroElement(unittest.TestCase):
         KAPPA  = 5.6
         NU     = 8.2
         SIGMA  = 2.
-        TAUS   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
-        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11   = [4.5,1.3,9.2,1.1,6.4,2.4,7.11,5.5,1.5,3.8,2.7]
+        PROPS = [RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11]
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -1932,33 +1945,22 @@ class TestMicroElement(unittest.TestCase):
         
         R,J = compute_residuals_jacobians_gpt(xi_vec,u_vecs,phi_vectors,ccoords,rcoords,PROPS,state_variables)
         
-        F,chi,grad_chi                   = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
-        dFdU,dchidU,dgrad_chidU          = compute_fundamental_derivatives(xi_vec,rcoords)
-        N,grad_N_ref,detJhat             = hex8.get_all_shape_function_info(xi_vec,rcoords)
-        PK2,SIGMA,M,dPK2dU,dSigmadU,dMdU = compute_stress(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU,PROPS,state_variables)
-    
-        #Compute the residuals at the gauss point
-        #TODO: CALCULATE THESE!
-        ACCEL = np.zeros([3,]) #SET TO ZERO FOR NOW
-        BODYF = np.zeros([3,])
-        dxidX = np.zeros([9,])
-        TRACTION = np.zeros([3,])
-        MICROSPIN = np.zeros([9,])
-        BODYCOUPLE = np.zeros([9,])
-        COUPLE_TRACTION = np.zeros([9,])
-        RBLM  = compute_BLM_residual_gpt(N,F,grad_N_ref,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION)
-        RFMOM = compute_FMOM_residual_gpt(N,F,chi,grad_N_ref,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION)
-    
-        #Compute the derivatives of the residuals w.r.t. the dof vector at the gauss point
-        dRBLMdU  = compute_dBLMdU(grad_N_ref,PK2,F,dPK2dU,dFdU,detJhat)
-        dRFMOMdU = compute_dFMOMdU(N,F,chi,PK2,SIGMA,M,grad_N_ref,detJhat,dFdU,dchidU,dPK2dU,dSigmadU,dMdU)
-    
-        #Form the contributions of the element residual and jacobian at the gauss point
-        RT = form_residual_gpt(RBLM,RFMOM)
-        JT = form_jacobian_gpt(dRBLMdU,dRFMOMdU)
+        def parse_rjac(Uin):
+            node_us,node_phis = parse_dof_vector(Uin)
+            node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
+            return compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,node_xs,rcoords,PROPS,state_variables)[0]
         
-        self.assertTrue(np.allclose(R,RT))
-        self.assertTrue(np.allclose(J,JT))
+        
+        index = 35
+        h = np.zeros([96,])
+        h[index] = 1.e-6
+            
+        res = fd.finite_difference(parse_rjac,U,h,accuracy_order=2)
+        
+        #print res
+        #print J[:,index]
+        #print res + J[:,index]
+        self.assertTrue(np.allclose(res,-J[:,index]))
         
     def test_integrate_element(self):
         """Test some properties of the integrated element"""
@@ -1974,8 +1976,8 @@ class TestMicroElement(unittest.TestCase):
         TAU    = 10.
         SIGMA  =  5.
         
-        TAUS   = [0.,0.,0.,0.,0.,0.,8.,0.,0.,0.,0.]
-        PROPS = RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAUS
+        TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11   = [0.,0.,0.,0.,0.,0.,8.,0.,0.,0.,0.]
+        PROPS = [RHO0,LAMBDA,MU,ETA,TAU,KAPPA,NU,SIGMA,TAU1,TAU2,TAU3,TAU4,TAU5,TAU6,TAU7,TAU8,TAU9,TAU10,TAU11]
         
         #Define the node coordinates
         rcoords = [[-1.,-1.,-1.],[1.,-1.,-1.],[1.,1.,-1.],[-1.,1.,-1.],\
@@ -2000,8 +2002,21 @@ class TestMicroElement(unittest.TestCase):
         PQ,WQ      = hex8.get_gpw(ORDER_QUAD)
         RHS,AMATRX = integrate_element(PQ,WQ,u_vecs,phi_vectors,None,None,rcoords,PROPS,[],ORDER_QUAD)
         
-        #print np.absolute(np.linalg.eig(AMATRX)[0])
+        def parse_integrate_element(Uin):
+            node_us,node_phis = parse_dof_vector(Uin)
+            node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
+            return integrate_element(PQ,WQ,node_us,node_phis,None,None,rcoords,PROPS,[],ORDER_QUAD)[0]
+            
+        index = 22
+        h = np.zeros([96,])
+        h[index] = 1e-6
         
+        res = fd.finite_difference(parse_integrate_element,U,h,accuracy_order=2)
+        
+        self.assertTrue(np.allclose(res,-AMATRX[:,index]))
+        
+        #print "Eigenvalues:"
+        #print np.linalg.eig(AMATRX)[0]
         
         
     def _get_deformation_gradient_values(self,rcoords,X_vec):
