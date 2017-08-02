@@ -23,16 +23,39 @@ This is the test element for the InputParser class of \verb|fea_driver.py|. It r
 *PROPERTIES
 1000., 29., 7., 60., 8., 10., 10.,  5., 0., 0., 0., 0., 0., 0., 8., 0., 0., 0., 0.
 
+*NSET
+bottom,     1,  2,  3,  4
+top,        9, 10, 11, 12
+front,      1,  2,  5,  6, 9, 10
+left,       1,  4,  5,  8, 9, 12
+phi_sides,  1,  2,  3,  4, 5, 6, 7, 8
+
 *DIRICHLET_BCS
-1,1,0
-1,2,0
-1,3,0
-2,2,0
-2,3,0
-3,3,0
-4,3,0
-4,1,0
-9,3,0.1
-10,3,0.1
-11,3,0.1
-12,3,0.1
+
+#Fix u degrees of freedom
+nodeset, bottom, 3, 0.0
+nodeset,    top, 3, 1.0
+nodeset,  front, 2, 0.0
+nodeset,   left, 1, 0.0
+
+#Fix phi degrees of freedom on the fixed phi sides
+nodeset, phi_sides,  4, 0.0
+nodeset, phi_sides,  5, 0.0
+nodeset, phi_sides,  6, 0.0
+nodeset, phi_sides,  7, 0.0
+nodeset, phi_sides,  8, 0.0
+nodeset, phi_sides,  9, 0.0
+nodeset, phi_sides, 10, 0.0
+nodeset, phi_sides, 11, 0.0
+nodeset, phi_sides, 12, 0.0
+
+#Fix phi degrees of freedom on the top as required
+nodeset, top,  4, 0.0
+nodeset, top,  5, 0.0
+nodeset, top,  6, 0.0
+nodeset, top,  7, 0.0
+nodeset, top,  8, 0.0
+nodeset, top,  9, 0.0
+nodeset, top, 10, 0.0
+nodeset, top, 11, 0.0
+nodeset, top, 12, 0.0
