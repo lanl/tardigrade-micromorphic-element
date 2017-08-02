@@ -1470,7 +1470,7 @@ class TestMicroElement(unittest.TestCase):
         self.assertEqual(np.allclose(dPsidUt,    dPsidU),True)
         self.assertEqual(np.allclose(dGammadUt,dGammadU),True)
         
-    def _test_compute_dpk2dU(self):
+    def test_compute_dpk2dU(self):
         """Test for the computation of the derivative of the Second
         Piola Kirchhoff stress w.r.t. the degree of freedom vector."""
         #Define the material properties
@@ -1528,7 +1528,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dPK2dUn.T,hex8.convert_V_to_M(dPK2dU,[3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def _test_compute_dSigmadU(self):
+    def test_compute_dSigmadU(self):
         """Test for the computation of the derivative of the symmetric 
         stress w.r.t. the degree of freedom vector."""
         #Define the material properties
@@ -1586,7 +1586,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dSigmadUn.T,hex8.convert_V_to_M(dSigmadU,[3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def _test_compute_dho_stressdU(self):
+    def test_compute_dho_stressdU(self):
         """Test for the computation of the derivative of the higher 
         order w.r.t. the degree of freedom vector."""
         #Define the material properties
@@ -1644,7 +1644,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dMdUn.T,hex8.convert_V_to_M(dMdU,[3,3,3,96]),atol=1e-5,rtol=1e-5))
         
-    def _test_compute_BLM_residual_gpt(self):
+    def test_compute_BLM_residual_gpt(self):
         """Test the computation of the Balance of linear momentum residual at a point
         Note: Ignores surface traction term for now
         """
@@ -1681,7 +1681,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(R,RT))
         
-    def _test_compute_dBLMdU(self):
+    def test_compute_dBLMdU(self):
         """Test the computation of the derivative of the residual of the balance of linear momentum
         w.r.t. the degree of freedom vector"""
         
@@ -1747,7 +1747,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dBLMdUn.T,dBLMdU,rtol=1e-5,atol=1e-5))
         
-    def _test_compute_FMOM_residual_gpt(self):
+    def test_compute_FMOM_residual_gpt(self):
         """Test the computation of the residual of the first moment of momentum"""
         
         N_values = np.random.rand(8)
@@ -1798,7 +1798,7 @@ class TestMicroElement(unittest.TestCase):
                     answer[mid+n*9] = RT[i,j,n]
         self.assertTrue(np.allclose(R,answer))
         
-    def _test_compute_dFMOMdU(self):
+    def test_compute_dFMOMdU(self):
         """Test the computation of the residual of the first moment
         of momentum with respect to the degree of freedom vector"""
         
@@ -1873,7 +1873,7 @@ class TestMicroElement(unittest.TestCase):
         
         self.assertTrue(np.allclose(dFMOMdUn.T,dFMOMdU,rtol=1e-5,atol=1e-5))
         
-    def _test_form_residual_gpt(self):
+    def test_form_residual_gpt(self):
         """Test the formation of the element residual at a gauss point"""
         
         RBLM = range(3*8)
@@ -1891,7 +1891,7 @@ class TestMicroElement(unittest.TestCase):
                                     np.reshape(range(3*8+n*9,3*8+(n+1)*9),[9,1])))
         self.assertTrue(np.allclose(result,np.reshape(answer,[96,])))
         
-    def _test_form_jacobian_gpt(self):
+    def test_form_jacobian_gpt(self):
         """Test of the formation of the element jacobian"""
         
         dBLMdU  = np.reshape(range(3*8*96),[3*8,96])
@@ -1907,7 +1907,7 @@ class TestMicroElement(unittest.TestCase):
                 answer = np.vstack((answer,dBLMdU[3*n:(3*(n+1))],dFMOMdU[9*n:(9*(n+1))])).astype(int)
         self.assertTrue(np.allclose(result,-answer))
         
-    def _test_compute_residuals_jacobians_gpt(self):
+    def test_compute_residuals_jacobians_gpt(self):
         """Test the computation of the residuals and jacobian"""
         
         #Define the material properties
