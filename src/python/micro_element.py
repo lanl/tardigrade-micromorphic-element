@@ -234,7 +234,7 @@ def integrate_element(PQ,WQ,UN,PHIN,DUN,DPHIN,COORDS,PROPS,SVARS,ORDER_QUAD):
         for i in range(3):
             temp[i] = COORDS[n][i] + UN[n][i] #x = u + X
         ccoords[n] = np.copy(temp)
-    
+    #print ccoords
     #Integrate the element
     for gp in range(len(PQ)):
         #Get current gauss point location and weight
@@ -610,9 +610,9 @@ def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords
     N,grad_N_ref,detJhat             = hex8.get_all_shape_function_info(xi_vec,nodal_global_coords_reference)
     PK2,SIGMA,M,dpk2dU,dSigmadU,dMdU = compute_stress(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU,props,state_variables)
     
-    #print PK2
-    #print SIGMA
-    #print M
+    #print "PK2:\n",PK2
+    #print "SIGMA:\n",SIGMA
+    #print "M:\n",M
     
     #Compute the residuals at the gauss point
     #TODO: CALCULATE THESE!
