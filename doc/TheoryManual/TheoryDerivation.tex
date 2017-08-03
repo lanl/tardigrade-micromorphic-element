@@ -2218,10 +2218,10 @@ where $\mathcal{M}$ is the residual term. This is the discrete weak form of the 
 We now map the balance of linear momentum to the reference configuration via
 \begin{align*}
 \sum_{e=1}^{N^{elements}} \sum_{n=1}^{N^{nodes,e}} c^{n,e}_j \bigg\{&\int_{\partial \mathcal{B}^{0,t,e}} N^{n,e} F_{jJ} S_{IJ} N_{I} dA + \int_{\mathcal{B}^{0,e}} \big\{- N^{n,e}_{,I} S_{IJ} F_{jJ}\\
-& + N^{n,e} \rho^0 \left(f_j - a_j\right) \big\} dV = \mathcal{F}_j^{n,e}\bigg\}\\
+& + N^{n,e} \rho^0 \left(f_j - a_j\right) \big\} dV \bigg\} = \mathcal{F}\\
 \end{align*}
 
-This is convenient because it allows us to avoid several expensive derivatives. Note that we also have moved $\mathcal{F}$ inside of the summations and put it in vector form since $c_j^{n,e}$ is arbitrary.
+This is convenient because it allows us to avoid several expensive derivatives.
 
 \end{frame}
 
@@ -2231,21 +2231,10 @@ We define the local coordinate system for the elements denoted by $\hat{\cdot}$ 
 \begin{align*}
 \sum_{n=1}^{N^{nodes,e}} c^{n,e}_j \bigg\{&\int_{\partial \hat{\mathcal{B}}^{0,t,e}} \hat{N}^{n,e} F_{jJ} S_{IJ} \hat{J} \left(\frac{\partial X_{I}}{\partial \xi_{\hat{i}}}\right)^{-1} \hat{N}_{\hat{i}} d\hat{A}\\
 & + \int_{\hat{\mathcal{B}}^{0,e}} \big\{- \hat{N}^{n,e}_{,I} S_{IJ} F_{jJ}\\
-& + \hat{N}^{n,e} \rho^0 \left(f_j - a_j\right) \big\} \hat{J} d\hat{V} = \mathcal{F}_j^{n,e}\bigg\}\\
+& + \hat{N}^{n,e} \rho^0 \left(f_j - a_j\right) \big\} \hat{J} d\hat{V} \bigg\} = \mathcal{F}. ^{e}\\
 \end{align*}
 
 where $\hat{J}$ is the determinant of the jacobian of transformation between the local and reference coordinates and $\hat{n}_{\hat{i}}$ is the unit normal on the element's surface.
-
-\end{frame}
-
-\begin{frame}{Derivative of $\mathcal{F}$ w.r.t. the degree of freedom vector}
-
-We note that, currently, only $F_{jJ}$ and $S_{IJ}$ are dependent upon variations in the degree of freedom vector and that the terms in the surface integral other than the deformation gradient are boundary conditions. Consequently for a given node on an element
-\begin{align*}
-\frac{\partial \mathcal{F}_{j}^{n,e}}{\partial U_K^n} &= \int_{\partial \hat{\mathcal{B}}^{0,t,e}} \hat{N}^{n,e} \frac{\partial F_{jJ}}{U_K^n} S_{IJ} \hat{J} \left(\frac{\partial X_{I}}{\partial \xi_{\hat{i}}}\right)^{-1} \hat{N}_{\hat{i}} d\hat{A}\\ &- \int_{\hat{\mathcal{B}}^{0,e}} \left\{ \hat{N}^{n,e}_{,I} \left(\frac{\partial S_{IJ}}{\partial U_K^n} F_{jJ} + S_{IJ} \frac{\partial F_{jJ}}{\partial U_K^n}\right)\right\} \hat{J} d\hat{V}\\
-\end{align*}
-
-So we only have two unique derivatives that must be evaluated.
 
 \end{frame}
 
@@ -2254,8 +2243,8 @@ So we only have two unique derivatives that must be evaluated.
 We define
 \begin{align*}
 f_{J}^{n,e,ext} &\defeq \int_{\partial \hat{\mathcal{B}}^{0,t,e}} \hat{N}^{n,e} F_{jJ} S_{IJ} \hat{J} \left(\frac{\partial X_{I}}{\partial \xi_{\hat{i}}}\right)^{-1} \hat{N}_{\hat{i}} d\hat{A} + \int_{\hat{\mathcal{B}}^{0,e}}  \hat{N}^{n,e} \rho^0 f_j \hat{J} d\hat{V}\\
-f_{j}^{n,e,int} &\defeq -\int_{\hat{\mathcal{B}}^{0,e}}\hat{N}^{n,e}_{,I} S_{IJ} F_{jJ} \hat{J} d\hat{V}\\
-f_{j}^{n,e,kin} &\defeq -\int_{\hat{\mathcal{B}}^{0,e}} \hat{N}^{n,e} \rho^0 a_j \hat{J} d\hat{V}\\
+f_{j}^{n,e,int} &\defeq \int_{\hat{\mathcal{B}}^{0,e}}\hat{N}^{n,e}_{,I} S_{IJ} F_{jJ} \hat{J} d\hat{V}\\
+f_{j}^{n,e,kin} &\defeq \int_{\hat{\mathcal{B}}^{0,e}} \hat{N}^{n,e} \rho^0 a_j \hat{J} d\hat{V}\\
 \end{align*}
 
 \end{frame}
@@ -2265,11 +2254,26 @@ f_{j}^{n,e,kin} &\defeq -\int_{\hat{\mathcal{B}}^{0,e}} \hat{N}^{n,e} \rho^0 a_j
 Note that since $\VEC{a}$ is defined at the nodes, that we can write
 \begin{align*}
 a_j &= \sum_{m=1}^{N^{nodes,e}} \hat{N}^{m,e} a_j^m\\
-\Rightarrow\ f_{j}^{n,e,kin} &\defeq -\int_{\hat{\mathcal{B}}^{0,e}} \hat{N}^{n,e} \rho^0 \hat{N}^{m,e} \hat{J} d\hat{V} a_j^m\\
-\Rightarrow\ f_{j}^{n,e,kin} &\defeq - M_{nm}^e a_j^m
+\Rightarrow\ f_{j}^{n,e,kin} &\defeq \int_{\hat{\mathcal{B}}^{0,e}} \hat{N}^{n,e} \rho^0 \hat{N}^{m,e} \hat{J} d\hat{V} a_j^m\\
+\Rightarrow\ f_{j}^{n,e,kin} &\defeq  M_{nm}^e a_j^m
 \end{align*}
 
 where $M_{nm}^e$ is the element mass matrix.
+
+\end{frame}
+
+\begin{frame}{The Micromorphic Finite Element Method}
+This leads to the classical balance of forces formulation
+\begin{align*}
+\sum_{e=1}^{N^{elements}} c_j^e\left\{f_{j}^{e,ext} - f_{j}^{e,int} - f_{j}^{e,kin}\right\} = \mathcal{F}^{e}
+\end{align*}
+
+Because the $c_j^e$s are arbitrary, in the case when we have an infinite number of elements, we known that the forces must be balanced. Therefore, for our more limited case, when assembled, we can write
+\begin{align*}
+F_{j}^{ext} - F_{j}^{int} - F_{j}^{kin} &= \mathcal{F}_j
+\end{align*}
+
+where $\mathcal{F}_j$ is a residual vector which should be ideally zero.
 
 \end{frame}
 
@@ -2311,13 +2315,6 @@ where $M_{nm}^e$ is the element mass matrix.
 %
 %\end{frame}
 %
-\begin{frame}{The Micromorphic Finite Element Method}
-This leads to the formulation
-\begin{align*}
-\sum_{e=1}^{N^{elements}} c_j^e\left\{f_{j}^{e,ext} + f_{j}^{e,int} + f_{j}^{e,kin} = \mathcal{F}_j^{e}\right\}
-\end{align*}
-
-\end{frame}
 
 \begin{frame}{Total Lagrangian Form}
 
@@ -2325,7 +2322,7 @@ We now map the balance of first moment of momentum back to the reference configu
 
 \begin{align*}
 \sum_{n=1}^{N^{nodes}} \eta_{ij}^n &\bigg\{\int_{\mathcal{B}^{0}}  \bigg\{N^n\left(F_{iI} \left(S_{IJ}-\Sigma_{IJ}\right) F_{jJ} + \rho^0\left(l_{ji} - \omega_{ji} \right)\right)\\
-&  - N_{,K}^n F_{jJ} \chi_{iI}  M_{KJI} \bigg\} dV + \int_{\partial \mathcal{B}^{0,t}} F_{jJ} \chi_{iI}  M_{KJI} N^n N_{K} dA = \mathcal{M}_{ij}\bigg\}\\
+&  - N_{,K}^n F_{jJ} \chi_{iI}  M_{KJI} \bigg\} dV + \int_{\partial \mathcal{B}^{0,t}} F_{jJ} \chi_{iI}  M_{KJI} N^n N_{K} dA \bigg\} = \mathcal{M}\\
 \end{align*}
 
 It is noted that none of these stress quantities are stored at the nodes but rather all are located at the integration points.
@@ -2338,8 +2335,94 @@ We now break the domain into elements and introduce the local coordinates to fin
 \begin{align*}
 \sum_{e=1}^{N^{elements}}\sum_{n=1}^{N^{nodes,e}} \eta_{ij}^{n,e} &\bigg\{\int_{\mathcal{B}^{0,e}}  \bigg\{\hat{N}^{n,e} \left(F_{iI} \left(S_{IJ}-\Sigma_{IJ}\right) F_{jJ} + \rho^0\left(l_{ji} - \omega_{ji} \right)\right)\\
 &  - \frac{\partial \hat{N}^{n,e}}{\partial \xi_{\hat{i}}} \left(\frac{\partial X_{K}}{\partial \xi_{\hat{i}}}\right)^{-1} F_{jJ} \chi_{iI}  M_{KJI} \bigg\} \hat{J} d\hat{V}\\
-& + \int_{\partial \mathcal{B}^{0,t,e}} F_{jJ} \chi_{iI}  M_{KJI} \hat{N}^n \hat{J} \left(\frac{\partial X_{K}}{\partial \xi_{\hat{i}}}\right)^{-1} \hat{N}_{\hat{i}} d\hat{A} = \mathcal{M}_{ij} \bigg\}\\
+& + \int_{\partial \mathcal{B}^{0,t,e}} F_{jJ} \chi_{iI}  M_{KJI} \hat{N}^n \hat{J} \left(\frac{\partial X_{K}}{\partial \xi_{\hat{i}}}\right)^{-1} \hat{N}_{\hat{i}} d\hat{A} \bigg\}  = \mathcal{M}\\
 \end{align*}
+
+\end{frame}
+
+\begin{frame}{Total Lagrangian Form}
+We can write this into a similar balance form by noting for a single element
+
+\begin{align*}
+\mu_{ij}^{e,int} &\defeq \int_{\mathcal{B}^{0,e}}  \bigg\{\hat{N}^{n,e}F_{iI} \left(S_{IJ}-\Sigma_{IJ}\right) F_{jJ}\\
+& - \frac{\partial \hat{N}^{n,e}}{\partial \xi_{\hat{i}}} \left(\frac{\partial X_{K}}{\partial \xi_{\hat{i}}}\right)^{-1} F_{jJ} \chi_{iI}  M_{KJI} \bigg\} \hat{J} d\hat{V}\\
+\mu_{ij}^{e,ext} &\defeq \int_{\mathcal{B}^{0,e}}  \hat{N}^{n,e} \rho^0 l_{ji} \hat{J}d\hat{V}\\
+& + \int_{\partial \mathcal{B}^{0,t,e}} F_{jJ} \chi_{iI}  M_{KJI} \hat{N}^n \hat{J} \left(\frac{\partial X_{K}}{\partial \xi_{\hat{i}}}\right)^{-1} \hat{N}_{\hat{i}} d\hat{A}\\
+\mu_{ij}^{e,kin} &\defeq \int_{\mathcal{B}^{0,e}}  \hat{N}^{n,e} \rho^0 \omega_{ji} \hat{J}d\hat{V}\\
+\end{align*}
+\end{frame}
+
+\begin{frame}{Total Lagrangian Form}
+This means
+\begin{align*}
+\sum_{e=1}^{N^{elements}} \eta_{ij}^{e} \left\{ \mu_{ij}^{e,ext} + \mu_{ij}^{e,int} - \mu_{ij}^{e,kin}\right\} &= 0\\
+\end{align*}
+Because the $\mu_{ij}^e$ are arbitrary, when assembled, we can write
+\begin{align*}
+M_{ij}^{ext} + M_{ij}^{int} - M_{ij}^{kin} &= \mathcal{M}_{ij}
+\end{align*}
+
+where $\mathcal{M}_{ij}$ is a residual tensor which should ideally be zero.
+
+\end{frame}
+
+\begin{frame}{Newton Raphson Solution}
+
+We form the Newton-Raphson iteration as follows
+\begin{align*}
+\mathcal{R}^{k+1}_{i} &= \mathcal{R}^k_i + \left[\frac{\partial \mathcal{R}_i}{\partial u_j} \right]^k\delta u_j^k
+\end{align*}
+
+where $k$ is the increment count and our residual is formed as
+\begin{align*}
+\mathcal{R} &= \left\{ \begin{array}{cccccc}
+\mathcal{F}_i^1 & \mathcal{M}_{ij}^1 & \mathcal{F}_i^2 & \mathcal{M}_{ij}^2 & \cdots & \mathcal{M}_{ij}^8
+\end{array}\right\}^T
+\end{align*}
+
+where we have written $\mathcal{M}_{ij}$ in a vector form. See the derivative of $F_{iI}$ for more information.
+
+\end{frame}
+
+\begin{frame}{Newton Raphson Solution}
+
+We wish to solve
+\begin{align*}
+\mathcal{R}^{k+1}_{i} &= \mathcal{R}^k_i + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right]^k \delta u_j^n = 0\\
+\Rightarrow\ -\left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right]^k \delta u_j^k &= \mathcal{R}^k_i
+\end{align*}
+
+\begin{align*}
+\frac{\partial \mathcal{R}_i}{\partial u_j} &= \left[\begin{array}{cccc}
+\frac{\partial \mathcal{F}_i^1}{\partial u_i^1} & \frac{\partial \mathcal{F}_i^1}{\partial \phi_i^1} & \cdots & \frac{\partial \mathcal{F}_i^1}{\partial \phi_{j}^8}\\
+\frac{\partial \mathcal{M}_i^1}{\partial u_i^1} & \frac{\partial \mathcal{M}_i^1}{\partial \phi_i^1} & \cdots & \frac{\partial \mathcal{M}_i^1}{\partial \phi_{j}^8}\\
+\vdots & \vdots & \ddots & \vdots\\
+\end{array}\right]
+\end{align*}
+
+where $\mathcal{M}_i^n$ and $\phi_{j}^n$ are the vectorized forms of $\mathcal{M}_{ij}$ and $\phi_{ij}$ at node $n$.
+
+\end{frame}
+
+\begin{frame}{Newton Raphson Solution}
+
+We can therefore update the change in dof vector via
+
+\begin{align*}
+\Delta u_j^{k+1} &= \Delta u_j^k + \delta u_j^k\\
+\Rightarrow\ u_j^{k+1} &= u_j^k + \Delta u_j^{k+1}
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{Derivative of $\mathcal{F}$ w.r.t. the degree of freedom vector}
+
+We note that, currently, only $F_{jJ}$ and $S_{IJ}$ are dependent upon variations in the degree of freedom vector and that the terms in the surface integral other than the deformation gradient are boundary conditions. Consequently for a given node on an element
+\begin{align*}
+\frac{\partial \mathcal{F}_{j}^{n,e}}{\partial U_K^n} &= \int_{\partial \hat{\mathcal{B}}^{0,t,e}} \hat{N}^{n,e} \frac{\partial F_{jJ}}{U_K^n} S_{IJ} \hat{J} \left(\frac{\partial X_{I}}{\partial \xi_{\hat{i}}}\right)^{-1} \hat{N}_{\hat{i}} d\hat{A}\\ &- \int_{\hat{\mathcal{B}}^{0,e}} \left\{ \hat{N}^{n,e}_{,I} \left(\frac{\partial S_{IJ}}{\partial U_K^n} F_{jJ} + S_{IJ} \frac{\partial F_{jJ}}{\partial U_K^n}\right)\right\} \hat{J} d\hat{V}\\
+\end{align*}
+
+So we only have two unique derivatives that must be evaluated.
 
 \end{frame}
 
