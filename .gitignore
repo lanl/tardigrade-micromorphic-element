@@ -17,3 +17,5 @@ doc/Proposal/*.synctex.gz
 doc/Report/*.synctex.gz
 doc/Proposal/*.log
 doc/Proposal/tex/*.log
+doc/Proposal/*.out
+unittest_cpy.inp
