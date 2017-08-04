@@ -2008,126 +2008,126 @@ where $m_p$ is the mass of the particle, $\delta$ is the Dirac delta function, a
 
 \end{frame}
 
-\begin{frame}{The Micromorphic Material Point Method}
-
-This leads us to the following equation
-\begin{align*}
-\sum_{n=1}^{N^{nodes}} w_j^n \sum_{p=1}^{N^{points}}\bigg\{& N^{n,p} \sigma_{ij}^p n_i^p da^p - N_{,i}^{n,p} \sigma_{ij}^p dv^p\\
-& + N^{n,p} \rho^p f_j^p dv^p- N^{n,p} \rho^p a_j^p dv^p \bigg\}= 0\\
-\end{align*}
-
-where the superscript $p$ indicates that the term is evaluated at the location of particle $p$. Note that, effectively, we used a single point gauss integration at different regions defined by material points.
-
-\end{frame}
-
-\begin{frame}{The Micromorphic Material Point Method}
-
-We now define
-\begin{align*}
-f_j^{n,ext} &= \sum_{p=1}^{N^{points}}N^{n,p} \sigma_{ij}^p n_i^p da^p + N^{n,p} \rho^p f_j^p dv^p\\
-f_j^{n,int} &= - \sum_{p=1}^{N^{points}}N_{,i}^{n,p} \sigma_{ij}^p dv^p\\
-f_j^{n,kin} &= \sum_{p=1}^{N^{points}}N^{n,p} \rho^p a_j^p dv^p\\
-\end{align*}
-
-where $f_j^{n,ext}$ are the external forces, $f_j^{n,int}$ are the internal forces, and $f_j^{n,kin}$ are the kinematic forces on node $n$. \end{frame}
-
-\begin{frame}{The Micromorphic Material Point Method}
-
-This leads to
-\begin{align*}
-\sum_{n=1}^{N^{nodes}} w_n \left\{f_j^{n,ext} + f_j^{n,int} - f_j^{n,kin}\right\} &= 0\\
-\end{align*}
-
-If we form these into vectors and recognizing that $w_n$ is arbitrary we can form the overall nonlinear equation as
-\begin{align*}
-\left\{f^{ext}\right\} + \left\{f^{int}\right\} - \left\{f^{kin}\right\} &= \left\{0\right\}\\
-\end{align*}
-
-\end{frame}
-
-\begin{frame}{The Micromorphic Material Point Method}
-
-We can write the balance of first moment of momentum in the weighted residual form as
-\begin{align*}
-\int_{\Omega} \eta_{ij} \left[\sigma_{ij} + m_{kji,k} - s_{ij} + \rho\left(l_{ji} - \omega_{ji}\right) \right] dv&= 0\\
-\end{align*}
-
-where $\eta_{ij}$ are the tensor weighting functions. From the chain rule
-\begin{align*}
-\eta_{ij} m_{kji,k} &= \left(\eta_{ij} m_{kji}\right)_{,k} - \eta_{ij,k} m_{kji}
-\end{align*}
-
-\end{frame}
-
-\begin{frame}{The Micromorphic Material Point Method}
-
-\begin{align*}
-\int_{\Omega} \left[\eta_{ij} \sigma_{ij} + \left(\eta_{ij} m_{kji}\right)_{,k} - \eta_{ij,k} m_{kji} - \eta_{ij} s_{ij} + \rho \eta_{ij} l_{ji} - \rho \eta_{ij} \omega_{ji} \right] dv&= 0\\
-\int_{\Omega} \eta_{ij} \sigma_{ij} dv + \int_{\partial \Omega} M_{ji} \eta_{ij} da&\\
-- \int_{\Omega} \eta_{ij,k} m_{kji}dv - \int_{\Omega} \eta_{ij} s_{ij}dv&\\
- + \int_{\Omega} \rho \eta_{ij} l_{ji} - \int_{\Omega} \rho \eta_{ij} \omega_{ji} dv&= 0\\
-\end{align*}
-
-where the components of the, ``couple traction,'' $M_{ji}$ are defined as
-\begin{align*}
-M_{ji} &\defeq n_k m_{kji}\\
-\end{align*}
-
-\end{frame}
-
-\begin{frame}{The Micromorphic Material Point Method}
-
-We now define
-\begin{align*}
-\eta_{ij}(x) &\defeq \sum_{n=1}^{N^{nodes}} \eta_{ij}^n N^n(x)\\
-\end{align*}
-
-where $\eta_{ij}$ are the weighting coefficients (located at the nodes) and $N^n$ are the shape functions. Note that technically we do not need to use the same nodes or shape functions as for the balance of linear momentum.
-
-\end{frame}
-
-\begin{frame}{The Micromorphic Material Point Method}
-
-Now we can write
-\begin{align*}
-\sum_{n=1}^{N^{nodes}} \eta_{ij}^n \bigg\{\int_{\mathcal{B}} N^n \sigma_{ij} dv + \int_{\partial \mathcal{B}^t} M_{ji} N^n da - \int_{\mathcal{B}} N_{,k}^n m_{kji}dv&\\ - \int_{\mathcal{B}} N^n s_{ij}dv + \int_{\mathcal{B}} \rho N^n l_{ji}dv - \int_{\mathcal{B}} \rho N^n \omega_{ji} dv\bigg\}&= 0\\
-\end{align*}
-
-\end{frame}
-
-\begin{frame}{The Micromorphic Material Point Method}
-
-Similarly to before we introduce the MPM method via
-\begin{align*}
-\sum_{n=1}^{N^{nodes}} \eta_{ij}^n \sum_{p=1}^{N^{points}}\bigg\{ N^{n,p} \sigma_{ij}^p dv^p +  M_{ji}^p N^{n,p} da^p - N_{,k}^{n,p} m_{kji}^p dv^p&\\ - N^{n,p} s_{ij}^{p} dv^p + \rho^p N^{n,p} l_{ji}^p dv^p - \rho^p N^{n,p} \omega_{ji}^p dv^p\bigg\}&= 0\\
-\end{align*}
-
-where the second term is only to be evaluated on $\partial \mathcal{B}$.
-
-\end{frame}
-
-\begin{frame}{The Micromorphic Material Point Method}
-
-We now can define
-\begin{align*}
-\sigma^{n,int}_{ij} &= \sum_{p=1}^{N^{points}} \left\{ N^{n,p} \sigma_{ij}^p dv^p - N^{n,p} s_{ij}^{p} dv^p - N_{,k}^{n,p} m_{kji}^p dv^p\right\}\\
-\sigma^{n,ext}_{ij} &= \sum_{p=1}^{N^{points}} \left\{M_{ji}^p N^{n,p} da^p +  \rho^p N^{n,p} l_{ji}^p dv^p\right\}\\
-\sigma^{n,kin}_{ij} &= -\sum_{p=1}^{N^{points}} \left\{\rho^p N^{n,p} \omega_{ji}^p dv^p\right\}\\
-\end{align*}
-where we have used the same basic nomenclature as for the conservation of linear momentum.
-\end{frame}
-
-\begin{frame}{The Micromorphic Material Point Method}
-
-So we write
-\begin{align*}
-0 &= \sum_{n=1}^{N^{nodes}} \eta_{ij}^n \left\{\sigma_{ij}^{n,int} + \sigma_{ij}^{n,ext} + \sigma_{ij}^{n,kin}\right\}\ \forall\ \eta_{ij}^n\\
-\Rightarrow\ 0 &= \left\{\sigma_{ij}^{int}\right\} + \left\{\sigma_{ij}^{ext}\right\} + \left\{\sigma_{ij}^{kin}\right\}\\
-\end{align*}
-
-or the sum of the ``internal'', ``external'', and ``kinematic'' stresses is zero.
-
-\end{frame}
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%This leads us to the following equation
+%\begin{align*}
+%\sum_{n=1}^{N^{nodes}} w_j^n \sum_{p=1}^{N^{points}}\bigg\{& N^{n,p} \sigma_{ij}^p n_i^p da^p - N_{,i}^{n,p} \sigma_{ij}^p dv^p\\
+%& + N^{n,p} \rho^p f_j^p dv^p- N^{n,p} \rho^p a_j^p dv^p \bigg\}= 0\\
+%\end{align*}
+%
+%where the superscript $p$ indicates that the term is evaluated at the location of particle $p$. Note that, effectively, we used a single point gauss integration at different regions defined by material points.
+%
+%\end{frame}
+%
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%We now define
+%\begin{align*}
+%f_j^{n,ext} &= \sum_{p=1}^{N^{points}}N^{n,p} \sigma_{ij}^p n_i^p da^p + N^{n,p} \rho^p f_j^p dv^p\\
+%f_j^{n,int} &= - \sum_{p=1}^{N^{points}}N_{,i}^{n,p} \sigma_{ij}^p dv^p\\
+%f_j^{n,kin} &= \sum_{p=1}^{N^{points}}N^{n,p} \rho^p a_j^p dv^p\\
+%\end{align*}
+%
+%where $f_j^{n,ext}$ are the external forces, $f_j^{n,int}$ are the internal forces, and $f_j^{n,kin}$ are the kinematic forces on node $n$. \end{frame}
+%
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%This leads to
+%\begin{align*}
+%\sum_{n=1}^{N^{nodes}} w_n \left\{f_j^{n,ext} + f_j^{n,int} - f_j^{n,kin}\right\} &= 0\\
+%\end{align*}
+%
+%If we form these into vectors and recognizing that $w_n$ is arbitrary we can form the overall nonlinear equation as
+%\begin{align*}
+%\left\{f^{ext}\right\} + \left\{f^{int}\right\} - \left\{f^{kin}\right\} &= \left\{0\right\}\\
+%\end{align*}
+%
+%\end{frame}
+%
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%We can write the balance of first moment of momentum in the weighted residual form as
+%\begin{align*}
+%\int_{\Omega} \eta_{ij} \left[\sigma_{ij} + m_{kji,k} - s_{ij} + \rho\left(l_{ji} - \omega_{ji}\right) \right] dv&= 0\\
+%\end{align*}
+%
+%where $\eta_{ij}$ are the tensor weighting functions. From the chain rule
+%\begin{align*}
+%\eta_{ij} m_{kji,k} &= \left(\eta_{ij} m_{kji}\right)_{,k} - \eta_{ij,k} m_{kji}
+%\end{align*}
+%
+%\end{frame}
+%
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%\begin{align*}
+%\int_{\Omega} \left[\eta_{ij} \sigma_{ij} + \left(\eta_{ij} m_{kji}\right)_{,k} - \eta_{ij,k} m_{kji} - \eta_{ij} s_{ij} + \rho \eta_{ij} l_{ji} - \rho \eta_{ij} \omega_{ji} \right] dv&= 0\\
+%\int_{\Omega} \eta_{ij} \sigma_{ij} dv + \int_{\partial \Omega} M_{ji} \eta_{ij} da&\\
+%- \int_{\Omega} \eta_{ij,k} m_{kji}dv - \int_{\Omega} \eta_{ij} s_{ij}dv&\\
+% + \int_{\Omega} \rho \eta_{ij} l_{ji} - \int_{\Omega} \rho \eta_{ij} \omega_{ji} dv&= 0\\
+%\end{align*}
+%
+%where the components of the, ``couple traction,'' $M_{ji}$ are defined as
+%\begin{align*}
+%M_{ji} &\defeq n_k m_{kji}\\
+%\end{align*}
+%
+%\end{frame}
+%
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%We now define
+%\begin{align*}
+%\eta_{ij}(x) &\defeq \sum_{n=1}^{N^{nodes}} \eta_{ij}^n N^n(x)\\
+%\end{align*}
+%
+%where $\eta_{ij}$ are the weighting coefficients (located at the nodes) and $N^n$ are the shape functions. Note that technically we do not need to use the same nodes or shape functions as for the balance of linear momentum.
+%
+%\end{frame}
+%
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%Now we can write
+%\begin{align*}
+%\sum_{n=1}^{N^{nodes}} \eta_{ij}^n \bigg\{\int_{\mathcal{B}} N^n \sigma_{ij} dv + \int_{\partial \mathcal{B}^t} M_{ji} N^n da - \int_{\mathcal{B}} N_{,k}^n m_{kji}dv&\\ - \int_{\mathcal{B}} N^n s_{ij}dv + \int_{\mathcal{B}} \rho N^n l_{ji}dv - \int_{\mathcal{B}} \rho N^n \omega_{ji} dv\bigg\}&= 0\\
+%\end{align*}
+%
+%\end{frame}
+%
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%Similarly to before we introduce the MPM method via
+%\begin{align*}
+%\sum_{n=1}^{N^{nodes}} \eta_{ij}^n \sum_{p=1}^{N^{points}}\bigg\{ N^{n,p} \sigma_{ij}^p dv^p +  M_{ji}^p N^{n,p} da^p - N_{,k}^{n,p} m_{kji}^p dv^p&\\ - N^{n,p} s_{ij}^{p} dv^p + \rho^p N^{n,p} l_{ji}^p dv^p - \rho^p N^{n,p} \omega_{ji}^p dv^p\bigg\}&= 0\\
+%\end{align*}
+%
+%where the second term is only to be evaluated on $\partial \mathcal{B}$.
+%
+%\end{frame}
+%
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%We now can define
+%\begin{align*}
+%\sigma^{n,int}_{ij} &= \sum_{p=1}^{N^{points}} \left\{ N^{n,p} \sigma_{ij}^p dv^p - N^{n,p} s_{ij}^{p} dv^p - N_{,k}^{n,p} m_{kji}^p dv^p\right\}\\
+%\sigma^{n,ext}_{ij} &= \sum_{p=1}^{N^{points}} \left\{M_{ji}^p N^{n,p} da^p +  \rho^p N^{n,p} l_{ji}^p dv^p\right\}\\
+%\sigma^{n,kin}_{ij} &= -\sum_{p=1}^{N^{points}} \left\{\rho^p N^{n,p} \omega_{ji}^p dv^p\right\}\\
+%\end{align*}
+%where we have used the same basic nomenclature as for the conservation of linear momentum.
+%\end{frame}
+%
+%\begin{frame}{The Micromorphic Material Point Method}
+%
+%So we write
+%\begin{align*}
+%0 &= \sum_{n=1}^{N^{nodes}} \eta_{ij}^n \left\{\sigma_{ij}^{n,int} + \sigma_{ij}^{n,ext} + \sigma_{ij}^{n,kin}\right\}\ \forall\ \eta_{ij}^n\\
+%\Rightarrow\ 0 &= \left\{\sigma_{ij}^{int}\right\} + \left\{\sigma_{ij}^{ext}\right\} + \left\{\sigma_{ij}^{kin}\right\}\\
+%\end{align*}
+%
+%or the sum of the ``internal'', ``external'', and ``kinematic'' stresses is zero.
+%
+%\end{frame}
 
 \begin{frame}{The Micromorphic Finite Element Method}
 
@@ -2370,7 +2370,7 @@ where $\mathcal{M}_{ij}$ is a residual tensor which should ideally be zero.
 
 We form the Newton-Raphson iteration as follows
 \begin{align*}
-\mathcal{R}^{k+1}_{i} &= \mathcal{R}^k_i + \left[\frac{\partial \mathcal{R}_i}{\partial u_j} \right]^k\delta u_j^k
+\mathcal{R}^{k+1}_{i} &= \mathcal{R}^k_i + \left[\frac{\partial \mathcal{R}_i}{\partial u_j} \right]^k\Delta u_j^{k+1}
 \end{align*}
 
 where $k$ is the increment count and our residual is formed as
@@ -2386,11 +2386,66 @@ where we have written $\mathcal{M}_{ij}$ in a vector form. See the derivative of
 
 \begin{frame}{Newton Raphson Solution}
 
-We wish to solve
+We wish to solve the linearized system
 \begin{align*}
-\mathcal{R}^{k+1}_{i} &= \mathcal{R}^k_i + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right]^k \delta u_j^n = 0\\
-\Rightarrow\ -\left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right]^k \delta u_j^k &= \mathcal{R}^k_i
+\mathcal{R}^{k+1}_{i} &= \mathcal{R}^k_i + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \Delta u_j^{k+1}\\
+\Delta u_j^{k+1} &= \Delta t \dot{u}_j^{k+1}\\
+\dot{u}_j^{k+1} &= \alpha \dot{u}_j^{k+1} + \left(1-\alpha\right) \dot{u}_j^{k}\\
 \end{align*}
+
+where we can let $\alpha$ vary from 0 to 1. At $\alpha=0$ we are using an explicit update and at $\alpha = 1$ the solution is fully implicit.
+\end{frame}
+
+\begin{frame}{Newton Raphson Solution}
+
+We now substitute back in to find
+\begin{align*}
+\Delta u_j^{k+1} &= \Delta t \alpha \dot{u}_j^{k+1} + \Delta t \left(1-\alpha\right) \dot{u}_j^k\\
+\mathcal{R}^{k+1}_{i} &= \mathcal{R}^k_i + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \left(\Delta t \alpha \dot{u}_j^{k+1} + \Delta t \left(1-\alpha\right) \dot{u}_j^k\right)\\
+\end{align*}
+
+We want $\mathcal{R}_i^{k+1} = 0$ so
+\begin{align*}
+0 &= \mathcal{R}^k_i + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \left(\Delta t \alpha \dot{u}_j^{k+1} + \Delta t \left(1-\alpha\right) \dot{u}_j^k\right)\\
+\mathcal{R}_i^k &= - \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \left(\Delta t \alpha \dot{u}_j^{k+1} + \Delta t \left(1-\alpha\right) \dot{u}_j^k\right)\\
+- \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \Delta t \alpha \dot{u}_j^{k+1} &= \mathcal{R}_i^k + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \Delta t \left(1-\alpha\right) \dot{u}_j^k
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{Newton Raphson Solution}
+
+\begin{align*}
+RHS &= \frac{1}{\Delta t \alpha}\left(\mathcal{R}_i^k + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \Delta t \left(1-\alpha\right) \dot{u}_j^k \right)\\
+LHS &= - \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \dot{u}_j^{k+1}
+\end{align*}
+
+Which we can also write as
+\begin{align*}
+RHS &= \mathcal{R}_i^k + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \left(1-\alpha\right) \Delta u_j^k\\
+LHS &= - \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \Delta u_j^{k+1}
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{Newton Raphson Solution}
+
+For a fully implicit method $(\alpha = 1)$ we write
+\begin{align*}
+RHS &= \frac{1}{\Delta t}\left(\mathcal{R}_i^k + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \Delta t \dot{u}_j^k \right)\\
+LHS &= - \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \dot{u}_j^{k+1}
+\end{align*}
+
+or
+\begin{align*}
+RHS &= \mathcal{R}_i^k + \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \Delta u_j^k \\
+LHS &= - \left[\frac{\partial \mathcal{R}_i}{\partial u_j}\right] \Delta u_j^{k+1}
+\end{align*}
+
+
+\end{frame}
+
+\begin{frame}{Newton Raphson Solution}
 
 \begin{align*}
 \frac{\partial \mathcal{R}_i}{\partial u_j} &= \left[\begin{array}{cccc}
