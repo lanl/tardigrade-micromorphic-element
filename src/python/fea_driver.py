@@ -19,14 +19,19 @@ class InputParser:
     svars         = [] #List of the state variables
     nodesets      = [] #List of the nodesets [name, node1, node2, ...]
     
+    mms_name      = None #The name of the manufactured solution being tested
     mms_fxn       = None #The function to compute U values for the method
                          #of manufactured solutions
     mms_dir_set   = None #The nodeset to be used for the method of manufactured
                          #solutions
+    path_to_file  = ""
     
     def __init__(self,filename_):
         """Initialize the input parser object"""
         self.filename = filename_
+        temp = os.path.split(self.filename)
+        self.filename = temp[1]
+        self.path_to_file = temp[0]
         
     def __repr__(self):
         """Define the repr string"""
@@ -43,14 +48,14 @@ class InputParser:
         #Read in the input deck 
         print "Reading data from: {0}".format(self.filename)
         
-        with open(self.filename) as f:
+        with open(os.path.join(self.path_to_file,self.filename)) as f:
             for linenum,line in enumerate(f.readlines()):
                 line = line.strip()
                 if((len(line)>0) and (line[0]!="#")):
                     bool,fxn,line = self.check_keywords(linenum,line)
                     if(bool):
                         parse_fxn = fxn
-                    parse_fxn(linenum,line)
+                    parse_fxn(linenum+1,line)
         
         f.close()
         print "\n=================================================\n"+\
@@ -156,18 +161,18 @@ class InputParser:
     
     def parse_mms(self,linenum,line):
         """Parse the method of manufactured solutions keyword"""
-        mms_fxn_names = ["linear"]
-        mms_fxns      = [mms_linear]
-        
+        mms_fxn_names = ["const_u","linear_u"]
+        mms_fxns      = [self.mms_const_u,self.mms_linear_u]
         if(len(line)>0):
             sline =  line.split(',')
             #Get the method of manufactured solutions u function
             if((len(sline)==2) and (sline[0].strip()=="")):
                 try:
                     i = mms_fxn_names.index(sline[1].strip())
-                    self.mms_fxn = mms_fxn[i]
+                    self.mms_fxn = mms_fxns[i]
+                    self.mms_fxn_name = sline[1].strip()
                 except:
-                    print "Error: Method of Manufactured Solutions function name not found"
+                    print "Error: On line {0}, Method of Manufactured Solutions function name not found".format(linenum)
                     raise ValueError()
             #Read in the method of manufactured solutions nodeset
             elif(len(line)<2):
@@ -175,17 +180,32 @@ class InputParser:
                       "       solutions mush have at least one node."
                 raise ValueError()
             else:
-                self.mms_dir_set.append([sline[0]]+[int(i) for i in sline[1:]])
+                self.mms_dir_set = [sline[0]]+[int(i) for i in sline[1:]]
+                
+    #MMS functions
+    def mms_const_u(self,coords):
+        """Compute the method of manufactured solutions for a constant displacement of u
+        with the phi values fixed at zero"""
+        return .1,.2,.3,0.,0.,0.,0.,0.,0.,0.,0.,0.
+        
+    def mms_linear_u(self,coords):
+        """Compute the method of manufactured solutions for a linear displacement of u 
+        with the phi values fixed at zero"""
+        a = .021
+        b = .013
+        c = .034
+        return .1+a*coords[0], .2+b*coords[1],.3+c*coords[2],0.,0.,0.,0.,0.,0.,0.,0.,0.
                 
 class FEAModel():
     """The class which defines the FEA model"""
     input      = None #Input of type InputParser
-    ttot       = 1.   #Total time
+    ttot       = 0.3  #Total time
     t0         = 0.   #Previous value of time
-    ti         = 0.5  #Current value of time
-    dt         = 0.5  #The timestep
+    ti         = 0.1  #Current value of time
+    dt         = 0.3  #The timestep
     x0         = None #Previous value of x in Ax = b
     xi         = None #Current increment value of x in solver
+    dup        = None #The previous change in u
     total_ndof = None #Total number of degrees of freedom
     nodes_dof  = []   #List of lists of degrees of freedom assocated with each node
     RHS        = None #The right hand side vector
@@ -198,10 +218,11 @@ class FEAModel():
     
     maxiter    = 20   #The maximum number of iterations allowed in the Newton-Raphson solver
     atol       = 1e-8 #The absolute tolerance on the Newton-raphson iterations
-    rtol       = 1e-8 #The relative tolerance on the Newton-Raphson iterations
+    rtol       = 1e-5 #The relative tolerance on the Newton-Raphson iterations
     inc_number = 0    #The current increment number
     
     F          = None #The forcing function for the method of manufactured solutions
+    alpha      = 1.0  #The relaxation parameter
                       
     def __init__(self,IP_):
         """Initialize the finite element model"""
@@ -209,6 +230,7 @@ class FEAModel():
         self.total_ndof = len(self.input.nodes_coords)*self.input.ndof
         self.x0         = np.zeros([self.total_ndof])
         self.xi         = np.zeros([self.total_ndof])
+        self.dup        = np.zeros([self.total_ndof])
     
     def __repr__(self):    
         """Define the repr string"""
@@ -221,9 +243,7 @@ class FEAModel():
         self.AMATRX = np.zeros([self.total_ndof,self.total_ndof]) #Initialize the A matrix
         
         print "=\n"+\
-              "|\n"+\
               "| Computing global stiffness matrix\n"+\
-              "|\n"+\
               "=";
         
         for e in self.input.element_nodes:
@@ -244,7 +264,18 @@ class FEAModel():
             RHSe,AMATRXe = mel.UEL(self.input.properties,len(self.input.properties),\
                                    self.input.svars,len(self.input.svars),coords,None,U,DU,self.t0,self.ti-self.t0)
             
-            #print RHSe
+            #print "RHS:\n",RHSe
+            #print "max RHS: {0}\nmin RHS: {1}".format(max(RHSe),min(RHSe))
+            #ftot = np.zeros([3,])
+            #mtot = np.zeros([9,])
+            #for n in range(8):
+            #    print "Node: {0}".format(n+1)
+            #    print "Forces: {0}\nMoments: {1}".format(RHSe[n*12:(n*12+3)],RHSe[(n*12+3):((n+1)*12)])
+            #    for i in range(3):
+            #        ftot[i] += RHSe[n*12:(n*12+3)][i]
+            #    for i in range(9):
+            #        mtot[i] += RHSe[(n*12+3):((n+1)*12)][i]
+            #print "Total Forces: {0}\nTotal Moments: {1}".format(ftot,mtot)
             
             #Assemble the global matrix
             for i in range(self.input.ndof*8):
@@ -255,9 +286,7 @@ class FEAModel():
                     self.AMATRX[Iglob,Jglob] += AMATRXe[i,j]
         
         print "=\n"+\
-              "|\n"+\
               "| Completed global stiffness matrix formation\n"+\
-              "|\n"+\
               "=";
         #Include the method of manufactured solutions part if required  
         if(self.F!=None):
@@ -277,27 +306,22 @@ class FEAModel():
             #Add the change in dirichlet boundary conditions to the dof vector
             self.xi[self.dbcdof[i][0]] += factor*self.dbcdof[i][1]
         
-        
     def initialize_dof(self):
         """Initialize the degrees of freedom for the FEA problem"""
         
         print "=\n"+\
-              "|\n"+\
-              "| Initializing the degrees of freedom\n"+\
-              "|\n"+\
+              "|=> Initializing the degrees of freedom\n"+\
               "=";
         
         #Assign the dof
         self.assign_dof()
         #Compute the required values for the method of maufactured solutions if required
         if(self.input.mms_fxn!=None):
-            self.apply_manufactured_solutions()
+            self.apply_manufactured_solution()
         self.convert_local_dbc_to_global()
         
         print "=\n"+\
-              "|\n"+\
               "| Degrees of freedom intialized\n"+\
-              "|\n"+\
               "=";
               
     def initialize_timestep(self):
@@ -341,11 +365,14 @@ class FEAModel():
         #print self.delta_dbcdof
         #raise
         
-        for i,dbc in enumerate(self.delta_dbcdof): #NOTE: I think this should be delta_dbcdof
+        for i,dbc in enumerate(self.delta_dbcdof):
             #Subtract the resulting force from the applied dof from the RHS
             self.RHS -= self.AMATRX[:,dbc[0]]*dbc[1]
             
-        #Mask the RHS and AMATRX so that the dof values are unmodified when solving
+        #Include the relaxation modification to the RHS
+        self.RHS  = (self.RHS - (1.-self.alpha)*np.dot(self.AMATRX,self.dup))/self.alpha
+        
+        #Copy over the RHS and AMATRX terms to have the dirichlet bc terms removed
         self.RHS_bc    = np.copy(self.RHS)
         self.AMATRX_bc = np.copy(self.AMATRX)
         #Create reduced matrices for inversion
@@ -359,16 +386,17 @@ class FEAModel():
         self.assemble_RHS_and_jacobian_matrix()
         self.apply_dirichlet_bcs()
         #Use the numpy solver for speed
-        print self.RHS_bc
+        #print self.RHS_bc
         dxi = np.linalg.solve(self.AMATRX_bc,self.RHS_bc)
         #print self.dbcdof
         for ddof in self.delta_dbcdof:
             dxi = np.insert(dxi,ddof[0],0.)#ddof[1])
         #print dxi
         self.xi = self.xi+dxi#self.x0+dxi #Add the change to the dof vector
-        for n in range(len(self.nodes_dof)):
-            temp = self.xi[(n*12):((n+1)*12)]
-            print "Node: {0}\nu: {1}\nphi: {2}\n".format(self.nodes_dof[n],temp[:3],temp[3:])
+        self.dup = np.copy(dxi)
+        #for n in range(len(self.nodes_dof)):
+        #    temp = self.xi[(n*12):((n+1)*12)]
+        #    print "Node: {0}\nu: {1}\nphi: {2}\n".format(self.nodes_dof[n],temp[:3],temp[3:])
         #raise
         
     def increment_solution(self):
@@ -385,7 +413,7 @@ class FEAModel():
               " Iteration:         {0}    \n".format(niter)+\
               " Residual:          {0}    \n".format(R)+\
               " Relative Residual: {0}    \n".format(R/R0)+\
-              "===========================\n"
+              "==========================="
         
         while ((R/R0)>self.rtol and R>self.atol and niter<self.maxiter):
             self.update_increment()
@@ -396,7 +424,7 @@ class FEAModel():
                   " Iteration:         {0}    \n".format(niter)+\
                   " Residual:          {0}    \n".format(R)+\
                   " Relative Residual: {0}    \n".format(R/R0)+\
-                  "===========================\n"
+                  "==========================="
             niter +=1
             
         if((niter>=self.maxiter) and (R/R0>self.rtol) and R>self.atol):
@@ -434,6 +462,8 @@ class FEAModel():
                     self.ti = self.ttot
                 self.x0 = np.copy(self.xi)
             else:
+                if(self.input.mms_fxn!=None):
+                    self.compare_manufactured_solution()
                 return False
                 
         print "\n=================================================\n"+\
@@ -442,31 +472,59 @@ class FEAModel():
                 "|                                               |\n"+\
                 "=================================================\n"
         
+        if(self.input.mms_fxn!=None):
+            self.compare_manufactured_solution()
+        
         return True
+        
+    def compare_manufactured_solution(self):
+        """Compare the manufactured solution to the computed solution"""
+        mms = self.get_mms_dof_vector()
+        
+        if(np.allclose(mms,self.xi)):
+            result = "Manufactured solution passed"
+        else:
+            result = "Error: Manufactured solution did not pass"
+        
+        fname = os.path.join(self.input.path_to_file,self.input.mms_fxn_name,r"/results.txt")
+        
+        fout = open(fname,"w+")
+        fout.write(result)
+        fout.write("\nManufactured Solution:\n"+str(mms))
+        fout.write("\nFEA Solution:\n"+str(self.xi))
+        fout.write("\nDifference:\n"+str(mms-self.xi))
+        fout.close()
+        
+        print result
         
     def apply_manufactured_solution(self):
         """Apply the manufactured solution indicated"""
-        print "=\n|=> Computing forcing function for method of manufactured solutions\n=\n"
-        compute_mms_forcing_function()
-        compute_mms_bc_values()
+        print "=\n|=> Computing forcing function for method of manufactured solutions\n="
+        self.compute_mms_forcing_function()
+        self.compute_mms_bc_values()
         
-    def compute_mms_forcing_function(self):
-        """Compute the forcing function for the method of manufactured solutions"""
-        
-        U = np.zeros([12*len(self.input.node_coords)])
+    def get_mms_dof_vector(self):
+        """Compute the displacement vector for the method of manufactured solutions"""
+        U = np.zeros([12*len(self.input.nodes_coords)])
         for i,node in enumerate(self.input.nodes_coords):
             Us = self.input.mms_fxn(node[1:])
             for d in range(12):
                 U[d+i*12] = Us[d]
+        return U
         
+    def compute_mms_forcing_function(self):
+        """Compute the forcing function for the method of manufactured solutions"""
+        
+        #Get the manufactured solutions dof vector
+        U = self.get_mms_dof_vector()
         #Set the degree of freedom to the computed U
         xi_old = np.copy(self.xi) #Copy initial value
         self.xi = U #Set the DOF vector to the computed U
-        assemble_RHS_and_jacobian_matrix() #Compute the forcing function
+        self.assemble_RHS_and_jacobian_matrix() #Compute the forcing function
         self.mms_F = np.copy(self.RHS) #Copy the right hand side to the forcing function value
         
         
-    def compute_bc_values(self):
+    def compute_mms_bc_values(self):
         """Compute the boundary condition values for the method of manufactured solutions.
         Currently only works for dirichlet boundary conditions."""
         
@@ -479,18 +537,18 @@ class FEAModel():
                 #Compute the applied displacements
                 [ux,uy,uz,phi11,phi22,phi33,phi23,phi13,phi12,phi32,phi31,phi21] = self.input.mms_fxn(coords[0])
                 #Apply the boundary condition values
-                self.input.dirichlet_bcs.append(node,  1,    ux)
-                self.input.dirichlet_bcs.append(node,  2,    uy)
-                self.input.dirichlet_bcs.append(node,  3,    uz)
-                self.input.dirichlet_bcs.append(node,  4, phi11)
-                self.input.dirichlet_bcs.append(node,  5, phi22)
-                self.input.dirichlet_bcs.append(node,  6, phi33)
-                self.input.dirichlet_bcs.append(node,  7, phi23)
-                self.input.dirichlet_bcs.append(node,  8, phi13)
-                self.input.dirichlet_bcs.append(node,  9, phi12)
-                self.input.dirichlet_bcs.append(node, 10, phi32)
-                self.input.dirichlet_bcs.append(node, 11, phi31)
-                self.input.dirichlet_bcs.append(node, 12, phi21)
+                self.input.dirichlet_bcs.append([node,  1,    ux])
+                self.input.dirichlet_bcs.append([node,  2,    uy])
+                self.input.dirichlet_bcs.append([node,  3,    uz])
+                self.input.dirichlet_bcs.append([node,  4, phi11])
+                self.input.dirichlet_bcs.append([node,  5, phi22])
+                self.input.dirichlet_bcs.append([node,  6, phi33])
+                self.input.dirichlet_bcs.append([node,  7, phi23])
+                self.input.dirichlet_bcs.append([node,  8, phi13])
+                self.input.dirichlet_bcs.append([node,  9, phi12])
+                self.input.dirichlet_bcs.append([node, 10, phi32])
+                self.input.dirichlet_bcs.append([node, 11, phi31])
+                self.input.dirichlet_bcs.append([node, 12, phi21])
             else:
                 print "Error: Two nodes have the same number"
                 raise ValueError()
@@ -514,7 +572,6 @@ def profile_solve():
 def flatten_list(l):
     """Flatten list of lists"""
     return [item for sublist in l for item in sublist]
-    
     
 class TestFEA(unittest.TestCase):
 
@@ -553,9 +610,23 @@ class TestFEA(unittest.TestCase):
         IP = InputParser("unittest.inp")
         IP.read_input()
         
-    def test_fea_solver(self):
-        """Perform test of the FEA solver"""
-        IP = InputParser("unittest.inp")
+#    def test_fea_solver(self):
+#        """Perform test of the FEA solver"""
+#        IP = InputParser("unittest.inp")
+#        IP.read_input()
+#        FE = FEAModel(IP)
+#        FE.solve()
+        
+    def test_manufactured_solution_const_u(self):
+        """Perform the manufactured solution test with a constant u"""
+        IP = InputParser("tests/regression_tests/const_u/const_u.inp")
+        IP.read_input()
+        FE = FEAModel(IP)
+        FE.solve()
+        
+    def test_manufactured_solution_const_u(self):
+        """Perform the manufactured solution test with a constant u"""
+        IP = InputParser("tests/regression_tests/linear_u/linear_u.inp")
         IP.read_input()
         FE = FEAModel(IP)
         FE.solve()
