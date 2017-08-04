@@ -198,7 +198,7 @@ def UEL(PROPS,NPROPS,SVARS,NSVARS,COORDS,MCRD,U,DU,TIME,DTIME): #Python definiti
     """
         
     #Set the order of the gauss quadrature and get the gauss points and weights
-    ORDER_QUAD = 2
+    ORDER_QUAD = 1
     PQ,WQ      = hex8.get_gpw(ORDER_QUAD)
     UN,PHIN    = parse_dof_vector(U)
     DUN,DPHIN  = parse_dof_vector(DU)
@@ -609,6 +609,12 @@ def compute_residuals_jacobians_gpt(xi_vec,node_us,node_phis,nodal_global_coords
     dCdU,dPsidU,dGammadU             = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
     N,grad_N_ref,detJhat             = hex8.get_all_shape_function_info(xi_vec,nodal_global_coords_reference)
     PK2,SIGMA,M,dpk2dU,dSigmadU,dMdU = compute_stress(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU,props,state_variables)
+    
+    #Check if element is inverted
+    for djh in detJhat:
+        if(djh<=0):
+            print "Error: Element is inverted."
+            raise ValueError()
     
     #print "PK2:\n",PK2
     #print "SIGMA:\n",SIGMA
