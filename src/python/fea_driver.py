@@ -485,7 +485,14 @@ class FEAModel():
             result = "Manufactured solution passed"
         else:
             result = "Error: Manufactured solution did not pass"
+            
+        #Write the test description file
+        fname = os.path.join(self.input.path_to_file,self.input.mms_fxn_name,r"/description.txt")
+        fout = open(fname,"w+")
+        fout.write(self.latex_string)
+        fout.close()
         
+        #Write the results of the test
         fname = os.path.join(self.input.path_to_file,self.input.mms_fxn_name,r"/results.txt")
         
         fout = open(fname,"w+")
@@ -577,13 +584,18 @@ class TestFEA(unittest.TestCase):
 
     f                    = None
     original_directory   = ""
-    output_file_name     = r"fea_driver_unittests.txt"
-    output_file_location = r".\tests\unittests"
-    currentResult        = None
+    module_name           = "fea_driver"
+    output_file_name      = r"results.txt".format(module_name)
+    output_file_location  = r".\tests\unittests\{0}".format(module_name)
+    currentResult         = None
     @classmethod
     def setUpClass(self):
         """Setup method"""
         output_file = os.path.join(self.output_file_location,self.output_file_name)
+        
+        if(not os.path.isdir(self.output_file_location)):
+            os.makedirs(self.output_file_location)
+        
         if(os.path.isfile(output_file)):
             os.remove(output_file)
         self.f = open(output_file,"w+")
@@ -598,7 +610,7 @@ class TestFEA(unittest.TestCase):
     def tearDown(self):
         ok = self.currentResult.wasSuccessful()
         tname = self.id().split(".")[-1]
-        self.f.write(tname+"\t&\t"+str(ok)+"\n")
+        self.f.write(tname+"\t&\t"+str(ok)+r"\\"+"\n")
         
     def run(self, result=None):
         """Redefine run to keep track of results"""
@@ -616,22 +628,6 @@ class TestFEA(unittest.TestCase):
 #        IP.read_input()
 #        FE = FEAModel(IP)
 #        FE.solve()
-        
-    def test_manufactured_solution_const_u(self):
-        """Perform the manufactured solution test with a constant u"""
-        IP = InputParser("tests/regression_tests/const_u/const_u.inp")
-        IP.read_input()
-        FE = FEAModel(IP)
-        FE.solve()
-        
-    def test_manufactured_solution_const_u(self):
-        """Perform the manufactured solution test with a constant u"""
-        IP = InputParser("tests/regression_tests/linear_u/linear_u.inp")
-        IP.read_input()
-        FE = FEAModel(IP)
-        FE.solve()
-     
-        
 if __name__ == '__main__':
     unittest.main()
         

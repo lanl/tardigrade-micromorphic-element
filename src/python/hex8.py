@@ -383,15 +383,20 @@ def convert_V_to_T(V,shape):
     
 class TestHex8(unittest.TestCase):
 
-    f                    = None
-    original_directory   = ""
-    output_file_name     = r"hex8_unittests.txt"
-    output_file_location = r".\tests\unittests"
-    currentResult        = None
+    f                     = None
+    original_directory    = ""
+    module_name           = "hex8"
+    output_file_name      = r"results.txt".format(module_name)
+    output_file_location  = r".\tests\unittests\{0}".format(module_name)
+    currentResult         = None
     @classmethod
     def setUpClass(self):
         """Setup method"""
         output_file = os.path.join(self.output_file_location,self.output_file_name)
+        
+        if(not os.path.isdir(self.output_file_location)):
+            os.makedirs(self.output_file_location)
+        
         if(os.path.isfile(output_file)):
             os.remove(output_file)
         self.f = open(output_file,"w+")
@@ -406,7 +411,7 @@ class TestHex8(unittest.TestCase):
     def tearDown(self):
         ok = self.currentResult.wasSuccessful()
         tname = self.id().split(".")[-1]
-        self.f.write(tname+"\t&\t"+str(ok)+"\n")
+        self.f.write(tname+"\t&\t"+str(ok)+r"\\"+"\n")
         
     def run(self, result=None):
         """Redefine run to keep track of results"""
