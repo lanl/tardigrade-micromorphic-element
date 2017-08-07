@@ -1,6 +1,30 @@
 #Test element for the input parser function
 *LATEX
-This is the test element for the InputParser class of \verb|fea_driver.py|. It reads in the nodes, elements, and properties for a two element mesh.
+\subsection{Constant Displacement}
+This is a regression test for the micromorphic continuum element using the method of
+manufactured solutions. Four elements are generated in a volume from 0 to 1 in the 
+$x$, $y$ and $z$ axes. The test in question is a linear displacement of all boundary 
+nodes while the central node is unconstrained. The result should be a constant change 
+in the displacment $\left(u\right)$ degrees of freedom and a value of $0$ for the $\phi$ 
+degrees of freedom.
+
+The displacement equation is
+\begin{equation}
+u_i = \left[\begin{array}{c}
+0.1+0.021*x\\
+0.2+0.013*y\\
+0.3+0.034*z\\
+0\\
+0\\
+0\\
+0\\
+0\\
+0\\
+0\\
+0\\
+0\\
+\end{array}\right]
+\end{equation}
 
 *NODES,12
 1 , 0.0, 0.0, 0.0
