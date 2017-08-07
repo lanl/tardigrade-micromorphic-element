@@ -77,7 +77,7 @@ class InputParser:
         
     def parse_latex(self,lineum,line):
         """Parse the file when triggered by a latex keyword"""
-        self.latex_string += line
+        self.latex_string += line + "\n"
         
     def parse_nodes(self,linenum,line):
         """Parse the file when triggered by a node keyword"""
@@ -487,14 +487,17 @@ class FEAModel():
             result = "Error: Manufactured solution did not pass"
             
         #Write the test description file
-        fname = os.path.join(self.input.path_to_file,self.input.mms_fxn_name,r"/description.txt")
+        fname = os.path.join(self.input.path_to_file,"description.txt")
+        if(os.path.isfile(fname)):
+            os.remove(fname)
         fout = open(fname,"w+")
-        fout.write(self.latex_string)
+        fout.write(self.input.latex_string)
         fout.close()
         
         #Write the results of the test
-        fname = os.path.join(self.input.path_to_file,self.input.mms_fxn_name,r"/results.txt")
-        
+        fname = os.path.join(self.input.path_to_file,"results.txt")
+        if(os.path.isfile(fname)):
+            os.remove(fname)
         fout = open(fname,"w+")
         fout.write(result)
         fout.write("\nManufactured Solution:\n"+str(mms))
@@ -562,7 +565,7 @@ class FEAModel():
         
         
         
-def run_finite_elmement_model(input_filename):
+def run_finite_element_model(input_filename):
     """Run the finite element model identified by the input filename"""
     IP = InputParser(input_filename)
     IP.read_input()
@@ -610,7 +613,12 @@ class TestFEA(unittest.TestCase):
     def tearDown(self):
         ok = self.currentResult.wasSuccessful()
         tname = self.id().split(".")[-1]
-        self.f.write(tname+"\t&\t"+str(ok)+r"\\"+"\n")
+        if(str(ok)):
+            str_out = r"\cellcolor{green!25} PASS"
+        else:
+            str_out = r"\cellcolor{red!25} FAIL"
+        
+        self.f.write(tname+"\t&\t"+str_out+r"\\"+"\n")
         
     def run(self, result=None):
         """Redefine run to keep track of results"""

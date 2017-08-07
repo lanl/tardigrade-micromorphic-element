@@ -933,7 +933,12 @@ class TestMicroElement(unittest.TestCase):
     def tearDown(self):
         ok = self.currentResult.wasSuccessful()
         tname = self.id().split(".")[-1]
-        self.f.write(tname+"\t&\t"+str(ok)+r"\\"+"\n")
+        if(str(ok)):
+            str_out = r"\cellcolor{green!25} PASS"
+        else:
+            str_out = r"\cellcolor{red!25} FAIL"
+        
+        self.f.write(tname+"\t&\t"+str_out+r"\\"+"\n")
         
     def run(self, result=None):
         """Redefine run to keep track of results"""
