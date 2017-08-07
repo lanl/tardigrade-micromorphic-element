@@ -24,7 +24,7 @@ u_i = \left[\begin{array}{c}
 \end{array}\right]
 \end{equation}
 
-*NODES,27
+*NODES,12
 1 , 0.0, 0.0, 0.0
 2 , 0.5, 0.0, 0.0
 3 , 1.0, 0.0, 0.0
