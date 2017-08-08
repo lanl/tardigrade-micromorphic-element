@@ -908,23 +908,48 @@ class TestMicroElement(unittest.TestCase):
     f                    = None
     original_directory   = ""
     module_name           = "micro_element"
-    output_file_name      = r"results.txt".format(module_name)
+    output_file_name      = r"results.tex".format(module_name)
     output_file_location  = r".\tests\unittests\{0}".format(module_name)
     currentResult         = None
     @classmethod
     def setUpClass(self):
         """Setup method"""
+        #Define the results output format
         output_file = os.path.join(self.output_file_location,self.output_file_name)
         
         if(not os.path.isdir(self.output_file_location)):
             os.makedirs(self.output_file_location)
         
+        #Write the description output
+        description_file = os.path.join(self.output_file_location,r"description.tex")
+        
+        if(os.path.isfile(description_file)):
+            os.remove(description_file)
+        
+        df = open(description_file,'w+')
+        description_string = r"Unit tests of the \verb|{0}.py| module.".format(self.module_name)+"\n"
+        df.write(description_string)
+        df.close()
+        
+        #Write the results output
         if(os.path.isfile(output_file)):
             os.remove(output_file)
         self.f = open(output_file,"w+")
+        table_open = r"\begin{table}[htb!]"+"\n"+\
+                     r"\centering" +"\n"+\
+                     r"\begin{tabular}{|l|c|}"+"\n"+\
+                     r"\hline"+"\n"+\
+                     r"module name & status\\"+"\n"+\
+                     r"\hline"+"\n"+\
+                     r"\hline"+"\n"
+        self.f.write(table_open)
     @classmethod
     def tearDownClass(self):
         """Teardown method"""
+        table_close = r"\hline"+"\n"+r"\end{tabular}"+"\n"+\
+                      r"\end{table}" +"\n"+\
+                      r"\FloatBarrier" + "\n"
+        self.f.write(table_close)
         self.f.close()
         
     def setUp(self):
@@ -932,8 +957,8 @@ class TestMicroElement(unittest.TestCase):
         
     def tearDown(self):
         ok = self.currentResult.wasSuccessful()
-        tname = self.id().split(".")[-1]
-        if(str(ok)):
+        tname = self.id().split(".")[-1].replace("_","\_")
+        if(ok):
             str_out = r"\cellcolor{green!25} PASS"
         else:
             str_out = r"\cellcolor{red!25} FAIL"
