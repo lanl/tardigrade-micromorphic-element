@@ -6,32 +6,30 @@ import micro_element as mel
 
 import cProfile
 
-class InputParser:
+class InputParser(object):
     """The input parser class which reads in data from a text file"""
-    
-    filename      = "" #String giving the filename
-    latex_string  = "" #The description of the input deck
-    nodes_coords  = [] #List of node numbers and their reference coordinates
-    dirichlet_bcs = [] #List of the dirichlet boundary conditions
-    ndof          = 0. #The number of degrees of freedom at each node
-    element_nodes = [] #List of nodes associated with each element
-    properties    = [] #List of the material properties
-    svars         = [] #List of the state variables
-    nodesets      = [] #List of the nodesets [name, node1, node2, ...]
-    
-    mms_name      = None #The name of the manufactured solution being tested
-    mms_fxn       = None #The function to compute U values for the method
-                         #of manufactured solutions
-    mms_dir_set   = None #The nodeset to be used for the method of manufactured
-                         #solutions
-    path_to_file  = ""
-    
+
     def __init__(self,filename_):
         """Initialize the input parser object"""
         self.filename = filename_
         temp = os.path.split(self.filename)
-        self.filename = temp[1]
-        self.path_to_file = temp[0]
+        self.filename = temp[1]              #String giving the filename
+        self.path_to_file = temp[0]          #String giving the path to the file
+        
+        self.latex_string  = "" #The description of the input deck
+        self.nodes_coords  = [] #List of node numbers and their reference coordinates
+        self.dirichlet_bcs = [] #List of the dirichlet boundary conditions
+        self.ndof          = 0. #The number of degrees of freedom at each node
+        self.element_nodes = [] #List of nodes associated with each element
+        self.properties    = [] #List of the material properties
+        self.svars         = [] #List of the state variables
+        self.nodesets      = [] #List of the nodesets [name, node1, node2, ...]
+    
+        self.mms_name      = None #The name of the manufactured solution being tested
+        self.mms_fxn       = None #The function to compute U values for the method
+                                  #of manufactured solutions
+        self.mms_dir_set   = None #The nodeset to be used for the method of manufactured
+                                  #solutions
         
     def __repr__(self):
         """Define the repr string"""
@@ -196,41 +194,40 @@ class InputParser:
         c = .034
         return .1+a*coords[0], .2+b*coords[1],.3+c*coords[2],0.,0.,0.,0.,0.,0.,0.,0.,0.
                 
-class FEAModel():
+class FEAModel(object):
     """The class which defines the FEA model"""
-    input      = None #Input of type InputParser
-    ttot       = 0.3  #Total time
-    t0         = 0.   #Previous value of time
-    ti         = 0.1  #Current value of time
-    dt         = 0.3  #The timestep
-    x0         = None #Previous value of x in Ax = b
-    xi         = None #Current increment value of x in solver
-    dup        = None #The previous change in u
-    total_ndof = None #Total number of degrees of freedom
-    nodes_dof  = []   #List of lists of degrees of freedom assocated with each node
-    RHS        = None #The right hand side vector
-    AMATRX     = None #The A matrix in Ax = b
-    RHS_bc     = None #The right hand side vector with dirichlet bcs applied
-    AMATRX_bc  = None #The A matrix with dirichlet bcs applied
-    dbcdof     = None #The global degrees of freedom that have dirichlet boundary
-                      #conditions applied and the value of the boundary condition
-    delta_dbcdof = None #The change in dbcdof from this timestep to the previous
     
-    maxiter    = 20   #The maximum number of iterations allowed in the Newton-Raphson solver
-    atol       = 1e-8 #The absolute tolerance on the Newton-raphson iterations
-    rtol       = 1e-5 #The relative tolerance on the Newton-Raphson iterations
-    inc_number = 0    #The current increment number
-    
-    F          = None #The forcing function for the method of manufactured solutions
-    alpha      = 1.0  #The relaxation parameter
                       
     def __init__(self,IP_):
         """Initialize the finite element model"""
-        self.input      = IP_
-        self.total_ndof = len(self.input.nodes_coords)*self.input.ndof
-        self.x0         = np.zeros([self.total_ndof])
-        self.xi         = np.zeros([self.total_ndof])
-        self.dup        = np.zeros([self.total_ndof])
+        self.input      = IP_                                          #Input of type InputParser
+        self.total_ndof = len(self.input.nodes_coords)*self.input.ndof #Total number of degrees of freedom
+        self.x0         = np.zeros([self.total_ndof])                  #Previous value of x in Ax = b
+        self.xi         = np.zeros([self.total_ndof])                  #Current increment value of x in solver
+        self.dxp        = np.zeros([self.total_ndof])                  #The previous change in x
+        
+        #Time bounds (TODO: should be in input file)
+        self.ttot       = 0.3  #Total time
+        self.t0         = 0.   #Previous value of time
+        self.ti         = 0.1  #Current value of time
+        self.dt         = 0.3  #The timestep
+        
+        self.nodes_dof  = []   #List of lists of degrees of freedom assocated with each node
+        self.RHS        = None #The right hand side vector
+        self.AMATRX     = None #The A matrix in Ax = b
+        self.RHS_bc     = None #The right hand side vector with dirichlet bcs applied
+        self.AMATRX_bc  = None #The A matrix with dirichlet bcs applied
+        self.dbcdof     = None #The global degrees of freedom that have dirichlet boundary
+                          #conditions applied and the value of the boundary condition
+        self.delta_dbcdof = None #The change in dbcdof from this timestep to the previous
+    
+        self.maxiter    = 20   #The maximum number of iterations allowed in the Newton-Raphson solver
+        self.atol       = 1e-8 #The absolute tolerance on the Newton-raphson iterations
+        self.rtol       = 1e-5 #The relative tolerance on the Newton-Raphson iterations
+        self.inc_number = 0    #The current increment number
+    
+        self.F          = None #The forcing function for the method of manufactured solutions
+        self.alpha      = 1.0  #The relaxation parameter
     
     def __repr__(self):    
         """Define the repr string"""
@@ -238,6 +235,8 @@ class FEAModel():
         
     def assemble_RHS_and_jacobian_matrix(self):
         """Assemble the global right hand side vector and jacobian matrix"""
+        
+        print self.total_ndof
         
         self.RHS    = np.zeros([self.total_ndof]) #Initialize the right hand side
         self.AMATRX = np.zeros([self.total_ndof,self.total_ndof]) #Initialize the A matrix
@@ -370,7 +369,7 @@ class FEAModel():
             self.RHS -= self.AMATRX[:,dbc[0]]*dbc[1]
             
         #Include the relaxation modification to the RHS
-        self.RHS  = (self.RHS - (1.-self.alpha)*np.dot(self.AMATRX,self.dup))/self.alpha
+        #self.RHS  = (self.RHS - (1.-self.alpha)*np.dot(self.AMATRX,self.dxp))/self.alpha
         
         #Copy over the RHS and AMATRX terms to have the dirichlet bc terms removed
         self.RHS_bc    = np.copy(self.RHS)
@@ -393,7 +392,7 @@ class FEAModel():
             dxi = np.insert(dxi,ddof[0],0.)#ddof[1])
         #print dxi
         self.xi = self.xi+dxi#self.x0+dxi #Add the change to the dof vector
-        self.dup = np.copy(dxi)
+        self.dxp = np.copy(dxi)
         #for n in range(len(self.nodes_dof)):
         #    temp = self.xi[(n*12):((n+1)*12)]
         #    print "Node: {0}\nu: {1}\nphi: {2}\n".format(self.nodes_dof[n],temp[:3],temp[3:])
@@ -487,7 +486,7 @@ class FEAModel():
             result = "Error: Manufactured solution did not pass"
             
         #Write the test description file
-        fname = os.path.join(self.input.path_to_file,"description.txt")
+        fname = os.path.join(self.input.path_to_file,"description.tex")
         if(os.path.isfile(fname)):
             os.remove(fname)
         fout = open(fname,"w+")
@@ -495,14 +494,14 @@ class FEAModel():
         fout.close()
         
         #Write the results of the test
-        fname = os.path.join(self.input.path_to_file,"results.txt")
+        fname = os.path.join(self.input.path_to_file,"results.tex")
         if(os.path.isfile(fname)):
             os.remove(fname)
         fout = open(fname,"w+")
         fout.write(result)
-        fout.write("\nManufactured Solution:\n"+str(mms))
-        fout.write("\nFEA Solution:\n"+str(self.xi))
-        fout.write("\nDifference:\n"+str(mms-self.xi))
+        fout.write("\nManufactured Solution:\n"+str(mms)+"\n")
+        fout.write("\n\FEA Solution:\n"+str(self.xi)+"\n")
+        fout.write("\nDifference:\n"+str(mms-self.xi)+"\n")
         fout.close()
         
         print result
@@ -588,23 +587,49 @@ class TestFEA(unittest.TestCase):
     f                    = None
     original_directory   = ""
     module_name           = "fea_driver"
-    output_file_name      = r"results.txt".format(module_name)
+    output_file_name      = r"results.tex".format(module_name)
     output_file_location  = r".\tests\unittests\{0}".format(module_name)
     currentResult         = None
     @classmethod
     def setUpClass(self):
         """Setup method"""
+        #Define the results output format
         output_file = os.path.join(self.output_file_location,self.output_file_name)
         
         if(not os.path.isdir(self.output_file_location)):
             os.makedirs(self.output_file_location)
         
+        #Write the description output
+        description_file = os.path.join(self.output_file_location,r"description.tex")
+        
+        if(os.path.isfile(description_file)):
+            os.remove(description_file)
+        
+        df = open(description_file,'w+')
+        description_string = r"Unit tests of the \verb|{0}.py| module.".format(self.module_name)+"\n"
+        df.write(description_string)
+        df.close()
+        
+        #Write the results output
         if(os.path.isfile(output_file)):
             os.remove(output_file)
         self.f = open(output_file,"w+")
+        table_open = r"\begin{table}[htb!]"+"\n"+\
+                     r"\centering" +"\n"+\
+                     r"\begin{tabular}{|l|c|}"+"\n"+\
+                     r"\hline"+"\n"+\
+                     r"module name & status\\"+"\n"+\
+                     r"\hline"+"\n"+\
+                     r"\hline"+"\n"
+        print table_open
+        self.f.write(table_open)
     @classmethod
     def tearDownClass(self):
         """Teardown method"""
+        table_close = r"\hline"+"\n"+r"\end{tabular}"+"\n"+\
+                      r"\end{table}" +"\n"+\
+                      r"\FloatBarrier" + "\n"
+        self.f.write(table_close)
         self.f.close()
         
     def setUp(self):
@@ -612,8 +637,8 @@ class TestFEA(unittest.TestCase):
         
     def tearDown(self):
         ok = self.currentResult.wasSuccessful()
-        tname = self.id().split(".")[-1]
-        if(str(ok)):
+        tname = self.id().split(".")[-1].replace("_","\_")
+        if(ok):
             str_out = r"\cellcolor{green!25} PASS"
         else:
             str_out = r"\cellcolor{red!25} FAIL"
@@ -630,12 +655,12 @@ class TestFEA(unittest.TestCase):
         IP = InputParser("unittest.inp")
         IP.read_input()
         
-#    def test_fea_solver(self):
-#        """Perform test of the FEA solver"""
-#        IP = InputParser("unittest.inp")
-#        IP.read_input()
-#        FE = FEAModel(IP)
-#        FE.solve()
+    def test_fea_solver(self):
+        """Perform test of the FEA solver"""
+        IP = InputParser("unittest.inp")
+        IP.read_input()
+        FE = FEAModel(IP)
+        self.assertTrue(FE.solve())
 if __name__ == '__main__':
     unittest.main()
         
