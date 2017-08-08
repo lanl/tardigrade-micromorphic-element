@@ -2,7 +2,7 @@ import os
 import sys
 import glob
 
-class TestHarness():
+class TestHarness(object):
     """Class which defines the test harness"""
     
     def __init__(self):
@@ -26,15 +26,6 @@ class TestHarness():
         #Identify regression tests
         self.regression_tests = [r"tests/regression_tests/const_u/const_u.inp",\
                                  r"tests/regression_tests/linear_u/linear_u.inp"]
-        
-    def __del__(self):
-        print "======================================\n"+\
-              "|                                    |\n"+\
-              "|          Tests Completed!          |\n"+\
-              "|                                    |\n"+\
-              "======================================\n"
-        self.f.close()
-        sys.stdout = self.orig_stdout
     
     def run_function_tests(self):
         """Run the tests associated with verifying the lower-level functions"""
@@ -81,11 +72,34 @@ class TestHarness():
                 print "!!! Error in execution !!!\nError: {0}".format(sys.exc_info()[0]) #Repeat the error message into the file
         os.chdir(self.owd) #Reset the working directory
         
+        print "======================================\n"+\
+              "|                                    |\n"+\
+              "|          Tests Completed!          |\n"+\
+              "|                                    |\n"+\
+              "======================================\n"
+        self.f.close()
+        sys.stdout = self.orig_stdout
         
+    def generate_report(self):
+        """Generate the LaTeX report"""
+        #Run test processing
+        os.system(r"python ./doc/Report/tests/process_tests.py")
+        #Run bibtex
+        os.system(r"bibtex ./doc/Report/Micromorphic_Element_Report.tex")
+        #Run pdflatex
+        os.system(r"pdflatex ./doc/Report/Micromorphic_Element_Report.tex")
+        os.system(r"pdflatex ./doc/Report/Micromorphic_Element_Report.tex")
         
+    def generate_manuals(self):
+        """Generate the Theory, Programmers, and Users manuals"""
+        #Generate the theory manual
+        os.system(r"pdflatex ./doc/TheoryManual/TheoryDerivation.tex")
+        os.system(r"pdflatex ./doc/TheoryManual/TheoryDerivation.tex")
+    
     def _flatten_list(self,l):
         """Flatten list of lists"""
         return [item for sublist in l for item in sublist]
         
 if __name__ == '__main__':
     TestHarness().run_function_tests()
+    TestHarness().generate_report()
