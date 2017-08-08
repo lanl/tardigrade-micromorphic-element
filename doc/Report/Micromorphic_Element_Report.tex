@@ -4,6 +4,10 @@
 \usepackage{listings, color, subcaption, placeins}
 \usepackage{undertilde}
 \usepackage{algorithm,algpseudocode}
+\usepackage{multicol}
+\usepackage{makecell}
+\usepackage{pgfgantt}
+\usepackage[table]{colortbl}
 \graphicspath{{./}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,36 +36,21 @@
 
 
 \begin{document}
-\title{A Constitutive Model for Porous Polymer-Bonded Granular Materials}
+\title{Micromorphic Finte Element Implementation}
 \author{Nathan Miller}
 
 \maketitle
 
 \begin{abstract}
-Polymer bonded granular materials are important engineering materials commonly arising in materials as diverse as asphalt and rocket propellants. These materials exhibit complex behavior which is strongly influenced by the interactions of the constituent materials. Experimentation on the polymer bonded explosives PBX~9501 and PBX~9502 reveals features of viscoelasticity, viscoplasticity, and a weakening of the elastic moduli which evolves viscously e.g. a, ``viscodamage.''
-
-Previous modeling attempts have used a damaging parameter to keep track of this behavior. While effective, this approach involves some amount of obfuscation of the physical mechanisms at play. We seek in this paper to develop a model which captures the weakening of the moduli by the evolution of the porosity, defined as
-\begin{align*}
-\phi &\defeq \frac{dv^v}{dv}
-\end{align*}
-where $dv^v$ is the differential volume occupied by the voids and $dv$ is the total differential volume both in the current configuration.
+A micromorphic finite element is developed along with the documentation for the implementation. The equations are presented along with some background on their derivation and meaning. The equations are to be written in such a way that an Abaqus, ``UEL,'' or a, ``user element,'' can be relatively easily developed. The code is currently implemented in Python which allows rapid iteration. The results of the regression and unit tests are included along with the current development goals.
 \end{abstract}
 
-%\input{./tex_files/nomenclature}
-%
-%\input{./tex_files/introduction}
-%
-%\input{./tex_files/mpm_derivation}
-%
-%\input{./tex_files/verification}
-%
-%\input{./tex_files/discussion}
-%
-%\input{./tex_files/conclusion}
+\input{./tex/nomenclature}
 
-\input{./tex/derivation}
+\input{./tex/unittest_results.tex}
+\input{./tex/regression_test_results.tex}
 
-\input{./tex/implementation}
+
 
 \FloatBarrier
 
