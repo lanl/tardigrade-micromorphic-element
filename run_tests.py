@@ -89,12 +89,6 @@ class TestHarness(object):
         #Run pdflatex
         os.system(r"pdflatex ./doc/Report/Micromorphic_Element_Report.tex")
         os.system(r"pdflatex ./doc/Report/Micromorphic_Element_Report.tex")
-        
-    def generate_manuals(self):
-        """Generate the Theory, Programmers, and Users manuals"""
-        #Generate the theory manual
-        os.system(r"pdflatex ./doc/TheoryManual/TheoryDerivation.tex")
-        os.system(r"pdflatex ./doc/TheoryManual/TheoryDerivation.tex")
     
     def _flatten_list(self,l):
         """Flatten list of lists"""
