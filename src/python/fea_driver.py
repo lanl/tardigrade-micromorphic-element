@@ -7,7 +7,13 @@ import micro_element as mel
 import cProfile
 
 class InputParser(object):
-    """The input parser class which reads in data from a text file"""
+    """The input parser class which reads in data from a text file
+    
+    This class is used as a storage class for the recorded information. It 
+    contains the definition of the finite element model as well as material 
+    properties and (upcoming) the solution parameters such as timestepping, 
+    solution controls, etc.
+    """
 
     def __init__(self,filename_):
         """Initialize the input parser object"""
@@ -30,12 +36,23 @@ class InputParser(object):
                                   #of manufactured solutions
         self.mms_dir_set   = None #The nodeset to be used for the method of manufactured
                                   #solutions
+                                  
+        self.keywords   = ["*NODES","*DIRICHLET_BCS","*ELEMENTS","*PROPERTIES","*LATEX","*NSET","*MMS"] #All of the currently defined keywords
+        self.parse_fxns = [self.parse_nodes, self.parse_dirichlet_bcs, self.parse_elements, self.parse_props, self.parse_latex, self.parse_nodeset, self.parse_mms] #The corresponding parsing functions
+
+        self.mms_fxn_names = ["const_u","linear_u"]     #The function names for the method of manufactured solutions
+        self.mms_fxns      = [self.mms_const_u, self.mms_linear_u] #The functions
         
     def __repr__(self):
-        """Define the repr string"""
+        """Define the repr string
+        
+        This is printed out in the case of print InputParser
+        """
         return "InputParser({0})".format(self.filename)
     
     def read_input(self):
+        """Read the input file (self.filename) and parse the information into the 
+        class structure"""
     
         print "\n=================================================\n"+\
                 "|                                               |\n"+\
@@ -46,15 +63,29 @@ class InputParser(object):
         #Read in the input deck 
         print "Reading data from: {0}".format(self.filename)
         
+        #Open the file
         with open(os.path.join(self.path_to_file,self.filename)) as f:
+        
+            #Read a line of the file
             for linenum,line in enumerate(f.readlines()):
+            
+                #Remove whitespace
                 line = line.strip()
+                
+                #Check if the line has any useful information and whether it is a comment
                 if((len(line)>0) and (line[0]!="#")):
+                
+                    #Check for keywords and, if there is, return the parsing function and the modified line
                     bool,fxn,line = self.check_keywords(linenum,line)
+                    
+                    #If there is a keyword update the parsing function
                     if(bool):
                         parse_fxn = fxn
+                        
+                    #Parse the line
                     parse_fxn(linenum+1,line)
         
+        #close the file after the input parser completes
         f.close()
         print "\n=================================================\n"+\
                 "|                                               |\n"+\
@@ -63,36 +94,75 @@ class InputParser(object):
                 "=================================================\n"
         
     def check_keywords(self,linenum,line):
-        """Check a line for keywords"""
-        keywords   = ["*NODES","*DIRICHLET_BCS","*ELEMENTS","*PROPERTIES","*LATEX","*NSET","*MMS"]
-        parse_fxns = [self.parse_nodes, self.parse_dirichlet_bcs, self.parse_elements, self.parse_props, self.parse_latex, self.parse_nodeset, self.parse_mms]
-        for key,fxn in zip(keywords,parse_fxns):
+        """Check a line for keywords
+        
+        input:
+            linenum: The number of the line (used primarily for error handling)
+            line:    The line read from the file
+        
+        """
+        #Iterate through the keywords
+        for key,fxn in zip(self.keywords,self.parse_fxns):
+        
+            #If a keywords is found in the line
             if key in line:
                 print "Keyword \"{0}\" found".format(key)
+                
+                #Remove the keyword from the line
                 line = line.replace(key,'')
+                
+                #Return the keyword and the modified line
                 return True,fxn,line
         return False,None,line
         
     def parse_latex(self,lineum,line):
-        """Parse the file when triggered by a latex keyword"""
+        """Parse the file when triggered by a latex keyword
+        
+        Appends the line whole to self.latex_string
+        
+        input:
+            linenum: The number of the line (used primarily for error handling)
+            line:    The line read from the file
+        """
         self.latex_string += line + "\n"
         
     def parse_nodes(self,linenum,line):
-        """Parse the file when triggered by a node keyword"""
+        """Parse the file when triggered by a node keyword
+        
+        input:
+            linenum: The number of the line (used primarily for error handling)
+            line:    The line read from the file
+        """
+        #Check if the line has length
         if(len(line)>0):
+        
+            #Split the line at the commas
             sline = line.split(',')
+            
+            #Handle the case when the original line was *NODE,node_dof
             if(len(sline)==2):
                 self.ndof = int(sline[1])
+                
+            #Handle the case when the line is node_number, x_position, y_position, z_position
             elif(len(sline)==4):
                 self.nodes_coords.append([int(sline[0]),float(sline[1]),float(sline[2]),float(sline[3])])
+                
+            #Return an error otherwise
             else:
                 print "Error: On line {0}, a node must be defined by its number,"+\
                       "       followed by its x,y,z coordinates.".format(linenum)
                 raise ValueError()
                 
     def parse_dirichlet_bcs(self,linenum,line):
-        """Parse the dirichlet boundary conditions applied at the nodes"""
+        """Parse the dirichlet boundary conditions applied at the nodes
+        
+        input:
+            linenum: The number of the line (used primarily for error handling)
+            line:    The line read from the file
+        """
+        #Check if information is on the line
         if(len(line)>0):
+            #Split the line at the commas
             sline = line.split(',')
             #Parse a definition of a boundary condition that specifies a single node
             if(len(sline)==3):
@@ -106,10 +176,12 @@ class InputParser(object):
                 sline[1] = sline[1].strip()
                 #Find the index of the node in self.nodeset
                 index = [i for i in range(len(self.nodesets)) if self.nodesets[i][0]==sline[1]]
-                #Error handing of the index to prevent multiple nodesets with the same name, undefined nodesets, etc.
+                #Make sure the node is defined once and only once
                 if (len(index)==1):
+                    #Define the boundary condition for a node in a nodeset
                     for node in self.nodesets[index[0]][1:]:
                         self.dirichlet_bcs.append([node, int(sline[2]), float(sline[3])])
+                #Error handing of the index to prevent multiple nodesets with the same name, undefined nodesets, etc.
                 elif (len(index)>1):
                     print "Error: On line {0}, multiple sidesets with the same name.".format(linenum)
                     raise ValueError()
@@ -117,6 +189,7 @@ class InputParser(object):
                     print "Error: On line{0}, nodeset {1} not found".format(linenum,sline[1])
                     raise ValueError()
                 
+            #Give the user feedback on the correct input for a nodeset in the code
             else:
                 print "Error: On line {0}, a boundary condition is defined by,\n".format(linenum)+\
                       "       the node it is applied to, the dof\n"+\
@@ -124,59 +197,105 @@ class InputParser(object):
                       "       displacement or the command:\n"+\
                       "       sideset,name,local_dof,value.\n"+\
                       "       note, bc's must come AFTER the nodesets.\n"
-                raise
+                raise ValueError()
  
     def parse_elements(self,linenum,line):
-        """Parse the file when triggered by a element keyword"""
+        """Parse the file when triggered by a element keyword
+        
+        input:
+            linenum: The number of the line (used primarily for error handling)
+            line:    The line read from the file
+        """
+        
+        #Check if the line has useful information
         if(len(line)>0):
+        
+            #Split the line
             sline = line.split(',')
-            if(len(sline)<8):
-                print "Error: On line {0}, an element must be defined by 8 nodes.".format(linenum)
+            
+            #Only allow elements defined by the element number and eight nodes
+            if(len(sline)<9):
+                print "Error: On line {0}, an element must be defined by the element number and 8 nodes.".format(linenum)
                 raise ValueError()
             else:
+                #Append the element to the list of elements
                 self.element_nodes.append([int(sline[0]), int(sline[1]), int(sline[2]), int(sline[3]), int(sline[4]),\
                                                           int(sline[5]), int(sline[6]), int(sline[7]), int(sline[8])])
         
     def parse_props(self,linenum,line):
-        """Parse the file when triggered by a properties keyword"""
+        """Parse the file when triggered by a properties keyword
+        
+        input:
+            linenum: The number of the line (used primarily for error handling)
+            line:    The line read from the file
+        """
+        #Check if the line has useful information
         if(len(line)>0):
+        
+            #Split the line at the commas
             sline = line.split(',')
+            
+            #Append the properties if they have not been previously defined
             if(len(self.properties)==0):
                 self.properties = [float(i) for i in sline]
+                
+            #Return an error if the properties have been previously defined
             else:
                 print "Error: On line {0}, properties can only be defined once.".format(linenum)
                 raise ValueError()
                 
     def parse_nodeset(self,linenum,line):
-        """Parse the incoming nodesets when triggered by the keyword"""
+        """Parse the incoming nodesets when triggered by the keyword
+        
+        input:
+            linenum: The number of the line (used primarily for error handling)
+            line:    The line read from the file
+        """
+        
+        #Check if the line has useful information
         if(len(line)>0):
+        
+            #Split the line at the commas
             sline = line.split(',')
+            
+            #Return an error if the nodeset has less than one node
             if(len(sline)<2):
                 print "Error: On line {0}, a nodeset must have at least one node.".format(linenum)
                 raise ValueError()
+            
+            #Append the nodeset to the list of nodesets
             else:
                 self.nodesets.append([sline[0]]+[int(i) for i in sline[1:]])
     
     def parse_mms(self,linenum,line):
         """Parse the method of manufactured solutions keyword"""
-        mms_fxn_names = ["const_u","linear_u"]
-        mms_fxns      = [self.mms_const_u,self.mms_linear_u]
+        
+        #Check if the line has useful information
         if(len(line)>0):
+        
+            #Split the line at the commas
             sline =  line.split(',')
+            
             #Get the method of manufactured solutions u function
             if((len(sline)==2) and (sline[0].strip()=="")):
+            
+                #Try to find the method of manufactured solutions function
                 try:
-                    i = mms_fxn_names.index(sline[1].strip())
-                    self.mms_fxn = mms_fxns[i]
+                    i = self.mms_fxn_names.index(sline[1].strip())
+                    self.mms_fxn = self.mms_fxns[i]
                     self.mms_fxn_name = sline[1].strip()
+                    
+                #Error catching
                 except:
                     print "Error: On line {0}, Method of Manufactured Solutions function name not found".format(linenum)
                     raise ValueError()
-            #Read in the method of manufactured solutions nodeset
+            
+            #Return an error if the manufactured solutions nodeset doesn't have a single node
             elif(len(line)<2):
                 print "Error: on line {0}, the nodeset for the method of manufactured\n".format(linenum)+\
                       "       solutions mush have at least one node."
                 raise ValueError()
+            #Read in the method of manufactured solutions nodeset
             else:
                 self.mms_dir_set = [sline[0]]+[int(i) for i in sline[1:]]
                 
@@ -195,7 +314,12 @@ class InputParser(object):
         return .1+a*coords[0], .2+b*coords[1],.3+c*coords[2],0.,0.,0.,0.,0.,0.,0.,0.,0.
                 
 class FEAModel(object):
-    """The class which defines the FEA model"""
+    """The class which defines the FEA model
+    
+    This stores the solution as well as (currently) some of the time-stepping 
+    parameters. It is intended in a future update to move these to the InputParser 
+    class as they will be read in from the input deck.
+    """
     
                       
     def __init__(self,IP_):
@@ -230,11 +354,18 @@ class FEAModel(object):
         self.alpha      = 1.0  #The relaxation parameter
     
     def __repr__(self):    
-        """Define the repr string"""
+        """Define the repr string
+        
+        print FEAModel returns FEAModel(InputParser.__repr__())
+        """
         return "FEAModel({0})".format(self.input)
         
     def assemble_RHS_and_jacobian_matrix(self):
-        """Assemble the global right hand side vector and jacobian matrix"""
+        """Assemble the global right hand side vector and jacobian matrix
+        
+        Arises from RHS^n = -dRHSdU . Delta U = AMATRX . Delta U
+        
+        """
         
         print self.total_ndof
         
