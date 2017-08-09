@@ -100,15 +100,20 @@ The first value is the element number, and the remainder are the node numbers.
 1,4,1,5,2,6,1,.2,5,1.2,...
 \end{verbatim}
 
+The current material model (linear elasticity) takes 19 parameters. They are the initial density, $\lambda$, $\mu$, $\eta$, $\tau$, $\kappa$, $\nu$, $\sigma$, $\tau_1$, $\tau_2$,  $\tau_3$, $\tau_4$, $\tau_5$, $\tau_6$, $\tau_7$, $\tau_8$, $\tau_9$, $\tau_{10}$, and $\tau_{11}$.
+
 \section{*LATEX}
 
 *LATEX allows the user to input LaTeX typesetting code for use in documentation of the simulation. This is important to use for any additional regression tests which may be developed so that future users have a clear understanding of what is being tested. An example command is given below
 
 \begin{verbatim}
 *Latex
-The user can put LaTeX commands in the following lines. The code allows the user to input general latex commands which will then be copied into a file.
+The user can put LaTeX commands in the following lines. The code
+allows the user to input general latex commands which will then 
+be copied into a file.
 
-Empty lines spaces are okay though they will not be recognized as such.
+Empty lines spaces are okay though they will not be recognized 
+as such.
 \end{verbatim}
 
 \section{*NSET}
