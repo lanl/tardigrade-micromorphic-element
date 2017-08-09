@@ -1,0 +1,51 @@
+%\documentclass[11pt]{article}
+\documentclass{asme2ej}
+\usepackage{amsmath,amssymb,graphicx,bm}
+\usepackage{listings, color, subcaption, placeins}
+\usepackage{undertilde}
+\usepackage{algorithm,algpseudocode}
+\usepackage{multicol}
+\usepackage{makecell}
+\usepackage{pgfgantt}
+\usepackage[table]{colortbl}
+\graphicspath{{./images}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% If you want to define a new command, you can do it like this:
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\e}{\bm{e}}
+\newcommand{\TEN}[1]{\underline{\underline{#1}}}
+\newcommand{\VEC}[1]{\utilde{#1}}
+\newcommand{\UVEC}[1]{\underline{#1}}
+\newcommand{\PK}[1]{\TEN{\tau}^{(#1)}}
+\newcommand{\cauchy}{\TEN{\sigma}}
+\newcommand{\st}{$^{\text{st}}$}
+\newcommand{\nd}{$^{\text{nd}}$}
+\newcommand\defeq{\mathrel{\stackrel{\makebox[0pt]{\mbox{\normalfont\tiny def}}}{=}}}
+
+\graphicspath{{./images/}}
+
+%% If you want to use a function like ''sin'' or ''cos'', you can do it like this
+%% (we probably won't have much use for this)
+% \DeclareMathOperator{\sin}{sin}   %% just an example (it's already defined)
+
+
+\begin{document}
+\title{Programmers Manual}
+\author{Nathan Miller}
+
+\maketitle
+
+This is intended to provide information on the major modules and functions contained within the user element and testing framework. Focus will be placed on requirements for the development of additional constitutive models and the connections of the UEL with Abaqus.
+
+\FloatBarrier
+
+\bibliographystyle{asme2ej}
+\bibliography{mpm}
+
+\end{document}
