@@ -1,8 +1,13 @@
-===============================================
-|               Micromorphic_UEL              |
-|               Nathan A. Miller              |
-|               nathanm@lanl.gov              |
-===============================================
+==================================================
+|                 Micromorphic_UEL               |
+|                                                |
+--------------------------------------------------
+| Developed by:             Nathan A. Miller     |
+|                           nathanm@lanl.gov     |
+| Under the supervison of:  Dr. Richard Regueiro |
+|                             The University of  |
+|                            Colorado at Boulder |
+==================================================
 
 An implementation of a micromorphic hex8 element. The form is 
 intended to be used for easy implementation into an Abaqus 
