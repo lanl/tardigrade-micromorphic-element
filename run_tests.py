@@ -90,6 +90,7 @@ class TestHarness(object):
         #Run pdflatex
         os.system(r"pdflatex Micromorphic_Element_Report.tex")
         os.system(r"pdflatex Micromorphic_Element_Report.tex")
+        os.chidr(self.owd)
     
     def _flatten_list(self,l):
         """Flatten list of lists"""
