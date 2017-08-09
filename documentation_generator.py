@@ -21,6 +21,11 @@ def generate_theory_manual(original_directory):
     os.chdir("./doc/TheoryManual")
     
     #Generate the theory manual
+    #Run pdflatex
+    os.system(r"pdflatex TheoryManual.tex")
+    #Run bibtex
+    os.system(r"bibtex TheoryManual")
+    #Run pdflatex
     os.system(r"{0} TheoryManual.tex".format(pdflatex_command))
     os.system(r"{0} TheoryManual.tex".format(pdflatex_command))
     
@@ -31,7 +36,12 @@ def generate_users_manual(original_directory):
     #Change directories
     os.chdir("./doc/UsersManual")
     
-    #Generate the theory manual
+    #Generate the users manual
+    #Run pdflatex
+    os.system(r"pdflatex UsersManual.tex")
+    #Run bibtex
+    os.system(r"bibtex UsersManual")
+    #Run pdflatex
     os.system(r"{0} UsersManual.tex".format(pdflatex_command))
     os.system(r"{0} UsersManual.tex".format(pdflatex_command))
     
