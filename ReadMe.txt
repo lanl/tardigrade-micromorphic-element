@@ -1,7 +1,12 @@
+===============================================
+|               Micromorphic_UEL              |
+|               Nathan A. Miller              |
+|               nathanm@lanl.gov              |
+===============================================
+
 An implementation of a micromorphic hex8 element. The form is 
 intended to be used for easy implementation into an Abaqus 
 user element (UEL).
-
 
 Requires default python libraries (python.org) as well as numpy (numpy.org). These packages are 
 available for download in a convenient package at www.continuum.io/downloads.
@@ -12,7 +17,29 @@ the directory .\doc\Report\
 
 A full test of the code can be executed with the command >python run_tests.py -v
 
-where "python" is the call to the python 2.7 installation. This will run the unittest module which will execute the test functions in the code.
-The -v option allows more information to be printed to the screen. This is useful to understand which tests are being executed.
+where "python" is the call to the python 2.7 installation. This will run the unittest module 
+which will execute the test functions in the code. The -v option allows more information to 
+be printed to the screen. This is useful to understand which tests are being executed.
 
-Also requires an installation of LaTeX and Bibtex. It is assumed that the commands for these functions are pdflatex and bibtex respectively
+Also requires an installation of LaTeX and Bibtex. It is assumed that the commands for these 
+functions are pdflatex and bibtex respectively
+
+LaTeX packages include:
+Report/Users Manual/Programmers Manual:
+\usepackage{listings, color, subcaption, placeins}
+\usepackage{undertilde}
+\usepackage{algorithm,algpseudocode}
+\usepackage{multicol}
+\usepackage{makecell}
+\usepackage[table]{colortbl}
+
+Theory Manual:
+beamer theme Pittsburg
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{undertilde}
+\usepackage{bm}
+\usepackage{subcaption}
+
