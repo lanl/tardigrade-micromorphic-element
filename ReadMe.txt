@@ -2,9 +2,11 @@
 Micromorphic_UEL
 ####################
 Developed by:
+
 Nathan A. Miller (nathanm@lanl.gov)
 
 Under the supervision of:
+
 Dr. Richard Regueiro
 Professor of Civil Engineering
 The University of   
