@@ -85,15 +85,16 @@ class TestHarness(object):
         #Run test processing
         os.system(r"python ./doc/Report/tests/process_tests.py")
         #Run bibtex
-        os.system(r"bibtex ./doc/Report/Micromorphic_Element_Report.tex")
+        os.chdir(r"./doc/Report")
+        os.system(r"bibtex Micromorphic_Element_Report.tex")
         #Run pdflatex
-        os.system(r"pdflatex ./doc/Report/Micromorphic_Element_Report.tex")
-        os.system(r"pdflatex ./doc/Report/Micromorphic_Element_Report.tex")
+        os.system(r"pdflatex Micromorphic_Element_Report.tex")
+        os.system(r"pdflatex Micromorphic_Element_Report.tex")
     
     def _flatten_list(self,l):
         """Flatten list of lists"""
         return [item for sublist in l for item in sublist]
         
 if __name__ == '__main__':
-    TestHarness().run_function_tests()
+    #TestHarness().run_function_tests()
     TestHarness().generate_report()
