@@ -1,0 +1,106 @@
+\section{Technical Approach}
+
+\subsection{Theoretical Background}
+
+The full derivation of the micromorphic constitutive equations is very detailed with full derivations being presented in Regueiro~\cite{bib:regueiro_micro10} and the theory manual for the code~\cite{bib:miller17}. Briefly, the equations of motion which must be solved are the balance of linear momentum
+
+\begin{equation}
+\sigma_{ji,j} + \rho \left(f_i - a_i\right) = 0\\
+\end{equation}
+
+and the balance of the, ``first moment of momentum''
+
+\begin{equation}
+\sigma_{ij} - s_{ij} + m_{kji,k} + \rho \left(l_{ji} - \omega_{ji}\right) = 0\\
+\end{equation}
+
+where the $\left(\cdot\right)_{,j}$ indicates the derivative with respect to $x$ in the current coordinate system. We note that the terms in the balance equations are volume and area averages of quantities defined in the micro scale (indicated by $\left(\cdot\right)'$) via
+\begin{align*}
+\rho dv &\defeq \int_{dv} \rho' dv'\\
+\sigma_{ji}n_j da &\defeq \int_{da} \sigma_{ji}'n_j'da'\\
+\rho f_i dv &\defeq \int_{dv} \rho' f_i' dv'\\
+\rho a_i dv &\defeq \int_{dv} \rho' a_i' dv'\\
+s_{ij} dv &\defeq \int_{dv} \sigma_{ij}' dv'\\
+m_{ijm} n_i da &\defeq \int_{da} \sigma_{ij}' \xi_m n_i' da'\\
+\rho l_{ij} dv &\defeq \int_{dv} \rho' f_i' \xi_j dv'\\
+\rho \omega_{ij} dv &\defeq \int_{dv} \rho' \ddot{\xi}_i \xi_j dv'\\
+\end{align*}
+
+The most striking of the results of these equations is that the Cauchy stress is no longer symmetric. This arises because while we assert that classical continuum mechanics are obeyed at the micro-scale, at the macro scale we must handle moments applied pointwise due to the higher order stress $m_{ijk}$. This couple, along with the micro body couple and micro-spin, results in a generally asymmetric nature.
+
+Conceptually, we can understand the balance of first moment of momentum in the absence of body couples and micro-spin as the statement that the total stress of the body is the volume average of all the micro stresses ($s_{ij}$) added to the couple produced by the micro stresses acting on the lever arm $\xi_i$. The body couple results from a heterogeneous distribution of the body force per unit density and the micro-spin inertia results from the acceleration of the micro position vectors.
+
+We define a mapping between the current and reference configurations for the position of $dv$ and $dv'$ as
+\begin{align*}
+F_{iI} &\defeq \frac{\partial x_i}{\partial X_I}\\
+\xi_i  &\defeq \chi_{iI}\Xi_I = \left(\delta_{iI}+\phi_{iI}\right)\Xi_I\\
+\end{align*}
+
+where we note the difference that $F_{iI}$ maps $dX_I$ into $dx_i$ through the differential relationship whereas $\chi_{iI}$ is purely a linear map between the configurations and is not defined through the differential elements.
+
+\subsection{Algorithms}
+
+The equations of motion will be solved using the finite element method in a so-called, ``Total Lagrangian,'' configuration. We do this by mapping the stresses back to the reference configuration (for details see Regueiro~\cite{bib:regueiro_micro10} or the theory manual~\cite{bib:miller17}) to find the balance of linear momentum for a single element $e$
+
+\begin{align*}
+\sum_{n=1}^{N^{nodes,e}} c^{n,e}_j \bigg\{&\int_{\partial \hat{\mathcal{B}}^{0,t,e}} \hat{N}^{n,e} F_{jJ} S_{IJ} \hat{J} \left(\frac{\partial X_{I}}{\partial \xi_{\hat{i}}}\right)^{-1} \hat{N}_{\hat{i}} d\hat{A}& + \int_{\hat{\mathcal{B}}^{0,e}} \big\{- \hat{N}^{n,e}_{,I} S_{IJ} F_{jJ} + \hat{N}^{n,e} \rho^0 \left(f_j - a_j\right) \big\} \hat{J} d\hat{V} = \mathcal{F}_j^{n,e}\bigg\}\\
+\end{align*}
+
+where we have transformed the equations into the element basis $e_\xi$ (indicated by $\hat{\left(\cdot\right)}$), $N$ is the shape function, $S_{IJ}$ is the second Piola Kirchhoff stress, and $\mathcal{F}_j^{n,e}$ is the residual. Note that this $\xi$ is not the same as the micro-position vector detailed above.
+
+We also write the balance of the first moment of momentum as
+\begin{align*}
+\sum_{n=1}^{N^{nodes,e}} \eta_{ij}^{n,e} &\bigg\{\int_{\mathcal{B}^{0,e}}  \bigg\{\hat{N}^{n,e} \left(F_{iI} \left(S_{IJ}-\Sigma_{IJ}\right) F_{jJ} + \rho^0\left(l_{ji} - \omega_{ji} \right)\right)  - \frac{\partial \hat{N}^{n,e}}{\partial \xi_{\hat{i}}} \left(\frac{\partial X_{K}}{\partial \xi_{\hat{i}}}\right)^{-1} F_{jJ} \chi_{iI}  M_{KJI} \bigg\} \hat{J} d\hat{V}\\
+& + \int_{\partial \mathcal{B}^{0,t,e}} F_{jJ} \chi_{iI}  M_{KJI} \hat{N}^n \hat{J} \left(\frac{\partial X_{K}}{\partial \xi_{\hat{i}}}\right)^{-1} \hat{N}_{\hat{i}} d\hat{A} = \mathcal{M}_{ij}^{n,e} \bigg\}\\
+\end{align*}
+
+We will organize these residuals into the residual vector using the following approach for a linear 8 noded hex element
+\begin{align*}
+\mathcal{R}^e &= \left\{\begin{array}{c}
+\mathcal{F}_j^{1,e}\\
+\mathcal{M}_j^{1,e}\\
+\mathcal{F}_j^{2,e}\\
+\mathcal{M}_j^{2,e}\\
+\vdots\\
+\mathcal{F}_j^{8,e}\\
+\mathcal{M}_j^{8,e}\\
+\end{array}\right\}
+\end{align*}
+
+where
+\begin{align*}
+\mathcal{M}_j^{n,e} = \left\{\begin{array}{c}
+\mathcal{M}_{11}^{n,e}\\
+\mathcal{M}_{22}^{n,e}\\
+\mathcal{M}_{33}^{n,e}\\
+\mathcal{M}_{23}^{n,e}\\
+\mathcal{M}_{13}^{n,e}\\
+\mathcal{M}_{12}^{n,e}\\
+\mathcal{M}_{32}^{n,e}\\
+\mathcal{M}_{31}^{n,e}\\
+\mathcal{M}_{21}^{n,e}
+\end{array}\right\}
+\end{align*}
+
+We solve the nonlinear equations using Newton Raphson which means we require the Jacobian. We write the element tangent as
+\begin{align*}
+\mathcal{J}^e &= -\left[\begin{array}{cccccc}
+\frac{\partial \mathcal{F}_{1}^{1,e}}{\partial u_1^{1,e}} & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial u_2^{1,e}} & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial u_3^{1,e}} & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial \phi_{11}^{1,e}} & \cdots \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial \phi_{21}^{8,e}}\\
+\frac{\partial \mathcal{F}_{2}^{1,e}}{\partial u_1^{1,e}} & \frac{\partial \mathcal{F}_{2}^{1,e}}{\partial u_2^{1,e}} & \frac{\partial \mathcal{F}_{2}^{1,e}}{\partial u_3^{1,e}} & \frac{\partial \mathcal{F}_{2}^{1,e}}{\partial \phi_{11}^{1,e}} & \cdots \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial \phi_{21}^{8,e}}\\
+\vdots & \vdots & \vdots & \vdots & \ddots & \vdots\\
+\frac{\partial \mathcal{M}_{2}^{8,e}}{\partial u_1^{1,e}} & \frac{\partial \mathcal{M}_{2}^{8,e}}{\partial u_2^{1,e}} & \frac{\partial \mathcal{M}_{2}^{8,e}}{\partial u_3^{1,e}} & \frac{\partial \mathcal{M}_{2}^{8,e}}{\partial \phi_{11}^{1,e}} & \cdots \frac{\partial \mathcal{M}_{1}^{8,e}}{\partial \phi_{21}^{8,e}}\\
+\end{array}\right]
+\end{align*}
+
+where the superscript numbers indicate the node number. This is a $96 \times 96$ matrix. We then assemble the individual Jacobian and residual for an element to form the global Jacobian and residual. The new estimate of the degree of freedom vector $\mathcal{U}_I^{n+1}$ is found by solving
+\begin{align*}
+\mathcal{U}_I^{n+1} &= \mathcal{U}_I^{n} + \left(\mathcal{J}^{e}\right)_{IJ}^{-1}\mathcal{R}_J
+\end{align*}
+
+where iterations will continue until the convergence of the residual vector is achieved. At this time we will neglect kinetic effects unless there is enough time to implement this feature in the code.
+
+We note that boundary conditions are enforced by either removing the relevant rows and columns in the residual and Jacobian in the case of a zero boundary condition or by first computing the resultant force, subtracting it from the residual, and then removing the rows and columns in the case of a non-zero boundary condition.
+
+The matrix equation will be solved, at least initially, by using the solve function in numpy (\verb|numpy.linalg.solve|). This solver calls the \verb|LAPACK| routine \verb|_gesv| (\cite{bib:numpy.linalg.solve}). This should provide a relatively quick solution of the matrix equation which is beneficial since the code is, primarily, to be used to verify the eventual Fortran subroutine.
+
+\FloatBarrier
