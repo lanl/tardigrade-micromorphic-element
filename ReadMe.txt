@@ -1,3 +1,4 @@
+
 ==================================================
 |                 Micromorphic_UEL               |
 |                                                |
@@ -30,6 +31,7 @@ Also requires an installation of LaTeX and Bibtex. It is assumed that the comman
 functions are pdflatex and bibtex respectively
 
 LaTeX packages include:
+
 Report/Users Manual/Programmers Manual:
 \usepackage{listings, color, subcaption, placeins}
 \usepackage{undertilde}
@@ -39,6 +41,7 @@ Report/Users Manual/Programmers Manual:
 \usepackage[table]{colortbl}
 
 Theory Manual:
+
 beamer theme Pittsburg
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
