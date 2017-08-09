@@ -4,6 +4,7 @@
 *.nav
 *.snm
 *.toc
+*.bbl
 src/python/tests/unittests/*.txt
 doc/TheoryManual/*.out
 doc/TheoryManual/*.log
