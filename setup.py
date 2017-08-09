@@ -6,5 +6,5 @@ import sys
 See the report (.\doc\Report) for verification that installation was 
 completed successfully"""
  
-os.system("python test.py")
+os.system("python run_tests.py")
 os.system("python documentation_generator.py")
