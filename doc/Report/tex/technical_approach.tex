@@ -116,7 +116,7 @@ where $\Delta \hat{t}$ is an increment in pseudo-time and $k$ indicates the sub-
 \dot{\mathcal{U}}_J &= \alpha \dot{\mathcal{U}}_J^{k+1} + \left(1-\alpha\right) \dot{\mathcal{U}}_J^{k}
 \end{align*}
 
-$\alpha = 0$ indicates an explicit method and $\alpha = 1$ indicates an implicit method. Once a good initial condition has been established, Newton-Raphson iteration is performed to compute the proper value of $\dot{U}_j^{k+1}$. Iterations will continue until the convergence of the residual vector is achieved.
+$\alpha = 0$ indicates an explicit method and $\alpha = 1$ indicates an implicit method. Once a good initial condition has been established, Newton-Raphson iteration is performed to compute the proper value of $\dot{\mathcal{U}}_J^{k+1}$. Iterations will continue until the convergence of the residual vector is achieved.
 
 We note that boundary conditions are enforced by either removing the relevant rows and columns in the residual and Jacobian in the case of a zero boundary condition or by first computing the resultant force, subtracting it from the residual, and then removing the rows and columns in the case of a non-zero boundary condition.
 
