@@ -37,7 +37,7 @@ functions are pdflatex and bibtex respectively
 ## LaTeX packages include:
 
 ### Report/Users Manual/Programmers Manual:
-\usepackage{listings, color, subcaption, placeins}
+\usepackage{listings, xcolor, subcaption, placeins}
 \usepackage{undertilde}
 \usepackage{algorithm,algpseudocode}
 \usepackage{multicol}
