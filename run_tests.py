@@ -84,9 +84,12 @@ class TestHarness(object):
         """Generate the LaTeX report"""
         #Run test processing
         os.system(r"python ./doc/Report/tests/process_tests.py")
-        #Run bibtex
+        #Change directories
         os.chdir(r"./doc/Report")
-        os.system(r"bibtex Micromorphic_Element_Report.tex")
+        #Run pdflatex
+        os.system(r"pdflatex Micromorphic_Element_Report.tex")
+        #Run bibtex
+        os.system(r"bibtex Micromorphic_Element_Report")
         #Run pdflatex
         os.system(r"pdflatex Micromorphic_Element_Report.tex")
         os.system(r"pdflatex Micromorphic_Element_Report.tex")
@@ -97,5 +100,5 @@ class TestHarness(object):
         return [item for sublist in l for item in sublist]
         
 if __name__ == '__main__':
-    #TestHarness().run_function_tests()
+    TestHarness().run_function_tests()
     TestHarness().generate_report()
