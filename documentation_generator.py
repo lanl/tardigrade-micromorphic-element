@@ -10,12 +10,13 @@ def generate_manuals():
     original_directory = os.getcwd()
     
     #Generate the manuals
-    generate_theory_manual()
+    generate_theory_manual(original_directory)
+    generate_users_manual(original_directory)
     
     #Return to the original directory
     os.chdir(original_directory)
     
-def generate_theory_manual():
+def generate_theory_manual(original_directory):
     #Change directories
     os.chdir("./doc/TheoryManual")
     
@@ -23,6 +24,18 @@ def generate_theory_manual():
     os.system(r"{0} TheoryManual.tex".format(pdflatex_command))
     os.system(r"{0} TheoryManual.tex".format(pdflatex_command))
     
+    os.chdir(original_directory)
+    return
+    
+def generate_users_manual(original_directory):
+    #Change directories
+    os.chdir("./doc/UsersManual")
+    
+    #Generate the theory manual
+    os.system(r"{0} UsersManual.tex".format(pdflatex_command))
+    os.system(r"{0} UsersManual.tex".format(pdflatex_command))
+    
+    os.chdir(original_directory)
     return
     
 if __name__ == '__main__':
