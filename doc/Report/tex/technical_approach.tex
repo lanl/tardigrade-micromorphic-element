@@ -69,7 +69,7 @@ We will organize these residuals into the residual vector using the following ap
 
 where
 \begin{align*}
-\mathcal{M}_j^{n,e} = \left\{\begin{array}{c}
+\mathcal{M}_J^{n,e} = \left\{\begin{array}{c}
 \mathcal{M}_{11}^{n,e}\\
 \mathcal{M}_{22}^{n,e}\\
 \mathcal{M}_{33}^{n,e}\\
@@ -84,20 +84,39 @@ where
 
 We solve the nonlinear equations using Newton Raphson which means we require the Jacobian. We write the element tangent as
 \begin{align*}
-\mathcal{J}^e &= -\left[\begin{array}{cccccc}
-\frac{\partial \mathcal{F}_{1}^{1,e}}{\partial u_1^{1,e}} & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial u_2^{1,e}} & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial u_3^{1,e}} & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial \phi_{11}^{1,e}} & \cdots \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial \phi_{21}^{8,e}}\\
-\frac{\partial \mathcal{F}_{2}^{1,e}}{\partial u_1^{1,e}} & \frac{\partial \mathcal{F}_{2}^{1,e}}{\partial u_2^{1,e}} & \frac{\partial \mathcal{F}_{2}^{1,e}}{\partial u_3^{1,e}} & \frac{\partial \mathcal{F}_{2}^{1,e}}{\partial \phi_{11}^{1,e}} & \cdots \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial \phi_{21}^{8,e}}\\
+\mathcal{J}_{IJ}^e  = \frac{\partial \mathcal{R}_I}{\partial \mathcal{U}_J} &= -\left[\begin{array}{cccccc}
+\frac{\partial \mathcal{F}_{1}^{1,e}}{\partial u_1^{1,e}} & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial u_2^{1,e}} & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial u_3^{1,e}} & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial \phi_{11}^{1,e}} & \cdots & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial \phi_{21}^{8,e}}\\
+\frac{\partial \mathcal{F}_{2}^{1,e}}{\partial u_1^{1,e}} & \frac{\partial \mathcal{F}_{2}^{1,e}}{\partial u_2^{1,e}} & \frac{\partial \mathcal{F}_{2}^{1,e}}{\partial u_3^{1,e}} & \frac{\partial \mathcal{F}_{2}^{1,e}}{\partial \phi_{11}^{1,e}} & \cdots & \frac{\partial \mathcal{F}_{1}^{1,e}}{\partial \phi_{21}^{8,e}}\\
 \vdots & \vdots & \vdots & \vdots & \ddots & \vdots\\
-\frac{\partial \mathcal{M}_{2}^{8,e}}{\partial u_1^{1,e}} & \frac{\partial \mathcal{M}_{2}^{8,e}}{\partial u_2^{1,e}} & \frac{\partial \mathcal{M}_{2}^{8,e}}{\partial u_3^{1,e}} & \frac{\partial \mathcal{M}_{2}^{8,e}}{\partial \phi_{11}^{1,e}} & \cdots \frac{\partial \mathcal{M}_{1}^{8,e}}{\partial \phi_{21}^{8,e}}\\
+\frac{\partial \mathcal{M}_{2}^{8,e}}{\partial u_1^{1,e}} & \frac{\partial \mathcal{M}_{2}^{8,e}}{\partial u_2^{1,e}} & \frac{\partial \mathcal{M}_{2}^{8,e}}{\partial u_3^{1,e}} & \frac{\partial \mathcal{M}_{2}^{8,e}}{\partial \phi_{11}^{1,e}} & \cdots & \frac{\partial \mathcal{M}_{1}^{8,e}}{\partial \phi_{21}^{8,e}}\\
 \end{array}\right]
 \end{align*}
 
-where the superscript numbers indicate the node number. This is a $96 \times 96$ matrix. We then assemble the individual Jacobian and residual for an element to form the global Jacobian and residual. The new estimate of the degree of freedom vector $\mathcal{U}_I^{n+1}$ is found by solving
+where the superscript numbers indicate the node number. This is a $96 \times 96$ matrix. We then assemble the individual Jacobian and residual for an element to form the global Jacobian and residual.
+
+We write the linearized form of the residual as
+
+\begin{equation}
+\mathcal{R}_I^{n+1,k+1} \approx \mathcal{R}_I^{n,k} + \frac{\partial \mathcal{R}_I}{\partial \mathcal{U}_J} \Delta \mathcal{U}_J
+\end{equation}
+
+where $n$ is the current pseudo-timestep and $k$ is the iteration number.
+
+We desire the residual at the next iteration to be zero so we write
+\begin{equation}
+\begin{aligned}
+0 &= \mathcal{R}_I^k + \frac{\partial \mathcal{R}_I}{\partial \mathcal{U}_J} \Delta \mathcal{U}_J\\
+\Rightarrow\ -\frac{\partial \mathcal{R}_I}{\partial \mathcal{U}_J} \Delta \mathcal{U}_J &= \mathcal{R}_I^k\\
+\end{aligned}
+\end{equation}
+
+where $\Delta \hat{t}$ is an increment in pseudo-time and $k$ indicates the sub-iteration. We now introduce
 \begin{align*}
-\mathcal{U}_I^{n+1} &= \mathcal{U}_I^{n} + \left(\mathcal{J}^{e}\right)_{IJ}^{-1}\mathcal{R}_J
+\Delta \mathcal{U}_J &= \Delta \hat{t} \dot{\mathcal{U}}_J\\
+\dot{\mathcal{U}}_J &= \alpha \dot{\mathcal{U}}_J^{k+1} + \left(1-\alpha\right) \dot{\mathcal{U}}_J^{k}
 \end{align*}
 
-where iterations will continue until the convergence of the residual vector is achieved. At this time we will neglect kinetic effects unless there is enough time to implement this feature in the code.
+$\alpha = 0$ indicates an explicit method and $\alpha = 1$ indicates an implicit method. Once a good initial condition has been established, Newton-Raphson iteration is performed to compute the proper value of $\dot{U}_j^{k+1}$. Iterations will continue until the convergence of the residual vector is achieved.
 
 We note that boundary conditions are enforced by either removing the relevant rows and columns in the residual and Jacobian in the case of a zero boundary condition or by first computing the resultant force, subtracting it from the residual, and then removing the rows and columns in the case of a non-zero boundary condition.
 
