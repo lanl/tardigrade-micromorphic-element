@@ -152,7 +152,56 @@ setUpClass & A redefinition of setUpClass which is run once at the initializatio
 tearDownClass & A redefinition of tearDownClass which is run once when the class exits. This closes the results file.\\
 \hline
 \end{longtable}
+
+\subsubsection{Data and attributes}
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Data and Attribute & Decription\\
+\hline
+\hline
+currentResult & The current result of a given test simulation\\
+f & The output file the results of the tests are being written to\\
+module\_name & The name of the module\\
+original\_directory & The original directory of the module\\
+output\_file\_location & The location where the output file should be stored\\
+output\_file\_name & The name of the output file\\
+\hline
+\end{longtable}
 \subsection{Functions}
+
+\begin{longtable}{ p{.40\textwidth}  p{.60\textwidth} }
+\hline
+Function & Description\\
+\hline
+\hline
+compute\_BLM\_residual\_gpt & Compute the Balance of linear momentum residual at a gauss point Note: Ignores surface traction term for now\\
+compute\_DM\_derivatives &Compute the deformation measure derivatives with respect to the degree of freedom vector\\
+compute\_F & Compute the deformation gradient\\
+compute\_FMOM\_residual\_gpt & Compute the residual of the first moment of momentum at a gauss point\\
+compute\_chi & Compute $\chi$ by taking values of phi located at the nodes, interpolate, and assemble into chi\\
+compute\_dBLMdU & Compute the derivative of the residual of the balance of linear momentum w.r.t. the degree of freedom vector\\
+compute\_dCdU & Compute the matrix form of the derivative of the right Cauchy-Green deformation tensor with respect to the degree of freedom vector\\
+compute\_dCinvdU & Compute the matrix form of the derivative of the inverse of the right Cauchy-Green deformation tensor with respect to the degree of freedom vector\\
+compute\_dFMOMdU & Compute the derivative of the residual of the first moment of momentum with respect to the degree of freedom vector\\
+compute\_dFdU & Compute the matrix form of the derivative of the deformation gradient with respect to the degree of freedom vector\\
+compute\_dGammadU & Compute the matrix form of the derivative of the deformation measure Gamma with respect to the degree of freedom vector\\  
+compute\_dPsidU & Compute the matrix form of the derivative of the deformation measure Psi with respect to the degree of freedom vector\\
+compute\_dSigmadU & Compute the derivative of the symmetric stress w.r.t. the degree of freedom vector.\\
+compute\_dchidU & Compute the matrix form of the derivative of the micro-displacement with respect to the degree of freedom vector\\
+compute\_dgrad\_chidU & Compute the matrix form of the derivative of the gradient of the micro-displacement with respect to the degree of freedom vector\\
+compute\_dho\_stressdU & Compute the derivative of the higher order w.r.t. the degree of freedom vector.\\
+compute\_dpk2dU & Compute the derivative of the Second Piola Kirchhoff stress w.r.t. the degree of freedom vector.\\
+compute\_fundamental\_derivatives & Compute all of the derivatives of the fundamental deformation measures $F$, $\chi$ and the gradient of $\chi$\\
+compute\_grad\_chi & Take values of phi located at the nodes and compute their gradient at a location\\
+compute\_residuals\_jacobians\_gpt & Test the computation of the residuals and jacobian\\
+form\_jacobian\_gpt & Form the element jacobian at a gauss point\\
+form\_residual\_gpt & Form the element residual at a gauss point\\
+get\_deformation\_measures & Get the deformation measures compute $C$, $\Psi$, and $\Gamma$\\
+integrate\_element & Integrate the finite element\\
+interpolate\_dof & Interpolate the degrees of freedom\\
+parse\_dof\_vector & Parse the incomming DOF vector into a node-by-node form\\
+\hline
+\end{longtable}
 
 \clearpage
 \section{micromorphic\_linear\_elasticity.py}
