@@ -43,11 +43,12 @@
 
 \begin{abstract}
 
-This is intended to provide information on the major modules and functions contained within the user element and testing framework. Focus will be placed on requirements for the development of additional constitutive models and the connections of the UEL with Abaqus.
+This is intended to provide information on the major modules and functions contained within the user element and testing framework.
 
 \end{abstract}
 
 \tableofcontents
+\clearpage
 
 \section{fea\_driver.py}
 
@@ -62,7 +63,7 @@ The overall driver code for the UEL. This code is considered to be largely auxil
 \subsection{Functions}
 
 
-
+\clearpage
 \section{micro\_element.py}
 
 \subsection{Description}
@@ -107,11 +108,60 @@ $\phi_{21}$ & The 21 component of the micro-displacement tensor\\
 
 This module performs the parsing of the Abaqus inputs, and will provide the residual vector (Abaqus' RHS) the Jacobian (Abaqus' AMATRX), and other quantities such as the mass matrix (to be implemented).
 
+\subsection{Classes}
+
+\subsubsection{TestMicroElement}
+
+The function testing class
+
+\begin{longtable}{ p{.40\textwidth}  p{.60\textwidth} }
+\hline
+Method & Description\\
+\hline
+\hline
+run & A redefinition of the parent run method which allows for recording the results of the tests.\\
+setUp & A redefinition of the setUp method used for recording the results. Called for each test.\\
+tearDown & A redefinition of the tearDown method used for recording the results. Called for each test.\\
+test\_compute\_BLM\_residual\_gpt & Test the computation of the Balance of linear momentum residual at a gauss point Note: Ignores surface traction term for now\\
+test\_compute\_DM\_derivatives & Test the computation of the deformation measure derivatives with respect to the degree of freedom vector\\
+test\_compute\_F & Test the computation of the deformation gradient\\
+test\_compute\_FMOM\_residual\_gpt & Test the computation of the residual of the first moment of momentum at a gauss point\\
+test\_compute\_chi & Test compute\_chi to take values of phi located at the nodes, interpolate, and assemble into chi\\
+test\_compute\_dBLMdU & Test the computation of the derivative of the residual of the balance of linear momentum w.r.t. the degree of freedom vector\\
+test\_compute\_dCdU & Test the computation of the matrix form of the derivative of the right Cauchy-Green deformation tensor with respect to the degree of freedom vector\\
+test\_compute\_dCinvdU & Test the computation of the matrix form of the derivative of the inverse of the right Cauchy-Green deformation tensor with respect to the degree of freedom vector\\
+test\_compute\_dFMOMdU & Test the computation of the derivative of the residual of the first moment of momentum with respect to the degree of freedom vector\\
+test\_compute\_dFdU & Test the computation of the matrix form of the derivative of the deformation gradient with respect to the degree of freedom vector\\
+test\_compute\_dGammadU & Test the computation of the matrix form of the derivative of the deformation measure Gamma with respect to the degree of freedom vector\\  
+test\_compute\_dPsidU & Test the computation of the matrix form of the derivative of the deformation measure Psi with respect to the degree of freedom vector\\
+test\_compute\_dSigmadU & Test for the computation of the derivative of the symmetric stress w.r.t. the degree of freedom vector.\\
+test\_compute\_dchidU & Test the computation of the matrix form of the derivative of the micro-displacement with respect to the degree of freedom vector\\
+test\_compute\_dgrad\_chidU & Test the computation of the matrix form of the derivative of the gradient of the micro-displacement with respect to the degree of freedom vector\\
+test\_compute\_dho\_stressdU & Test for the computation of the derivative of the higher order w.r.t. the degree of freedom vector.\\
+test\_compute\_dpk2dU & Test for the computation of the derivative of the Second Piola Kirchhoff stress w.r.t. the degree of freedom vector.\\
+test\_compute\_fundamental\_derivatives & Test the function compute\_fundamental\_derivatives\\
+test\_compute\_grad\_chi & Test compute\_grad\_chi to take values of phi located at the nodes and compute their gradient at a location\\
+test\_compute\_residuals\_jacobians\_gpt & Test the computation of the residuals and jacobian\\
+test\_form\_jacobian\_gpt & Test of the formation of the element jacobian\\
+test\_form\_residual\_gpt & Test the formation of the element residual at a gauss point\\
+test\_get\_deformation\_measures & Test get\_deformation\_measures to compute C, Psi, Gamma\\
+test\_integrate\_element & Test some properties of the integrated element\\
+test\_interpolate\_dof & Test the interpolate dof function\\
+test\_parse\_dof\_vector & Test of the parsing of the DOF vector\\
+setUpClass & A redefinition of setUpClass which is run once at the initialization of the class. This opens a file to write the results to and initializes it.\\
+tearDownClass & A redefinition of tearDownClass which is run once when the class exits. This closes the results file.\\
+\hline
+\end{longtable}
 \subsection{Functions}
 
+\clearpage
 \section{micromorphic\_linear\_elasticity.py}
 
 \subsection{Description}
+
+A constitutive model for micromorphic linear elasticity. The general format which must be followed for constitutive models is the model is provided with the deformation measures, the state variables, the material properties, the current time, and the change in time.
+
+All constitutive models are required to provide the Cauchy stress, the symmetric stress, the higher order stress, and the tangents of each of these stresses with respect to the deformation measures.
 
 \subsection{Classes}
 
