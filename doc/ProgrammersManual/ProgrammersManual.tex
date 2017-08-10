@@ -115,8 +115,83 @@ This module performs the parsing of the Abaqus inputs, and will provide the resi
 
 \subsection{Classes}
 
+\subsubsection{TestMicro\_LE}
+
+The function testing class
+
+\begin{longtable}{ p{.40\textwidth}  p{.60\textwidth} }
+\hline
+Method & Description\\
+\hline
+\hline
+run & A redefinition of the parent run method which allows for recording the results of the tests.\\
+setUp & A redefinition of the setUp method used for recording the results. Called for each test.\\
+tearDown & A redefinition of the tearDown method used for recording the results. Called for each test.\\
+test\_compute\_dCinvdC & Test the computation of the derivative of the inverse of the right Cauchy-Green deformation tensor w.r.t. the right Cauchy-Green deformation tensor C\\
+test\_compute\_deformation\_measures & Test the computation of the deformation measures \\
+test\_compute\_ho\_stress & Test the computation of the higher order stress\\
+test\_compute\_pk2\_stress & Test the computation of the second Piola-Kirchhoff stress\\
+test\_compute\_strain\_measures & Test the computation of the strain measures\\
+test\_compute\_stress\_derivatives & Test the computation of the stress derivatives with respect to the deformation measures\\
+test\_compute\_stress\_derivatives\_wrt\_C(self) & Test the computation of the stress derivatives wrt the right Cauchy-Green deformation tensor\\
+test\_compute\_stress\_derivatives\_wrt\_Gamma & Test the computation of the stress derivatives wrt the deformation measure Gamma\\
+test\_compute\_stress\_derivatives\_wrt\_Psi & Test the computation of the stress derivatives wrt the deformation measure Psi\\
+test\_compute\_stresses & Test the computation of all of the stress measures\\
+test\_compute\_symmetric\_stress &  Test the computation of the symmetric stress\\
+test\_form\_A & Test forming the A stiffness tensor\\
+test\_form\_B & Test forming the B stiffness tensor\\
+test\_form\_C & Test forming the C stiffness tensor\\
+test\_form\_D & Test forming the D stiffness tensor\\
+test\_form\_stiffness\_tensors & Test forming the stiffness tensors\\
+test\_micromorphic\_linear\_elasticity & Test the main function for the micromorphic linear elasticity model\\
+setUpClass & A redefinition of setUpClass which is run once at the initialization of the class. This opens a file to write the results to and initializes it.\\
+tearDownClass & A redefinition of tearDownClass which is run once when the class exits. This closes the results file.\\
+\hline
+\end{longtable}
+
+\subsubsection{Data and attributes}
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Data and Attribute & Decription\\
+\hline
+\hline
+currentResult & The current result of a given test simulation\\
+f & The output file the results of the tests are being written to\\
+module\_name & The name of the module\\
+original\_directory & The original directory of the module\\
+output\_file\_location & The location where the output file should be stored\\
+output\_file\_name & The name of the output file\\
+\hline
+\end{longtable}
+
 \subsection{Functions}
 
+\begin{longtable}{p{.40\textwidth} p{0.60\textwidth}}
+\hline
+Function & Description\\
+\hline
+\hline
+compute\_dCinvdC & Compute the derivative of the inverse of the right Cauchy-Green deformation tensor w.r.t. the right Cauchy-Green deformation tensor C\\
+compute\_deformation\_measures & Compute the deformation measures \\
+compute\_ho\_stress & Compute the higher order stress\\
+compute\_pk2\_stress & Compute the second Piola-Kirchhoff stress\\
+compute\_strain\_measures & Compute the strain measures\\
+compute\_stress\_derivatives & Compute the stress derivatives with respect to the deformation measures\\
+compute\_stress\_derivatives\_wrt\_C(self) & Compute the stress derivatives wrt the right Cauchy-Green deformation tensor\\
+compute\_stress\_derivatives\_wrt\_Gamma & Compute the stress derivatives wrt the deformation measure Gamma\\
+compute\_stress\_derivatives\_wrt\_Psi & Compute the stress derivatives wrt the deformation measure Psi\\
+compute\_stresses & Compute all of the stress measures\\
+compute\_symmetric\_stress &  Compute the symmetric stress\\
+form\_A & Form the A stiffness tensor\\
+form\_B & Form the B stiffness tensor\\
+form\_C & Form the C stiffness tensor\\
+form\_D & Form the D stiffness tensor\\
+form\_stiffness\_tensors & Form the stiffness tensors\\
+micromorphic\_linear\_elasticity & The main function for the micromorphic linear elasticity model\\
+\hline
+\end{longtable}
+
+\clearpage
 \section{hex8.py}
 
 \subsection{Description}
