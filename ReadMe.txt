@@ -22,7 +22,28 @@ Colorado at Boulder
 
 An implementation of a micromorphic hex8 element. The form is 
 intended to be used for easy implementation into an Abaqus 
-user element (UEL).
+user element (UEL). The current implementation is in python 
+and the intent is to make sure the method is sound in this 
+format before transitioning to either a Fortran or C++ code 
+which will be used as a user element for Abaqus. At this time 
+the C++ code appears the most advantageous due to the object 
+oriented nature but the Fortran approach is more well trod.
+
+# Upcoming work
+
+> Debug the python code finding the source of non-convergence
+> Port the python code to C++
+> Continue to improve the documentation
+
+# Description of directories
+
+.\doc: Where all of the genereated LaTeX documentation will be located. This includes 
+       the main report of the testing of the code, the users manual, the programmers 
+       manual and the theory manual. The resulting manuals are in PDF form.
+       
+.\src: Where all of the source code for the micromorphic element lies. There are three
+       subdirectories, python, cpp, and fortran which contain all python, C++, and 
+       Fortran files required to compile the code.
 
 # Python Requirements
 
