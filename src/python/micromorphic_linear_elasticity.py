@@ -413,7 +413,7 @@ class TestMicro_LE(unittest.TestCase):
     original_directory   = ""
     module_name           = "micromorphic_linear_elasticity"
     output_file_name      = r"results.tex".format(module_name)
-    output_file_location  = r".\tests\unittests\{0}".format(module_name)
+    output_file_location  = os.path.join(".","tests","unittests",module_name)#".\tests\unittests\{0}".format(module_name)
     currentResult         = None
     @classmethod
     def setUpClass(self):

@@ -719,7 +719,7 @@ class TestFEA(unittest.TestCase):
     original_directory   = ""
     module_name           = "fea_driver"
     output_file_name      = r"results.tex".format(module_name)
-    output_file_location  = r".\tests\unittests\{0}".format(module_name)
+    output_file_location  = os.path.join(".","tests","unittests",module_name)#r".\tests\unittests\{0}".format(module_name)
     currentResult         = None
     @classmethod
     def setUpClass(self):
