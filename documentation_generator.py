@@ -18,7 +18,7 @@ def generate_manuals():
     
 def generate_theory_manual(original_directory):
     #Change directories
-    os.chdir("./doc/TheoryManual")
+    os.chdir(os.path.join(".","doc","TheoryManual")
     
     #Generate the theory manual
     #Run pdflatex
@@ -34,7 +34,7 @@ def generate_theory_manual(original_directory):
     
 def generate_users_manual(original_directory):
     #Change directories
-    os.chdir("./doc/UsersManual")
+    os.chdir(os.path.join(".","doc","UsersManual"))
     
     #Generate the users manual
     #Run pdflatex

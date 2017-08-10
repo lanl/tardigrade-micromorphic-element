@@ -29,13 +29,13 @@ class LatexParser(object):
     """A class which parses the indicated LaTeX files from 
     the tests and adds them to the Report compile chain"""
     
-    report_location = r"../.."                     #The location of the report
-    unittest_dir    = r"unittests"                 #The location of the unittest LaTeX dir
-    regression_dir  = r"regression_tests"          #The location of the regression LaTeX dir
-    test_dir        = r"../../../src/python/tests" #The location of the test files
+    report_location = os.path.join("..","..")                              #The location of the report
+    unittest_dir    = r"unittests"                                         #The location of the unittest LaTeX dir
+    regression_dir  = r"regression_tests"                                  #The location of the regression LaTeX dir
+    test_dir        = os.path.join("..","..","..","src","python","tests")  #The location of the test files
     
-    unittest_file        = open("../tex/unittest_results.tex","w+")        #The LaTeX results of the unit tests
-    regression_test_file = open("../tex/regression_test_results.tex","w+") #The LaTeX results of the regression tests
+    unittest_file        = open(os.path.join("..","tex","unittest_results.tex"),"w+")        #The LaTeX results of the unit tests
+    regression_test_file = open(os.path.join("..","tex","regression_test_results.tex"),"w+") #The LaTeX results of the regression tests
     
     def __init__(self):
         """Initialization of the LatexParser class"""
@@ -99,13 +99,13 @@ class LatexParser(object):
         self.regression_test_file.write(regression_test_header)
         
         for module in self.unittests:
-            path = os.path.join("./tests",self.unittest_dir,module)
+            path = os.path.join(".","tests",self.unittest_dir,module)
             
             self.unittest_file.write("\n\n\\subsection{{{0}}}\n\\input{{{1}}}".format(module.replace("_","\_"),os.path.join(path,"description.tex").replace("\\","/")))
             self.unittest_file.write("\n\\input{{{1}}}\n".format(module,os.path.join(path,"results.tex").replace("\\","/")))
         
         for test in self.regression_tests:
-            path = os.path.join("./tests",self.regression_dir,test)
+            path = os.path.join(".","tests",self.regression_dir,test)
         
             self.regression_test_file.write("\n\n\\subsection{{{0}}}\n\\input{{{1}}}".format(test.replace("_","\_"),os.path.join(path,"description.tex").replace("\\","/")))
             self.regression_test_file.write("\n\\input{{{1}}}\n\\clearpage".format(test,os.path.join(path,"results.tex").replace("\\","/")))

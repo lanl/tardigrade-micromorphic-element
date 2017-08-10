@@ -17,15 +17,15 @@ class TestHarness(object):
         self.owd   = os.getcwd()
         
         #Identify module locations
-        self.module_location = r".\src\python"
-        self.fformat = "./*.py"
+        self.module_location = os.path.join(".","src","python")
+        self.fformat = os.path.join(".","*.py")
         
         #Add the module locations to the system path for now
         sys.path.append(os.path.abspath(self.module_location))
         
         #Identify regression tests
-        self.regression_tests = [r"tests/regression_tests/const_u/const_u.inp",\
-                                 r"tests/regression_tests/linear_u/linear_u.inp"]
+        self.regression_tests = [os.path.join("tests","regression_tests","const_u","const_u.inp"),\
+                                 os.path.join("tests","regression_tests","linear_u","linear_u.inp")]
     
     def run_function_tests(self):
         """Run the tests associated with verifying the lower-level functions"""
@@ -83,9 +83,9 @@ class TestHarness(object):
     def generate_report(self):
         """Generate the LaTeX report"""
         #Run test processing
-        os.system(r"python ./doc/Report/tests/process_tests.py")
+        os.system(r"python "+os.path.join(".","doc","Report","tests","process_tests.py"))
         #Change directories
-        os.chdir(r"./doc/Report")
+        os.chdir(os.path.join(".","doc","Report"))
         #Run pdflatex
         os.system(r"pdflatex Micromorphic_Element_Report.tex")
         #Run bibtex
