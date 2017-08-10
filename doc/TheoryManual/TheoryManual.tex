@@ -2846,4 +2846,53 @@ The higher order couple stress only depends upon $\Gamma$ so we note the other d
 
 \end{frame}
 
+\begin{frame}{Linear Elasticity Example}
+
+If we are in a situation where $\phi_{iI}$ is held fixed at 0, and we apply some deformation gradient $F_{iI}$ we can write
+
+\begin{align*}
+\chi_{iI} &= \delta_{iI} + \phi_{iI}\\
+&= \delta_{iI}\\
+\end{align*}
+
+or in other words, the micro deformation tensors are invariant over the deformation such that
+
+\begin{align*}
+\xi_{i} &= \delta_{iI} \Xi_{I}\\
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{Linear Elasticity Example}
+
+This means
+\begin{align*}
+\Psi_{IJ} &= F_{iI} \delta_{iJ} = F_{JI}\\
+\Gamma_{ILJ} &= 0_{ILJ}\\
+\end{align*}
+
+The strain measures are therefore
+\begin{align*}
+E_{IJ} &= \frac{1}{2} \left(C_{IJ} - \delta_{IJ}\right)\\
+\mathcal{E}_{IJ} &= F_{iI} \delta_{iJ} - \delta_{IJ} = F_{JI}\\
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{Linear Elasticity Example}
+
+The stress measures therefore become
+
+\begin{align*}
+S_{IJ} &= A_{IJKL} E_{KL}+ D_{IJKL}\mathcal{E}_{KL}\\
+& + \left\{ B_{IQKL} \mathcal{E}_{KL} + D_{IQKL}E_{KL} \right\}\left(\mathcal{E}_{RQ} + \delta_{RQ}\right)\left(C_{RJ}\right)^{-1}\\
+\end{align*}
+
+\begin{align*}
+\Sigma_{IJ}&=A_{IJKL} E_{KL} + D_{IJKL}\mathcal{E}_{KL}\\
+& + 2\text{symm}\bigg( \left\{ B_{IQKL} \mathcal{E}_{KL} + \bar{D}_{\bar{I}\bar{Q}\bar{K}\bar{L}}\bar{E}_{\bar{K}\bar{L}}^e  \right\}\left(\bar{\mathcal{E}}_{\bar{R}\bar{Q}}^e + \delta_{\bar{R}\bar{Q}}\right) \left(\bar{C}_{\bar{R}\bar{J}}^e\right)^{-1}\\
+\end{align*}
+
+\end{frame}
+
 \end{document}
