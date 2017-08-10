@@ -137,52 +137,97 @@ Method & Description\\
 run & A redefinition of the parent run method which allows for recording the results of the tests.\\
 setUp & A redefinition of the setUp method used for recording the results. Called for each test.\\
 tearDown & A redefinition of the tearDown method used for recording the results. Called for each test.\\
-test\_BVoigt\_submatrix & A test of the function which creates a submatrix of the the strain displacement matrix\\
-test\_Hex8\_get\_shape\_function\_info & A test of the function which returns the shape function value, the gradient of the shape function, and the determinant of the jacobian in the local coordinate system of a specified node at a specified local coordinate.\\
-test\_Hex8\_global\_grad\_shape\_function & A test of the computation of the global gradient of the shape function for a specified node at a specified local coordinate\\
-test\_Hex8\_interpolation\_matrix & A test of the forming of the interpolation matrix.\\
-test\_Hex8\_local\_grad\_shape\_function & A test of the computation of the local gradient of the shape function for a specified node at a specified local coordinate\\
-test\_Hex8\_shape\_function & A test of the computation of the shape function for a specified node at a specified local position\\
-test\_Hex8\_shape\_function\_loc & A test of the computation of the shape function for a specified node, at a specified local position, with specified nodal coordinates\\
-test\_T\_to\_V\_mapping & A test of the mapping from tensor indices to the vector form index\\
-test\_V\_to\_T\_mapping & A test of the mapping from a vector index to the tensor form indices\\
-test\_compute\_BVoigt & A test of the computation of the strain displacement matrix in Voigt notation\\
-test\_convert\_M\_to\_V & A test of the conversion of a tensor in matrix form to a tensor in vector form\\
-test\_convert\_V\_to\_T & A test of the conversion of a tensor in vector form to a tensor in matrix form\\
-test\_convert\_V\_to\_T & A test of the conversion of a tensor in vector form to the full tensor representation\\
-test\_get\_1D\_gpw & A test of the function which returns the one dimensional gauss points and weights\\
-test\_get\_all\_shape\_function\_info & A test of the function that computes and returns the value of all of the nodal shape functions, global gradients, and determinants of the jacobians of transformation to the local coordinates\\
-test\_get\_global\_gradients & A test of the function which computes and returns all of the global gradients of the shape functions and the determinants of the jacobians of transformation to the local coordinates\\
-test\_get\_gpq & A test of the function which returns the 3D gauss points\\
-test\_get\_jacobian & A test of the computation of the jacobian of the transformation to the local coordinates\\
-test\_get\_shape\_functions & A test of the function which computes the shape\\ functions.\\
-test\_get\_symm\_matrix & Test for the function which returns the symmetric part of a matrix\\
-test\_get\_symm\_matrix\_V & Test getting the symmetric part of a matrix in vector form\\
-test\_invert\_3x3\_matrix &= Test the inversion of a 3 by 3 matrix\\
-test\_invert\_3x3\_matrix\_V & Test the inversion of a 3 by 3 matrix in vector form\\
-test\_matrix\_Tdot & Test the dot product of two matrices where the first one is transposed\\
-test\_matrix\_Tdot\_TOT & Test the dot product of a transposed matrix and a third order tensor\\
-test\_matrix\_Tdot\_V & Test the dot product of a transposed matrix and another matrix in vector form.\\
-test\_matrix\_dot & Test the dot product of two matrices\\
-test\_matrix\_dot\_V & Test the dot product of two matrices in vector form\\
-test\_reduce\_tensor\_to\_matrix\_form & Test the reduction of a tensor to matrix form\\
-test\_vector\_dot\_matrix & Test the dot product of a vector and a matrix\\
-test\_vector\_dyadic\_product & Test the dyadic product of two vectors\\
+BVoigt\_submatrix & A test of the function which creates a submatrix of the the strain displacement matrix\\
+Hex8\_get\_shape\_function\_info & A test of the function which returns the shape function value, the gradient of the shape function, and the determinant of the jacobian in the local coordinate system of a specified node at a specified local coordinate.\\
+Hex8\_global\_grad\_shape\_function & A test of the computation of the global gradient of the shape function for a specified node at a specified local coordinate\\
+Hex8\_interpolation\_matrix & A test of the forming of the interpolation matrix.\\
+Hex8\_local\_grad\_shape\_function & A test of the computation of the local gradient of the shape function for a specified node at a specified local coordinate\\
+Hex8\_shape\_function & A test of the computation of the shape function for a specified node at a specified local position\\
+Hex8\_shape\_function\_loc & A test of the computation of the shape function for a specified node, at a specified local position, with specified nodal coordinates\\
+T\_to\_V\_mapping & A test of the mapping from tensor indices to the vector form index\\
+V\_to\_T\_mapping & A test of the mapping from a vector index to the tensor form indices\\
+compute\_BVoigt & A test of the computation of the strain displacement matrix in Voigt notation\\
+convert\_M\_to\_V & A test of the conversion of a tensor in matrix form to a tensor in vector form\\
+convert\_V\_to\_T & A test of the conversion of a tensor in vector form to a tensor in matrix form\\
+convert\_V\_to\_T & A test of the conversion of a tensor in vector form to the full tensor representation\\
+get\_1D\_gpw & A test of the function which returns the one dimensional gauss points and weights\\
+get\_all\_shape\_function\_info & A test of the function that computes and returns the value of all of the nodal shape functions, global gradients, and determinants of the jacobians of transformation to the local coordinates\\
+get\_global\_gradients & A test of the function which computes and returns all of the global gradients of the shape functions and the determinants of the jacobians of transformation to the local coordinates\\
+get\_gpq & A test of the function which returns the 3D gauss points\\
+get\_jacobian & A test of the computation of the jacobian of the transformation to the local coordinates\\
+get\_shape\_functions & A test of the function which computes the shape\\ functions.\\
+get\_symm\_matrix & Test for the function which returns the symmetric part of a matrix\\
+get\_symm\_matrix\_V & Test getting the symmetric part of a matrix in vector form\\
+invert\_3x3\_matrix &= Test the inversion of a 3 by 3 matrix\\
+invert\_3x3\_matrix\_V & Test the inversion of a 3 by 3 matrix in vector form\\
+matrix\_Tdot & Test the dot product of two matrices where the first one is transposed\\
+matrix\_Tdot\_TOT & Test the dot product of a transposed matrix and a third order tensor\\
+matrix\_Tdot\_V & Test the dot product of a transposed matrix and another matrix in vector form.\\
+matrix\_dot & Test the dot product of two matrices\\
+matrix\_dot\_V & Test the dot product of two matrices in vector form\\
+reduce\_tensor\_to\_matrix\_form & Test the reduction of a tensor to matrix form\\
+vector\_dot\_matrix & Test the dot product of a vector and a matrix\\
+vector\_dyadic\_product & Test the dyadic product of two vectors\\
 setUpClass & A redefinition of setUpClass which is run once at the initialization of the class. This opens a file to write the results to and initializes it.\\
 tearDownClass & A redefinition of tearDownClass which is run once when the class exits. This closes the results file.\\
+\hline
 \end{longtable}
 
 \subsubsection{Data and attributes}
-\begin{itemize}
-\item [currentResult:]{The current result of a given test simulation}
-\item [f:]{The output file the results of the tests are being written to}
-\item [module\_name:]{The name of the module}
-\item [original\_directory]{The original directory of the module}
-\item [output\_file\_location]{The location where the output file should be stored}
-\item [output\_file\_name]{The name of the output file}
-\end{itemize}
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Data and Attribute & Decription\\
+\hline
+\hline
+currentResult & The current result of a given test simulation\\
+f & The output file the results of the tests are being written to\\
+module\_name & The name of the module\\
+original\_directory & The original directory of the module\\
+output\_file\_location & The location where the output file should be stored\\
+output\_file\_name & The name of the output file\\
+\hline
+\end{longtable}
 
 \subsection{Functions}
+
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Function & Description\\
+\hline
+\hline
+BVoigt\_submatrix & The function which creates a submatrix of the the strain displacement matrix\\
+Hex8\_get\_shape\_function\_info & The function which returns the shape function value, the gradient of the shape function, and the determinant of the jacobian in the local coordinate system of a specified node at a specified local coordinate.\\
+Hex8\_global\_grad\_shape\_function & Computes of the global gradient of the shape function for a specified node at a specified local coordinate\\
+Hex8\_interpolation\_matrix & Forms of the interpolation matrix.\\
+Hex8\_local\_grad\_shape\_function & Computes the local gradient of the shape function for a specified node at a specified local coordinate\\
+Hex8\_shape\_function & Computes the shape function for a specified node at a specified local position\\
+Hex8\_shape\_function\_loc & Computes the shape function for a specified node, at a specified local position, with specified nodal coordinates\\
+T\_to\_V\_mapping & Returns the mapping from tensor indices to the vector form index\\
+V\_to\_T\_mapping & Returns the mapping from a vector index to the tensor form indices\\
+compute\_BVoigt & Returns the computation of the strain displacement matrix in Voigt notation\\
+convert\_M\_to\_V & Converts a tensor in matrix form to a tensor in vector form\\
+convert\_V\_to\_T & Converts a tensor in vector form to a tensor in matrix form\\
+convert\_V\_to\_T & Converts a tensor in vector form to the full tensor representation\\
+get\_1D\_gpw & Returns the one dimensional gauss points and weights\\
+get\_all\_shape\_function\_info & Computes and returns the value of all of the nodal shape functions, global gradients, and determinants of the jacobians of transformation to the local coordinates\\
+get\_global\_gradients & Computes and returns all of the global gradients of the shape functions and the determinants of the jacobians of transformation to the local coordinates\\
+get\_gpq & Returns the 3D gauss points\\
+get\_jacobian & A test of the computation of the jacobian of the transformation to the local coordinates\\
+get\_shape\_functions &Computes the shape\\ functions.\\
+get\_symm\_matrix & Returns the symmetric part of a matrix\\
+get\_symm\_matrix\_V & Returns the symmetric part of a matrix in vector form\\
+invert\_3x3\_matrix &=Inverts a 3 by 3 matrix\\
+invert\_3x3\_matrix\_V & Inverts a 3 by 3 matrix in vector form\\
+matrix\_Tdot & Computes the dot product of two matrices where the first one is transposed\\
+matrix\_Tdot\_TOT & Computes the dot product of a transposed matrix and a third order tensor\\
+matrix\_Tdot\_V & Computes the dot product of a transposed matrix and another matrix in vector form.\\
+matrix\_dot & Computes the dot product of two matrices\\
+matrix\_dot\_V & Computes the dot product of two matrices in vector form\\
+reduce\_tensor\_to\_matrix\_form & Reduces a tensor to matrix form\\
+vector\_dot\_matrix & Computes the dot product of a vector and a matrix\\
+vector\_dyadic\_product & Computes the dyadic product of two vectors\\
+\hline
+\end{longtable}
 
 \FloatBarrier
 
