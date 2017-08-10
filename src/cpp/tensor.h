@@ -18,6 +18,37 @@
 namespace tensor
 {
     class Tensor{
-        /*The base class for the tensor implementation*/
+        /*===
+           |
+           | T e n s o r
+           |
+          ===
+        
+        The base class for the tensor implementation
+        
+        Defines and allows access to a tensor using indicial 
+        notation but the data is stored as an array.
+        
+        The storage format of Tensor.data is controlled by 
+        the method Tensor.format(string) which takes in a 
+        string that indicates how the information should be 
+        stored
+        
+        */
+        
+        public:
+        
+            //==
+            //|
+            //| Parameter defintions
+            //|
+            //==
+        
+            std::vector< int > shape;
+        
+            //Constructors
+            Tensor(){
+                
+            }
     }
 }
