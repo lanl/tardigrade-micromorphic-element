@@ -6,7 +6,8 @@
 \usepackage{algorithm,algpseudocode}
 \usepackage{multicol}
 \usepackage{makecell}
-\usepackage[table]{colortbl}
+\usepackage{longtable}
+\usepackage[longtable]{colortbl}
 \graphicspath{{./images}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -56,11 +57,55 @@ The overall driver code for the UEL. This code is considered to be largely auxil
 
 \subsection{Classes}
 
+
+
 \subsection{Functions}
+
+
 
 \section{micro\_element.py}
 
 \subsection{Description}
+
+The definition of the micromorphic finite element. The element is an eight noded, linear hexehedral element with twelve degrees of freedom per node. These degrees of freedom are described in table~\ref{table:nodal_dof}.
+
+\begin{table}
+\centering
+\begin{tabular}{c c}
+\hline
+Degree of freedom & Description \\
+\hline
+\hline
+$u_1$ & Displacement degree of freedom in the 1 direction\\
+%\hline
+$u_2$ & Displacement degree of freedom in the 2 direction\\
+%\hline
+$u_3$ & Displacement degree of freedom in the 3 direction\\
+%\hline
+$\phi_{11}$ & The 11 component of the micro-displacement tensor\\
+%\hline
+$\phi_{22}$ & The 22 component of the micro-displacement tensor\\
+%\hline
+$\phi_{33}$ & The 33 component of the micro-displacement tensor\\
+%\hline
+$\phi_{23}$ & The 23 component of the micro-displacement tensor\\
+%\hline
+$\phi_{13}$ & The 13 component of the micro-displacement tensor\\
+%\hline
+$\phi_{12}$ & The 12 component of the micro-displacement tensor\\
+%\hline
+$\phi_{32}$ & The 32 component of the micro-displacement tensor\\
+%\hline
+$\phi_{31}$ & The 31 component of the micro-displacement tensor\\
+%\hline
+$\phi_{21}$ & The 21 component of the micro-displacement tensor\\
+\hline
+\end{tabular}
+\caption{Nodal degrees of freedom}
+\label{table:nodal_dof}
+\end{table}
+
+This module performs the parsing of the Abaqus inputs, and will provide the residual vector (Abaqus' RHS) the Jacobian (Abaqus' AMATRX), and other quantities such as the mass matrix (to be implemented).
 
 \subsection{Functions}
 
@@ -68,11 +113,74 @@ The overall driver code for the UEL. This code is considered to be largely auxil
 
 \subsection{Description}
 
+\subsection{Classes}
+
 \subsection{Functions}
 
 \section{hex8.py}
 
 \subsection{Description}
+
+Utility functions used in the computation of the shape functions for the eight noded hexahedral element. This module should contain general functions used in accessing the tensor datastructures and common functions which are not necessarily specific to the element.
+
+\subsection{Classes}
+
+\subsubsection{TestHex8}
+
+The function testing class
+
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Method & Description\\
+\hline
+\hline
+run & A redefinition of the parent run method which allows for recording the results of the tests.\\
+setUp & A redefinition of the setUp method used for recording the results. Called for each test.\\
+tearDown & A redefinition of the tearDown method used for recording the results. Called for each test.\\
+test\_BVoigt\_submatrix & A test of the function which creates a submatrix of the the strain displacement matrix\\
+test\_Hex8\_get\_shape\_function\_info & A test of the function which returns the shape function value, the gradient of the shape function, and the determinant of the jacobian in the local coordinate system of a specified node at a specified local coordinate.\\
+test\_Hex8\_global\_grad\_shape\_function & A test of the computation of the global gradient of the shape function for a specified node at a specified local coordinate\\
+test\_Hex8\_interpolation\_matrix & A test of the forming of the interpolation matrix.\\
+test\_Hex8\_local\_grad\_shape\_function & A test of the computation of the local gradient of the shape function for a specified node at a specified local coordinate\\
+test\_Hex8\_shape\_function & A test of the computation of the shape function for a specified node at a specified local position\\
+test\_Hex8\_shape\_function\_loc & A test of the computation of the shape function for a specified node, at a specified local position, with specified nodal coordinates\\
+test\_T\_to\_V\_mapping & A test of the mapping from tensor indices to the vector form index\\
+test\_V\_to\_T\_mapping & A test of the mapping from a vector index to the tensor form indices\\
+test\_compute\_BVoigt & A test of the computation of the strain displacement matrix in Voigt notation\\
+test\_convert\_M\_to\_V & A test of the conversion of a tensor in matrix form to a tensor in vector form\\
+test\_convert\_V\_to\_T & A test of the conversion of a tensor in vector form to a tensor in matrix form\\
+test\_convert\_V\_to\_T & A test of the conversion of a tensor in vector form to the full tensor representation\\
+test\_get\_1D\_gpw & A test of the function which returns the one dimensional gauss points and weights\\
+test\_get\_all\_shape\_function\_info & A test of the function that computes and returns the value of all of the nodal shape functions, global gradients, and determinants of the jacobians of transformation to the local coordinates\\
+test\_get\_global\_gradients & A test of the function which computes and returns all of the global gradients of the shape functions and the determinants of the jacobians of transformation to the local coordinates\\
+test\_get\_gpq & A test of the function which returns the 3D gauss points\\
+test\_get\_jacobian & A test of the computation of the jacobian of the transformation to the local coordinates\\
+test\_get\_shape\_functions & A test of the function which computes the shape\\ functions.\\
+test\_get\_symm\_matrix & Test for the function which returns the symmetric part of a matrix\\
+test\_get\_symm\_matrix\_V & Test getting the symmetric part of a matrix in vector form\\
+test\_invert\_3x3\_matrix &= Test the inversion of a 3 by 3 matrix\\
+test\_invert\_3x3\_matrix\_V & Test the inversion of a 3 by 3 matrix in vector form\\
+test\_matrix\_Tdot & Test the dot product of two matrices where the first one is transposed\\
+test\_matrix\_Tdot\_TOT & Test the dot product of a transposed matrix and a third order tensor\\
+test\_matrix\_Tdot\_V & Test the dot product of a transposed matrix and another matrix in vector form.\\
+test\_matrix\_dot & Test the dot product of two matrices\\
+test\_matrix\_dot\_V & Test the dot product of two matrices in vector form\\
+test\_reduce\_tensor\_to\_matrix\_form & Test the reduction of a tensor to matrix form\\
+test\_vector\_dot\_matrix & Test the dot product of a vector and a matrix\\
+test\_vector\_dyadic\_product & Test the dyadic product of two vectors\\
+setUpClass & A redefinition of setUpClass which is run once at the initialization of the class. This opens a file to write the results to and initializes it.\\
+tearDownClass & A redefinition of tearDownClass which is run once when the class exits. This closes the results file.\\
+\end{longtable}
+
+\subsubsection{Data and attributes}
+\begin{itemize}
+\item [currentResult:]{The current result of a given test simulation}
+\item [f:]{The output file the results of the tests are being written to}
+\item [module\_name:]{The name of the module}
+\item [original\_directory]{The original directory of the module}
+\item [output\_file\_location]{The location where the output file should be stored}
+\item [output\_file\_name]{The name of the output file}
+\end{itemize}
 
 \subsection{Functions}
 
