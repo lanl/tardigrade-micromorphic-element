@@ -5,17 +5,26 @@ CC=g++
 STD=-std=gnu++11
 
 #Compiler flags
-CFLAGS=-I.
+CFLAGS=-I. -I ../..
 
-#Eigen Library
-EIGEN = C:\usr\share\cpp\eigen3.3.4
+#Include Eigen Library
+EIGEN = -I C:\usr\share\cpp\eigen3.3.4
+
+#Debugging flag
+DBG = -ggdb
 
 all: test_tensor
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 
-test_tensor: ../../tensor.h ../../tensor.cpp
-	$(CC) $(STD) -o $@ -c test_geom.cpp $(CFLAGS) $(ERRORFLG)
+test_tensor: test_tensor.o tensor.o
+	$(CC) $(STD) -o $@ test_tensor.o tensor.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+test_tensor.o: test_tensor.cpp
+	$(CC) $(STD) -o $@ -c test_tensor.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+tensor.o: ../../tensor.h ../../tensor.cpp
+	$(CC) $(STD) -o $@ -c test_geom.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 clean:
-	rm *o tensor
+	rm *o test_tensor
