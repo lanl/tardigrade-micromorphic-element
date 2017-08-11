@@ -62,7 +62,7 @@ namespace tensor
             void Tensor(std::vector< double >);
 
         private:
-            void map_index(int i, ...); //Map the tensor index to the data matrix
-            void set_dimensions();      //Set the dimensions of the data matrix
+            unsigned int[2] map_index(std::va_list); //Map the tensor index to the data matrix
+            void set_dimensions();                   //Set the dimensions of the data matrix
     }
 }
