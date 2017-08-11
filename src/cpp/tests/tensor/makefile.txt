@@ -1,0 +1,21 @@
+#Compiler option
+CC=g++
+
+#Standard option
+STD=-std=gnu++11
+
+#Compiler flags
+CFLAGS=-I.
+
+#Eigen Library
+EIGEN = C:\usr\share\cpp\eigen3.3.4
+
+all: test_tensor
+#Terminate after N errors
+ERRORFLG=-fmax-errors=5
+
+test_tensor: ../../tensor.h ../../tensor.cpp
+	$(CC) $(STD) -o $@ -c test_geom.cpp $(CFLAGS) $(ERRORFLG)
+
+clean:
+	rm *o tensor
