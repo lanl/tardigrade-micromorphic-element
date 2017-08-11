@@ -1,4 +1,4 @@
-/*=======================================================
+/*!=======================================================
   |                                                     |
   |                     tensor.h                        |
   |                                                     |
@@ -15,10 +15,14 @@
   |        matrix uses such a matrix.                   |
   =======================================================*/
   
+#include <iostream>
+#include <cstdarg>
+#include <Eigen/Dense>
+  
 namespace tensor
 {
     class Tensor{
-        /*===
+        /*!===
            |
            | T e n s o r
            |
@@ -38,17 +42,27 @@ namespace tensor
         
         public:
         
-            //==
-            //|
-            //| Parameter defintions
-            //|
-            //==
+            //!==
+            //!|
+            //!| Attribute Definitions
+            //!|
+            //!==
         
-            std::vector< int > shape;
+            std::vector< unsigned int >     shape;              //!The shape of the tensor a vector of integers indicating each dimensions length
+            unsigned int[2]                 data_dimensions;    //!The dimensions of the data matrix
+            Eigen::MatrixXd                 data;               //!The data object for the tensor a Eigen::MatrixXd
+            std::string                     format = "default"; //!The format of the data object. This modifies the way the tensor is stored
+                                                                //!options: (default)
+            unsigned int                    index_split;        //!Where, in the indices for the tensor, the split between rows and
+                                                                //!Columns occurs for the storage array
+            std::vector<T>::const_iterator  iterator_split;     //!The location of the iterator which marks the split in the array
         
             //Constructors
-            Tensor(){
-                
-            }
+            void Tensor();
+            void Tensor(std::vector< double >);
+
+        private:
+            void map_index(int i, ...); //Map the tensor index to the data matrix
+            void set_dimensions();      //Set the dimensions of the data matrix
     }
 }
