@@ -138,7 +138,7 @@ int test_tensor_functionality(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -202,7 +202,7 @@ int test_eye(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -280,7 +280,7 @@ int test_FOT_eye(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -379,7 +379,78 @@ int test_inverse(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_inverse & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_inverse & False\\\\\n\\hline\n";
+    }
+    return 1;
+}
+
+int test_det(std::ofstream &results){
+    /*!========================
+    |       test_det       |
+    ========================
+    
+    A test of the determinant of the tensor computation. 
+    Tensors with known determinants are compared to 
+    those computed.*/
+    
+    int  test_num               = 2;
+    bool test_results[test_num] = {false,false};
+    
+    /*!Test the determinant of a second order tensor*/
+    std::vector< int > m_shape; //Initialize the shape vector
+    m_shape.resize(2);          //Resize the shape vector to a second order tensor
+    
+    m_shape[0] = 3;             //Set the tensor dimensions
+    m_shape[1] = 3;
+    
+    tensor::Tensor T = tensor::Tensor(m_shape); //Initialize and populate the tensor
+    T.data << 2,4,3,5,1,3,4,6,1;
+    
+    double Tdet = T.det(); //Compute the determinant
+    
+    if(fabs(Tdet-72.)<1e-6){test_results[0] = true;}
+    
+    /*!Test the determinant of a fourth order tensor*/
+    std::vector< int > fot_shape; //Initialize the shape vector
+    fot_shape.resize(4);          //Resize the shape vector to a fourth order tensor
+    
+    fot_shape[0] = 3;             //Set the tensor dimensions
+    fot_shape[1] = 3;
+    fot_shape[2] = 3;
+    fot_shape[3] = 3;
+    
+    tensor::Tensor FOT = tensor::Tensor(fot_shape); //Initialize and populate the tensor
+    
+    FOT.data << 2,4,3,5,1,3,4,6,1,
+                4,5,2,7,2,5,3,5,7,
+                6,2,8,3,6,2,6,4,5,
+                7,2,9,1,5,3,7,3,5,
+                9,8,9,4,1,2,4,3,5,
+                4,2,5,6,2,7,4,5,3,
+                6,6,5,2,4,1,5,4,8,
+                9,1,3,2,2,4,5,6,7,
+                5,2,1,2,1,1,4,5,6;
+    
+    double FOTdet = FOT.det(); //Compute the determinant
+    
+    tensor::Tensor productFOT = tensor::Tensor(fot_shape); //Compute the product of the tensor and its inverse
+    
+    if(fabs(FOTdet-226209.)<1e-6){test_results[1] = true;}
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -413,6 +484,7 @@ int main(){
     test_inverse(results);
     test_eye(results);
     test_FOT_eye(results);
+    test_det(results);
     results.close();
 }
 
