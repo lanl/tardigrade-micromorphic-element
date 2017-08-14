@@ -24,7 +24,11 @@
 
 namespace tensor{
     
-    //Constructors
+    //!==
+    //!|
+    //!| Constructors
+    //!|
+    //!==
     
     Tensor::Tensor(){
         /*!The default constructor for the tensor. 
@@ -71,7 +75,11 @@ namespace tensor{
         }
     }
     
-    //Operators
+    //!==
+    //!|
+    //!| Operators
+    //!|
+    //!==
     
     Tensor& Tensor::operator=(const Tensor& T){
         /*!================================================
@@ -90,7 +98,11 @@ namespace tensor{
         iterator_split  = T.iterator_split;
     }
     
-    //Methods
+    //!==
+    //!|
+    //!| Methods
+    //!|
+    //!==
     
     void Tensor::set_dimensions(){
         /*!===========================
@@ -256,7 +268,11 @@ namespace tensor{
         return data.determinant();
     }
     
-    //Functions
+    //!==
+    //!|
+    //!| Functions
+    //!|
+    //!==
     
     Tensor eye(){
         /*!Return the second order identity tensor
