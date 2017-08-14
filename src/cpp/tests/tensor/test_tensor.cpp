@@ -26,6 +26,7 @@
 //#include <cstdarg>
 #include <Eigen/Dense>
 #include <tensor.h>
+#include <ctime>
 
 int test_tensor_functionality(std::ofstream &results){
     /*!====================================
@@ -36,45 +37,361 @@ int test_tensor_functionality(std::ofstream &results){
     This should show that tensors of different orders 
     can be generated and manipulated.*/
 
-    std::vector< int > v_shape;
-    v_shape.resize(1);
-    v_shape[0] = 6;
+    int  test_num        = 6;
+    bool test_results[test_num] = {false,false,false,false,false,false};
     
-    std::cout << "Forming tensor\n";
-    tensor::Tensor V = tensor::Tensor(v_shape);
+    //Define a test vector
+    std::vector< int > v_shape;                 //Vector shape vector
+    v_shape.resize(1);                          //Resizing the shape vector to have only one index
+    v_shape[0] = 6;                             //Setting the vector size
+    tensor::Tensor V = tensor::Tensor(v_shape); //Form the vector
     
-    std::cout << "V is of size " << V.data.rows() << "x" << V.data.cols() << "\n";
+    Eigen::MatrixXd V_compare(6,1); //Initialize the comparison matrix
     
-    std::cout << "V.data:\n" << V.data << "\n";
+    V_compare << 1,2,3,4,5,6;  //Set the initial values
     
-    V(2) = -7;
+    double inc = 1; //Set an initial increment vector
     
-    std::cout << "V.data:\n" << V.data << "\n";
+    //!Compare expected storage pattern vs. actual for a vector
+    for(int i=0; i<v_shape[0]; i++){//Iterate through the vector setting the required values
+        V(i) = inc;                 //Set the i'th value of V equal to inc
+        inc++;                      //Increment inc
+    }
     
-    std::vector < int > m_shape;
-    m_shape.resize(2);
+    test_results[0] = V_compare.isApprox(V.data); //Check the results of the test
     
-    m_shape[0] = 3;
+    //!Setting index test for a vector
+    V_compare(3) = -1; //Set the 4th index value to -1
+    V(3)         = -1; //Do the same for the tensor
+    
+    test_results[1] = V_compare.isApprox(V.data); //Check the results of the test
+    
+    //Define a test matrix
+    std::vector < int > m_shape; //Matrix shape vector
+    m_shape.resize(2);           //Resizing the shape vector to having two indices
+    
+    m_shape[0] = 3;              //Create a 3x3 matrix
     m_shape[1] = 3;
     
-    tensor::Tensor M = tensor::Tensor(m_shape);
+    tensor::Tensor M = tensor::Tensor(m_shape); //Initialize the matrix
     
-    std::cout << "M is of size " << M.data.rows() << "x" << M.data.cols() << "\n";
+    Eigen::MatrixXd M_compare(3,3); //Initialize the comparison matrix
+    M_compare << 1,2,3,4,5,6,7,8,9;  //Set the initial values
     
-    std::cout << "M.data:\n" << M.data << "\n";
     
-    M(2,1) = -8;
+    //!Compare expected storage pattern to actual for a 2nd order tensor
+    inc = 1; //Set an initial increment vector
     
-    std::cout << "M.data:\n" << M.data << "\n";
+    for(int i=0; i<m_shape[0]; i++){
+        for(int j=0; j<m_shape[1]; j++){
+            M(i,j) = inc;
+            inc++;
+        }
+    }
     
-    std::vector < int > t_shape;
-    t_shape.resize(3);
+    test_results[2] =  M_compare.isApprox(M.data); //Check the results of the test
     
-    t_shape[0] = 3;
+    //!Setting index test for a 2nd order tensor
+    M_compare(2,1) = -8;
+    M(2,1)         = -8;
+    
+    test_results[3] =  M_compare.isApprox(M.data); //Check the results of the test
+    
+    //Define a test 3rd order tensor
+    std::vector < int > t_shape;                //Initialize the the tensor shape vector
+    t_shape.resize(3);                          //Resize the shape vector of the tensor
+    
+    t_shape[0] = 4;                             //Initialize the tensor size
     t_shape[1] = 3;
     t_shape[2] = 7;
     
-    tensor::Tensor T = tensor::Tensor(t_shape);
+    tensor::Tensor T = tensor::Tensor(t_shape); //Initialize the tensor
+    
+    Eigen::MatrixXd T_compare(4,21); //Initialize the comparison tensor
+    T_compare <<  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+                 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,
+                 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+                 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84;
+    
+    //!Compare expected storage pattern to actual for a 3rd order tensor
+    inc = 1; //Set an initial increment vector
+    
+    for(int i=0; i<t_shape[0]; i++){
+        for(int j=0; j<t_shape[1]; j++){
+            for(int k=0; k<t_shape[2]; k++){
+                T(i,j,k) = inc;
+                inc++;
+            }
+        }
+    }
+    
+    test_results[4] =  T_compare.isApprox(T.data); //Check the results of the test
+    
+    //!Setting index test for a 3nd order tensor
+    T_compare(2,13) = -8;
+    T(2,1,6)        = -8;
+    
+    test_results[5] =  T_compare.isApprox(T.data); //Check the results of the test
+    
+    //std::cout << "\nT_compare:\n" << T_compare << "\n" << "T:\n" << T.data << "\n";
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_tensor_functionality & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_tensor_functionality & False\\\\\n\\hline\n";
+    }
+    
+    return 1;
+    
+}
+
+int test_eye(std::ofstream &results){
+    /*!========================
+    |       test_eye       |
+    ========================
+    
+    A test of the generation of the second
+    order identity tensor. Note that with 
+    different storage schemes this tensor 
+    may not always be the same in terms of 
+    the way it is stored.*/
+    
+    //Initialize the results
+    int  test_num        = 2;
+    bool test_results[test_num] = {false,false};
+    
+    //Compute the identity tensor
+    tensor::Tensor I = tensor::eye();
+    
+    //Define a test matrix
+    std::vector < int > m_shape; //Matrix shape vector
+    m_shape.resize(2);           //Resizing the shape vector to having two indices
+    
+    m_shape[0] = 3;              //Create a 3x3 tensor
+    m_shape[1] = 3;
+    
+    tensor::Tensor M = tensor::Tensor(m_shape); //Initialize the matrix
+    M.data << 1,2,3,4,5,6,7,8,9;  //Set the initial values
+    
+    //!Run multiplication tests
+    tensor::Tensor R1 = tensor::Tensor(m_shape); //Initialize the first results matrix
+    tensor::Tensor R2 = tensor::Tensor(m_shape); //Initialize the second results matrix
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            for(int k=0; k<3; k++){
+                R1(i,j) += I(i,k)*M(k,j);
+                R2(i,j) += M(i,k)*I(k,j);
+            }
+        }
+    }
+    
+    //Check the results of the tests
+    test_results[0] = R1.data.isApprox(M.data);
+    test_results[1] = R2.data.isApprox(M.data);
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_eye & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_eye & False\\\\\n\\hline\n";
+    }
+    
+}
+
+int test_FOT_eye(std::ofstream &results){
+    /*!========================
+    |     test_FOT_eye     |
+    ========================
+    
+    A test of the generation of the fourth
+    order identity tensor. Note that with 
+    different storage schemes this tensor 
+    may not always be the same in terms of 
+    the way it is stored.*/
+    
+    //Initialize the results
+    int  test_num        = 2;
+    bool test_results[test_num] = {false,false};
+    
+    //Compute the identity tensor
+    tensor::Tensor FOTI = tensor::FOT_eye();
+    
+    //Define a test matrix
+    std::vector < int > m_shape; //Matrix shape vector
+    m_shape.resize(4);           //Resizing the shape vector to having two indices
+    
+    m_shape[0] = 3;              //Create a 3x3x3x3 tensor
+    m_shape[1] = 3;
+    m_shape[2] = 3;
+    m_shape[3] = 3;
+    
+    tensor::Tensor FOT = tensor::Tensor(m_shape); //Initialize the matrix
+    FOT.data << 2,4,3,5,1,3,4,6,1,
+                4,5,2,7,2,5,3,5,7,
+                6,2,8,3,6,2,6,4,5,
+                7,2,9,1,5,3,7,3,5,
+                9,8,9,4,1,2,4,3,5,
+                4,2,5,6,2,7,4,5,3,
+                6,6,5,2,4,1,5,4,8,
+                9,1,3,2,2,4,5,6,7,
+                5,2,1,2,1,1,4,5,6;
+    
+    //!Run multiplication tests
+    tensor::Tensor R1 = tensor::Tensor(m_shape); //Initialize the first results matrix
+    tensor::Tensor R2 = tensor::Tensor(m_shape); //Initialize the second results matrix
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            for(int k=0; k<3; k++){
+                for(int l=0; l<3; l++){
+                    for(int m=0; m<3; m++){
+                        for(int n=0; n<3; n++){
+                            R1(i,j,k,l) += FOTI(i,j,m,n)*FOT(m,n,k,l);
+                            R2(i,j,k,l) += FOT(i,j,m,n)*FOTI(m,n,k,l);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    //Check the results of the tests
+    test_results[0] = R1.data.isApprox(FOT.data);
+    test_results[1] = R2.data.isApprox(FOT.data);
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_FOT_eye & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_FOT_eye & False\\\\\n\\hline\n";
+    }
+    
+}
+
+int test_inverse(std::ofstream &results){
+    /*!========================
+    |     test_inverse     |
+    ========================
+    
+    A test of the inverse of the tensor computation. 
+    Several different tensor formulations are compared 
+    and examined to make sure that the product of the 
+    inverse and the original tensor is the identity 
+    tensor.*/
+    
+    int  test_num               = 2;
+    bool test_results[test_num] = {false,false};
+    
+    /*!Test the inverse of a second order tensor*/
+    std::vector< int > m_shape; //Initialize the shape vector
+    m_shape.resize(2);          //Resize the shape vector to a second order tensor
+    
+    m_shape[0] = 3;             //Set the tensor dimensions
+    m_shape[1] = 3;
+    
+    tensor::Tensor T = tensor::Tensor(m_shape); //Initialize and populate the tensor
+    T.data << 2,4,3,5,1,3,4,6,1;
+    
+    tensor::Tensor Tinv = T.inverse(); //Invert the tensor
+    
+    tensor::Tensor product = tensor::Tensor(m_shape); //Compute the product of the tensor and its inverse
+    
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            for(int k=0; k<3; k++){
+                product(i,j) += T(i,k)*Tinv(k,j);
+            }
+        }
+    }
+    
+    tensor::Tensor I = tensor::eye(); //Get the second order identity tensor
+    
+    test_results[0] = I.data.isApprox(product.data);
+    
+    /*!Test the inverse of a fourth order tensor*/
+    std::vector< int > fot_shape; //Initialize the shape vector
+    fot_shape.resize(4);          //Resize the shape vector to a fourth order tensor
+    
+    fot_shape[0] = 3;             //Set the tensor dimensions
+    fot_shape[1] = 3;
+    fot_shape[2] = 3;
+    fot_shape[3] = 3;
+    
+    tensor::Tensor FOT = tensor::Tensor(fot_shape); //Initialize and populate the tensor
+    
+    FOT.data << 2,4,3,5,1,3,4,6,1,
+                4,5,2,7,2,5,3,5,7,
+                6,2,8,3,6,2,6,4,5,
+                7,2,9,1,5,3,7,3,5,
+                9,8,9,4,1,2,4,3,5,
+                4,2,5,6,2,7,4,5,3,
+                6,6,5,2,4,1,5,4,8,
+                9,1,3,2,2,4,5,6,7,
+                5,2,1,2,1,1,4,5,6;
+    
+    tensor::Tensor FOTinv = FOT.inverse(); //Invert the tensor
+    
+    tensor::Tensor productFOT = tensor::Tensor(fot_shape); //Compute the product of the tensor and its inverse
+    
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            for(int k=0; k<3; k++){
+                for(int l=0; l<3; l++){
+                    for(int m=0; m<3; m++){
+                        for(int n=0; n<3; n++){
+                            productFOT(i,j,k,l) += FOT(i,j,m,n)*FOTinv(m,n,k,l);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    tensor::Tensor FOTI = tensor::FOT_eye();
+    test_results[1] = FOTI.data.isApprox(productFOT.data);
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_inverse & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_inverse & False\\\\\n\\hline\n";
+    }
+    return 1;
 }
 
 int main(){
@@ -87,15 +404,15 @@ int main(){
     the function name followed by & followed by True or 
     False if the test passes or fails respectively.*/
     
-    std::cout << "Compiled successfully";
-    
     std::ofstream results;
     //Open the results file
     results.open ("results.tex");
-    results << "Writing this to a file.\n";
         
     //!Run the test functions
     test_tensor_functionality(results);
+    test_inverse(results);
+    test_eye(results);
+    test_FOT_eye(results);
     results.close();
 }
 
