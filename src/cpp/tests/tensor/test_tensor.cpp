@@ -50,6 +50,31 @@ int test_tensor_functionality(std::ofstream &results){
     V(2) = -7;
     
     std::cout << "V.data:\n" << V.data << "\n";
+    
+    std::vector < int > m_shape;
+    m_shape.resize(2);
+    
+    m_shape[0] = 3;
+    m_shape[1] = 3;
+    
+    tensor::Tensor M = tensor::Tensor(m_shape);
+    
+    std::cout << "M is of size " << M.data.rows() << "x" << M.data.cols() << "\n";
+    
+    std::cout << "M.data:\n" << M.data << "\n";
+    
+    M(2,1) = -8;
+    
+    std::cout << "M.data:\n" << M.data << "\n";
+    
+    std::vector < int > t_shape;
+    t_shape.resize(3);
+    
+    t_shape[0] = 3;
+    t_shape[1] = 3;
+    t_shape[2] = 7;
+    
+    tensor::Tensor T = tensor::Tensor(t_shape);
 }
 
 int main(){
