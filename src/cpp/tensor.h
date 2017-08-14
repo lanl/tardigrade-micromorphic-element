@@ -58,12 +58,21 @@ namespace tensor
                                                                     //!associated with the columns.
             std::vector< int >::const_iterator  iterator_split;     //!The location of the iterator which marks the split in the array
         
-            //Constructors
+            //!==
+            //!|
+            //!| Constructors
+            //!|
+            //!==
+            
             Tensor();
             Tensor(std::vector< int >);
-            
-            //Operators
-            /*Operators*/
+            Tensor(std::vector< int >, Eigen::MatrixXd);
+
+            //!==
+            //!|
+            //!| Operators
+            //!|
+            //!==
             Tensor& operator=(const Tensor& T);
             template <typename ...ArgsT>
             double& operator()(ArgsT ...indices){
@@ -117,10 +126,28 @@ namespace tensor
         
                 return data(data_indices[0],data_indices[1]);
         
-            }  
+            }
+            
+            //!==
+            //!|
+            //!| Methods
+            //!|
+            //!==
+            
+            Tensor inverse();
+            double det();
 
         private:
             std::array<int, 2> map_index(std::initializer_list< int > indices) const; //Map the tensor index to the data matrix
             void set_dimensions();                 //Set the dimensions of the data matrix
     };
+    
+    //!==
+    //!|
+    //!| Functions
+    //!|
+    //!==
+        
+    Tensor eye();
+    Tensor FOT_eye();
 }

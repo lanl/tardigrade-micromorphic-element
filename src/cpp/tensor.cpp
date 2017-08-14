@@ -48,6 +48,28 @@ namespace tensor{
         
     }
     
+    Tensor::Tensor(std::vector< int > dimensions, Eigen::MatrixXd data_in){
+        /*!A constructor for a tensor where the dimensions of the tensor are read in
+        along with the data values.
+        
+        dimensions and data must be consistent!*/
+        
+        //Assign the incoming dimensions to shape
+        shape = dimensions;
+        
+        //Set the data matrix dimensions
+        set_dimensions();
+        
+        if((data.rows()==data_in.rows()) && (data.cols()==data_in.cols())){
+            data = data_in;
+        }
+        else{
+            std::cout << "\nError: Tensor dimensions and the provided data matrix are\n";
+            std::cout << "         not consistent.";
+            assert(1==0);
+        }
+    }
+    
     void Tensor::set_dimensions(){
         /*!===========================
         |     set_dimensions       |
@@ -91,7 +113,6 @@ namespace tensor{
             }
             else if(shape.size()==1){//If the shape is a vector
                 
-                std::cout << "In vector definition\n";
                 index_split        = 1;
                 data_dimensions[0] = shape[0];
                 data_dimensions[1] = 1;
@@ -121,7 +142,6 @@ namespace tensor{
         }
         
         //Set the dimensions of the data matrix and initialize to zero
-        std::cout << "\ndata_dimensions[0]: " << data_dimensions[0] << "\ndata_dimensions[1]: " << data_dimensions[1] << "\n";
         data.resize(data_dimensions[0],data_dimensions[1]);
         data = Eigen::MatrixXd::Zero(data_dimensions[0],data_dimensions[1]);
     }
@@ -160,8 +180,6 @@ namespace tensor{
         std::initializer_list<int>::iterator it;  //!Iterator variable
         int inc;                                  //!The incrementation variable
         
-        std::cout << "indices.size(): " << indices.size() << "\n" << "shape.size(): " << shape.size() << "\n";
-        
         //Error Handling
         if(indices.size() != shape.size()){//Make sure the number of indices is equal to the tensor order
             //TODO: Should raise an error!
@@ -179,8 +197,6 @@ namespace tensor{
             }
             inc++;
         }
-        
-        std::cout << "hi!\n";
         
         //Get the row index
         inc = 0;
@@ -209,10 +225,84 @@ namespace tensor{
             
             inc++;
         }
-        
-        std::cout << "data_indices[0]: " << data_indices[0] << "\ndata_indices[1]: " << data_indices[1] << "\n";
-        
+                
         return data_indices;
+    }
+    
+    Tensor Tensor::inverse(){
+        /*!Invert a tensor of even order. 
+        
+        This method directly inverts the data matrix which returns an inverse
+        of the tensor. This method will only work with tensors of even order 
+        such that the storage matrix is square.*/
+        
+        Eigen::MatrixXd inv_data = data.inverse();
+        Tensor T_out = Tensor(shape,inv_data);
+        return T_out;
+    }
+    
+    double Tensor::det(){
+        /*!Get the determinant of a tensor of even order
+        
+        This method gets the determinant of the data matrix and returns this 
+        as the determinant of the tensor. This method will only work with 
+        tensors of even order such that the storage matrix is square.*/
+        
+        return data.determinant();
+    }
+    
+    Tensor eye(){
+        /*!Return the second order identity tensor
+        
+        Populate the second order identity tensor.
+        This function is useful so that a consistent identity tensor can be used 
+        with different storage schemes.*/
+        
+        //Initialize the matrix shape
+        std::vector< int > shape;
+        shape.resize(2);
+        shape[0] = 3;
+        shape[1] = 3;
+        
+        //Initialize the matrix
+        Tensor I = Tensor(shape);
+        
+        for(int i=0; i<3; i++){
+            I(i,i) = 1.;
+        }
+        return I;
+    }
+    
+    Tensor FOT_eye(){
+        /*!Return the fourth order identity tensor
+        
+        Populate the fourth order identity tensor.
+        This function is useful so that a consistent identity tensor can be used
+        with different storage schemes.*/
+        
+        //Initialize the matrix shape
+        std::vector< int > shape;
+        shape.resize(4);
+        shape[0] = 3;
+        shape[1] = 3;
+        shape[2] = 3;
+        shape[3] = 3;
+        
+        //Initialize the matrix
+        Tensor FOTI = Tensor(shape);
+        Tensor I    = eye(); //Get the second order identity tensor
+        
+        for(int i=0; i<3; i++){
+            for(int j=0; j<3; j++){
+                for(int k=0; k<3; k++){
+                    for(int l=0; l<3; l++){
+                        FOTI(i,j,k,l) = I(i,k)*I(j,l);
+                    }
+                }
+            }
+        }
+        
+        return FOTI;
     }
     
 }
