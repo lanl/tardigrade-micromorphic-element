@@ -54,7 +54,8 @@ namespace tensor
             std::string                         format = "default"; //!The format of the data object. This modifies the way the tensor is stored
                                                                     //!options: (default)
             int                                 index_split;        //!Where, in the indices for the tensor, the split between rows and
-                                                                    //!Columns occurs for the storage array
+                                                                    //!Columns occurs for the storage array. This is the first index 
+                                                                    //!associated with the columns.
             std::vector< int >::const_iterator  iterator_split;     //!The location of the iterator which marks the split in the array
         
             //Constructors

@@ -92,6 +92,7 @@ namespace tensor{
             else if(shape.size()==1){//If the shape is a vector
                 
                 std::cout << "In vector definition\n";
+                index_split        = 1;
                 data_dimensions[0] = shape[0];
                 data_dimensions[1] = 1;
             }
@@ -162,58 +163,54 @@ namespace tensor{
         std::cout << "indices.size(): " << indices.size() << "\n" << "shape.size(): " << shape.size() << "\n";
         
         //Error Handling
-        if(indices.size() != shape.size()){
+        if(indices.size() != shape.size()){//Make sure the number of indices is equal to the tensor order
             //TODO: Should raise an error!
+            std::cout << "Error: indices size does not equal the order of the tensor.";
             assert(1==0);
         }
         
+        inc = 0;
+        for(it=indices.begin(); inc<shape.size(); it++){//Make sure the dimension of each index is consistent with the shape
+            
+            if((*it>=shape[inc]) || (*it<0)){
+                //TODO: Should raise an error!
+                std::cout << "Error: index " << inc << "with value " << *it << "\noutside allowed bounds.\n";
+                assert(1==0);
+            }
+            inc++;
+        }
+        
+        std::cout << "hi!\n";
+        
         //Get the row index
         inc = 0;
-        for(it=indices.begin(); inc<=index_split; it++){//Iterate through the indices before the split
+        for(it=indices.begin(); inc<index_split; it++){//Iterate through the pre-split indices
             val = 1;
             
-            for(int j=(it-indices.begin()+1); j<index_split; j++){//Increment through the remaining indices before the split
+            for(int j=inc+1; j<index_split; j++){//Assemble the index multiplier
                 val *= shape[j];
             }
             
-            data_indices[0] += *it*val; //Add the remaining values to row
+            data_indices[0] += *it*val;
             
-            inc++;                      //Increment the increment variable
+            inc++;
+            
         }
         //Get the column index
         inc = index_split;
-        for(it=indices.begin(); inc<shape.size(); it++){//Iterate through the indices before the split
+        for(it=(indices.begin()+inc); inc<shape.size(); it++){//Iterate through the post-split indices
             val = 1;
             
-            for(int j=(it-indices.begin()+1); j<index_split; j++){//Increment through the remaining indices before the split
+            for(int j=inc+1; j<shape.size(); j++){//Assemble the index multipler
                 val *= shape[j];
             }
             
-            data_indices[1] += *it*val; //Add the remaining values to row
+            data_indices[1] += *it*val;
             
-            inc++;                      //Increment the increment variable
-        }
-        /*for(int i=0; i<index_split; i++){//Increment through the indices before the split
-            val = 1; //Set the initial value of val
-            for(int j=(i+1); j<index_split; j++){//Increment through the remaining indices before the split
-                val *= shape[j];
-            }
-            data_indices[0] += indices[i]*val;//Add the remaining values to row
+            inc++;
         }
         
-        //Get the column index
-        for(int i=index_split; i<shape.size(); i++){//Increment through the indices after the split
-            val = 1; //Set the initial value of val
-            for(int j=(i+1); j<shape.size(); j++){//Increment through the remaining indices before the split
-                val *= shape[j];
-            }
-            data_indices[1] += indices[i]*val;//Add the remaining values to row
-        }
-        
-        */
-        
-        std::cout << "data_indices[0]: " << data_indices[0] << "\n";
-        std::cout << "data_indices[1]: " << data_indices[1] << "\n";
+        std::cout << "data_indices[0]: " << data_indices[0] << "\ndata_indices[1]: " << data_indices[1] << "\n";
         
         return data_indices;
     }
