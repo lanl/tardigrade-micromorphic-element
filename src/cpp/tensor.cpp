@@ -24,6 +24,8 @@
 
 namespace tensor{
     
+    //Constructors
+    
     Tensor::Tensor(){
         /*!The default constructor for the tensor. 
         Zeros the sizes of the shape and data attributes
@@ -68,6 +70,27 @@ namespace tensor{
             assert(1==0);
         }
     }
+    
+    //Operators
+    
+    Tensor& Tensor::operator=(const Tensor& T){
+        /*!================================================
+        |               Tensor::operator=               |
+        =================================================
+        
+        Redefine the copy operator
+        
+        */
+        
+        shape           = T.shape;
+        data_dimensions = T.data_dimensions;
+        data            = T.data;
+        format          = T.format;
+        index_split     = T.index_split;
+        iterator_split  = T.iterator_split;
+    }
+    
+    //Methods
     
     void Tensor::set_dimensions(){
         /*!===========================
@@ -143,23 +166,6 @@ namespace tensor{
         //Set the dimensions of the data matrix and initialize to zero
         data.resize(data_dimensions[0],data_dimensions[1]);
         data = Eigen::MatrixXd::Zero(data_dimensions[0],data_dimensions[1]);
-    }
-    
-    Tensor& Tensor::operator=(const Tensor& T){
-        /*!================================================
-        |               Tensor::operator=               |
-        =================================================
-        
-        Redefine the copy operator
-        
-        */
-        
-        shape           = T.shape;
-        data_dimensions = T.data_dimensions;
-        data            = T.data;
-        format          = T.format;
-        index_split     = T.index_split;
-        iterator_split  = T.iterator_split;
     }
     
     std::array< int, 2 > Tensor::map_index(std::initializer_list< int > indices) const{
@@ -249,6 +255,8 @@ namespace tensor{
         
         return data.determinant();
     }
+    
+    //Functions
     
     Tensor eye(){
         /*!Return the second order identity tensor
