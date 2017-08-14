@@ -23,7 +23,6 @@
 #include <fstream>
 #include <numeric>
 #include <vector>
-//#include <cstdarg>
 #include <Eigen/Dense>
 #include <tensor.h>
 #include <ctime>
@@ -485,6 +484,8 @@ int main(){
     test_eye(results);
     test_FOT_eye(results);
     test_det(results);
+    
+    //Close the results file
     results.close();
 }
 

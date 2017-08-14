@@ -16,7 +16,6 @@
   =======================================================*/
   
 #include <iostream>
-//#include <cstdarg>
 #include <Eigen/Dense>
   
 namespace tensor

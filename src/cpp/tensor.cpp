@@ -19,7 +19,6 @@
 #include <iostream>
 #include <numeric>
 #include <vector>
-//#include <cstdarg>
 #include <Eigen/Dense>
 #include <tensor.h>
 
