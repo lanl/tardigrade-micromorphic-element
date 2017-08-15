@@ -385,6 +385,16 @@ namespace tensor{
         return data.determinant();
     }
     
+    void Tensor::zero(){
+        /*! Set all values of the tensor to zero */
+        
+        for(int i=0; i<data.rows(); i++){
+            for(int j=0; j<data.rows(); j++){
+                data(i,j) = 0.;
+            }
+        }
+    }
+    
     //!==
     //!|
     //!| Functions

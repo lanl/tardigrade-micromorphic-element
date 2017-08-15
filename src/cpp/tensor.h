@@ -140,6 +140,7 @@ namespace tensor
             
             Tensor inverse();
             double det();
+            void zero();
 
         private:
             std::array<int, 2> map_index(std::initializer_list< int > indices) const; //Map the tensor index to the data matrix
