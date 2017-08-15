@@ -73,6 +73,11 @@ namespace tensor
             //!|
             //!==
             Tensor& operator=(const Tensor& T);
+            Tensor& operator+(const Tensor& T1, const Tensor &T2);
+            void operator+=(Tensor &T1, const Tensor& T2);
+            Tensor& operator-(const Tensor& T1, const Tensor &T2);
+            Tensor& operator-(const Tensor& T1);
+            void operator-=(Tensor &T1, const Tensor& T2);
             template <typename ...ArgsT>
             double& operator()(ArgsT ...indices){
                 /*!================================================
