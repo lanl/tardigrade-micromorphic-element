@@ -98,6 +98,32 @@ namespace tensor{
         iterator_split  = T.iterator_split;
     }
     
+    Tensor& Tensor::operator+(const Tensor& T1, const Tensor& T2){
+        /*!================================================
+        |               Tensor::operator+               |
+        =================================================
+        
+        Redefine the addition operator
+        
+        */
+        
+        if(T1.shape != T2.shape){
+            std::cout << "\nError: tensors must have the same shape\n";
+            assert(1==0); //TODO: allow to raise error
+        }
+        
+        if(!T1.format.compare(T2.format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+            std::cout << "\nError: tensors must have the same storage format\n";
+            assert(1==0); //TODO: allow to raise error
+        }
+        
+        Eigen::MatrixXd data = T1.data + T2.data;
+        
+        T = tensor::Tensor(T1.shape,data);
+        return T;
+        
+    }
+    
     //!==
     //!|
     //!| Methods
