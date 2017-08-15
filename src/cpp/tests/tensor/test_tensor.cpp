@@ -472,6 +472,67 @@ int test_operators(std::ofstream &results){
     A test of the operators on the tensor 
     object. These include, addition, subtraction, 
     +=, and -=*/
+    
+    //Define a test matrix
+    std::vector < int > m_shape1; //Matrix shape vector
+    m_shape1.resize(2);           //Resizing the shape vector to having two indices
+    
+    m_shape1[0] = 3;              //Create a 3x3 tensor
+    m_shape1[1] = 3;
+    
+    tensor::Tensor M1 = tensor::Tensor(m_shape1); //Initialize the matrix
+    M1.data << 1,2,3,4,5,6,7,8,9;  //Set the initial values
+    
+    //Define a second test matrix
+    std::vector < int > m2_shape; //Matrix shape vector
+    m2_shape.resize(2);           //Resizing the shape vector to having two indices
+    
+    m2_shape[0] = 3;              //Create a 3x3 tensor
+    m2_shape[1] = 3;
+    
+    tensor::Tensor M2 = tensor::Tensor(m2_shape); //Initialize the matrix
+    M2.data << 6,2,2,7,2,1,3,9,0;  //Set the initial values
+    
+    //Compute the values
+    tensor::Tensor Tsum =  M1+M2;
+    tensor::Tensor Tsub =  M1-M2;
+    tensor::Tensor Tneg = -M1;
+    M1 += M2;
+    M2 -= M2;
+    
+    //Set the answers
+    Eigen::MatrixXd MA1 = Eigen::MatrixXd(3,3) << 1+6,2+2,3+2,4+7,5+2,6+1,7+3,8+9,9+0;
+    Eigen::MatrixXd MA2 = Eigen::MatrixXd(3,3) << 1-6,2-2,3-2,4-7,5-2,6-1,7-3,8-9,9-0;
+    Eigen::MatrixXd MA3 = Eigen::MatrixXd(3,3) << -1,-2,-3,-4,-5,-6,-7,-8,-9;
+    Eigen::MatrixXd MA4 = Eigen::MatrixXd(3,3) << 1+6,2+2,3+2,4+7,5+2,6+1,7+3,8+9,9+0;
+    Eigen::MatrixXd MA5 = Eigen::Zeros(3,3);
+    
+    //Compare the results to the solutions
+    int test_num = 5;
+    std::array<bool, test_num> test_results = {false,false,false,false,false};
+    
+    test_results[0] = MA1.isApprox(Tsum.data);
+    test_results[1] = MA2.isApprox(Tsub.data);
+    test_results[2] = MA3.isApprox(Tneg.data);
+    test_results[3] = MA4.isApprox(M1.data);
+    test_results[4] = MA5.isApprox(M2.data);
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_inverse & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_inverse & False\\\\\n\\hline\n";
+    }
+    return 1;
 }
 
 int main(){
