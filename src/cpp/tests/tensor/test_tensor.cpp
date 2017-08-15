@@ -464,6 +464,16 @@ int test_det(std::ofstream &results){
     return 1;
 }
 
+int test_operators(std::ofstream &results){
+    /*!==============================
+    |       test_operators       |
+    ==============================
+    
+    A test of the operators on the tensor 
+    object. These include, addition, subtraction, 
+    +=, and -=*/
+}
+
 int main(){
     /*!==========================
     |         main            |
