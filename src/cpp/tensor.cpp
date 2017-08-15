@@ -98,7 +98,7 @@ namespace tensor{
         iterator_split  = T.iterator_split;
     }
     
-    Tensor& Tensor::operator+(const Tensor& T1, const Tensor& T2){
+    Tensor Tensor::operator+(const Tensor& T1){
         /*!================================================
         |               Tensor::operator+               |
         =================================================
@@ -107,24 +107,24 @@ namespace tensor{
         
         */
         
-        if(T1.shape != T2.shape){
+        if(T1.shape != shape){
             std::cout << "\nError: tensors must have the same shape\n";
             assert(1==0); //TODO: allow to raise error
         }
-        
-        if(!T1.format.compare(T2.format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+                
+        if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
             std::cout << "\nError: tensors must have the same storage format\n";
             assert(1==0); //TODO: allow to raise error
         }
         
-        Eigen::MatrixXd data = T1.data + T2.data;
+        Eigen::MatrixXd new_data = T1.data + data;
         
-        T = tensor::Tensor(T1.shape,data);
+        tensor::Tensor T = tensor::Tensor(T1.shape,new_data);
         return T;
         
     }
     
-    void Tensor::operator+=(Tensor& T1, const Tensor& T2){
+    void Tensor::operator+=(const Tensor& T1){
         /*!================================================
         |               Tensor::operator+=              |
         =================================================
@@ -133,23 +133,23 @@ namespace tensor{
         
         */
         
-        if(T1.shape != T2.shape){
+        if(T1.shape != shape){
             std::cout << "\nError: tensors must have the same shape\n";
             assert(1==0); //TODO: allow to raise error
         }
         
-        if(!T1.format.compare(T2.format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+        if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
             std::cout << "\nError: tensors must have the same storage format\n";
             assert(1==0); //TODO: allow to raise error
         }
         
-        T1.data += T2.data;
+        data += T1.data;
         
-        return void;
+        return;
         
     }
     
-    Tensor& Tensor::operator-(const Tensor& T1, const Tensor& T2){
+    Tensor Tensor::operator-(const Tensor& T1){
         /*!================================================
         |               Tensor::operator-               |
         =================================================
@@ -158,24 +158,24 @@ namespace tensor{
         
         */
         
-        if(T1.shape != T2.shape){
+        if(T1.shape != shape){
             std::cout << "\nError: tensors must have the same shape\n";
             assert(1==0); //TODO: allow to raise error
         }
         
-        if(!T1.format.compare(T2.format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+        if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
             std::cout << "\nError: tensors must have the same storage format\n";
             assert(1==0); //TODO: allow to raise error
         }
         
-        Eigen::MatrixXd data = T1.data - T2.data;
+        Eigen::MatrixXd new_data = data - T1.data;
         
-        T = tensor::Tensor(T1.shape,data);
+        tensor::Tensor T = tensor::Tensor(T1.shape,new_data);
         return T;
         
     }
     
-    Tensor& Tensor::operator-(const Tensor& T1){
+    Tensor Tensor::operator-(){
         /*!================================================
         |               Tensor::operator-               |
         =================================================
@@ -184,14 +184,14 @@ namespace tensor{
         
         */
         
-        Eigen::MatrixXd data = -T1.data;
+        Eigen::MatrixXd new_data = -data;
         
-        T = tensor::Tensor(T1.shape,data);
+        tensor::Tensor T = tensor::Tensor(shape,new_data);
         return T;
         
     }
     
-    void Tensor::operator-=(Tensor& T1, const Tensor& T2){
+    void Tensor::operator-=(const Tensor& T1){
         /*!================================================
         |               Tensor::operator-=              |
         =================================================
@@ -200,18 +200,18 @@ namespace tensor{
         
         */
         
-        if(T1.shape != T2.shape){
+        if(T1.shape != shape){
             std::cout << "\nError: tensors must have the same shape\n";
             assert(1==0); //TODO: allow to raise error
         }
         
-        if(!T1.format.compare(T2.format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+        if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
             std::cout << "\nError: tensors must have the same storage format\n";
             assert(1==0); //TODO: allow to raise error
         }
         
-        T1.data -= T2.data;
-        return void;
+        data -= T1.data;
+        return;
         
     }
     

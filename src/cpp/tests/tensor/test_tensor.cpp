@@ -501,15 +501,19 @@ int test_operators(std::ofstream &results){
     M2 -= M2;
     
     //Set the answers
-    Eigen::MatrixXd MA1 = Eigen::MatrixXd(3,3) << 1+6,2+2,3+2,4+7,5+2,6+1,7+3,8+9,9+0;
-    Eigen::MatrixXd MA2 = Eigen::MatrixXd(3,3) << 1-6,2-2,3-2,4-7,5-2,6-1,7-3,8-9,9-0;
-    Eigen::MatrixXd MA3 = Eigen::MatrixXd(3,3) << -1,-2,-3,-4,-5,-6,-7,-8,-9;
-    Eigen::MatrixXd MA4 = Eigen::MatrixXd(3,3) << 1+6,2+2,3+2,4+7,5+2,6+1,7+3,8+9,9+0;
-    Eigen::MatrixXd MA5 = Eigen::Zeros(3,3);
+    Eigen::MatrixXd MA1 = Eigen::MatrixXd(3,3);
+    MA1 << 1+6,2+2,3+2,4+7,5+2,6+1,7+3,8+9,9+0;
+    Eigen::MatrixXd MA2 = Eigen::MatrixXd(3,3);
+    MA2 << 1-6,2-2,3-2,4-7,5-2,6-1,7-3,8-9,9-0;
+    Eigen::MatrixXd MA3 = Eigen::MatrixXd(3,3);
+    MA3 << -1,-2,-3,-4,-5,-6,-7,-8,-9;
+    Eigen::MatrixXd MA4 = Eigen::MatrixXd(3,3);
+    MA4 << 1+6,2+2,3+2,4+7,5+2,6+1,7+3,8+9,9+0;
+    Eigen::MatrixXd MA5 = Eigen::MatrixXd::Zero(3,3);
     
     //Compare the results to the solutions
     int test_num = 5;
-    std::array<bool, test_num> test_results = {false,false,false,false,false};
+    std::vector<bool> test_results = {false,false,false,false,false};
     
     test_results[0] = MA1.isApprox(Tsum.data);
     test_results[1] = MA2.isApprox(Tsub.data);
@@ -520,7 +524,7 @@ int test_operators(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -555,6 +559,7 @@ int main(){
     test_eye(results);
     test_FOT_eye(results);
     test_det(results);
+    test_operators(results);
     
     //Close the results file
     results.close();
