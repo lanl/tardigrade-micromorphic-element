@@ -17,6 +17,7 @@
 #include <iostream>
 #include <vector>
 #include <tensor.h>
+#include <micro_element.h>
   
 namespace micro_element
 {
@@ -28,10 +29,21 @@ namespace micro_element
     ==*/
     
     Hex8::Hex8(){
+        //Resize the RHS and AMATRX containers
+        RHS.resize(96); //Allocate the required memory for the right hand side vector
+        //Allocate the required memory for the AMATRX
+        AMATRX.resize(96);
+        for(int i=0; i<96; i++){
+            AMATRX[i].resize(96);
+        }
         
+        //Resize the stress measure vectors
+        PK2.resize(number_gauss_points);
+        SIGMA.resize(number_gauss_points);
+        M.resize(number_gauss_points);
     }
     
-    Hex8::Hex8(std::vector< std::vector< double > > rcs){
+    Hex8::Hex8(std::vector< double > rcs){
         /*!====================
         |        Hex8       |
         =====================
@@ -40,7 +52,7 @@ namespace micro_element
         given the nodal reference coordinates.
         
         Input:
-           rcs: A vector of vectors of doubles which are the
+           rcs: A vector of doubles which are the
                 coordinates of the nodes.
                 
                 The nodes are ordered in a counter clockwise 
@@ -58,8 +70,113 @@ namespace micro_element
                hexehedral element.
         */
         
-        reference_coords = rcs;
-        current_coords   = rcs;
+        //Resize the RHS and AMATRX containers
+        RHS.resize(96); //Allocate the required memory for the right hand side vector
+        //Allocate the required memory for the AMATRX
+        AMATRX.resize(96);
+        for(int i=0; i<96; i++){
+            AMATRX[i].resize(96);
+        }
+        
+        //Resize the phi vector
+        std::vector< int >> shape = {3,3};
+        node_phis.reshape(reference_coords.size());
+        for(int n=0; n<reference_coords.size(), n++){
+            node_phis[n] = tensor::Tensor(shape);
+        }
+        
+        //Resize the stress measure vectors
+        PK2.resize(number_gauss_points);
+        SIGMA.resize(number_gauss_points);
+        M.resize(number_gauss_points);
+        
+        
+        
+        reference_coords = parse_incoming_vector(1,rcs);
+        current_coords   = parse_incoming_vector(1,rcs);
+    }
+    
+    Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU){
+        /*!====================
+        |        Hex8       |
+        =====================
+        
+        The constructor for a hexehedral element when 
+        given the nodal reference coordinates.
+        
+        Input:
+            rcs: A vector doubles which are the coordinates of 
+                 the nodes.
+                
+                 The nodes are ordered in a counter clockwise 
+                 manner i.e.
+                
+                4,8      3,7
+                 o--------o
+                 |        |
+                 |        |
+                 |        |
+                 o--------o
+                1,5      2,6
+               
+                where the comma indicates the ``upper layer'' of the
+                hexehedral element.
+               
+            U:  The vector of changes of the degree of freedom 
+                vector. It is organized such that the degrees of 
+                freedom are in the order of the nodes.
+        */
+        
+        //Resize the RHS and AMATRX containers
+        RHS.resize(96); //Allocate the required memory for the right hand side vector
+        //Allocate the required memory for the AMATRX
+        AMATRX.resize(96);
+        for(int i=0; i<96; i++){
+            AMATRX[i].resize(96);
+        }
+        
+        //Resize the phi vector
+        std::vector< int >> shape = {3,3};
+        node_phis.reshape(reference_coords.size());
+        for(int n=0; n<reference_coords.size(), n++){
+            node_phis[n] = tensor::Tensor(shape);
+        }
+        
+        //Resize the stress measure vectors
+        PK2.resize(number_gauss_points);
+        SIGMA.resize(number_gauss_points);
+        M.resize(number_gauss_points);
+        
+        //Break the rcs, U, and, dU vectors into a vector of vectors
+        //where each subvector are the values associated with a given 
+        //node.
+        reference_coords   = parse_incoming_vector(1,rcs);
+        dof_at_nodes       = parse_incoming_vector(2,U);
+        Delta_dof_at_nodes = parse_incoming_vector(2,dU);
+        
+        //Assign the current value of the nodal coordinates
+        for(int n=0; n<reference_coords.size(), n++){
+            current_coords[n].resize(3);
+            for(int i=0; i<3; i++){
+                current_coords[n][i] = reference_coords[n][i]+dof_at_nodes[n][i];
+            }
+        }
+        
+        //Assign the values of phi at the nodes
+        for(int n=0; n<reference_coords.size(), n++){
+            //!NOTE: Assumes dof vector is set up as phi_11, phi_22, phi_33,
+            //!                                      phi_23, phi_13, phi_12,
+            //!                                      phi_32, phi_31, phi_21
+            node_phis[n](0,0) = dof_at_nodes[n][0];
+            node_phis[n](1,1) = dof_at_nodes[n][1];
+            node_phis[n](2,2) = dof_at_nodes[n][2];
+            node_phis[n](1,2) = dof_at_nodes[n][3];
+            node_phis[n](0,2) = dof_at_nodes[n][4];
+            node_phis[n](0,1) = dof_at_nodes[n][5];
+            node_phis[n](2,1) = dof_at_nodes[n][6];
+            node_phis[n](2,0) = dof_at_nodes[n][7];
+            node_phis[n](1,0) = dof_at_nodes[n][8];
+        }
     }
     
     //!==
@@ -68,7 +185,7 @@ namespace micro_element
     //!|
     //!==
     
-    Hex8::operator=(const Hex8& hex8_in){
+    Hex8& Hex8::operator=(const Hex8& hex8_in){
         /*========================
         |      operator=       |
         ========================
@@ -90,7 +207,7 @@ namespace micro_element
     //!| Shape Functions
     //!=
     
-    Hex8::shape_function(int n, const std::vector< double > &xi){
+    double Hex8::shape_function(int n, const std::vector< double > &xi){
         /*==========================
         |      shape_function    |
         ==========================
@@ -105,7 +222,7 @@ namespace micro_element
         
         */
         
-        return 0.125*(1+xi[0]*local_coords[n][0])*(1+xi[1]*local_coords[n][1])*(1+xi[2]*local_coords[n][2])
+        return 0.125*(1+xi[0]*local_coords[n][0])*(1+xi[1]*local_coords[n][1])*(1+xi[2]*local_coords[n][2]);
     }
     
     std::vector< double > Hex8::local_gradient_shape_function(int n, const std::vector< double > &xi){
@@ -131,7 +248,7 @@ namespace micro_element
         dNdxi[1] = 0.125*(1+xi[0]*local_coords[n][0])*local_coords[n][1]*(1+xi[2]*local_coords[n][2]);
         dNdxi[2] = 0.125*(1+xi[0]*local_coords[n][0])*(1+xi[1]*local_coords[n][1])*local_coords[n][2];
         
-        return dNdxi
+        return dNdxi;
     }
     
     std::vector< double > Hex8::global_gradient_shape_function(bool mode, int n, const std::vector< double > &xi){
@@ -156,10 +273,10 @@ namespace micro_element
         std::vector< double > dNdx;
         dNdx.resize(3);
         
-        tensor::Tensor J     = compute_jacobian(mode,xi);              //Compute the jacobian
-        tensor::Tensor Jinv  = J.inverse();                            //Invert the jacobian
-        double         Jdet  = J.det();                                //Get the determinant of the jacobian
-        tensor::Tensor dNdxi = local_gradient_of_shape_function(n,xi); //Compute the local gradient of the shape function
+        tensor::Tensor J          = compute_jacobian(mode,xi);           //Compute the jacobian
+        tensor::Tensor Jinv       = J.inverse();                         //Invert the jacobian
+        double         Jdet       = J.det();                             //Get the determinant of the jacobian
+        std::vector<double> dNdxi = local_gradient_shape_function(n,xi); //Compute the local gradient of the shape function
         
         //Compute the global gradient w.r.t. either the reference or global x
         for(int i=0; i<3; i++){
@@ -170,7 +287,7 @@ namespace micro_element
         return dNdx;
     }
     
-    tensor::Tensor& compute_jacobian(bool mode, const std::vector< double > xi){
+    tensor::Tensor Hex8::compute_jacobian(bool mode, const std::vector< double > & xi){
         /*==========================
         |    compute_jacobian    |
         ==========================
@@ -187,8 +304,8 @@ namespace micro_element
         */
         
         //Initialize the output
-        std::vector< double > shape = {3,3};
-        tensor::Tensor J = tensor::Tensor.zeros(shape);
+        std::vector< int > shape = {3,3};
+        tensor::Tensor J = tensor::Tensor(shape);
         
         //Initialize local gradient value
         std::vector< double > local_gradient;
@@ -205,15 +322,137 @@ namespace micro_element
         }
         
         //Add the contributions of each node in the element
-        for(int n = 0; n<reference_coords.size; n++){
+        for(int n = 0; n<coordinates.size(); n++){
             local_gradient = local_gradient_shape_function(n,xi); //Get the local gradient of the given nodes shape function
-            J += vector_dyadic_product(local_gradient,coordinates[n][j]); //Compute the vector dyadic product and add it to the jacobian
+            J += vector_dyadic_product(local_gradient,coordinates[n]); //Compute the vector dyadic product and add it to the jacobian
         }
         
-        return J
+        return J;
     }
     
-    vector_dyadic_product(const std::vector< double > & V1, const std::vector< double >& V2){
+    std::vector< std::vector< double > > get_local_gradient_shape_functions(const std::vector< double > &xi){
+        /*!================================================
+        |      get_local_gradient_shape_functions      |
+        ================================================
+        
+        Get all of the gradients of the shape functions.
+        
+        This returns the value of the gradients of the 
+        shape functions at a given value of xi.
+        
+        */
+        
+        std::vector< std::vector< double > > dNdxis; //!The derivative of the shape functions with respect to the local coordinates.
+        dNdxis.resize(reference_coords.size());      //Resize the vector
+        
+        //Populate dNdxis
+        for(int n=0; i<reference_coords.size(); n++){
+            dNdxis[n] = local_gradient_shape_function(n, xi);
+        }
+        
+        return dNdxis;
+    }
+    
+    //!=
+    //!| Fundamental Deformation Measures
+    //!=
+    
+    void Hex8::compute_deformation_gradient(const std::vector< double > &xi){
+        /*=======================================
+        |    compute_deformation_gradient    |
+        ======================================
+        
+        Compute the deformation gradient from the 
+        reference and current coordinates.
+        
+        Input:
+            xi:    The local coordinates where the 
+                   deformation gradient is to be calculated. 
+        
+        */
+        
+        //Initialize vectors
+        std::vector< std::vector< double > > dNdxis = get_local_gradient_shape_functions(xi); //!The derivative of the shape functions with respect to the local coordinates.
+        std::vector< double > shape = {3,3};
+        tensor::Tensor dxdxi = tensor::Tensor(shape); //!The derivative of the current coordinates w.r.t. the local coordinates
+        tensor::Tensor dXdxi = tensor::Tensor(shape); //!The derivative of the reference coordinates w.r.t. the local coordinates
+        
+        //Compute the derivatives of the reference and current coordinates w.r.t. xi
+        for(int n=0; n<reference_coords.size(); n++){
+            dxdxi = vector_dyadic_product(current_coordinates[n],  dNdxis[n]);
+            dXdxi = vector_dyadic_product(reference_coordinates[n],dNdxis[n]);
+        }
+        
+        tensor::Tensor dxidX = dXdxi.inverse() //!The derivative of the local coordinates w.r.t. the reference coordinates
+        
+        F = tensor::Tensor(shape); //!The deformation gradient
+        
+        for(int i = 0; i<3; i++){
+            for(int j=0; j<3; j++){
+                for(int k=0; k<3; k++){
+                    F(i,j) += dxdxi(i,k)*dxidX(k,j);
+                }
+            }
+        }
+        return;
+    }
+    
+    
+    
+    
+    //!==
+    //!|
+    //!| Private Methods
+    //!|
+    //!=
+            
+    std::vector< std::vector< double > > parse_incoming_vectors(int mode; std::vector< double > incoming){
+        /*!================================
+        |    parse_incoming_vectors    |
+        ================================
+        
+        Takes incoming vectors in different formats and parses them 
+        into a vector of vectors form. This allows communication 
+        between the driver program (Abaqus or otherwise) and the 
+        element.
+        
+        */
+        
+        //!Variable defintions
+        std::vector< double >::const_iterator first;        //! The iterator which identifies the start of a subvector
+        std::vector< double >::const_iterator last;         //! The iterator which identifies the end of a subvector
+        std::vector< std::vector< double > > parsed_vector; //! The parsed vector which is returned
+        parsed_vector.resize(reference_coords.size());
+        
+        if(mode==1){//Parse an incoming coordinate vector
+            factor = 3;
+        if(mode==2){//Parse an incoming dof vector
+            factor = 8;
+        }
+        
+        //Extract the subvectors
+        for(int n=0; n<reference_coords.size(); n++){
+            first = incoming.begin()+n*factor;
+            last  = incoming.begin()+(n+1)*factor;
+            parsed_vector[n] = std::vector< double > new_vec(first,last);
+        }
+        
+        return parsed_vector;
+    }
+    
+    //!=
+    //!| Parse DOF vectors
+    //!=
+            
+            
+    
+    //!==
+    //!|
+    //!| Functions
+    //!|
+    //!==
+    
+    tensor::Tensor vector_dyadic_product(const std::vector< double > & V1, const std::vector< double >& V2){
         /*================================
         |    vector_dyadic_product    |
         ===============================
@@ -229,8 +468,8 @@ namespace micro_element
         */
         
         //Compute the dimension of the resulting tensor
-        int rows = V1.rows();
-        int cols = V2.cols();
+        int rows = V1.size();
+        int cols = V2.size();
         
         //Initialize the tensor data and shape variables
         Eigen::MatrixXd data = Eigen::MatrixXd::Zero(rows,cols);
@@ -244,6 +483,6 @@ namespace micro_element
         }
         
         tensor::Tensor T = tensor::Tensor(shape,data);
-        return T
+        return T;
     }
 }
