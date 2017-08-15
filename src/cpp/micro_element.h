@@ -130,15 +130,16 @@ namespace micro_element
             std::vector< double > global_gradient_shape_function(bool, int, const std::vector< double >&);
             tensor::Tensor compute_jacobian(bool, const std::vector< double >&);
             
+            std::vector< double > Hex8::get_shape_functions(const std::vector< double > &);
             std::vector< std::vector< double > > get_local_gradient_shape_functions(const std::vector< double >&);
             
             //!=
             //!| Fundamental Deformation Measures
             //!=
             
-            void compute_deformation_gradient();
-            void compute_microdisplacement();
-            void compute_gradient_microdisplacement();
+            void compute_deformation_gradient(const std::vector< double >&);
+            void compute_microdisplacement(const std::vector< double >&);
+            void compute_gradient_microdisplacement(const std::vector< double >&);
             
             //!=
             //!| Micromorphic Deformation Measures

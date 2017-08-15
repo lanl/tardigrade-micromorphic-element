@@ -186,7 +186,7 @@ namespace micro_element
     //!==
     
     Hex8& Hex8::operator=(const Hex8& hex8_in){
-        /*========================
+        /*!=======================
         |      operator=       |
         ========================
         
@@ -208,7 +208,7 @@ namespace micro_element
     //!=
     
     double Hex8::shape_function(int n, const std::vector< double > &xi){
-        /*==========================
+        /*!=========================
         |      shape_function    |
         ==========================
         
@@ -225,8 +225,31 @@ namespace micro_element
         return 0.125*(1+xi[0]*local_coords[n][0])*(1+xi[1]*local_coords[n][1])*(1+xi[2]*local_coords[n][2]);
     }
     
+    std::vector< double > Hex8::get_shape_functions(const std::vector< double > &xi){
+        /*!===============================
+        |      get_shape_functions    |
+        ===============================
+        
+        Compute the value of the shape function
+        at a given node and xi (local coordinate) 
+        locations
+        
+        Input:
+            xi : xi vector xi = [xi_1, xi_2, xi_3]
+        
+        */
+        
+        std::vector< double > Ns;
+        Ns.resize(reference_coords.size());
+        
+        for(n=0; n<reference_coords.size(); n++){
+            Ns[n] = shape_function(n,xi);
+        }
+        return Ns;
+    }
+    
     std::vector< double > Hex8::local_gradient_shape_function(int n, const std::vector< double > &xi){
-        /*========================================
+        /*!=======================================
         |    local_gradient_shape_function    |
         =======================================
         
@@ -252,7 +275,7 @@ namespace micro_element
     }
     
     std::vector< double > Hex8::global_gradient_shape_function(bool mode, int n, const std::vector< double > &xi){
-        /*========================================
+        /*!=======================================
         |    global_gradient_shape_function    |
         ========================================
         
@@ -288,7 +311,7 @@ namespace micro_element
     }
     
     tensor::Tensor Hex8::compute_jacobian(bool mode, const std::vector< double > & xi){
-        /*==========================
+        /*!=========================
         |    compute_jacobian    |
         ==========================
         
@@ -353,12 +376,42 @@ namespace micro_element
         return dNdxis;
     }
     
+    std::vector< std::vector< double > > get_global_gradient_shape_functions(bool mode, const std::vector< double > &xi){
+        /*!================================================
+        |      get_global_gradient_shape_functions      |
+        ================================================
+        
+        Get all of the gradients of the shape functions 
+        with respect to global coordinates.
+        
+        This returns the value of the gradients of the 
+        shape functions at a given value of xi.
+        
+        Input:
+            mode: Selection between the gradient w.r.t.
+                  the reference coordinates (0) or the 
+                  current coordinates (1)
+            xi  : xi vector xi = [xi_1, xi_2, xi_3]
+        
+        */
+        
+        std::vector< std::vector< double > > dNdXs; //!The derivative of the shape functions with respect to the local coordinates.
+        dNdxis.resize(reference_coords.size());      //Resize the vector
+        
+        //Populate dNdxis
+        for(int n=0; i<reference_coords.size(); n++){
+            dNdxis[n] = global_gradient_shape_function(mode, n, xi);
+        }
+        
+        return dNdxis;
+    }
+    
     //!=
     //!| Fundamental Deformation Measures
     //!=
     
     void Hex8::compute_deformation_gradient(const std::vector< double > &xi){
-        /*=======================================
+        /*!======================================
         |    compute_deformation_gradient    |
         ======================================
         
@@ -385,6 +438,7 @@ namespace micro_element
         
         tensor::Tensor dxidX = dXdxi.inverse() //!The derivative of the local coordinates w.r.t. the reference coordinates
         
+        //Reset F to zero
         F = tensor::Tensor(shape); //!The deformation gradient
         
         for(int i = 0; i<3; i++){
@@ -397,8 +451,72 @@ namespace micro_element
         return;
     }
     
+    void Hex8::compute_microdisplacement(const std::vector< double > &xi){
+        /*!===================================
+        |    compute_microdisplacement    |
+        ===================================
+        
+        Compute the microdisplacement measure 
+        chi at a given coordinate.
+        
+        Input:
+            xi:    The local coordinates where the 
+                   deformation gradient is to be calculated. 
+        
+        */
+        
+        //Initialize vectors
+        std::vector< double > Ns = get_shape_functions(xi); //!The value of the shape functions at xi.
+        std::vector< double > shape = {3,3};
+        
+        //Reset chi to zero
+        chi = tensor::Tensor(shape);
+        
+        //Interpolate the nodal phis to xi
+        for(int n=0; n<reference_coords.size(); n++){
+            chi = Ns[n]*node_phis[n];
+        }
+        chi += tensor::eye();
+        return;
+    }
     
-    
+    void Hex8::compute_gradient_microdisplacement(const std::vector< double > &xi){
+        /*!=============================================
+        |    compute_gradient_microdisplacement    |
+        ============================================
+        
+        Compute the gradient of the microdisplacement 
+        tensor with respect to the reference coordinates.
+        
+        Input:
+            xi:    The local coordinates where the 
+                   deformation gradient is to be calculated. 
+        
+        */
+        
+        //Initialize vectors
+        std::vector< std::vector< double > > dNdXs = get_gloal_gradient_shape_functions(xi); //!The derivative of the shape functions with respect to the global coordinates.
+        std::vector< int > shape = {3,3};
+        std::vector< int > tot_shape = {3,3,3};
+        tensor::Tensor chi_n = tensor::Tensor(shape); //!The value of chi at a node
+        tensor::Tensor I     = tensor::eye(); //!The second order identity tensor
+        
+        //Set grad_chi to zero
+        grad_chi = tensor::Tensor(tot_shape);
+        
+        for(int n=0; n<reference_coords.size(); n++){
+            chi_n = node_phi[n]+I:
+            for(int i=0; i<3; i++){
+                for(int j=0; j<3; j++){
+                    for(int k=0; k<3; k++){
+                        grad_chi += chi_n(i,j)*dNdXs[n][k];
+                    }
+                }
+            }
+        }
+        
+        return;
+    }
     
     //!==
     //!|
