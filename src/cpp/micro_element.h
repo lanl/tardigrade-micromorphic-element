@@ -125,6 +125,7 @@ namespace micro_element
             //!| Shape Functions
             //!=
             
+            set_shape_function_values();
             double shape_function(int,const std::vector< double >&);
             std::vector< double > local_gradient_shape_function(int,const std::vector< double >&);
             std::vector< double > global_gradient_shape_function(bool, int, const std::vector< double >&);
@@ -204,6 +205,11 @@ namespace micro_element
             std::vector< int > sot_shape = {3,3};
             
             int gpt_num             = -1;                          //!The current gauss point number
+            std::vector< std::vector< double > > dNdXs;            //!The derivatives of the shape function with respect 
+                                                                   //!to the reference configuration.
+            
+            std::vector< double > Jhatdet  = {1,1,1,1,1,1,1,1};    //!The determinant of the jacobian of transformation 
+                                                                   //!to the reference configuration.
             
             tensor::Tensor F        = tensor::eye();               //!The deformation gradient
             tensor::Tensor chi      = tensor::eye();               //!The microdisplacement tensor

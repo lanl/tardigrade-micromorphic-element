@@ -207,6 +207,21 @@ namespace micro_element
     //!| Shape Functions
     //!=
     
+    Hex8::set_shape_function_values(){
+        /*!===================================
+        |    set_shape_function_values    |
+        ===================================
+        
+        Set all of the shape function values to
+        a value consistent with the current gauss 
+        point (number gpt_num).
+        
+        */
+        
+        set_shape_functions();
+        
+    }
+    
     double Hex8::shape_function(int n, const std::vector< double > &xi){
         /*!=========================
         |      shape_function    |
@@ -225,27 +240,23 @@ namespace micro_element
         return 0.125*(1+xi[0]*local_coords[n][0])*(1+xi[1]*local_coords[n][1])*(1+xi[2]*local_coords[n][2]);
     }
     
-    std::vector< double > Hex8::get_shape_functions(const std::vector< double > &xi){
+    Hex8::set_shape_functions(){
         /*!===============================
-        |      get_shape_functions    |
+        |      set_shape_functions    |
         ===============================
         
         Compute the value of the shape function
-        at a given node and xi (local coordinate) 
-        locations
+        at the current gauss point. Set the private 
+        variable Ns with the results.
         
         Input:
             xi : xi vector xi = [xi_1, xi_2, xi_3]
         
         */
-        
-        std::vector< double > Ns;
-        Ns.resize(reference_coords.size());
-        
         for(n=0; n<reference_coords.size(); n++){
             Ns[n] = shape_function(n,xi);
         }
-        return Ns;
+        return;
     }
     
     std::vector< double > Hex8::local_gradient_shape_function(int n, const std::vector< double > &xi){
@@ -350,60 +361,66 @@ namespace micro_element
             J += vector_dyadic_product(local_gradient,coordinates[n]); //Compute the vector dyadic product and add it to the jacobian
         }
         
+        Jhatdet[gpt_num] = J.det();
+        
         return J;
     }
     
-    std::vector< std::vector< double > > get_local_gradient_shape_functions(const std::vector< double > &xi){
+    void set_local_gradient_shape_functions(){
         /*!================================================
-        |      get_local_gradient_shape_functions      |
+        |      set_local_gradient_shape_functions      |
         ================================================
         
-        Get all of the gradients of the shape functions.
+        Set all of the gradients of the shape functions.
         
-        This returns the value of the gradients of the 
-        shape functions at a given value of xi.
+        This sets the value of the gradients of the 
+        shape functions at a given gauss point.
         
         */
-        
-        std::vector< std::vector< double > > dNdxis; //!The derivative of the shape functions with respect to the local coordinates.
-        dNdxis.resize(reference_coords.size());      //Resize the vector
         
         //Populate dNdxis
         for(int n=0; i<reference_coords.size(); n++){
             dNdxis[n] = local_gradient_shape_function(n, xi);
         }
         
-        return dNdxis;
+        return;
     }
     
-    std::vector< std::vector< double > > get_global_gradient_shape_functions(bool mode, const std::vector< double > &xi){
+    void get_global_gradient_shape_functions(bool mode){
         /*!================================================
-        |      get_global_gradient_shape_functions      |
+        |      set_global_gradient_shape_functions      |
         ================================================
         
         Get all of the gradients of the shape functions 
         with respect to global coordinates.
         
-        This returns the value of the gradients of the 
-        shape functions at a given value of xi.
+        This sets the value of the gradients of the 
+        shape functions at the current gauss point.
         
         Input:
             mode: Selection between the gradient w.r.t.
                   the reference coordinates (0) or the 
                   current coordinates (1)
-            xi  : xi vector xi = [xi_1, xi_2, xi_3]
         
         */
         
-        std::vector< std::vector< double > > dNdXs; //!The derivative of the shape functions with respect to the local coordinates.
-        dNdxis.resize(reference_coords.size());      //Resize the vector
+        //Populate dNdxs
         
-        //Populate dNdxis
-        for(int n=0; i<reference_coords.size(); n++){
-            dNdxis[n] = global_gradient_shape_function(mode, n, xi);
+        if(mode==0){
+            for(int n=0; i<reference_coords.size(); n++){
+                dNdXs[n] = global_gradient_shape_function(mode, n, xi);
+            }
         }
-        
-        return dNdxis;
+        else if(mode==1){
+            for(int n=0; i<reference_coords.size(); n++){
+                dNdxs[n] = global_gradient_shape_function(mode, n, xi);
+            }
+        }
+        else{
+            std::cout "Error: Options are 0 and 1";
+            assert(1==0);
+        }
+        return;
     }
     
     //!=
@@ -445,7 +462,6 @@ namespace micro_element
         */
         
         //Initialize vectors
-        std::vector< std::vector< double > > dNdxis = get_local_gradient_shape_functions(local_coordinates[gpt_num]); //!The derivative of the shape functions with respect to the local coordinates.
         std::vector< double > shape = {3,3};
         tensor::Tensor dxdxi = tensor::Tensor(shape); //!The derivative of the current coordinates w.r.t. the local coordinates
         tensor::Tensor dXdxi = tensor::Tensor(shape); //!The derivative of the reference coordinates w.r.t. the local coordinates
@@ -486,7 +502,6 @@ namespace micro_element
         */
         
         //Initialize vectors
-        std::vector< double > Ns = get_shape_functions(local_coordinates[gpt_num]); //!The value of the shape functions at the gauss point.
         std::vector< double > shape = {3,3};
         
         //Reset chi to zero
@@ -511,7 +526,6 @@ namespace micro_element
         */
         
         //Initialize vectors
-        std::vector< std::vector< double > > dNdXs = get_gloal_gradient_shape_functions(local_coordinates[gpt_num]); //!The derivative of the shape functions with respect to the global coordinates.
         std::vector< int > shape = {3,3};
         std::vector< int > tot_shape = {3,3,3};
         tensor::Tensor chi_n = tensor::Tensor(shape); //!The value of chi at a node
@@ -652,9 +666,6 @@ namespace micro_element
         nodal forces to the right hand side vector.
         
         */
-        
-        dNdX = get_global_gradient_shape_functions(0,local_coords[gpt_num]); //TODO: Make this a private attribute so we don't have to keep on 
-                                                                             //      recomputing this.
         std::vector< double > integral_value;
         //Put the force residuals in the RHS vector
         for(int n = 0; n<reference_coords.size; n++){
@@ -663,7 +674,7 @@ namespace micro_element
                 
                 for(int I=0; I<3; I++){
                     for(int J=0; J<3; J++){
-                        RHS[j] += dNdX[n][I]*PK2[n](I,J)*F(j,J)*Jhatdet*weight[n];
+                        RHS[j] += -dNdXs[n][I]*PK2[n](I,J)*F(j,J)*Jhatdet[n]*weight[n];
                     }
                 }
                 
