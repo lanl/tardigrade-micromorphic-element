@@ -556,14 +556,75 @@ namespace micro_element
         stored in the private attributes.
         
         */
+        
+        //Zero the contents of C
+        std::vector< int > shape = {3,3};
+        C = tensor::Tensor(shape);
+        
+        //Form the right Cauchy-Green deformation tensor
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int i=0; i<3; i++){
+                    C(I,J) += F(i,I)*F(i,J);
+                }
+            }
+        }
+        
+        //Set the inverse of C so they are consistent
+        Cinv = C.inverse();
     }
     
     void compute_Psi(){
+        /*!=====================
+        |    compute_Psi    |
+        =====================
         
+        Compute micro deformation measure Psi 
+        using the deformation gradient and chi 
+        stored in the private attributes.
+        
+        */
+        
+        //Zero the contents of Psi
+        std::vector< int > shape = {3,3};
+        Psi = tensor::Tensor(shape);
+        
+        //Form Psi
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int i=0; i<3; i++){
+                    Psi(I,J) += F(i,I)*chi(i,J);
+                }
+            }
+        }
     }
     
     void compute_Gamma(){
+        /*!=======================
+        |    compute_Gamma    |
+        =======================
         
+        Compute micro deformation measure Gamma 
+        using the deformation gradient and the 
+        gradient of chi stored in the private 
+        attributes.
+        
+        */
+        
+        //Zero the contents of Gamma
+        std::vector< int > shape = {3,3,3};
+        Gamma = tensor::Tensor(shape);
+        
+        //Form Gamma
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int K=0; K<3; K++){
+                    for(int i=0; i<3; i++){
+                        Gamma(I,J,K) += F(i,I)*grad_chi(i,J,K);
+                    }
+                }
+            }
+        }
     }
     
     
