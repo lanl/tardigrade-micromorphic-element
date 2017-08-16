@@ -75,9 +75,11 @@ namespace tensor
             Tensor& operator=(const Tensor& T);
             Tensor operator+(const Tensor& T1);
             void operator+=(const Tensor& T2);
+            
             Tensor operator-(const Tensor& T1);
             Tensor operator-();
             void operator-=(const Tensor &T1);
+            
             template <typename ...ArgsT>
             double& operator()(ArgsT ...indices){
                 /*!================================================
@@ -155,4 +157,19 @@ namespace tensor
         
     Tensor eye();
     Tensor FOT_eye();
+    
+    //!==
+    //!|
+    //!| Operators
+    //!|
+    //!==
+    
+    Tensor operator*(const double&,const Tensor&);
+    Tensor operator*(const int&,   const Tensor&);
+    
+    Tensor operator*(const Tensor&,const double&);
+    Tensor operator*(const Tensor&,const int&);
+    
+    Tensor operator/(const Tensor&,const double&);
+    Tensor operator/(const Tensor&,const int&);
 }

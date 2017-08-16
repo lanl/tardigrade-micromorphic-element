@@ -455,4 +455,92 @@ namespace tensor{
         return FOTI;
     }
     
+    //!==
+    //!|
+    //!| Operators
+    //!|
+    //!==
+    
+    Tensor operator*(const double& a,const Tensor& T){
+        /*!================================================
+        |               Tensor::operator*               |
+        =================================================
+        
+        Redefine the multiplication operator for a scalar 
+        double.
+        
+        */
+        
+        Eigen::MatrixXd new_data = a*T.data;
+        Tensor Tout = Tensor(T.shape,new_data);
+        
+        return Tout;
+    }
+    Tensor operator*(const int& a,   const Tensor& T){
+        /*!================================================
+        |               Tensor::operator*               |
+        =================================================
+        
+        Redefine the multiplication operator for a scalar 
+        integer.
+        
+        */
+        
+        Eigen::MatrixXd new_data = a*T.data;
+        Tensor Tout = Tensor(T.shape,new_data);
+        
+        return Tout;
+    }
+    
+    Tensor operator*(const Tensor& T,const double& a){
+        /*!================================================
+        |               Tensor::operator*               |
+        =================================================
+        
+        Redefine the multiplication operator for a scalar 
+        double.
+        
+        */
+        return a*T;
+    }
+    Tensor operator*(const Tensor& T,const int& a){
+        /*!================================================
+        |               Tensor::operator*               |
+        =================================================
+        
+        Redefine the multiplication operator for a scalar 
+        integer.
+        
+        */
+        return a*T;
+    }
+    
+    Tensor operator/(const Tensor& T,const double& a){
+        /*!================================================
+        |               Tensor::operator/               |
+        =================================================
+        
+        Redefine the division operator for a scalar 
+        integer.
+        
+        */
+        
+        return T*(1./a);
+    }
+    Tensor operator/(const Tensor& T,const int& a){
+        /*!================================================
+        |               Tensor::operator/               |
+        =================================================
+        
+        Redefine the division operator for a scalar 
+        integer.
+        
+        */
+        
+        Eigen::MatrixXd new_data = T.data/a;
+        Tensor Tout = Tensor(T.shape,new_data);
+        
+        return Tout;
+    }
+    
 }
