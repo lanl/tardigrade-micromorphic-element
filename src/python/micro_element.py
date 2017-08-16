@@ -76,7 +76,7 @@ def UEL(PROPS,NPROPS,SVARS,NSVARS,COORDS,MCRD,U,DU,TIME,DTIME): #Python definiti
               
     JPROPS:      An integer array containing the NJPROP integer property
                
-    COORDS:      An array containing the original coordinates of teh nodes of
+    COORDS:      An array containing the original coordinates of the nodes of
                  the element
     
     U, DU, V, A: Arrays containing the current estimates of the basic solution
