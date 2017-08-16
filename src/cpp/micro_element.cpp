@@ -633,6 +633,42 @@ namespace micro_element
         gauss point.
         
         */
+        
+        micro_material::get_stress(C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
+    }
+    
+    //!=
+    //!| Residuals
+    //!=
+    
+    //!|=> Forces
+    
+    void Hex8::add_internal_nodal_forces(){
+        /*!=====================================
+        |     add_internal_nodal_forces     |
+        =====================================
+        
+        Add the contributions of the internal 
+        nodal forces to the right hand side vector.
+        
+        */
+        
+        dNdX = get_global_gradient_shape_functions(0,local_coords[gpt_num]); //TODO: Make this a private attribute so we don't have to keep on 
+                                                                             //      recomputing this.
+        std::vector< double > integral_value;
+        //Put the force residuals in the RHS vector
+        for(int n = 0; n<reference_coords.size; n++){
+            
+            for(int j=(n*3); j<((n+1)*3); j++){
+                
+                for(int I=0; I<3; I++){
+                    for(int J=0; J<3; J++){
+                        RHS[j] += dNdX[n][I]*PK2[n](I,J)*F(j,J)*Jhatdet*weight[n];
+                    }
+                }
+                
+            }
+        }
     }
     
     //!==

@@ -132,6 +132,7 @@ namespace micro_element
             
             std::vector< double > Hex8::get_shape_functions(const std::vector< double > &);
             std::vector< std::vector< double > > get_local_gradient_shape_functions(const std::vector< double >&);
+            std::vector< std::vector< double > > get_global_gradient_shape_functions(bool, const std::vector< double > &);
             
             //!=
             //!| Fundamental Deformation Measures
@@ -213,7 +214,7 @@ namespace micro_element
             tensor::Tensor Psi      = tensor::Tensor(sot_shape);   //!The micro deformation tensor
             tensor::Tensor Gamma    = tensor::Tensor(tot_shape);   //!The higher order deformation tensor
             
-            double Fdet         = 1.;                              //!The determinant of the jacobian of the deformation gradient
+            double Fdet             = 1.;                          //!The determinant of the jacobian of the deformation gradient
             
             //!=
             //!| Parse incoming vectors
