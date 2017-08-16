@@ -137,6 +137,7 @@ namespace micro_element
             //!| Fundamental Deformation Measures
             //!=
             
+            void set_fundamental_measures(const std::vector< double >&);
             void compute_deformation_gradient(const std::vector< double >&);
             void compute_microdisplacement(const std::vector< double >&);
             void compute_gradient_microdisplacement(const std::vector< double >&);

@@ -410,6 +410,30 @@ namespace micro_element
     //!| Fundamental Deformation Measures
     //!=
     
+    void Hex8::set_fundamental_measures(const std::vector< double > &xi){
+        /*!========================================
+        |       set_fundamental_measures       |
+        ========================================
+        
+        Compute the fundamental deformation measures
+        at a given set of local coordinates (typically 
+        a gauss point). These are stored in the private 
+        attributes.
+        
+        This function allows all of the measures 
+        to be updated simultaneously and ensures 
+        they are evaluated at a consistent location.
+        
+        Input:
+            xi:    The local coordinates.
+            
+        */
+        
+        compute_deformation_gradient(xi);
+        compute_microdisplacement(xi);
+        compute_gradient_microdisplacement(xi);
+    }
+    
     void Hex8::compute_deformation_gradient(const std::vector< double > &xi){
         /*!======================================
         |    compute_deformation_gradient    |
@@ -517,6 +541,31 @@ namespace micro_element
         
         return;
     }
+    
+    //!=
+    //!| Micromorphic Deformation Measures
+    //!=
+    
+    void compute_right_cauchy_green(){
+        /*!====================================
+        |    compute_right_cauchy_green    |
+        ====================================
+        
+        Compute the right Cauchy-Green deformation 
+        tensor using the deformation gradient 
+        stored in the private attributes.
+        
+        */
+    }
+    
+    void compute_Psi(){
+        
+    }
+    
+    void compute_Gamma(){
+        
+    }
+    
     
     //!==
     //!|
