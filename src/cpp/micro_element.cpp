@@ -18,6 +18,7 @@
 #include <vector>
 #include <tensor.h>
 #include <micro_element.h>
+#include <micromorphic_linear_elasticity.h>
   
 namespace micro_element
 {
@@ -79,10 +80,9 @@ namespace micro_element
         }
         
         //Resize the phi vector
-        std::vector< int >> shape = {3,3};
-        node_phis.reshape(reference_coords.size());
-        for(int n=0; n<reference_coords.size(), n++){
-            node_phis[n] = tensor::Tensor(shape);
+        node_phis.resize(reference_coords.size());
+        for(int n=0; n<reference_coords.size(); n++){
+            node_phis[n] = tensor::Tensor(sot_shape);
         }
         
         //Resize the stress measure vectors
@@ -92,8 +92,8 @@ namespace micro_element
         
         
         
-        reference_coords = parse_incoming_vector(1,rcs);
-        current_coords   = parse_incoming_vector(1,rcs);
+        reference_coords = parse_incoming_vectors(1,rcs);
+        current_coords   = parse_incoming_vectors(1,rcs);
     }
     
     Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU){
@@ -136,10 +136,9 @@ namespace micro_element
         }
         
         //Resize the phi vector
-        std::vector< int >> shape = {3,3};
-        node_phis.reshape(reference_coords.size());
-        for(int n=0; n<reference_coords.size(), n++){
-            node_phis[n] = tensor::Tensor(shape);
+        node_phis.resize(reference_coords.size());
+        for(int n=0; n<reference_coords.size(); n++){
+            node_phis[n] = tensor::Tensor(sot_shape);
         }
         
         //Resize the stress measure vectors
@@ -150,12 +149,12 @@ namespace micro_element
         //Break the rcs, U, and, dU vectors into a vector of vectors
         //where each subvector are the values associated with a given 
         //node.
-        reference_coords   = parse_incoming_vector(1,rcs);
-        dof_at_nodes       = parse_incoming_vector(2,U);
-        Delta_dof_at_nodes = parse_incoming_vector(2,dU);
+        reference_coords   = parse_incoming_vectors(1,rcs);
+        dof_at_nodes       = parse_incoming_vectors(2,U);
+        Delta_dof_at_nodes = parse_incoming_vectors(2,dU);
         
         //Assign the current value of the nodal coordinates
-        for(int n=0; n<reference_coords.size(), n++){
+        for(int n=0; n<reference_coords.size(); n++){
             current_coords[n].resize(3);
             for(int i=0; i<3; i++){
                 current_coords[n][i] = reference_coords[n][i]+dof_at_nodes[n][i];
@@ -163,19 +162,19 @@ namespace micro_element
         }
         
         //Assign the values of phi at the nodes
-        for(int n=0; n<reference_coords.size(), n++){
+        for(int n=0; n<reference_coords.size(); n++){
             //!NOTE: Assumes dof vector is set up as phi_11, phi_22, phi_33,
             //!                                      phi_23, phi_13, phi_12,
             //!                                      phi_32, phi_31, phi_21
-            node_phis[n](0,0) = dof_at_nodes[n][0];
-            node_phis[n](1,1) = dof_at_nodes[n][1];
-            node_phis[n](2,2) = dof_at_nodes[n][2];
-            node_phis[n](1,2) = dof_at_nodes[n][3];
-            node_phis[n](0,2) = dof_at_nodes[n][4];
-            node_phis[n](0,1) = dof_at_nodes[n][5];
-            node_phis[n](2,1) = dof_at_nodes[n][6];
-            node_phis[n](2,0) = dof_at_nodes[n][7];
-            node_phis[n](1,0) = dof_at_nodes[n][8];
+            node_phis[n](0,0) = dof_at_nodes[n][ 3];
+            node_phis[n](1,1) = dof_at_nodes[n][ 4];
+            node_phis[n](2,2) = dof_at_nodes[n][ 5];
+            node_phis[n](1,2) = dof_at_nodes[n][ 6];
+            node_phis[n](0,2) = dof_at_nodes[n][ 7];
+            node_phis[n](0,1) = dof_at_nodes[n][ 8];
+            node_phis[n](2,1) = dof_at_nodes[n][ 9];
+            node_phis[n](2,0) = dof_at_nodes[n][10];
+            node_phis[n](1,0) = dof_at_nodes[n][11];
         }
     }
     
@@ -207,7 +206,7 @@ namespace micro_element
     //!| Shape Functions
     //!=
     
-    Hex8::set_shape_function_values(){
+    void Hex8::set_shape_function_values(){
         /*!===================================
         |    set_shape_function_values    |
         ===================================
@@ -218,7 +217,11 @@ namespace micro_element
         
         */
         
-        set_shape_functions();
+        set_shape_functions();                  //!Set N for each node at the current gauss point in private attributes
+        set_local_gradient_shape_functions();   //!Set dNdxi for each node at the current gauss point in private attributes
+        set_global_gradient_shape_functions(0); //!Set dNdX for each node at the current gauss point in private attributes
+        set_global_gradient_shape_functions(1); //!Set dNdx for each node at the current gauss point in private attributes
+        
         
     }
     
@@ -240,7 +243,7 @@ namespace micro_element
         return 0.125*(1+xi[0]*local_coords[n][0])*(1+xi[1]*local_coords[n][1])*(1+xi[2]*local_coords[n][2]);
     }
     
-    Hex8::set_shape_functions(){
+    void Hex8::set_shape_functions(){
         /*!===============================
         |      set_shape_functions    |
         ===============================
@@ -253,8 +256,8 @@ namespace micro_element
             xi : xi vector xi = [xi_1, xi_2, xi_3]
         
         */
-        for(n=0; n<reference_coords.size(); n++){
-            Ns[n] = shape_function(n,xi);
+        for(int n=0; n<reference_coords.size(); n++){
+            Ns[n] = shape_function(n,points[gpt_num]);
         }
         return;
     }
@@ -338,8 +341,7 @@ namespace micro_element
         */
         
         //Initialize the output
-        std::vector< int > shape = {3,3};
-        tensor::Tensor J = tensor::Tensor(shape);
+        tensor::Tensor J = tensor::Tensor(sot_shape);
         
         //Initialize local gradient value
         std::vector< double > local_gradient;
@@ -366,7 +368,7 @@ namespace micro_element
         return J;
     }
     
-    void set_local_gradient_shape_functions(){
+    void Hex8::set_local_gradient_shape_functions(){
         /*!================================================
         |      set_local_gradient_shape_functions      |
         ================================================
@@ -379,14 +381,14 @@ namespace micro_element
         */
         
         //Populate dNdxis
-        for(int n=0; i<reference_coords.size(); n++){
-            dNdxis[n] = local_gradient_shape_function(n, xi);
+        for(int n=0; n<reference_coords.size(); n++){
+            dNdxis[n] = local_gradient_shape_function(n, points[gpt_num]);
         }
         
         return;
     }
     
-    void get_global_gradient_shape_functions(bool mode){
+    void Hex8::set_global_gradient_shape_functions(bool mode){
         /*!================================================
         |      set_global_gradient_shape_functions      |
         ================================================
@@ -407,17 +409,17 @@ namespace micro_element
         //Populate dNdxs
         
         if(mode==0){
-            for(int n=0; i<reference_coords.size(); n++){
-                dNdXs[n] = global_gradient_shape_function(mode, n, xi);
+            for(int n=0; n<reference_coords.size(); n++){
+                dNdXs[n] = global_gradient_shape_function(mode, n, points[gpt_num]);
             }
         }
         else if(mode==1){
-            for(int n=0; i<reference_coords.size(); n++){
-                dNdxs[n] = global_gradient_shape_function(mode, n, xi);
+            for(int n=0; n<reference_coords.size(); n++){
+                dNdxs[n] = global_gradient_shape_function(mode, n, points[gpt_num]);
             }
         }
         else{
-            std::cout "Error: Options are 0 and 1";
+            std::cout << "Error: Options are 0 and 1";
             assert(1==0);
         }
         return;
@@ -462,20 +464,19 @@ namespace micro_element
         */
         
         //Initialize vectors
-        std::vector< double > shape = {3,3};
-        tensor::Tensor dxdxi = tensor::Tensor(shape); //!The derivative of the current coordinates w.r.t. the local coordinates
-        tensor::Tensor dXdxi = tensor::Tensor(shape); //!The derivative of the reference coordinates w.r.t. the local coordinates
+        tensor::Tensor dxdxi = tensor::Tensor(sot_shape); //!The derivative of the current coordinates w.r.t. the local coordinates
+        tensor::Tensor dXdxi = tensor::Tensor(sot_shape); //!The derivative of the reference coordinates w.r.t. the local coordinates
         
         //Compute the derivatives of the reference and current coordinates w.r.t. xi
         for(int n=0; n<reference_coords.size(); n++){
-            dxdxi = vector_dyadic_product(current_coordinates[n],  dNdxis[n]);
-            dXdxi = vector_dyadic_product(reference_coordinates[n],dNdxis[n]);
+            dxdxi = vector_dyadic_product(current_coords[n],  dNdxis[n]);
+            dXdxi = vector_dyadic_product(reference_coords[n],dNdxis[n]);
         }
         
-        tensor::Tensor dxidX = dXdxi.inverse() //!The derivative of the local coordinates w.r.t. the reference coordinates
+        tensor::Tensor dxidX = dXdxi.inverse(); //!The derivative of the local coordinates w.r.t. the reference coordinates
         
         //Reset F to zero
-        F = tensor::Tensor(shape); //!The deformation gradient
+        F = tensor::Tensor(sot_shape); //!The deformation gradient
         
         for(int i = 0; i<3; i++){
             for(int j=0; j<3; j++){
@@ -500,12 +501,8 @@ namespace micro_element
         chi at the current gauss point.
         
         */
-        
-        //Initialize vectors
-        std::vector< double > shape = {3,3};
-        
         //Reset chi to zero
-        chi = tensor::Tensor(shape);
+        chi = tensor::Tensor(sot_shape);
         
         //Interpolate the nodal phis to xi
         for(int n=0; n<reference_coords.size(); n++){
@@ -526,20 +523,18 @@ namespace micro_element
         */
         
         //Initialize vectors
-        std::vector< int > shape = {3,3};
-        std::vector< int > tot_shape = {3,3,3};
-        tensor::Tensor chi_n = tensor::Tensor(shape); //!The value of chi at a node
+        tensor::Tensor chi_n = tensor::Tensor(sot_shape); //!The value of chi at a node
         tensor::Tensor I     = tensor::eye(); //!The second order identity tensor
         
         //Set grad_chi to zero
         grad_chi = tensor::Tensor(tot_shape);
         
         for(int n=0; n<reference_coords.size(); n++){
-            chi_n = node_phi[n]+I:
+            chi_n = node_phis[n]+I;
             for(int i=0; i<3; i++){
                 for(int j=0; j<3; j++){
                     for(int k=0; k<3; k++){
-                        grad_chi += chi_n(i,j)*dNdXs[n][k];
+                        grad_chi(i,j,k) += chi_n(i,j)*dNdXs[n][k];
                     }
                 }
             }
@@ -552,7 +547,7 @@ namespace micro_element
     //!| Micromorphic Deformation Measures
     //!=
     
-    void compute_right_cauchy_green(){
+    void Hex8::compute_right_cauchy_green(){
         /*!====================================
         |    compute_right_cauchy_green    |
         ====================================
@@ -564,8 +559,7 @@ namespace micro_element
         */
         
         //Zero the contents of C
-        std::vector< int > shape = {3,3};
-        C = tensor::Tensor(shape);
+        C = tensor::Tensor(sot_shape);
         
         //Form the right Cauchy-Green deformation tensor
         for(int I=0; I<3; I++){
@@ -580,7 +574,7 @@ namespace micro_element
         Cinv = C.inverse();
     }
     
-    void compute_Psi(){
+    void Hex8::compute_Psi(){
         /*!=====================
         |    compute_Psi    |
         =====================
@@ -592,8 +586,7 @@ namespace micro_element
         */
         
         //Zero the contents of Psi
-        std::vector< int > shape = {3,3};
-        Psi = tensor::Tensor(shape);
+        Psi = tensor::Tensor(sot_shape);
         
         //Form Psi
         for(int I=0; I<3; I++){
@@ -605,7 +598,7 @@ namespace micro_element
         }
     }
     
-    void compute_Gamma(){
+    void Hex8::compute_Gamma(){
         /*!=======================
         |    compute_Gamma    |
         =======================
@@ -618,8 +611,7 @@ namespace micro_element
         */
         
         //Zero the contents of Gamma
-        std::vector< int > shape = {3,3,3};
-        Gamma = tensor::Tensor(shape);
+        Gamma = tensor::Tensor(tot_shape);
         
         //Form Gamma
         for(int I=0; I<3; I++){
@@ -637,7 +629,7 @@ namespace micro_element
     //!| Constitutive Model Interface
     //!=
     
-    void set_stresses(){
+    void Hex8::set_stresses(){
         /*!========================
         |     set_stresses     |
         ========================
@@ -668,13 +660,13 @@ namespace micro_element
         */
         std::vector< double > integral_value;
         //Put the force residuals in the RHS vector
-        for(int n = 0; n<reference_coords.size; n++){
+        for(int n = 0; n<reference_coords.size(); n++){
             
             for(int j=(n*3); j<((n+1)*3); j++){
                 
                 for(int I=0; I<3; I++){
                     for(int J=0; J<3; J++){
-                        RHS[j] += -dNdXs[n][I]*PK2[n](I,J)*F(j,J)*Jhatdet[n]*weight[n];
+                        RHS[j] += -dNdXs[n][I]*PK2[n](I,J)*F(j,J)*Jhatdet[n]*weights[n];
                     }
                 }
                 
@@ -694,10 +686,10 @@ namespace micro_element
         
         */
         
-        std::vector< double > shape = {3,3};
-        tensor::Tensor mu_int = tensor::Tensor(shape);
+        //Initialize the internal moment tensor
+        tensor::Tensor mu_int = tensor::Tensor(sot_shape); //!The internal moment tensor
         
-        int initial_index = 3*reference_coord.size();
+        int initial_index = 3*reference_coords.size();
         //Create the moment residual at the different nodes
         for(int n=0; n<reference_coords.size(); n++){
             
@@ -707,7 +699,7 @@ namespace micro_element
                     
                     for(int I=0; I<3; I++){
                         for(int J=0; J<3; J++){
-                            mu_int(i,j) += -Ns[n]*F(iI)*(SIGMA[n](IJ) - PK2[n](I,J))*F(j,J)*Jhatdet[n]*weight[n];
+                            mu_int(i,j) += -Ns[n]*F(i,I)*(SIGMA[n](I,J) - PK2[n](I,J))*F(j,J)*Jhatdet[n]*weights[n];
                             
                         }
                     }
@@ -715,7 +707,7 @@ namespace micro_element
                     for(int I=0; I<3; I++){
                         for(int J=0; J<3; J++){
                             for(int K=0; K<3; K++){
-                            mu_int(i,j) += -dNdXs[n][K]*F(jJ)*chi(iI)*M(KJI)*Jhatdet[n]*weight[n];
+                            mu_int(i,j) += -dNdXs[n][K]*F(j,J)*chi(i,I)*M[n](K,J,I)*Jhatdet[n]*weights[n];
                             }
                         }
                     }
@@ -741,7 +733,7 @@ namespace micro_element
     //!|
     //!=
             
-    std::vector< std::vector< double > > parse_incoming_vectors(int mode; std::vector< double > incoming){
+    std::vector< std::vector< double > > Hex8::parse_incoming_vectors(int mode, const std::vector< double > & incoming){
         /*!================================
         |    parse_incoming_vectors    |
         ================================
@@ -758,18 +750,25 @@ namespace micro_element
         std::vector< double >::const_iterator last;         //! The iterator which identifies the end of a subvector
         std::vector< std::vector< double > > parsed_vector; //! The parsed vector which is returned
         parsed_vector.resize(reference_coords.size());
+        int factor;
         
         if(mode==1){//Parse an incoming coordinate vector
             factor = 3;
-        if(mode==2){//Parse an incoming dof vector
+        }
+        else if(mode==2){//Parse an incoming dof vector
             factor = 8;
+        }
+        else{//Unrecognized mode
+            std::cout << "\nError: The mode value of " << mode << " is not recognized.\n";
+            assert(1==0);
         }
         
         //Extract the subvectors
         for(int n=0; n<reference_coords.size(); n++){
             first = incoming.begin()+n*factor;
             last  = incoming.begin()+(n+1)*factor;
-            parsed_vector[n] = std::vector< double > new_vec(first,last);
+            std::vector< double > new_vec(first,last);
+            parsed_vector[n] = new_vec;
         }
         
         return parsed_vector;

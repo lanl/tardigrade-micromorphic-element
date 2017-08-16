@@ -104,8 +104,8 @@ namespace micro_element
         
             //Constructors
             Hex8();
-            Hex8(std::vector< std::vector< double > >);
-            Hex8(std::vector< std::vector< double > >, std::vector< std::vector< double > >);
+            Hex8(std::vector< double >);
+            Hex8(std::vector< double >, std::vector< double >, std::vector< double >);
             
             //!==
             //!|
@@ -125,15 +125,15 @@ namespace micro_element
             //!| Shape Functions
             //!=
             
-            set_shape_function_values();
-            double shape_function(int,const std::vector< double >&);
+            double                shape_function(int,const std::vector< double >&);
             std::vector< double > local_gradient_shape_function(int,const std::vector< double >&);
             std::vector< double > global_gradient_shape_function(bool, int, const std::vector< double >&);
-            tensor::Tensor compute_jacobian(bool, const std::vector< double >&);
+            tensor::Tensor        compute_jacobian(bool, const std::vector< double >&);
             
-            std::vector< double > Hex8::get_shape_functions(const std::vector< double > &);
-            std::vector< std::vector< double > > get_local_gradient_shape_functions(const std::vector< double >&);
-            std::vector< std::vector< double > > get_global_gradient_shape_functions(bool, const std::vector< double > &);
+            void set_shape_function_values();
+            void set_shape_functions();
+            void set_local_gradient_shape_functions();
+            void set_global_gradient_shape_functions(bool);
             
             //!=
             //!| Fundamental Deformation Measures
@@ -205,6 +205,11 @@ namespace micro_element
             std::vector< int > sot_shape = {3,3};
             
             int gpt_num             = -1;                          //!The current gauss point number
+            std::vector< double >                Ns;               //!The shape function values
+            std::vector< std::vector< double > > dNdxis;           //!The derivatives of the shape function with respect
+                                                                   //!to the local coordinates.
+            std::vector< std::vector< double > > dNdxs;            //!The derivatives of the shape function with respect
+                                                                   //!to the current configuration.
             std::vector< std::vector< double > > dNdXs;            //!The derivatives of the shape function with respect 
                                                                    //!to the reference configuration.
             
@@ -226,7 +231,7 @@ namespace micro_element
             //!| Parse incoming vectors
             //!=
             
-            std::vector< std::vector< double > > parse_incoming_vectors(int,std::vector< double > &);
+            std::vector< std::vector< double > > parse_incoming_vectors(int,const std::vector< double > &);
     };
     
     //!==
