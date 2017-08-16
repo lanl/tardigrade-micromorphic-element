@@ -30,8 +30,41 @@
 #include <tensor.h>
 #include <micro_element.h>
 #include <ctime>
+#include <stdlib.h>
 
-
+int test_constructors(std::ofstream &results){
+    /*!===========================
+    |    test_constructors    |
+    ===========================
+    
+    Run tests on the constructors to ensure that 
+    they result in the expected behavior.
+    
+    */
+    
+    //Seed the random number generator
+    srand (1);
+    
+    //!Form the required vectors
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,1,0,1,1,1,1,0,1,1};
+    std::vector< double > U;
+    std::vector< double > dU;
+    U.resize(96);
+    dU.resize(96);
+    for(int i=0; i<96; i++){
+        U[i]  = (rand()%100-50)/1000.;
+        dU[i] = (rand()%100-50)/10000.;
+    }
+    
+    //!Test the empty constructor
+    micro_element::Hex8 A = micro_element::Hex8();
+    
+    //!Test the constructor with the reference node locations
+    micro_element::Hex8 B = micro_element::Hex8(reference_coords);
+    
+    //!Test the constructor with the reference node locations and the degree of freedom vectors
+    micro_element::Hex8 C = micro_element::Hex8(reference_coords,U,dU);
+}
 
 int main(){
     /*!==========================
