@@ -410,46 +410,42 @@ namespace micro_element
     //!| Fundamental Deformation Measures
     //!=
     
-    void Hex8::set_fundamental_measures(const std::vector< double > &xi){
+    void Hex8::set_fundamental_measures(){
         /*!========================================
         |       set_fundamental_measures       |
         ========================================
         
         Compute the fundamental deformation measures
-        at a given set of local coordinates (typically 
-        a gauss point). These are stored in the private 
-        attributes.
+        at the current gauss point. These are stored 
+        in the private attributes.
         
         This function allows all of the measures 
         to be updated simultaneously and ensures 
         they are evaluated at a consistent location.
         
-        Input:
-            xi:    The local coordinates.
+        Note that the current gauss point is defined 
+        by gpt_num.
             
         */
         
-        compute_deformation_gradient(xi);
-        compute_microdisplacement(xi);
-        compute_gradient_microdisplacement(xi);
+        compute_deformation_gradient();
+        compute_microdisplacement();
+        compute_gradient_microdisplacement();
     }
     
-    void Hex8::compute_deformation_gradient(const std::vector< double > &xi){
+    void Hex8::compute_deformation_gradient(){
         /*!======================================
         |    compute_deformation_gradient    |
         ======================================
         
         Compute the deformation gradient from the 
-        reference and current coordinates.
-        
-        Input:
-            xi:    The local coordinates where the 
-                   deformation gradient is to be calculated. 
+        reference and current coordinates at the 
+        current gauss point defined by gpt_num.
         
         */
         
         //Initialize vectors
-        std::vector< std::vector< double > > dNdxis = get_local_gradient_shape_functions(xi); //!The derivative of the shape functions with respect to the local coordinates.
+        std::vector< std::vector< double > > dNdxis = get_local_gradient_shape_functions(local_coordinates[gpt_num]); //!The derivative of the shape functions with respect to the local coordinates.
         std::vector< double > shape = {3,3};
         tensor::Tensor dxdxi = tensor::Tensor(shape); //!The derivative of the current coordinates w.r.t. the local coordinates
         tensor::Tensor dXdxi = tensor::Tensor(shape); //!The derivative of the reference coordinates w.r.t. the local coordinates
@@ -479,22 +475,18 @@ namespace micro_element
         return;
     }
     
-    void Hex8::compute_microdisplacement(const std::vector< double > &xi){
+    void Hex8::compute_microdisplacement(){
         /*!===================================
         |    compute_microdisplacement    |
         ===================================
         
         Compute the microdisplacement measure 
-        chi at a given coordinate.
-        
-        Input:
-            xi:    The local coordinates where the 
-                   deformation gradient is to be calculated. 
+        chi at the current gauss point.
         
         */
         
         //Initialize vectors
-        std::vector< double > Ns = get_shape_functions(xi); //!The value of the shape functions at xi.
+        std::vector< double > Ns = get_shape_functions(local_coordinates[gpt_num]); //!The value of the shape functions at the gauss point.
         std::vector< double > shape = {3,3};
         
         //Reset chi to zero
@@ -508,22 +500,18 @@ namespace micro_element
         return;
     }
     
-    void Hex8::compute_gradient_microdisplacement(const std::vector< double > &xi){
+    void Hex8::compute_gradient_microdisplacement(){
         /*!=============================================
         |    compute_gradient_microdisplacement    |
         ============================================
         
         Compute the gradient of the microdisplacement 
-        tensor with respect to the reference coordinates.
-        
-        Input:
-            xi:    The local coordinates where the 
-                   deformation gradient is to be calculated. 
-        
+        tensor with respect to the reference coordinates
+        at the gauss point.
         */
         
         //Initialize vectors
-        std::vector< std::vector< double > > dNdXs = get_gloal_gradient_shape_functions(xi); //!The derivative of the shape functions with respect to the global coordinates.
+        std::vector< std::vector< double > > dNdXs = get_gloal_gradient_shape_functions(local_coordinates[gpt_num]); //!The derivative of the shape functions with respect to the global coordinates.
         std::vector< int > shape = {3,3};
         std::vector< int > tot_shape = {3,3,3};
         tensor::Tensor chi_n = tensor::Tensor(shape); //!The value of chi at a node
@@ -631,6 +619,21 @@ namespace micro_element
         }
     }
     
+    //!=
+    //!| Constitutive Model Interface
+    //!=
+    
+    void set_stresses(){
+        /*!========================
+        |     set_stresses     |
+        ========================
+        
+        Set the stresses computed from the 
+        constitutive model at the current 
+        gauss point.
+        
+        */
+    }
     
     //!==
     //!|

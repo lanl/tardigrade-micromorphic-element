@@ -137,10 +137,10 @@ namespace micro_element
             //!| Fundamental Deformation Measures
             //!=
             
-            void set_fundamental_measures(const std::vector< double >&);
-            void compute_deformation_gradient(const std::vector< double >&);
-            void compute_microdisplacement(const std::vector< double >&);
-            void compute_gradient_microdisplacement(const std::vector< double >&);
+            void set_fundamental_measures();
+            void compute_deformation_gradient();
+            void compute_microdisplacement();
+            void compute_gradient_microdisplacement();
             
             //!=
             //!| Micromorphic Deformation Measures
@@ -155,7 +155,7 @@ namespace micro_element
             //!| Constitutive Model Interface
             //!=
             
-            void set_stresses(int);
+            void set_stresses();
             
             //!=
             //!| Residuals
@@ -201,6 +201,8 @@ namespace micro_element
             
             std::vector< int > tot_shape = {3,3,3};
             std::vector< int > sot_shape = {3,3};
+            
+            int gpt_num             = -1;                          //!The current gauss point number
             
             tensor::Tensor F        = tensor::eye();               //!The deformation gradient
             tensor::Tensor chi      = tensor::eye();               //!The microdisplacement tensor
