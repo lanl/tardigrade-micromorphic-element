@@ -472,6 +472,10 @@ namespace micro_element
                 }
             }
         }
+        
+        //Compute the determinant of F to ensure they are consistent
+        Fdet = F.det();
+        
         return;
     }
     
