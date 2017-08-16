@@ -682,6 +682,59 @@ namespace micro_element
         }
     }
     
+    //!|=> Moments
+    
+    void Hex8::add_internal_moments(){
+        /*!=====================================
+        |       add_internal_moments        |
+        =====================================
+        
+        Add the contributions of the internal 
+        moments to the right hand side vector.
+        
+        */
+        
+        std::vector< double > shape = {3,3};
+        tensor::Tensor mu_int = tensor::Tensor(shape);
+        
+        int initial_index = 3*reference_coord.size();
+        //Create the moment residual at the different nodes
+        for(int n=0; n<reference_coords.size(); n++){
+            
+            //Create the current value of mu_int
+            for(int i=0; i<3; i++){
+                for(int j=0; j<3; j++){
+                    
+                    for(int I=0; I<3; I++){
+                        for(int J=0; J<3; J++){
+                            mu_int(i,j) += -Ns[n]*F(iI)*(SIGMA[n](IJ) - PK2[n](I,J))*F(j,J)*Jhatdet[n]*weight[n];
+                            
+                        }
+                    }
+                    
+                    for(int I=0; I<3; I++){
+                        for(int J=0; J<3; J++){
+                            for(int K=0; K<3; K++){
+                            mu_int(i,j) += -dNdXs[n][K]*F(jJ)*chi(iI)*M(KJI)*Jhatdet[n]*weight[n];
+                            }
+                        }
+                    }
+                }
+            }
+            
+            //Populate the right hand side tensor
+            RHS[initial_index+n*9+0] = mu_int(0,0);
+            RHS[initial_index+n*9+1] = mu_int(1,1);
+            RHS[initial_index+n*9+2] = mu_int(2,2);
+            RHS[initial_index+n*9+3] = mu_int(1,2);
+            RHS[initial_index+n*9+4] = mu_int(0,2);
+            RHS[initial_index+n*9+5] = mu_int(0,1);
+            RHS[initial_index+n*9+6] = mu_int(2,1);
+            RHS[initial_index+n*9+7] = mu_int(2,0);
+            RHS[initial_index+n*9+8] = mu_int(1,0);
+        }
+    }
+    
     //!==
     //!|
     //!| Private Methods
