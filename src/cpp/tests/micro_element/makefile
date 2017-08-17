@@ -18,7 +18,7 @@ all: test_micro_element
 ERRORFLG=-fmax-errors=5
 
 test_micro_element: test_micro_element.o micro_element.o tensor.o micro_material.o
-	$(CC) $(STD) -o $@ test_micro_element.o micro_element.o tensor.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+	$(CC) $(STD) -o $@ test_micro_element.o micro_element.o micro_material.o tensor.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 test_micro_element.o: test_micro_element.cpp ../../micro_element.h ../../tensor.h
 	$(CC) $(STD) -o $@ -c test_micro_element.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
