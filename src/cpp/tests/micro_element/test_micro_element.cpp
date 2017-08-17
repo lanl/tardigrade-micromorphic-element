@@ -45,6 +45,10 @@ int test_constructors(std::ofstream &results){
     //Seed the random number generator
     srand (1);
     
+    //!Initialize test results
+    int  test_num        = 2;
+    bool test_results[test_num] = {false,false};
+    
     //!Form the required vectors
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,1,0,1,1,1,1,0,1,1};
     std::vector< double > U;
@@ -59,11 +63,37 @@ int test_constructors(std::ofstream &results){
     //!Test the empty constructor
     micro_element::Hex8 A = micro_element::Hex8();
     
+    test_results[0] = A.RHS.size()    == 96;
+    test_results[1] = A.AMATRX.size() == 96;
+    for(int i=0; i<A.AMATRX.size(); i++){
+        test_results[1] *= A.AMATRX[i].size() == 96;
+    }
+    
     //!Test the constructor with the reference node locations
     micro_element::Hex8 B = micro_element::Hex8(reference_coords);
     
     //!Test the constructor with the reference node locations and the degree of freedom vectors
     micro_element::Hex8 C = micro_element::Hex8(reference_coords,U,dU);
+    
+    
+    
+    
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_FOT_eye & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_FOT_eye & False\\\\\n\\hline\n";
+    }
 }
 
 int main(){
