@@ -31,11 +31,11 @@ namespace micro_element
     
     Hex8::Hex8(){
         //Resize the RHS and AMATRX containers
-        RHS.resize(96); //Allocate the required memory for the right hand side vector
+        RHS.resize(96,0.); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
         AMATRX.resize(96);
         for(int i=0; i<96; i++){
-            AMATRX[i].resize(96);
+            AMATRX[i].resize(96,0.);
         }
         
         //Resize the stress measure vectors
@@ -72,11 +72,11 @@ namespace micro_element
         */
         
         //Resize the RHS and AMATRX containers
-        RHS.resize(96); //Allocate the required memory for the right hand side vector
+        RHS.resize(96,0.); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
         AMATRX.resize(96);
         for(int i=0; i<96; i++){
-            AMATRX[i].resize(96);
+            AMATRX[i].resize(96,0.);
         }
         
         //Resize the phi vector
@@ -128,11 +128,11 @@ namespace micro_element
         */
         
         //Resize the RHS and AMATRX containers
-        RHS.resize(96); //Allocate the required memory for the right hand side vector
+        RHS.resize(96,0.); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
         AMATRX.resize(96);
         for(int i=0; i<96; i++){
-            AMATRX[i].resize(96);
+            AMATRX[i].resize(96,0.);
         }
         
         //Resize the phi vector
