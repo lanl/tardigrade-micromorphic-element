@@ -38,6 +38,12 @@ namespace micro_element
             AMATRX[i].resize(96,0.);
         }
         
+        //Resize the phi vector
+        node_phis.resize(reference_coords.size());
+        for(int n=0; n<reference_coords.size(); n++){
+            node_phis[n] = tensor::Tensor(sot_shape);
+        }
+        
         //Resize the stress measure vectors
         PK2.resize(number_gauss_points);
         SIGMA.resize(number_gauss_points);
@@ -89,8 +95,6 @@ namespace micro_element
         PK2.resize(number_gauss_points);
         SIGMA.resize(number_gauss_points);
         M.resize(number_gauss_points);
-        
-        
         
         reference_coords = parse_incoming_vectors(1,rcs);
         current_coords   = parse_incoming_vectors(1,rcs);
@@ -184,17 +188,17 @@ namespace micro_element
     //!|
     //!==
     
-    Hex8& Hex8::operator=(const Hex8& hex8_in){
-        /*!=======================
-        |      operator=       |
-        ========================
-        
-        Copy operator to allow for copying 
-        hexahedral elements*/
-        
-        reference_coords = hex8_in.reference_coords;
-        current_coords   = hex8_in.current_coords;
-    }
+//    Hex8& Hex8::operator=(const Hex8& hex8_in){
+//        /*!=======================
+//        |      operator=       |
+//        ========================
+//        
+//        Copy operator to allow for copying 
+//        hexahedral elements*/
+//        
+//        reference_coords = hex8_in.reference_coords;
+//        current_coords   = hex8_in.current_coords;
+//    }
     
     //!==
     //!|
@@ -750,13 +754,13 @@ namespace micro_element
         std::vector< double >::const_iterator last;         //! The iterator which identifies the end of a subvector
         std::vector< std::vector< double > > parsed_vector; //! The parsed vector which is returned
         parsed_vector.resize(reference_coords.size());
-        int factor;
+        int factor;                                         //! The number of dof associated with a given mode
         
         if(mode==1){//Parse an incoming coordinate vector
             factor = 3;
         }
         else if(mode==2){//Parse an incoming dof vector
-            factor = 8;
+            factor = 12;
         }
         else{//Unrecognized mode
             std::cout << "\nError: The mode value of " << mode << " is not recognized.\n";
