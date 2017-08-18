@@ -113,7 +113,7 @@ namespace micro_element
             //!|
             //!==
             
-            Hex8& operator=(const Hex8&);
+            //Hex8& operator=(const Hex8&);
             
             //!==
             //!|
@@ -190,6 +190,13 @@ namespace micro_element
             void add_dMint_ddof();
             void add_dMext_ddof();
             void add_dMkin_ddof();
+            
+            //!=
+            //!| Element Integration 
+            //!=
+            
+            void update_gauss_point();
+            void integrate_element();
             
         private:
             //!=
