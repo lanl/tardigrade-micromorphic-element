@@ -322,7 +322,7 @@ namespace micro_element
         //Compute the global gradient w.r.t. either the reference or global x
         for(int i=0; i<3; i++){
             for(int j=0; j<3; j++){
-                dNdx[i] += dNdxi[j]*Jinv(j,i);
+                dNdx[i] += Jinv(i,j)*dNdxi[j];
             }
         }                       
         return dNdx;
