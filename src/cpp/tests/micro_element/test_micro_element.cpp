@@ -258,8 +258,8 @@ int test_shape_functions(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 3;
-    bool test_results[test_num] = {false,false,false};
+    int  test_num        = 4;
+    bool test_results[test_num] = {false,false,false,false};
     
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,1,0,1,1,1,1,0,1,1};
@@ -292,10 +292,10 @@ int test_shape_functions(std::ofstream &results){
     test_results[0] = true;
     for(int n=0; n<8; n++){
         N = element.shape_function(n,local_coords[n]);
-        test_results[0] *= 1e-9>N-1>=0; //The shape function should be equal to one at the specified node
+        test_results[0] *= (1e-9>(N-1) && (N-1))>=0; //The shape function should be equal to one at the specified node
         for(int m=0; m<8; m++){
             M = element.shape_function(m,local_coords[n]);
-            if(n==m){test_results[0] *= 1e-9>N-M>=0;} //The shape function should only be 1 at N==M
+            if(n==m){test_results[0] *= ((1e-9>(N-M)) && ((N-M)>=0));} //The shape function should only be 1 at N==M
             else{test_results[0] *= 1e-9>N-M-1>=0;}
         }
     }
@@ -311,23 +311,41 @@ int test_shape_functions(std::ofstream &results){
     
     for(int n=0; n<8; n++){sum_Ns += element.shape_function(n,xi);} //Sum up all of the values of the shape function at the point
     
-    test_results[1] = 1e-9>sum_Ns-1.>=0;
+    test_results[1] = ((1e-9>(sum_Ns-1.)) && ((sum_Ns-1.)>=0));
     
     //!|=> Test 3
     //!Test whether the gradient of the shape function w.r.t. the local 
-    //!coordinates are correct
+    //!coordinates are correct at the center of the element
     
-    xi = {0.1,-0.2,.3};
-    std::vector< std::vector< double > > dNdxi_answers = {{-0.84, -0.63, -1.08},{0.84, -0.77, -1.32},{0.56, 0.77, -0.88},{-0.56, 0.63, -0.72},
-                                                          {-1.56, -1.17,  1.08},{1.56, -1.43,  1.32},{1.04, 1.43,  0.88},{-1.04, 1.17,  0.72}};
+    xi = {0.,0.,0.};
+    std::vector< std::vector< double > > dNdxi_answers = {{ -0.125, -0.125, -0.125},{  0.125, -0.125, -0.125},{  0.125,  0.125, -0.125},{-0.125,  0.125, -0.125},
+                                                          { -0.125, -0.125,  0.125},{  0.125, -0.125,  0.125},{  0.125,  0.125,  0.125},{-0.125,  0.125,  0.125}};
     
     test_results[2] = true;
+    double temp_diff;
     for(int n=0; n<8; n++){
-        print_vector("result",element.local_gradient_shape_function(n,xi));
-        print_vector("answer",dNdxi_answers[n]);
-        //test_results[2] *= 1e-9>fabs(element.local_gradient_shape_function(n,xi)-dNdxi_answers[n])>=0;
+        for(int i=0; i<3; i++){
+            temp_diff        = fabs(element.local_gradient_shape_function(n,xi)[i]-dNdxi_answers[n][i]);
+            test_results[2] *= ((1e-9>temp_diff) && (temp_diff>=0));
+        }
     }
     
+    //!|=> Test 4
+    //!Test whether the gradient of the shape function w.r.t. the local
+    //!coordinates are correct at teh center of the element
+    
+    xi = {0.3,-0.6,0.7};
+    dNdxi_answers = {{-0.06   , -0.02625, -0.14},{ 0.06   , -0.04875, -0.26},{ 0.015  ,  0.04875, -0.065},{-0.015  ,  0.02625, -0.035},
+                     {-0.34   , -0.14875,  0.14},{ 0.34   , -0.27625,  0.26},{ 0.085  ,  0.27625,  0.065},{-0.085  ,  0.14875,  0.035}};
+    
+    test_results[3] = true;
+    bool temp;
+    for(int n=0; n<8; n++){
+        for(int i=0; i<3; i++){
+            temp_diff = fabs(element.local_gradient_shape_function(n,xi)[i]-dNdxi_answers[n][i]);
+            test_results[3] *= ((1e-9>temp_diff) && (temp_diff>=0));
+        }
+    }
     
     //Compare all test results
     bool tot_result = true;
