@@ -184,12 +184,12 @@ int test_constructors(std::ofstream &results){
     //!|=> Test 3
     //!Test if the dof vectors were parsed correctly
     for(int n=0; n<8; n++){
-        U_answer[n].resize(9);
-        dU_answer[n].resize(9);
+        U_answer[n].resize(12);
+        dU_answer[n].resize(12);
         
-        for(int i=0; i<9; i++){
-            U_answer[n][i]  = U[i+n*9];
-            dU_answer[n][i] = dU[i+n*9];
+        for(int i=0; i<12; i++){
+            U_answer[n][i]  = U[i+n*12];
+            dU_answer[n][i] = dU[i+n*12];
         }
     }
     
@@ -241,6 +241,8 @@ int test_constructors(std::ofstream &results){
     else{
         results << "test_constructors & False\\\\\n\\hline\n";
     }
+    
+    return 1;
 }
 
 int test_shape_functions(std::ofstream &results){
@@ -258,8 +260,8 @@ int test_shape_functions(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 4;
-    bool test_results[test_num] = {false,false,false,false};
+    int  test_num        = 6;
+    bool test_results[test_num] = {false,false,false,false,false,false};
     
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,1,0,1,1,1,1,0,1,1};
@@ -332,7 +334,8 @@ int test_shape_functions(std::ofstream &results){
     
     //!|=> Test 4
     //!Test whether the gradient of the shape function w.r.t. the local
-    //!coordinates are correct at teh center of the element
+    //!coordinates are correct at a location off the center of the 
+    //!element.
     
     xi = {0.3,-0.6,0.7};
     dNdxi_answers = {{-0.06   , -0.02625, -0.14},{ 0.06   , -0.04875, -0.26},{ 0.015  ,  0.04875, -0.065},{-0.015  ,  0.02625, -0.035},
@@ -346,6 +349,38 @@ int test_shape_functions(std::ofstream &results){
             test_results[3] *= ((1e-9>temp_diff) && (temp_diff>=0));
         }
     }
+    
+    //!|=> Test 5
+    //!Test whether the jacobian is computed correctly for the reference coordinates
+    
+    tensor::Tensor J_answer({3,3}); //!The answer jacobian.
+    tensor::Tensor J_result = element.compute_jacobian(0,xi); //Memory error in this function
+    
+    for(int n=0; n<8; n++){
+        J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.reference_coords[n]);
+    }
+    
+    test_results[4] = J_result.data.isApprox(J_answer.data);
+    
+    //!|=> Test 6
+    //!Test whether the jacobian is computed correctly for the current coordinates
+    
+//    J_answer = tensor::Tensor({3,3});
+//    
+//    for(int n=0; n<8; n++){
+//        J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.current_coords[n]);
+//    }
+//    
+//    test_results[5] = element.compute_jacobian(1,xi).data.isApprox(J_answer.data);    
+    
+    //!|=> Test 7
+    //!Test whether the gradient of the shape function w.r.t. the 
+    //!current coordinates are correct at a location in the 
+    //!element.
+    
+    //xi = {0.52,-.42,.73};
+    
+    
     
     //Compare all test results
     bool tot_result = true;
@@ -362,6 +397,8 @@ int test_shape_functions(std::ofstream &results){
     else{
         results << "test_constructors & False\\\\\n\\hline\n";
     }
+    
+    return 1;
 
 }
 
