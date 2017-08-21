@@ -219,9 +219,10 @@ namespace micro_element
                                                                    //!to the current configuration.
             std::vector< std::vector< double > > dNdXs;            //!The derivatives of the shape function with respect 
                                                                    //!to the reference configuration.
+            tensor::Tensor J        = tensor::eye();               //!The jacobian of transformation e.g. dxi dX
             
             std::vector< double > Jhatdet  = {1,1,1,1,1,1,1,1};    //!The determinant of the jacobian of transformation 
-                                                                   //!to the reference configuration.
+                                                                   //!to the reference configuration. e.g. det(dxi dX)
             
             tensor::Tensor F        = tensor::eye();               //!The deformation gradient
             tensor::Tensor chi      = tensor::eye();               //!The microdisplacement tensor
