@@ -48,6 +48,11 @@ namespace micro_element
         PK2.resize(number_gauss_points);
         SIGMA.resize(number_gauss_points);
         M.resize(number_gauss_points);
+        
+        //Resize the private vector attributes
+        Ns.resize(local_coords.size());
+        dNdxs.resize(local_coords.size());
+        dNdXs.resize(local_coords.size());
     }
     
     Hex8::Hex8(std::vector< double > rcs){
@@ -98,6 +103,11 @@ namespace micro_element
         
         reference_coords = parse_incoming_vectors(1,rcs);
         current_coords   = parse_incoming_vectors(1,rcs);
+        
+        //Resize the private vector attributes
+        Ns.resize(local_coords.size());
+        dNdxs.resize(local_coords.size());
+        dNdXs.resize(local_coords.size());
     }
     
     Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU){
@@ -149,6 +159,11 @@ namespace micro_element
         PK2.resize(number_gauss_points);
         SIGMA.resize(number_gauss_points);
         M.resize(number_gauss_points);
+        
+        //Resize the private vector attributes
+        Ns.resize(local_coords.size());
+        dNdxs.resize(local_coords.size());
+        dNdXs.resize(local_coords.size());
         
         //Break the rcs, U, and, dU vectors into a vector of vectors
         //where each subvector are the values associated with a given 
