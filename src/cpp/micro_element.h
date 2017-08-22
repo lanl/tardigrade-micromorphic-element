@@ -125,15 +125,18 @@ namespace micro_element
             //!| Shape Functions
             //!=
             
-            double                shape_function(int,const std::vector< double >&);
-            std::vector< double > local_gradient_shape_function(int,const std::vector< double >&);
-            std::vector< double > global_gradient_shape_function(bool, int, const std::vector< double >&);
-            tensor::Tensor        compute_jacobian(bool, const std::vector< double >&);
+            void update_shape_function_values();
             
-            void set_shape_function_values();
             void set_shape_functions();
+            void set_shape_function(int);
+            
             void set_local_gradient_shape_functions();
+            void set_local_gradient_shape_function(int);
+            
+            void set_jacobian(bool);
+            
             void set_global_gradient_shape_functions(bool);
+            void set_global_gradient_shape_function(bool, int);
             
             //!=
             //!| Fundamental Deformation Measures
@@ -198,6 +201,14 @@ namespace micro_element
             void update_gauss_point();
             void integrate_element();
             
+            //!=
+            //!| Test functions
+            //!=
+            
+            void set_gpt_num(int);
+            double get_N(int);
+            std::vector< double > get_dNdxi(int);
+            
         private:
             //!=
             //!| Common solution variables
@@ -211,29 +222,29 @@ namespace micro_element
             std::vector< int > tot_shape = {3,3,3};
             std::vector< int > sot_shape = {3,3};
             
-            int gpt_num             = -1;                          //!The current gauss point number
-            std::vector< double >                Ns;               //!The shape function values
-            std::vector< std::vector< double > > dNdxis;           //!The derivatives of the shape function with respect
-                                                                   //!to the local coordinates.
-            std::vector< std::vector< double > > dNdxs;            //!The derivatives of the shape function with respect
-                                                                   //!to the current configuration.
-            std::vector< std::vector< double > > dNdXs;            //!The derivatives of the shape function with respect 
-                                                                   //!to the reference configuration.
-            tensor::Tensor J        = tensor::eye();               //!The jacobian of transformation e.g. dxi dX
+            int gpt_num             = -1;                               //!The current gauss point number
+            std::vector< double >                Ns;                    //!The shape function values
+            std::vector< std::vector< double > > dNdxis;                //!The derivatives of the shape function with respect
+                                                                        //!to the local coordinates.
+            std::vector< std::vector< double > > dNdxs;                 //!The derivatives of the shape function with respect
+                                                                        //!to the current configuration.
+            std::vector< std::vector< double > > dNdXs;                 //!The derivatives of the shape function with respect 
+                                                                        //!to the reference configuration.
+            tensor::Tensor J                 = tensor::Tensor({3,3});   //!The jacobian of transformation e.g. dxi dX
+            tensor::Tensor Jinv              = tensor::Tensor({3,3});   //!The inverse of the jacobian of transformation e.g. (dxi dX)^(-1)
+            double Jhatdet  = 0;                                        //!The determinant of the jacobian of transformation 
+                                                                        //!to the reference configuration. e.g. det(dxi dX)
             
-            std::vector< double > Jhatdet  = {1,1,1,1,1,1,1,1};    //!The determinant of the jacobian of transformation 
-                                                                   //!to the reference configuration. e.g. det(dxi dX)
+            tensor::Tensor F                 = tensor::Tensor({3,3});   //!The deformation gradient
+            tensor::Tensor chi               = tensor::Tensor({3,3});   //!The microdisplacement tensor
+            tensor::Tensor grad_chi          = tensor::Tensor({3,3,3}); //!The gradient of the microdisplacement tensor
             
-            tensor::Tensor F        = tensor::eye();               //!The deformation gradient
-            tensor::Tensor chi      = tensor::eye();               //!The microdisplacement tensor
-            tensor::Tensor grad_chi = tensor::Tensor(tot_shape);   //!The gradient of the microdisplacement tensor
+            tensor::Tensor C                 = tensor::Tensor({3,3});   //!The Right Cauchy-Green deformation tensor
+            tensor::Tensor Cinv              = tensor::Tensor({3,3});   //!The inverse of teh Right Cauchy-Green deformation tensor
+            tensor::Tensor Psi               = tensor::Tensor({3,3});   //!The micro deformation tensor
+            tensor::Tensor Gamma             = tensor::Tensor({3,3,3}); //!The higher order deformation tensor
             
-            tensor::Tensor C        = tensor::Tensor(sot_shape);   //!The Right Cauchy-Green deformation tensor
-            tensor::Tensor Cinv     = tensor::Tensor(sot_shape);   //!The inverse of teh Right Cauchy-Green deformation tensor
-            tensor::Tensor Psi      = tensor::Tensor(sot_shape);   //!The micro deformation tensor
-            tensor::Tensor Gamma    = tensor::Tensor(tot_shape);   //!The higher order deformation tensor
-            
-            double Fdet             = 1.;                          //!The determinant of the jacobian of the deformation gradient
+            double Fdet = 0;                                       //!The determinant of the jacobian of the deformation gradient
             
             //!=
             //!| Parse incoming vectors

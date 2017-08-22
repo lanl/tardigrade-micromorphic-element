@@ -210,10 +210,10 @@ namespace micro_element
     //!| Shape Functions
     //!=
     
-    void Hex8::set_shape_function_values(){
-        /*!===================================
-        |    set_shape_function_values    |
-        ===================================
+    void Hex8::update_shape_function_values(){
+        /*!======================================
+        |    update_shape_function_values    |
+        ======================================
         
         Set all of the shape function values to
         a value consistent with the current gauss 
@@ -229,22 +229,20 @@ namespace micro_element
         
     }
     
-    double Hex8::shape_function(int n, const std::vector< double > &xi){
-        /*!=========================
-        |      shape_function    |
-        ==========================
+    void Hex8::set_shape_function(int n){
+        /*!==============================
+        |      set_shape_function    |
+        ==============================
         
-        Compute the value of the shape function
-        at a given node and xi (local coordinate) 
-        locations
+        Compute the value of the shape function at 
+        node n at the gauss point.
         
         Input:
-            n  : Node number
-            xi : xi vector xi = [xi_1, xi_2, xi_3]
-        
+            n  : Node number        
         */
         
-        return 0.125*(1+xi[0]*local_coords[n][0])*(1+xi[1]*local_coords[n][1])*(1+xi[2]*local_coords[n][2]);
+        Ns[n] = 0.125*(1+points[gpt_num][0]*local_coords[n][0])*(1+points[gpt_num][1]*local_coords[n][1])*(1+points[gpt_num][2]*local_coords[n][2]);
+        return;
     }
     
     void Hex8::set_shape_functions(){
@@ -261,15 +259,15 @@ namespace micro_element
         
         */
         for(int n=0; n<reference_coords.size(); n++){
-            Ns[n] = shape_function(n,points[gpt_num]);
+            set_shape_function(n);
         }
         return;
     }
     
-    std::vector< double > Hex8::local_gradient_shape_function(int n, const std::vector< double > &xi){
-        /*!=======================================
-        |    local_gradient_shape_function    |
-        =======================================
+    void Hex8::set_local_gradient_shape_function(int n){
+        /*!===========================================
+        |    set_local_gradient_shape_function    |
+        ===========================================
         
         Compute the value of the gradient of the 
         shape function at a given node and xi 
@@ -277,25 +275,22 @@ namespace micro_element
         
         Input:
             n  : Node number
-            xi : xi vector xi = [xi_1, xi_2, xi_3]
-        
         */
         
         //Initialize the shape of the output tensor
-        std::vector< double > dNdxi;
-        dNdxi.resize(3);
+        dNdxis[n] = {0,0,0};
         
-        dNdxi[0] = 0.125*local_coords[n][0]*(1+xi[1]*local_coords[n][1])*(1+xi[2]*local_coords[n][2]);
-        dNdxi[1] = 0.125*(1+xi[0]*local_coords[n][0])*local_coords[n][1]*(1+xi[2]*local_coords[n][2]);
-        dNdxi[2] = 0.125*(1+xi[0]*local_coords[n][0])*(1+xi[1]*local_coords[n][1])*local_coords[n][2];
+        dNdxis[n][0] = 0.125*local_coords[n][0]*(1+points[gpt_num][1]*local_coords[n][1])*(1+points[gpt_num][2]*local_coords[n][2]);
+        dNdxis[n][1] = 0.125*(1+points[gpt_num][0]*local_coords[n][0])*local_coords[n][1]*(1+points[gpt_num][2]*local_coords[n][2]);
+        dNdxis[n][2] = 0.125*(1+points[gpt_num][0]*local_coords[n][0])*(1+points[gpt_num][1]*local_coords[n][1])*local_coords[n][2];
         
-        return dNdxi;
+        return;
     }
     
-    std::vector< double > Hex8::global_gradient_shape_function(bool mode, int n, const std::vector< double > &xi){
-        /*!=======================================
-        |    global_gradient_shape_function    |
-        ========================================
+    void Hex8::set_global_gradient_shape_function(bool mode, int n){
+        /*!============================================
+        |    set_global_gradient_shape_function    |
+        ============================================
         
         Compute the value of the gradient of the 
         shape function at a given node and xi 
@@ -306,50 +301,39 @@ namespace micro_element
                   the reference coordinates (0) or the 
                   current coordinates (1)
             n   : Node number
-            xi  : xi vector xi = [xi_1, xi_2, xi_3]
         
         */
-        
-        //Initialize the output
-        std::vector< double > dNdx;
-        dNdx.resize(3);
-        
-        tensor::Tensor J          = compute_jacobian(mode,xi);           //Compute the jacobian
-        tensor::Tensor Jinv       = J.inverse();                         //Invert the jacobian
-        double         Jdet       = J.det();                             //Get the determinant of the jacobian
-        std::vector<double> dNdxi = local_gradient_shape_function(n,xi); //Compute the local gradient of the shape function
+        //Initialize the gradient
+        if(mode==0){     dNdxs[n] = {0,0,0};}
+        else if(mode==1){dNdXs[n] = {0,0,0};}
         
         //Compute the global gradient w.r.t. either the reference or global x
         for(int i=0; i<3; i++){
             for(int j=0; j<3; j++){
-                dNdx[i] += Jinv(i,j)*dNdxi[j];
+                if(mode==0)     {dNdxs[n][i] += Jinv(i,j)*dNdxis[n][j];} //Compute the gradient of the shape function associated with node n w.r.t. the current coordinates
+                else if(mode==1){dNdXs[n][i] += Jinv(i,j)*dNdxis[n][j];} //Compute the gradient of the shape function associated with node n w.r.t. the reference coordinates
             }
         }                       
-        return dNdx;
+        return;
     }
     
-    tensor::Tensor Hex8::compute_jacobian(bool mode, const std::vector< double > & xi){
-        /*!=========================
-        |    compute_jacobian    |
-        ==========================
+    void Hex8::set_jacobian(bool mode){
+        /*!======================
+        |    set_jacobian    |
+        ======================
         
-        Compute the value of the jacobian of 
+        Set the value of the jacobian of 
         transformation between the given 
         coordinates and the local coordinates.
+        
         Input:
             mode: Selection between the gradient w.r.t.
                   the reference coordinates (0) or the 
-                  current coordinates (1)
-            xi  : xi vector xi = [xi_1, xi_2, xi_3]
-        
+                  current coordinates (1)        
         */
         
-        //Initialize the output
-        tensor::Tensor J = tensor::Tensor(sot_shape);
-        
-        //Initialize local gradient value
-        std::vector< double > local_gradient;
-        local_gradient.resize(3);
+        //Initialize the jacobian value i.e. set to zero
+        J = tensor::Tensor({3,3});
 
         //Set up a temporary renaming variable depending on the mode
         std::vector< std::vector< double > > coordinates;
@@ -363,13 +347,13 @@ namespace micro_element
         
         //Add the contributions of each node in the element
         for(int n = 0; n<coordinates.size(); n++){
-            local_gradient = local_gradient_shape_function(n,xi); //Get the local gradient of the given nodes shape function
-            J += vector_dyadic_product(local_gradient,coordinates[n]); //Compute the vector dyadic product and add it to the jacobian
+            J += vector_dyadic_product(dNdxis[n],coordinates[n]); //Compute the vector dyadic product and add it to the jacobian
         }
         
-        Jhatdet[gpt_num] = J.det();
+        Jinv    = J.inverse();
+        Jhatdet = J.det();
         
-        return J;
+        return;
     }
     
     void Hex8::set_local_gradient_shape_functions(){
@@ -377,7 +361,7 @@ namespace micro_element
         |      set_local_gradient_shape_functions      |
         ================================================
         
-        Set all of the gradients of the shape functions.
+        Set all of the local gradients of the shape functions.
         
         This sets the value of the gradients of the 
         shape functions at a given gauss point.
@@ -386,7 +370,7 @@ namespace micro_element
         
         //Populate dNdxis
         for(int n=0; n<reference_coords.size(); n++){
-            dNdxis[n] = local_gradient_shape_function(n, points[gpt_num]);
+            set_local_gradient_shape_function(n);
         }
         
         return;
@@ -410,16 +394,16 @@ namespace micro_element
         
         */
         
-        //Populate dNdxs
+        set_jacobian(mode); //Set the jacobian and its inverse to the correct values
         
         if(mode==0){
             for(int n=0; n<reference_coords.size(); n++){
-                dNdXs[n] = global_gradient_shape_function(mode, n, points[gpt_num]);
+                set_global_gradient_shape_function(mode, n);
             }
         }
         else if(mode==1){
             for(int n=0; n<reference_coords.size(); n++){
-                dNdxs[n] = global_gradient_shape_function(mode, n, points[gpt_num]);
+                set_global_gradient_shape_function(mode, n);
             }
         }
         else{
@@ -670,7 +654,7 @@ namespace micro_element
                 
                 for(int I=0; I<3; I++){
                     for(int J=0; J<3; J++){
-                        RHS[j] += -dNdXs[n][I]*PK2[n](I,J)*F(j,J)*Jhatdet[n]*weights[n];
+                        RHS[j] += -dNdXs[n][I]*PK2[n](I,J)*F(j,J)*Jhatdet*weights[n];
                     }
                 }
                 
@@ -703,7 +687,7 @@ namespace micro_element
                     
                     for(int I=0; I<3; I++){
                         for(int J=0; J<3; J++){
-                            mu_int(i,j) += -Ns[n]*F(i,I)*(SIGMA[n](I,J) - PK2[n](I,J))*F(j,J)*Jhatdet[n]*weights[n];
+                            mu_int(i,j) += -Ns[n]*F(i,I)*(SIGMA[n](I,J) - PK2[n](I,J))*F(j,J)*Jhatdet*weights[n];
                             
                         }
                     }
@@ -711,7 +695,7 @@ namespace micro_element
                     for(int I=0; I<3; I++){
                         for(int J=0; J<3; J++){
                             for(int K=0; K<3; K++){
-                            mu_int(i,j) += -dNdXs[n][K]*F(j,J)*chi(i,I)*M[n](K,J,I)*Jhatdet[n]*weights[n];
+                            mu_int(i,j) += -dNdXs[n][K]*F(j,J)*chi(i,I)*M[n](K,J,I)*Jhatdet*weights[n];
                             }
                         }
                     }
@@ -731,10 +715,96 @@ namespace micro_element
         }
     }
     
+    
+    //!=
+    //!| Test functions
+    //!=
+    
+    void Hex8::set_gpt_num(int _gpt_num){
+        /*!=====================
+        |    set_gpt_num    |
+        =====================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Set the gauss point number.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        
+        gpt_num = _gpt_num;
+    }
+    
+    double Hex8::get_N(int _n){
+        /*!===============
+        |    get_N    |
+        ===============
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the shape function 
+        from node n.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        
+        return Ns[_n];
+    }
+    
+    std::vector< double > Hex8::get_dNdxi(int _n){
+        /*!===================
+        |    get_dNdxi    |
+        ===================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the shape function 
+        from node n.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        
+        return dNdxis[_n];
+    }
+    
     //!==
     //!|
     //!| Private Methods
     //!|
+    //!=
+    
+    //!=
+    //!| Parse DOF vectors
     //!=
             
     std::vector< std::vector< double > > Hex8::parse_incoming_vectors(int mode, const std::vector< double > & incoming){
@@ -778,9 +848,6 @@ namespace micro_element
         return parsed_vector;
     }
     
-    //!=
-    //!| Parse DOF vectors
-    //!=
             
             
     
