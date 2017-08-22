@@ -287,7 +287,7 @@ int test_shape_functions(std::ofstream &results){
     //!and zero elsewhere.
     
     element.points     = {{-1,-1,-1},{ 1,-1,-1},{ 1, 1,-1},{-1, 1,-1},
-                          {-1,-1, 1},{ 1,-1, 1},{ 1, 1, 1},{-1, 1, 1}}; //Set the gauss points of the element to the nodes
+                          {-1,-1, 1},{ 1,-1, 1},{ 1, 1, 1},{-1, 1, 1}}; //Set the gauss points of the element to the nodes (done for testing purposes)
     test_results[0] = true;
     for(int n=0; n<8; n++){
         element.set_gpt_num(n);        //Set the, "gauss point," of the element to the current node
@@ -298,6 +298,8 @@ int test_shape_functions(std::ofstream &results){
             else{test_results[0] *= 1e-9>element.get_N(n)-element.get_N(m)-1>=0;}
         }
     }
+    
+    
     
     //!|=> Test 2
     //!Test whether the sum of the shape functions values are unity at a
@@ -424,7 +426,7 @@ int main(){
     
     //!Run the test functions
     test_constructors(results);
-    //test_shape_functions(results);
+    test_shape_functions(results);
     
     //Close the results file
     results.close();
