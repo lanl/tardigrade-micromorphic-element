@@ -29,6 +29,7 @@
 #include <Eigen/Dense>
 #include <tensor.h>
 #include <micro_element.h>
+#include <finite_difference.h>
 #include <ctime>
 #include <stdlib.h>
 
@@ -260,8 +261,8 @@ int test_shape_functions(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 6;
-    bool test_results[test_num] = {false,false,false,false,false,false};
+    int  test_num        = 7;
+    bool test_results[test_num] = {false,false,false,false,false,false,false};
     
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,1,0,1,1,1,1,0,1,1};
@@ -298,8 +299,6 @@ int test_shape_functions(std::ofstream &results){
             else{test_results[0] *= 1e-9>element.get_N(n)-element.get_N(m)-1>=0;}
         }
     }
-    
-    
     
     //!|=> Test 2
     //!Test whether the sum of the shape functions values are unity at a
@@ -361,17 +360,19 @@ int test_shape_functions(std::ofstream &results){
     }
     
     //!|=> Test 5
-    //!Test whether the jacobian is computed correctly for the reference coordinates
+    //!Test whether the jacobian is computed correctly for the reference coordinates 
+    //!at a location off the center of the element.
     
     tensor::Tensor J_answer({3,3}); //!The answer jacobian.
     tensor::Tensor J_result = element.get_jacobian(0);
-	
+    
     for(int n=0; n<8; n++){
-        J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.reference_coords[n]); //Compute the expected value of the jacobian
+        //J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.reference_coords[n]); //Compute the expected value of the jacobian
+        J_answer += micro_element::vector_dyadic_product(element.reference_coords[n],dNdxi_answers[n]);
     }
     
     test_results[4] = J_result.data.isApprox(J_answer.data); //Test the results
-	
+    
     //!|=> Test 6
     //!Test whether the jacobian is computed correctly for the current coordinates
     
@@ -379,17 +380,16 @@ int test_shape_functions(std::ofstream &results){
     J_result = element.get_jacobian(1);
     
     for(int n=0; n<8; n++){
-        J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.current_coords[n]);
+        //J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.current_coords[n]);
+        J_answer += micro_element::vector_dyadic_product(element.current_coords[n],dNdxi_answers[n]);
     }
     
     test_results[5] = J_result.data.isApprox(J_answer.data);
     
     //!|=> Test 7
-    //!Test whether the gradient of the shape function w.r.t. the 
-    //!current coordinates are correct at a location in the 
-    //!element.
+    //!Test whether the gradient of the shape function with respect to the 
+    //!current coordinates is computed correctly.
     
-    //xi = {0.52,-.42,.73};
     
     
     
