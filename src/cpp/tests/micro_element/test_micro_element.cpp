@@ -468,6 +468,137 @@ int test_shape_functions(std::ofstream &results){
 
 }
 
+std::vector< double > test_deformation(std::vector< double > reference_position){
+    /*!==========================
+    |    test_deformation    |
+    ==========================
+    
+    Compute a test deformation 
+    to show that the deformation gradient 
+    and microdisplacement are being computed 
+    correctly.
+    
+    */
+    
+    double X = reference_position[0];
+    double Y = reference_position[1];
+    double Z = reference_position[2];
+    
+    std::vector< double > U;
+    U.resize(12,0);
+    
+    //!Set the displacements
+    U[ 0] =  0.32*X-0.14*Y+0.61*Z;
+    U[ 1] = -0.50*X+0.24*Y-0.38*Z;
+    U[ 2] = -0.22*Z+0.47*Y+0.62*Z;
+    U[ 3] = -1.10*X+0.04*Y+2.30*Z; //phi_11
+    U[ 4] = -0.74*X+1.22*Y+2.22*Z; //phi_22
+    U[ 5] = -2.24*X+5.51*Y+1.11*Z; //phi_33
+    U[ 6] = -5.75*X+2.26*Y+7.66*Z; //phi_23
+    U[ 7] = -6.22*X+8.63*Y+2.72*Z; //phi_13
+    U[ 8] = -2.76*X+3.37*Y+3.93*Z; //phi_12
+    U[ 9] = -6.32*X+6.73*Y+7.22*Z; //phi_32
+    U[10] = -3.83*X+4.29*Y+1.51*Z; //phi_31
+    U[11] = -9.18*X+3.61*Y+9.08*Z; //phi_21
+    
+    return U;
+    
+
+int test_fundamental_measures(std::ofstream &results){
+    /*!===================================
+    |    test_fundamental_measures    |
+    ===================================
+    
+    Run tests on the fundamental deformation measures
+    and related methods to ensure they are functioning 
+    properly
+    
+    */
+    
+    //Seed the random number generator
+    srand (1);
+    
+    //!Initialize test results
+    int  test_num        = 1;
+    bool test_results[test_num] = {false};
+    
+    //!Form the required vectors for element formation
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
+    std::vector< double > Unode;
+    std::vector< double > Xnode;
+    std::vector< double > U;
+    std::vector< double > dU;
+    Xnode.resize(3);
+    Unode.resize(96);
+    U.resize(96);
+    dU.resize(96);
+    int inc = 0;
+    for(int n=0; n<8; n++){
+        Xnode[0] = reference_coords[0+n*3]; //Get the position of the current node
+        Xnode[1] = reference_coords[1+n*3];
+        Xnode[2] = reference_coords[2+n*3];
+        
+        Unode = test_deformation(Xnode);    //Update the deformation
+        
+        for(int i=0; i<12; i++){
+            U[inc]  = Unode[i];   //Assign the deformation
+            dU[inc] = 0.1*Unode[i];  //Assign the change in deformation (1/10 of the deformation)
+            inc++;
+        }
+    }
+    
+    //!Form the hexehedral test element.
+    micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU);
+    
+    //!Set the gauss point
+    element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
+    
+    //!Compute the shape function values
+    element.update_shape_function_values();
+    
+    //!Set the fundamental deformation measures
+    element.set_fundamental_measures();
+    
+    //!Compare the computed values to the expected result
+    tensor::Tensor F_answer({3,3});
+    tensor::Tensor chi_answer({3,3});
+    tensor::Tensor grad_chi_answer({3,3,3});
+    
+    //Populate the expected deformation gradient
+    F_answer(0,0) =  0.32;
+    F_answer(1,1) =  0.24;
+    F_answer(2,2) =  0.62;
+    F_answer(1,2) = -0.38;
+    F_answer(0,2) =  0.61;
+    F_answer(0,1) = -0.14;
+    F_answer(2,1) =  0.47;
+    F_answer(2,0) = -0.22;
+    F_answer(1,0) = -0.50;
+    
+    //Populate the expected values of the gradient of 
+    //chi
+    grad_chi_answer(0,0,0) = -1.10;
+    grad_chi_answer(0,0,1) =  0.04;
+    grad_chi_answer(0,0,2) =  2.30;
+    
+    grad_chi_answer(1,1,0) = -0.74;
+    grad_chi_answer(1,1,1) =  1.22;
+    grad_chi_answer(1,1,2) =  2.22;
+    
+    grad_chi_answer(2,2,0) = -2.24;
+    grad_chi_answer(2,2,1) =  5.51;
+    grad_chi_answer(2,2,2) =  1.11;
+    
+    grad_chi_answer(1,2,0) = -5.75;
+    grad_chi_answer(1,2,1) =  2.26;
+    grad_chi_answer(1,2,2) =  7.66;
+    
+    U[ 7] = -6.22*X+8.63*Y+2.72*Z; //phi_13
+    U[ 8] = -2.76*X+3.37*Y+3.93*Z; //phi_12
+    U[ 9] = -6.32*X+6.73*Y+7.22*Z; //phi_32
+    U[10] = -3.83*X+4.29*Y+1.51*Z; //phi_31
+    U[11] = -9.18*X+3.61*Y+9.08*Z; //phi_21
+
 int main(){
     /*!==========================
     |         main            |
