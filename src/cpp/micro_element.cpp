@@ -831,6 +831,35 @@ namespace micro_element
         
         return dNdxis[_n];
     }
+	
+	tensor::Tensor Hex8::get_jacobian(int _mode){
+        /*!======================
+        |    get_jacobian    |
+        ======================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the jacobian for 
+		either the reference or current 
+		coordinates.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        
+		set_jacobian(_mode);
+		
+        return J;
+    }
     
     //!==
     //!|
