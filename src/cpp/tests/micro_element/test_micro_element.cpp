@@ -363,25 +363,26 @@ int test_shape_functions(std::ofstream &results){
     //!|=> Test 5
     //!Test whether the jacobian is computed correctly for the reference coordinates
     
-//    tensor::Tensor J_answer({3,3}); //!The answer jacobian.
-//    tensor::Tensor J_result = element.compute_jacobian(0,xi); //Memory error in this function
-//    
-//    for(int n=0; n<8; n++){
-//        J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.reference_coords[n]);
-//    }
-//    
-//    test_results[4] = J_result.data.isApprox(J_answer.data);
+    tensor::Tensor J_answer({3,3}); //!The answer jacobian.
+    tensor::Tensor J_result = element.get_jacobian(0);
+	
+    for(int n=0; n<8; n++){
+        J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.reference_coords[n]); //Compute the expected value of the jacobian
+    }
     
+    test_results[4] = J_result.data.isApprox(J_answer.data); //Test the results
+	
     //!|=> Test 6
     //!Test whether the jacobian is computed correctly for the current coordinates
     
-//    J_answer = tensor::Tensor({3,3});
-//    
-//    for(int n=0; n<8; n++){
-//        J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.current_coords[n]);
-//    }
-//    
-//    test_results[5] = element.compute_jacobian(1,xi).data.isApprox(J_answer.data);    
+    J_answer = tensor::Tensor({3,3});
+    J_result = element.get_jacobian(1);
+    
+    for(int n=0; n<8; n++){
+        J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.current_coords[n]);
+    }
+    
+    test_results[5] = J_result.data.isApprox(J_answer.data);
     
     //!|=> Test 7
     //!Test whether the gradient of the shape function w.r.t. the 
