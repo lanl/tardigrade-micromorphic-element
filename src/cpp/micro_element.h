@@ -246,7 +246,7 @@ namespace micro_element
             tensor::Tensor Psi               = tensor::Tensor({3,3});   //!The micro deformation tensor
             tensor::Tensor Gamma             = tensor::Tensor({3,3,3}); //!The higher order deformation tensor
             
-            double Fdet = 0;                                       //!The determinant of the jacobian of the deformation gradient
+            double Fdet = 0;                                            //!The determinant of the jacobian of the deformation gradient
             
             //!=
             //!| Parse incoming vectors
