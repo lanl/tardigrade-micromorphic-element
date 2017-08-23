@@ -20,7 +20,7 @@ ERRORFLG=-fmax-errors=5
 test_micro_element: test_micro_element.o micro_element.o tensor.o micro_material.o
 	$(CC) $(STD) -o $@ test_micro_element.o micro_element.o micro_material.o tensor.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
-test_micro_element.o: test_micro_element.cpp ../../micro_element.h ../../tensor.h
+test_micro_element.o: test_micro_element.cpp ../../micro_element.h ../../tensor.h ../../finite_difference.h
 	$(CC) $(STD) -o $@ -c test_micro_element.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 micro_element.o: ../../micro_element.h ../../tensor.h ../../micro_element.cpp ../../micromorphic_linear_elasticity.h
