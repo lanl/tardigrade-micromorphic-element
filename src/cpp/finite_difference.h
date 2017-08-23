@@ -36,14 +36,13 @@ namespace finite_difference{
             incoming_function fxn;                                    //!The function on which the finite difference will be calculated
             std::vector< double > x0;                                 //!The vector about which to compute the derivative
             double h=1e-6;                                            //!The step size for the gradient
-            int dim_result;                                           //!The dimension of the result vector
             
             //!=
             //!| Constructors
             //!=
             
             FiniteDifference(){}
-            FiniteDifference(incoming_function _fxn, int _dim_result, int _accuracy_order, const std::vector< double > &_x0 ,double _h){
+            FiniteDifference(incoming_function _fxn, int _accuracy_order, const std::vector< double > &_x0 ,double _h){
                 /*!==========================
                 |    FiniteDifference    |
                 ==========================
@@ -55,7 +54,6 @@ namespace finite_difference{
                 
                 accuracy_order    = _accuracy_order;
                 fxn               = _fxn;
-                dim_result        = _dim_result;
                 x0                = _x0;
                 h                 = _h;
                 deltah_multiplier = deltah_multipliers[accuracy_order/2-1];
@@ -105,7 +103,7 @@ namespace finite_difference{
                     }
                 }
                 
-                //Divide the solution vector by the denomonator factor
+                //Divide the solution vector by the denomenator factor
                 for(int i=0; i<solution.size(); i++){solution[i] = solution[i]/h_den;}
                 
                 return solution;
@@ -122,16 +120,16 @@ namespace finite_difference{
                 
                 //Initialize the gradient output
                 std::vector< std::vector< double > > gradient;
-                gradient.resize(dim_result);
+                gradient.resize(x0.size());
                 
                 std::vector< double > h_vec(x0.size(),0);
                 int indx = 0;
                 
                 //Compute the gradient
-                for(int i=0; i<dim_result; i++){
-                    h_vec[indx] = h; //Update the perturbation vector
-                    if(indx>0){
-                        h_vec[indx-1] = 0;
+                for(int i=0; i<x0.size(); i++){
+                    h_vec[i] = h; //Update the perturbation vector
+                    if(i>0){
+                        h_vec[i-1] = 0;
                     }
                     indx++;
                     
