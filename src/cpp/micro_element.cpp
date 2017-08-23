@@ -562,6 +562,27 @@ namespace micro_element
     //!| Micromorphic Deformation Measures
     //!=
     
+    void Hex8::set_deformation_measures(){
+        /*!==================================
+        |    set_deformation_measures    |
+        ==================================
+        
+        Compute the deformation measures which 
+        will be passed to the constitutive equation 
+        subroutine to produce the stress. These measures 
+        are the Right Cauchy-Green deformation measure, 
+        the microdeformation tensor Psi, and the micro-
+        gradient deformation measures Gamma.
+        
+        */
+        
+        compute_right_cauchy_green();
+        compute_Psi();
+        compute_Gamma();
+        
+        
+    }
+    
     void Hex8::compute_right_cauchy_green(){
         /*!====================================
         |    compute_right_cauchy_green    |
@@ -960,6 +981,81 @@ namespace micro_element
         here for testing purposes.
         */
         return grad_chi;
+    }
+    
+    tensor::Tensor Hex8::get_C(){
+        /*!===============
+        |    get_C    |
+        ===============
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the right Cauchy-Green
+        deformation tensor.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        return C;
+    }
+    
+    tensor::Tensor Hex8::get_Psi(){
+        /*!=================
+        |    get_Psi    |
+        =================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the microdeformation 
+        tensor Psi.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        return Psi;
+    }
+    
+    tensor::Tensor Hex8::get_Gamma(){
+        /*!===================
+        |    get_Gamma    |
+        ===================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the microdeformation 
+        tensor Gamma.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        return Gamma;
     }
     
     //!==
