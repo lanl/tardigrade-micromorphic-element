@@ -700,13 +700,54 @@ int test_deformation_measures(std::ofstream &results){
     //!Set the fundamental deformation measures
     element.set_fundamental_measures();
     
+    //!Set the deformation measures
+    element.set_deformation_measures();
+    
     //!Compare the computed values to the expected result
-    tensor::Tensor F_answer({3,3});
-    tensor::Tensor chi_answer({3,3});
-    tensor::Tensor grad_chi_answer({3,3,3});
+    tensor::Tensor C_answer({3,3});
+    tensor::Tensor Psi_answer({3,3});
+    tensor::Tensor Gamma_answer({3,3,3});
     
+    for(int I=0; I<3; I++){
+        for(int J=0; J<3; J++){
+            
+            for(int i=0; i<3; i++){
+                C_answer(I,J)   += element.get_F()(i,I)*element.get_F()(i,J);
+                Psi_answer(I,J) += element.get_F()(i,I)*element.get_chi()(i,J);
+            }
+            
+        }
+    }
     
+    for(int I=0; I<3; I++){
+        for(int J=0; J<3; J++){
+            for(int K=0; K<3; K++){
+                for(int i=0; i<3; i++){
+                    Gamma_answer(I,J,K)   += element.get_F()(i,I)*element.get_grad_chi()(i,J,K);
+                }
+            }            
+        }
+    }
     
+    test_results[0] = C_answer.data.isApprox(element.get_C().data);
+    test_results[1] = Psi_answer.data.isApprox(element.get_Psi().data);
+    test_results[2] = Gamma_answer.data.isApprox(element.get_Gamma().data);
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_deformation_measures & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_deformation_measures & False\\\\\n\\hline\n";
+    }
     
     return 1;
 }
@@ -729,6 +770,7 @@ int main(){
     test_constructors(results);
     test_shape_functions(results);
     test_fundamental_measures(results);
+    test_deformation_measures(results);
     
     //Close the results file
     results.close();
