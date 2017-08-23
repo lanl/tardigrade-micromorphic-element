@@ -180,8 +180,8 @@ int test_finite_difference(std::ofstream &results){
     std::vector< double > x02 = {2.3,-5.7};
     
     //!Initialize the finite difference
-    finite_difference::FiniteDifference FD1 = finite_difference::FiniteDifference(test_fxn_1, 1, 2, x01, 1e-6);
-    finite_difference::FiniteDifference FD2 = finite_difference::FiniteDifference(test_fxn_2, 1, 2, x02, 1e-6);
+    finite_difference::FiniteDifference FD1 = finite_difference::FiniteDifference(test_fxn_1, 2, x01, 1e-6);
+    finite_difference::FiniteDifference FD2 = finite_difference::FiniteDifference(test_fxn_2, 2, x02, 1e-6);
     
     //!Initialize the perturbation vectors
     std::vector< double > hvec1   = {1e-6};
@@ -240,9 +240,9 @@ int test_numeric_gradient(std::ofstream &results){
     std::vector< double > x03 = {1.4,-2.0,3.4};
     
     //!Initialize the finite difference
-    finite_difference::FiniteDifference FD1 = finite_difference::FiniteDifference(test_fxn_2, 2, 2, x01, 1e-6);
-    finite_difference::FiniteDifference FD2 = finite_difference::FiniteDifference(test_fxn_3, 3, 2, x02, 1e-6);
-    finite_difference::FiniteDifference FD3 = finite_difference::FiniteDifference(test_fxn_4, 3, 2, x03, 1e-6);
+    finite_difference::FiniteDifference FD1 = finite_difference::FiniteDifference(test_fxn_2, 2, x01, 1e-6);
+    finite_difference::FiniteDifference FD2 = finite_difference::FiniteDifference(test_fxn_3, 2, x02, 1e-6);
+    finite_difference::FiniteDifference FD3 = finite_difference::FiniteDifference(test_fxn_4, 2, x03, 1e-6);
     
     //!Compute the results of the finite difference
     std::vector< std::vector< double > > result1  = FD1.numeric_gradient();
