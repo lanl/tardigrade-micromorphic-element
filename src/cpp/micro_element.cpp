@@ -865,9 +865,9 @@ namespace micro_element
     }
     
     std::vector< double > Hex8::get_dNdx(bool _mode, int _node){
-        /*!======================
-        |    get_jacobian    |
-        ======================
+        /*!==================
+        |    get_dNdx    |
+        ==================
         
         !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
         ! DO NOT USE THIS FUNCTION EXCEPT !
