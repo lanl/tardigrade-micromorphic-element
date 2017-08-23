@@ -130,13 +130,35 @@ std::vector< double > test_fxn_3(std::vector< double > x){
 std::vector< std::vector< double > > answer_fxn_3(std::vector< double > x){
     /*! answer_fxn_3
     
-    A solution function using in test_numeric_gradient
+    A solution function used in test_numeric_gradient
     
     */
     
     return {{2*x[0]*x[1], x[2], 1.},
             {  x[0]*x[0],   1., 0.},
             {         0., x[0], 0.}};
+}
+
+std::vector< double > test_fxn_4(std::vector< double > x){
+    /*! test_fxn_4
+    
+    A test function used in test_numeric_gradient
+    
+    */
+    
+    return {x[1]*x[0]*x[0],x[1]+x[2]*x[0]};
+}
+
+std::vector< std::vector< double > > answer_fxn_4(std::vector< double > x){
+    /*! answer_fxn_4
+    
+    A solution function used in test_numeric_gradient
+    
+    */
+    
+    return {{2*x[0]*x[1], x[2]},
+            {  x[0]*x[0],   1.},
+            {         0., x[0]}};
 }
 
 int test_finite_difference(std::ofstream &results){
@@ -209,28 +231,33 @@ int test_numeric_gradient(std::ofstream &results){
     */
     
     //!Initialize test results
-    int  test_num        = 2;
-    bool test_results[test_num] = {false,false};
+    int  test_num        = 3;
+    bool test_results[test_num] = {false,false,false};
     
     //!Initialize the points about which to compute the finite differences
     std::vector< double > x01 = {2.3,-5.7};
     std::vector< double > x02 = {1.4,-2.0,3.4};
+    std::vector< double > x03 = {1.4,-2.0,3.4};
     
     //!Initialize the finite difference
     finite_difference::FiniteDifference FD1 = finite_difference::FiniteDifference(test_fxn_2, 2, 2, x01, 1e-6);
     finite_difference::FiniteDifference FD2 = finite_difference::FiniteDifference(test_fxn_3, 3, 2, x02, 1e-6);
-        
+    finite_difference::FiniteDifference FD3 = finite_difference::FiniteDifference(test_fxn_4, 3, 2, x03, 1e-6);
+    
     //!Compute the results of the finite difference
     std::vector< std::vector< double > > result1  = FD1.numeric_gradient();
     std::vector< std::vector< double > > result2  = FD2.numeric_gradient();
+    std::vector< std::vector< double > > result3  = FD3.numeric_gradient();
     
     //!Compute the answers
     std::vector< std::vector< double > > answer1 = answer_fxn_2(x01);
     std::vector< std::vector< double > > answer2 = answer_fxn_3(x02);
+    std::vector< std::vector< double > > answer3 = answer_fxn_4(x03);
     
     //!Compare the resulting gradients
     test_results[0] = compare_vectors_of_vectors(answer1,result1);
     test_results[1] = compare_vectors_of_vectors(answer2,result2);
+    test_results[2] = compare_vectors_of_vectors(answer3,result3);
     
     //Compare all test results
     bool tot_result = true;
