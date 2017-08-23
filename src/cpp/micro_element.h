@@ -209,6 +209,7 @@ namespace micro_element
             double get_N(int);
             std::vector< double > get_dNdxi(int);
             tensor::Tensor get_jacobian(int);
+            std::vector< double > get_dNdx(bool,int);
             
         private:
             //!=

@@ -345,10 +345,10 @@ namespace micro_element
         //Compute the global gradient w.r.t. either the reference or global x
         for(int i=0; i<3; i++){
             for(int j=0; j<3; j++){
-                if(mode==0)     {dNdxs[n][i] += Jinv(i,j)*dNdxis[n][j];} //Compute the gradient of the shape function associated with node n w.r.t. the current coordinates
-                else if(mode==1){dNdXs[n][i] += Jinv(i,j)*dNdxis[n][j];} //Compute the gradient of the shape function associated with node n w.r.t. the reference coordinates
+                if(mode==0)     {dNdXs[n][i] += Jinv(j,i)*dNdxis[n][j];} //Compute the gradient of the shape function associated with node n w.r.t. the current coordinates
+                else if(mode==1){dNdxs[n][i] += Jinv(j,i)*dNdxis[n][j];} //Compute the gradient of the shape function associated with node n w.r.t. the reference coordinates
             }
-        }                       
+        }
         return;
     }
     
@@ -382,7 +382,8 @@ namespace micro_element
         
         //Add the contributions of each node in the element
         for(int n = 0; n<coordinates.size(); n++){
-            //J += vector_dyadic_product(dNdxis[n],coordinates[n]); //Compute the vector dyadic product and add it to the jacobian
+            //J += vector_dyadic_product(dNdxis[n],coordinates[n]); //!Compute the vector dyadic product and add it to the jacobian
+                                                                    //!Jacobian computed consistent with Felippa AFEM Ch11 11.8
             J += vector_dyadic_product(coordinates[n],dNdxis[n]);   //!Compute the vector dyadic product and add it to the jacobian
                                                                     //!Jacobian computed consistent with Belytchko E4.3.8
         }
@@ -504,9 +505,9 @@ namespace micro_element
         F = tensor::Tensor(sot_shape); //!The deformation gradient
         
         for(int i = 0; i<3; i++){
-            for(int j=0; j<3; j++){
+            for(int J=0; J<3; J++){
                 for(int k=0; k<3; k++){
-                    F(i,j) += dxdxi(i,k)*dxidX(k,j);
+                    F(i,J) += dxdxi(i,k)*dxidX(k,J);
                 }
             }
         }
@@ -557,9 +558,9 @@ namespace micro_element
         for(int n=0; n<reference_coords.size(); n++){
             chi_n = node_phis[n]+I;
             for(int i=0; i<3; i++){
-                for(int j=0; j<3; j++){
-                    for(int k=0; k<3; k++){
-                        grad_chi(i,j,k) += chi_n(i,j)*dNdXs[n][k];
+                for(int J=0; J<3; J++){
+                    for(int K=0; K<3; K++){
+                        grad_chi(i,J,K) += chi_n(i,J)*dNdXs[n][K];
                     }
                 }
             }
@@ -861,6 +862,40 @@ namespace micro_element
         set_jacobian(_mode);
         
         return J;
+    }
+    
+    std::vector< double > Hex8::get_dNdx(bool _mode, int _node){
+        /*!======================
+        |    get_jacobian    |
+        ======================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the gradient of the 
+        shape function with respect to the 
+        global coordinates.
+        
+        Input:
+            mode: 0 for reference coordinates
+                  1 for current coordinates
+            node: Which node's shape function 
+                  to return.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        
+        if(_mode){return dNdxs[_node];}
+        else{     return dNdXs[_node];}
     }
     
     //!==
