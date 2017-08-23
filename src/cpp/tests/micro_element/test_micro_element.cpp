@@ -451,17 +451,17 @@ int test_shape_functions(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
     }
     
     if(tot_result){
-        results << "test_constructors & True\\\\\n\\hline\n";
+        results << "test_shape_functions & True\\\\\n\\hline\n";
     }
     else{
-        results << "test_constructors & False\\\\\n\\hline\n";
+        results << "test_shape_functions & False\\\\\n\\hline\n";
     }
     
     return 1;
@@ -490,7 +490,7 @@ std::vector< double > test_deformation(std::vector< double > reference_position)
     //!Set the displacements
     U[ 0] =  0.32*X-0.14*Y+0.61*Z;
     U[ 1] = -0.50*X+0.24*Y-0.38*Z;
-    U[ 2] = -0.22*Z+0.47*Y+0.62*Z;
+    U[ 2] = -0.22*X+0.47*Y+0.62*Z;
     U[ 3] = -1.10*X+0.04*Y+2.30*Z; //phi_11
     U[ 4] = -0.74*X+1.22*Y+2.22*Z; //phi_22
     U[ 5] = -2.24*X+5.51*Y+1.11*Z; //phi_33
@@ -503,7 +503,25 @@ std::vector< double > test_deformation(std::vector< double > reference_position)
     
     return U;
     
-
+}
+    
+std::vector< std::vector< double > > compute_gradients(std::vector< double > reference_position){
+    /*!===========================
+    |    compute_gradients    |
+    ===========================
+    
+    Compute the gradients of the test 
+    deformation numerically so that the 
+    results are consistent.
+    
+    */
+    
+    finite_difference::FiniteDifference FD(test_deformation,2,reference_position,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+    
+}
+    
 int test_fundamental_measures(std::ofstream &results){
     /*!===================================
     |    test_fundamental_measures    |
@@ -519,8 +537,8 @@ int test_fundamental_measures(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 1;
-    bool test_results[test_num] = {false};
+    int  test_num        = 3;
+    bool test_results[test_num] = {false,false,false};
     
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
@@ -564,40 +582,134 @@ int test_fundamental_measures(std::ofstream &results){
     tensor::Tensor chi_answer({3,3});
     tensor::Tensor grad_chi_answer({3,3,3});
     
-    //Populate the expected deformation gradient
-    F_answer(0,0) =  0.32;
-    F_answer(1,1) =  0.24;
-    F_answer(2,2) =  0.62;
-    F_answer(1,2) = -0.38;
-    F_answer(0,2) =  0.61;
-    F_answer(0,1) = -0.14;
-    F_answer(2,1) =  0.47;
-    F_answer(2,0) = -0.22;
-    F_answer(1,0) = -0.50;
+    //!Populate the expected gradients
+    std::vector< std::vector< double > > gradients = compute_gradients(element.points[0]); //Compute the numeric gradients
     
-    //Populate the expected values of the gradient of 
-    //chi
-    grad_chi_answer(0,0,0) = -1.10;
-    grad_chi_answer(0,0,1) =  0.04;
-    grad_chi_answer(0,0,2) =  2.30;
+    for(int i=0; i<3; i++){
+        //!Populate the deformation gradient
+        F_answer(0,i)          = gradients[i][ 0];
+        F_answer(1,i)          = gradients[i][ 1];
+        F_answer(2,i)          = gradients[i][ 2];
+        //!Populate the gradient of chi
+        grad_chi_answer(0,0,i) = gradients[i][ 3];
+        grad_chi_answer(1,1,i) = gradients[i][ 4];
+        grad_chi_answer(2,2,i) = gradients[i][ 5];
+        grad_chi_answer(1,2,i) = gradients[i][ 6];
+        grad_chi_answer(0,2,i) = gradients[i][ 7];
+        grad_chi_answer(0,1,i) = gradients[i][ 8];
+        grad_chi_answer(2,1,i) = gradients[i][ 9];
+        grad_chi_answer(2,0,i) = gradients[i][10];
+        grad_chi_answer(1,0,i) = gradients[i][11];
+    }
     
-    grad_chi_answer(1,1,0) = -0.74;
-    grad_chi_answer(1,1,1) =  1.22;
-    grad_chi_answer(1,1,2) =  2.22;
+    //Because we are specifying the deformation, and 
+    //not the actual current coordinates, we have to 
+    //add 1 to the diagonal terms
+    F_answer(0,0) += 1;
+    F_answer(1,1) += 1;
+    F_answer(2,2) += 1;
     
-    grad_chi_answer(2,2,0) = -2.24;
-    grad_chi_answer(2,2,1) =  5.51;
-    grad_chi_answer(2,2,2) =  1.11;
+    //!Populate the expected chi
+    chi_answer(0,0) = 1.;
+    chi_answer(1,1) = 1.;
+    chi_answer(2,2) = 1.;
+    for(int n=0; n<8; n++){
+        for(int i=0; i<3; i++){
+            for(int j=0; j<3; j++){
+                chi_answer(i,j) += element.get_N(n)*element.node_phis[n](i,j);
+            }
+        }
+    }
     
-    grad_chi_answer(1,2,0) = -5.75;
-    grad_chi_answer(1,2,1) =  2.26;
-    grad_chi_answer(1,2,2) =  7.66;
+    test_results[0] = F_answer.data.isApprox(element.get_F().data,1e-9);
+    test_results[1] = chi_answer.data.isApprox(element.get_chi().data);
+    test_results[2] = grad_chi_answer.data.isApprox(element.get_grad_chi().data,1e-9);
     
-    U[ 7] = -6.22*X+8.63*Y+2.72*Z; //phi_13
-    U[ 8] = -2.76*X+3.37*Y+3.93*Z; //phi_12
-    U[ 9] = -6.32*X+6.73*Y+7.22*Z; //phi_32
-    U[10] = -3.83*X+4.29*Y+1.51*Z; //phi_31
-    U[11] = -9.18*X+3.61*Y+9.08*Z; //phi_21
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_fundamental_measures & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_fundamental_measures & False\\\\\n\\hline\n";
+    }
+    
+    return 1;
+    
+}
+
+int test_deformation_measures(std::ofstream &results){
+    /*!===================================
+    |    test_deformation_measures    |
+    ===================================
+    
+    Run tests on the deformation measures and 
+    related methods to ensure they are functioning 
+    properly
+    
+    */
+    
+    //Seed the random number generator
+    srand (1);
+    
+    //!Initialize test results
+    int  test_num        = 3;
+    bool test_results[test_num] = {false,false,false};
+    
+    //!Form the required vectors for element formation
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
+    std::vector< double > Unode;
+    std::vector< double > Xnode;
+    std::vector< double > U;
+    std::vector< double > dU;
+    Xnode.resize(3);
+    Unode.resize(96);
+    U.resize(96);
+    dU.resize(96);
+    int inc = 0;
+    for(int n=0; n<8; n++){
+        Xnode[0] = reference_coords[0+n*3]; //Get the position of the current node
+        Xnode[1] = reference_coords[1+n*3];
+        Xnode[2] = reference_coords[2+n*3];
+        
+        Unode = test_deformation(Xnode);    //Update the deformation
+        
+        for(int i=0; i<12; i++){
+            U[inc]  = Unode[i];   //Assign the deformation
+            dU[inc] = 0.1*Unode[i];  //Assign the change in deformation (1/10 of the deformation)
+            inc++;
+        }
+    }
+    
+    //!Form the hexehedral test element.
+    micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU);
+    
+    //!Set the gauss point
+    element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
+    
+    //!Compute the shape function values
+    element.update_shape_function_values();
+    
+    //!Set the fundamental deformation measures
+    element.set_fundamental_measures();
+    
+    //!Compare the computed values to the expected result
+    tensor::Tensor F_answer({3,3});
+    tensor::Tensor chi_answer({3,3});
+    tensor::Tensor grad_chi_answer({3,3,3});
+    
+    
+    
+    
+    return 1;
+}
 
 int main(){
     /*!==========================
@@ -616,6 +728,7 @@ int main(){
     //!Run the test functions
     test_constructors(results);
     test_shape_functions(results);
+    test_fundamental_measures(results);
     
     //Close the results file
     results.close();
