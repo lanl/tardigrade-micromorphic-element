@@ -51,8 +51,14 @@ namespace micro_element
         
         //Resize the private vector attributes
         Ns.resize(local_coords.size());
+		dNdxis.resize(local_coords.size());
         dNdxs.resize(local_coords.size());
         dNdXs.resize(local_coords.size());
+        
+		//Set the dimension of the gradient vectors to 3
+		for(int n=0; n<8; n++){dNdxis[n].resize(3);}
+        for(int n=0; n<8; n++){dNdxs[n].resize(3);}
+		for(int n=0; n<8; n++){dNdXs[n].resize(3);}
     }
     
     Hex8::Hex8(std::vector< double > rcs){
@@ -106,8 +112,14 @@ namespace micro_element
         
         //Resize the private vector attributes
         Ns.resize(local_coords.size());
+		dNdxis.resize(local_coords.size());
         dNdxs.resize(local_coords.size());
         dNdXs.resize(local_coords.size());
+		
+		//Set the dimension of the gradient vectors to 3
+		for(int n=0; n<8; n++){dNdxis[n].resize(3);}
+        for(int n=0; n<8; n++){dNdxs[n].resize(3);}
+		for(int n=0; n<8; n++){dNdXs[n].resize(3);}
     }
     
     Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU){
@@ -162,8 +174,14 @@ namespace micro_element
         
         //Resize the private vector attributes
         Ns.resize(local_coords.size());
+		dNdxis.resize(local_coords.size());
         dNdxs.resize(local_coords.size());
         dNdXs.resize(local_coords.size());
+		
+		//Set the dimension of the gradient vectors to 3
+		for(int n=0; n<8; n++){dNdxis[n].resize(3);}
+        for(int n=0; n<8; n++){dNdxs[n].resize(3);}
+		for(int n=0; n<8; n++){dNdXs[n].resize(3);}
         
         //Break the rcs, U, and, dU vectors into a vector of vectors
         //where each subvector are the values associated with a given 
@@ -292,8 +310,10 @@ namespace micro_element
             n  : Node number
         */
         
-        //Initialize the shape of the output tensor
-        dNdxis[n] = {0,0,0};
+        //Initialize the output vector
+        dNdxis[n][0] = 0;
+        dNdxis[n][1] = 0;
+        dNdxis[n][2] = 0;
         
         dNdxis[n][0] = 0.125*local_coords[n][0]*(1+points[gpt_num][1]*local_coords[n][1])*(1+points[gpt_num][2]*local_coords[n][2]);
         dNdxis[n][1] = 0.125*(1+points[gpt_num][0]*local_coords[n][0])*local_coords[n][1]*(1+points[gpt_num][2]*local_coords[n][2]);
