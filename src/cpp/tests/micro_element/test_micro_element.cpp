@@ -305,58 +305,60 @@ int test_shape_functions(std::ofstream &results){
     //!Test whether the sum of the shape functions values are unity at a
     //!point within the element
     
-//    element.points[0] = {0,0,0}; //!The local coordinate (set as a false gauss point)
-//    for(int i=0; i<3; i++){element.points[0][i] = (rand()%1000-500)/1000.;} //!Populate the local coordinate at a location in each direction between -1 and 1
-//    element.set_gpt_num(0);
-//
-//    double sum_Ns;
-//    
-//    element.set_shape_functions(); //Compute all of the nodal shape functions at the given point
-//
-//    for(int n=0; n<8; n++){sum_Ns += element.get_N(n);} //Sum up all of the values of the shape function at the point
-//    
-//    test_results[1] = ((1e-9>(sum_Ns-1.)) && ((sum_Ns-1.)>=0));
+    element.points[0] = {0,0,0}; //!The local coordinate (set as a false gauss point)
+    for(int i=0; i<3; i++){element.points[0][i] = (rand()%1000-500)/1000.;} //!Populate the local coordinate at a location in each direction between -1 and 1
+    element.set_gpt_num(0);
+
+    double sum_Ns;
+    
+    element.set_shape_functions(); //Compute all of the nodal shape functions at the given point
+
+    for(int n=0; n<8; n++){sum_Ns += element.get_N(n);} //Sum up all of the values of the shape function at the point
+    
+    test_results[1] = ((1e-9>(sum_Ns-1.)) && ((sum_Ns-1.)>=0));
     
     //!|=> Test 3
     //!Test whether the gradient of the shape function w.r.t. the local 
     //!coordinates are correct at the center of the element
     
-//    element.points[0] = {0.,0.,0.};
-//    std::vector< std::vector< double > > dNdxi_answers = {{ -0.125, -0.125, -0.125},{  0.125, -0.125, -0.125},{  0.125,  0.125, -0.125},{-0.125,  0.125, -0.125},
-//                                                          { -0.125, -0.125,  0.125},{  0.125, -0.125,  0.125},{  0.125,  0.125,  0.125},{-0.125,  0.125,  0.125}};
-//    
-//  element.set_gpt_num(0);
-//  element.set_local_gradient_shape_functions();
-//  
-//    test_results[2] = true;
-//    double temp_diff;
-//    for(int n=0; n<8; n++){
-//        for(int i=0; i<3; i++){
-//            temp_diff        = fabs(element.get_dNdxi(n)[i]-dNdxi_answers[n][i]);
-//            test_results[2] *= ((1e-9>temp_diff) && (temp_diff>=0));
-//        }
-//    }
+    element.points[0] = {0.,0.,0.};
+    std::vector< std::vector< double > > dNdxi_answers = {{ -0.125, -0.125, -0.125},{  0.125, -0.125, -0.125},{  0.125,  0.125, -0.125},{-0.125,  0.125, -0.125},
+                                                          { -0.125, -0.125,  0.125},{  0.125, -0.125,  0.125},{  0.125,  0.125,  0.125},{-0.125,  0.125,  0.125}};
+    
+    element.set_gpt_num(0);
+    std::cout << "Setting the local gradient of the shape functions\n";
+    element.set_local_gradient_shape_functions();
+    std::cout << "Comparing the results vs. the answers\n";
+  
+    test_results[2] = true;
+    double temp_diff;
+    for(int n=0; n<8; n++){
+        for(int i=0; i<3; i++){
+            temp_diff        = fabs(element.get_dNdxi(n)[i]-dNdxi_answers[n][i]);
+            test_results[2] *= (1e-9>temp_diff);
+        }
+    }
     
     //!|=> Test 4
     //!Test whether the gradient of the shape function w.r.t. the local
     //!coordinates are correct at a location off the center of the 
     //!element.
     
-//    element.points[0] = {0.3,-0.6,0.7};
-//  element.set_gpt_num(0);
-//    dNdxi_answers = {{-0.06   , -0.02625, -0.14},{ 0.06   , -0.04875, -0.26},{ 0.015  ,  0.04875, -0.065},{-0.015  ,  0.02625, -0.035},
-//                     {-0.34   , -0.14875,  0.14},{ 0.34   , -0.27625,  0.26},{ 0.085  ,  0.27625,  0.065},{-0.085  ,  0.14875,  0.035}};
-//    
-//  element.set_local_gradient_shape_functions();
-//  
-//    test_results[3] = true;
-//    bool temp;
-//    for(int n=0; n<8; n++){
-//        for(int i=0; i<3; i++){
-//            temp_diff = fabs(element.get_dNdxi(n)[i]-dNdxi_answers[n][i]);
-//            test_results[3] *= ((1e-9>temp_diff) && (temp_diff>=0));
-//        }
-//    }
+    element.points[0] = {0.3,-0.6,0.7};
+    element.set_gpt_num(0);
+    dNdxi_answers = {{-0.06   , -0.02625, -0.14},{ 0.06   , -0.04875, -0.26},{ 0.015  ,  0.04875, -0.065},{-0.015  ,  0.02625, -0.035},
+                     {-0.34   , -0.14875,  0.14},{ 0.34   , -0.27625,  0.26},{ 0.085  ,  0.27625,  0.065},{-0.085  ,  0.14875,  0.035}};
+    
+    element.set_local_gradient_shape_functions();
+  
+    test_results[3] = true;
+    bool temp;
+    for(int n=0; n<8; n++){
+        for(int i=0; i<3; i++){
+            temp_diff = fabs(element.get_dNdxi(n)[i]-dNdxi_answers[n][i]);
+            test_results[3] *= ((1e-9>temp_diff) && (temp_diff>=0));
+        }
+    }
     
     //!|=> Test 5
     //!Test whether the jacobian is computed correctly for the reference coordinates
