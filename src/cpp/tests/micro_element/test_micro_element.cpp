@@ -388,10 +388,34 @@ int test_shape_functions(std::ofstream &results){
     
     //!|=> Test 7
     //!Test whether the gradient of the shape function with respect to the 
-    //!current coordinates is computed correctly.
+    //!reference coordinates is computed correctly.
     
+    std::vector< std::vector< double > > dNdX_answer; //Initialize the expected answer
+    dNdX_answer.resize(8);
+    tensor::Tensor Jtemp = element.get_jacobian(0); //Get dXdxi
+    Jtemp = Jtemp.inverse();                        //Get dxidX
     
+    for(int n=0; n<8; n++){
+        dNdX_answer[n].resize(3); //Resize the gradient to be in three dimensions
+        for(int i=0; i<3; i++){dNdX_answer[n][i]=0;} //Zero out the gradient
+        for(int i=0; i<3; i++){
+            for(int j=0; j<3; j++){
+                dNdX_answer[n][i] += Jtemp(j,i)*dNdxi_answers[n][j]; // Compute dxi_j dx_i dN dxi_j 
+            }
+        }
+    }
     
+    element.set_global_gradient_shape_functions(0);
+    
+    //Check the answer to the result
+    test_results[6] = true;
+    for(int n=0; n<8; n++){
+        //print_vector("result",element.get_dNdx(0,n));
+        //print_vector("answer",dNdX_answer[n]);
+        for(int i=0; i<3; i++){
+            test_results[6] *= 1e-9>fabs(element.get_dNdx(0,n)[i]-dNdX_answer[n][i]);
+        }
+    }
     
     //Compare all test results
     bool tot_result = true;
