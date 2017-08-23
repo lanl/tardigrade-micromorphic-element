@@ -261,8 +261,8 @@ int test_shape_functions(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 7;
-    bool test_results[test_num] = {false,false,false,false,false,false,false};
+    int  test_num        = 8;
+    bool test_results[test_num] = {false,false,false,false,false,false,false,false};
     
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,1,0,1,1,1,1,0,1,1};
@@ -325,9 +325,9 @@ int test_shape_functions(std::ofstream &results){
                                                           { -0.125, -0.125,  0.125},{  0.125, -0.125,  0.125},{  0.125,  0.125,  0.125},{-0.125,  0.125,  0.125}};
     
     element.set_gpt_num(0);
-    std::cout << "Setting the local gradient of the shape functions\n";
+    //std::cout << "Setting the local gradient of the shape functions\n";
     element.set_local_gradient_shape_functions();
-    std::cout << "Comparing the results vs. the answers\n";
+    //std::cout << "Comparing the results vs. the answers\n";
   
     test_results[2] = true;
     double temp_diff;
@@ -400,7 +400,7 @@ int test_shape_functions(std::ofstream &results){
         for(int i=0; i<3; i++){dNdX_answer[n][i]=0;} //Zero out the gradient
         for(int i=0; i<3; i++){
             for(int j=0; j<3; j++){
-                dNdX_answer[n][i] += Jtemp(j,i)*dNdxi_answers[n][j]; // Compute dxi_j dx_i dN dxi_j 
+                dNdX_answer[n][i] += Jtemp(j,i)*dNdxi_answers[n][j]; // Compute dxi_j dX_i dN dxi_j 
             }
         }
     }
@@ -414,6 +414,37 @@ int test_shape_functions(std::ofstream &results){
         //print_vector("answer",dNdX_answer[n]);
         for(int i=0; i<3; i++){
             test_results[6] *= 1e-9>fabs(element.get_dNdx(0,n)[i]-dNdX_answer[n][i]);
+        }
+    }
+    
+    //!|=> Test 8
+    //!Test whether the gradient of the shape function with respect to the 
+    //!current coordinates is computed correctly.
+    
+    std::vector< std::vector< double > > dNdx_answer; //Initialize the expected answer
+    dNdx_answer.resize(8);
+    Jtemp = element.get_jacobian(1); //Get dxdxi
+    Jtemp = Jtemp.inverse();         //Get dxidx
+    
+    for(int n=0; n<8; n++){
+        dNdx_answer[n].resize(3); //Resize the gradient to be in three dimensions
+        for(int i=0; i<3; i++){dNdx_answer[n][i]=0;} //Zero out the gradient
+        for(int i=0; i<3; i++){
+            for(int j=0; j<3; j++){
+                dNdx_answer[n][i] += Jtemp(j,i)*dNdxi_answers[n][j]; // Compute dxi_j dx_i dN dxi_j 
+            }
+        }
+    }
+    
+    element.set_global_gradient_shape_functions(1);
+    
+    //Check the answer to the result
+    test_results[7] = true;
+    for(int n=0; n<8; n++){
+        //print_vector("result",element.get_dNdx(1,n));
+        //print_vector("answer",dNdx_answer[n]);
+        for(int i=0; i<3; i++){
+            test_results[7] *= 1e-9>fabs(element.get_dNdx(1,n)[i]-dNdx_answer[n][i]);
         }
     }
     
