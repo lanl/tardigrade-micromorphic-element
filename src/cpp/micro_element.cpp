@@ -51,14 +51,14 @@ namespace micro_element
         
         //Resize the private vector attributes
         Ns.resize(local_coords.size());
-		dNdxis.resize(local_coords.size());
+        dNdxis.resize(local_coords.size());
         dNdxs.resize(local_coords.size());
         dNdXs.resize(local_coords.size());
         
-		//Set the dimension of the gradient vectors to 3
-		for(int n=0; n<8; n++){dNdxis[n].resize(3);}
+        //Set the dimension of the gradient vectors to 3
+        for(int n=0; n<8; n++){dNdxis[n].resize(3);}
         for(int n=0; n<8; n++){dNdxs[n].resize(3);}
-		for(int n=0; n<8; n++){dNdXs[n].resize(3);}
+        for(int n=0; n<8; n++){dNdXs[n].resize(3);}
     }
     
     Hex8::Hex8(std::vector< double > rcs){
@@ -112,14 +112,14 @@ namespace micro_element
         
         //Resize the private vector attributes
         Ns.resize(local_coords.size());
-		dNdxis.resize(local_coords.size());
+        dNdxis.resize(local_coords.size());
         dNdxs.resize(local_coords.size());
         dNdXs.resize(local_coords.size());
-		
-		//Set the dimension of the gradient vectors to 3
-		for(int n=0; n<8; n++){dNdxis[n].resize(3);}
+        
+        //Set the dimension of the gradient vectors to 3
+        for(int n=0; n<8; n++){dNdxis[n].resize(3);}
         for(int n=0; n<8; n++){dNdxs[n].resize(3);}
-		for(int n=0; n<8; n++){dNdXs[n].resize(3);}
+        for(int n=0; n<8; n++){dNdXs[n].resize(3);}
     }
     
     Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU){
@@ -174,14 +174,14 @@ namespace micro_element
         
         //Resize the private vector attributes
         Ns.resize(local_coords.size());
-		dNdxis.resize(local_coords.size());
+        dNdxis.resize(local_coords.size());
         dNdxs.resize(local_coords.size());
         dNdXs.resize(local_coords.size());
-		
-		//Set the dimension of the gradient vectors to 3
-		for(int n=0; n<8; n++){dNdxis[n].resize(3);}
+        
+        //Set the dimension of the gradient vectors to 3
+        for(int n=0; n<8; n++){dNdxis[n].resize(3);}
         for(int n=0; n<8; n++){dNdxs[n].resize(3);}
-		for(int n=0; n<8; n++){dNdXs[n].resize(3);}
+        for(int n=0; n<8; n++){dNdXs[n].resize(3);}
         
         //Break the rcs, U, and, dU vectors into a vector of vectors
         //where each subvector are the values associated with a given 
@@ -382,7 +382,9 @@ namespace micro_element
         
         //Add the contributions of each node in the element
         for(int n = 0; n<coordinates.size(); n++){
-            J += vector_dyadic_product(dNdxis[n],coordinates[n]); //Compute the vector dyadic product and add it to the jacobian
+            //J += vector_dyadic_product(dNdxis[n],coordinates[n]); //Compute the vector dyadic product and add it to the jacobian
+            J += vector_dyadic_product(coordinates[n],dNdxis[n]);   //!Compute the vector dyadic product and add it to the jacobian
+                                                                    //!Jacobian computed consistent with Belytchko E4.3.8
         }
         
         Jinv    = J.inverse();
@@ -831,8 +833,8 @@ namespace micro_element
         
         return dNdxis[_n];
     }
-	
-	tensor::Tensor Hex8::get_jacobian(int _mode){
+    
+    tensor::Tensor Hex8::get_jacobian(int _mode){
         /*!======================
         |    get_jacobian    |
         ======================
@@ -847,8 +849,8 @@ namespace micro_element
         !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
         
         Get the value of the jacobian for 
-		either the reference or current 
-		coordinates.
+        either the reference or current 
+        coordinates.
         
         Used to access the private variable 
         from outside the class. This should 
@@ -856,8 +858,8 @@ namespace micro_element
         here for testing purposes.
         */
         
-		set_jacobian(_mode);
-		
+        set_jacobian(_mode);
+        
         return J;
     }
     
