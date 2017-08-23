@@ -210,6 +210,9 @@ namespace micro_element
             std::vector< double > get_dNdxi(int);
             tensor::Tensor get_jacobian(int);
             std::vector< double > get_dNdx(bool,int);
+            tensor::Tensor get_F();
+            tensor::Tensor get_chi();
+            tensor::Tensor get_grad_chi();
             
         private:
             //!=

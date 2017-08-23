@@ -339,8 +339,8 @@ namespace micro_element
         
         */
         //Initialize the gradient
-        if(mode==0){     dNdxs[n] = {0,0,0};}
-        else if(mode==1){dNdXs[n] = {0,0,0};}
+        if(mode==0){     dNdXs[n] = {0,0,0};}
+        else if(mode==1){dNdxs[n] = {0,0,0};}
         
         //Compute the global gradient w.r.t. either the reference or global x
         for(int i=0; i<3; i++){
@@ -434,19 +434,8 @@ namespace micro_element
         
         set_jacobian(mode); //Set the jacobian and its inverse to the correct values
         
-        if(mode==0){
-            for(int n=0; n<reference_coords.size(); n++){
-                set_global_gradient_shape_function(mode, n);
-            }
-        }
-        else if(mode==1){
-            for(int n=0; n<reference_coords.size(); n++){
-                set_global_gradient_shape_function(mode, n);
-            }
-        }
-        else{
-            std::cout << "Error: Options are 0 and 1";
-            assert(1==0);
+        for(int n=0; n<reference_coords.size(); n++){
+            set_global_gradient_shape_function(mode, n);
         }
         return;
     }
@@ -490,13 +479,13 @@ namespace micro_element
         */
         
         //Initialize vectors
-        tensor::Tensor dxdxi = tensor::Tensor(sot_shape); //!The derivative of the current coordinates w.r.t. the local coordinates
-        tensor::Tensor dXdxi = tensor::Tensor(sot_shape); //!The derivative of the reference coordinates w.r.t. the local coordinates
+        tensor::Tensor dxdxi({3,3}); //!The derivative of the current coordinates w.r.t. the local coordinates
+        tensor::Tensor dXdxi({3,3}); //!The derivative of the reference coordinates w.r.t. the local coordinates
         
         //Compute the derivatives of the reference and current coordinates w.r.t. xi
         for(int n=0; n<reference_coords.size(); n++){
-            dxdxi = vector_dyadic_product(current_coords[n],  dNdxis[n]);
-            dXdxi = vector_dyadic_product(reference_coords[n],dNdxis[n]);
+            dxdxi += vector_dyadic_product(current_coords[n],  dNdxis[n]);
+            dXdxi += vector_dyadic_product(reference_coords[n],dNdxis[n]);
         }
         
         tensor::Tensor dxidX = dXdxi.inverse(); //!The derivative of the local coordinates w.r.t. the reference coordinates
@@ -532,7 +521,7 @@ namespace micro_element
         
         //Interpolate the nodal phis to xi
         for(int n=0; n<reference_coords.size(); n++){
-            chi = Ns[n]*node_phis[n];
+            chi += Ns[n]*node_phis[n];
         }
         chi += tensor::eye();
         return;
@@ -896,6 +885,81 @@ namespace micro_element
         
         if(_mode){return dNdxs[_node];}
         else{     return dNdXs[_node];}
+    }
+    
+    tensor::Tensor Hex8::get_F(){
+        /*!===============
+        |    get_F    |
+        ===============
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the deformation 
+        gradient.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        return F;
+    }
+    
+    tensor::Tensor Hex8::get_chi(){
+        /*!=================
+        |    get_chi    |
+        =================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the microdisplacement 
+        mapping.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        return chi;
+    }
+    
+    tensor::Tensor Hex8::get_grad_chi(){
+        /*!======================
+        |    get_grad_chi    |
+        ======================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the gradient of the 
+        microdisplacement mapping.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        return grad_chi;
     }
     
     //!==
