@@ -29,7 +29,8 @@
   
 namespace micro_material{
     
-    void get_stress(const tensor::Tensor&, const tensor::Tensor&, const tensor::Tensor&,
-                          tensor::Tensor&,       tensor::Tensor&,       tensor::Tensor&);
+    void get_stress(const std::vector< double >&, const std::vector< int >&,
+                          const tensor::Tensor&,  const tensor::Tensor&, const tensor::Tensor&,
+                          tensor::Tensor&,        tensor::Tensor&,       tensor::Tensor&);
     
 }
