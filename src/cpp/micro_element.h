@@ -89,6 +89,13 @@ namespace micro_element
             std::vector< std::vector< double > > AMATRX;   //!The negative of the element stiffness matrix (i.e. -dRHSddof)
             
             //!=
+            //!| Constitutive model parameters
+            //!=
+            
+            std::vector< int > iparams;
+            std::vector< double > fparams;
+            
+            //!=
             //!| Stresses
             //!=
             
@@ -105,7 +112,7 @@ namespace micro_element
             //Constructors
             Hex8();
             Hex8(std::vector< double >);
-            Hex8(std::vector< double >, std::vector< double >, std::vector< double >);
+            Hex8(std::vector< double >, std::vector< double >, std::vector< double >, std::vector< double > fparams = {}, std::vector< int > iparams = {});
             
             //!==
             //!|
