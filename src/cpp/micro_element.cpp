@@ -122,7 +122,8 @@ namespace micro_element
         for(int n=0; n<8; n++){dNdXs[n].resize(3);}
     }
     
-    Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU){
+    Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU,
+               std::vector< double > fparams, std::vector< int > iparams){
         /*!====================
         |        Hex8       |
         =====================
@@ -151,6 +152,16 @@ namespace micro_element
             U:  The vector of changes of the degree of freedom 
                 vector. It is organized such that the degrees of 
                 freedom are in the order of the nodes.
+            
+            dU: The change in the degree of freedom vector over the 
+                last increment. The organization is the same as for 
+                U.
+                
+            fparams: Parameters for the constitutive model which are 
+                     floating point numbers.
+                     
+            iparams: Parameters for the constitutive model which are 
+                     integer numbers.
         */
         
         //Resize the RHS and AMATRX containers
@@ -676,7 +687,7 @@ namespace micro_element
         
         */
         
-        micro_material::get_stress(C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
+        micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
     }
     
     //!=
