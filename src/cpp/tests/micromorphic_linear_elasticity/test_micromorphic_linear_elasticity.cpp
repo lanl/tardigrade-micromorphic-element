@@ -91,7 +91,7 @@ void test_stiffness_tensors(std::ofstream &results){
     std::vector< double > fparams(18,0.);
     
     for(int i=0; i<18; i++){
-        fparams[i] = i+1;
+        fparams[i] = 0.1*(i+1);
     }
     
     //!Initialize the common tensors
