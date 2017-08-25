@@ -49,6 +49,13 @@ namespace micro_element
         SIGMA.resize(number_gauss_points);
         M.resize(number_gauss_points);
         
+        //Initialize stress measures to zero
+        for(int i=0; i<3; i++){
+            PK2[i]   = tensor::Tensor({3,3});
+            SIGMA[i] = tensor::Tensor({3,3});
+            M[i]     = tensor::Tensor({3,3,3});
+        }
+        
         //Resize the private vector attributes
         Ns.resize(local_coords.size());
         dNdxis.resize(local_coords.size());
@@ -107,6 +114,13 @@ namespace micro_element
         SIGMA.resize(number_gauss_points);
         M.resize(number_gauss_points);
         
+        //Initialize stress measures to zero
+        for(int i=0; i<3; i++){
+            PK2[i]   = tensor::Tensor({3,3});
+            SIGMA[i] = tensor::Tensor({3,3});
+            M[i]     = tensor::Tensor({3,3,3});
+        }
+        
         reference_coords = parse_incoming_vectors(1,rcs);
         current_coords   = parse_incoming_vectors(1,rcs);
         
@@ -123,7 +137,7 @@ namespace micro_element
     }
     
     Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU,
-               std::vector< double > fparams, std::vector< int > iparams){
+               std::vector< double > _fparams, std::vector< int > _iparams){
         /*!====================
         |        Hex8       |
         =====================
@@ -183,6 +197,13 @@ namespace micro_element
         SIGMA.resize(number_gauss_points);
         M.resize(number_gauss_points);
         
+        //Initialize stress measures to zero
+        for(int i=0; i<3; i++){
+            PK2[i]   = tensor::Tensor({3,3});
+            SIGMA[i] = tensor::Tensor({3,3});
+            M[i]     = tensor::Tensor({3,3,3});
+        }
+        
         //Resize the private vector attributes
         Ns.resize(local_coords.size());
         dNdxis.resize(local_coords.size());
@@ -224,6 +245,10 @@ namespace micro_element
             node_phis[n](2,0) = dof_at_nodes[n][10];
             node_phis[n](1,0) = dof_at_nodes[n][11];
         }
+        
+        //Set the material parameters
+        fparams = _fparams;
+        iparams = _iparams;
     }
     
     //!==
@@ -394,13 +419,15 @@ namespace micro_element
         //Add the contributions of each node in the element
         for(int n = 0; n<coordinates.size(); n++){
             //J += vector_dyadic_product(dNdxis[n],coordinates[n]); //!Compute the vector dyadic product and add it to the jacobian
-                                                                    //!Jacobian computed consistent with Felippa AFEM Ch11 11.8
+            //                                                        //!Jacobian computed consistent with Felippa AFEM Ch11 11.8
             J += vector_dyadic_product(coordinates[n],dNdxis[n]);   //!Compute the vector dyadic product and add it to the jacobian
                                                                     //!Jacobian computed consistent with Belytchko E4.3.8
         }
         
         Jinv    = J.inverse();
-        Jhatdet = J.det();
+        if(mode){
+            Jhatdet = J.det();
+        }
         
         return;
     }
@@ -590,8 +617,6 @@ namespace micro_element
         compute_right_cauchy_green();
         compute_Psi();
         compute_Gamma();
-        
-        
     }
     
     void Hex8::compute_right_cauchy_green(){
@@ -688,6 +713,8 @@ namespace micro_element
         */
         
         micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
+        
+        return;
     }
     
     //!=
@@ -695,6 +722,19 @@ namespace micro_element
     //!=
     
     //!|=> Forces
+    
+    void Hex8::add_all_forces(){
+        /*!========================
+        |    add_all_forces    |
+        ========================
+        
+        Add all of the forces to the residual 
+        vector for a given gauss point.
+        
+        */
+        
+        add_internal_nodal_forces();
+    }
     
     void Hex8::add_internal_nodal_forces(){
         /*!=====================================
@@ -705,23 +745,35 @@ namespace micro_element
         nodal forces to the right hand side vector.
         
         */
-        std::vector< double > integral_value;
+        
         //Put the force residuals in the RHS vector
         for(int n = 0; n<reference_coords.size(); n++){
-            
-            for(int j=(n*3); j<((n+1)*3); j++){
-                RHS[j] = 0.;
+            for(int j=0; j<3; j++){
                 for(int I=0; I<3; I++){
                     for(int J=0; J<3; J++){
-                        RHS[j] += -dNdXs[n][I]*PK2[n](I,J)*F(j,J)*Jhatdet*weights[n];
+                        RHS[j+n*3] += -dNdXs[n][I]*PK2[gpt_num](I,J)*F(j,J)*Jhatdet*weights[gpt_num];
                     }
                 }
-                
             }
         }
+        
+        return;
     }
     
     //!|=> Moments
+    
+    void Hex8::add_all_moments(){
+        /*!=========================
+        |    add_all_moments    |
+        =========================
+        
+        Add all of the moments to the 
+        residual vector.
+        
+        */
+        
+        add_internal_moments();
+    }
     
     void Hex8::add_internal_moments(){
         /*!=====================================
@@ -740,21 +792,22 @@ namespace micro_element
         //Create the moment residual at the different nodes
         for(int n=0; n<reference_coords.size(); n++){
             
+            mu_int = tensor::Tensor({3,3});
+            
             //Create the current value of mu_int
             for(int i=0; i<3; i++){
                 for(int j=0; j<3; j++){
                     
                     for(int I=0; I<3; I++){
                         for(int J=0; J<3; J++){
-                            mu_int(i,j) += -Ns[n]*F(i,I)*(SIGMA[n](I,J) - PK2[n](I,J))*F(j,J)*Jhatdet*weights[n];
-                            
+                            mu_int(i,j) += -Ns[n]*F(i,I)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*F(j,J)*Jhatdet*weights[gpt_num];
                         }
                     }
                     
                     for(int I=0; I<3; I++){
                         for(int J=0; J<3; J++){
                             for(int K=0; K<3; K++){
-                            mu_int(i,j) += -dNdXs[n][K]*F(j,J)*chi(i,I)*M[n](K,J,I)*Jhatdet*weights[n];
+                                mu_int(i,j) += -dNdXs[n][K]*F(j,J)*chi(i,I)*M[gpt_num](K,J,I)*Jhatdet*weights[gpt_num];
                             }
                         }
                     }
@@ -883,6 +936,34 @@ namespace micro_element
         set_jacobian(_mode);
         
         return J;
+    }
+    
+    double Hex8::get_Jhatdet(bool _mode){
+        /*!=====================
+        |    get_Jdethat    |
+        =====================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the determinant of the 
+        jacobian.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        */
+        
+        set_jacobian(_mode);
+        
+        return Jhatdet;
     }
     
     std::vector< double > Hex8::get_dNdx(bool _mode, int _node){

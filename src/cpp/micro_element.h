@@ -112,7 +112,7 @@ namespace micro_element
             //Constructors
             Hex8();
             Hex8(std::vector< double >);
-            Hex8(std::vector< double >, std::vector< double >, std::vector< double >, std::vector< double > fparams = {}, std::vector< int > iparams = {});
+            Hex8(std::vector< double >, std::vector< double >, std::vector< double >, std::vector< double > _fparams = {}, std::vector< int > _iparams = {});
             
             //!==
             //!|
@@ -175,12 +175,14 @@ namespace micro_element
             
             //!|=> Forces
             
+            void add_all_forces();
             void add_internal_nodal_forces();
             void add_extermal_nodal_forces();
             void add_kinematic_nodal_forces();
             
             //!|=> Moments
             
+            void add_all_moments();
             void add_internal_moments();
             void add_external_moments();
             void add_kinematic_moments();
@@ -217,6 +219,7 @@ namespace micro_element
             std::vector< double > get_dNdxi(int);
             tensor::Tensor get_jacobian(int);
             std::vector< double > get_dNdx(bool,int);
+            double get_Jhatdet(bool);
             
             tensor::Tensor get_F();
             tensor::Tensor get_chi();
