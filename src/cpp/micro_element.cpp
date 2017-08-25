@@ -710,7 +710,7 @@ namespace micro_element
         for(int n = 0; n<reference_coords.size(); n++){
             
             for(int j=(n*3); j<((n+1)*3); j++){
-                
+                RHS[j] = 0.;
                 for(int I=0; I<3; I++){
                     for(int J=0; J<3; J++){
                         RHS[j] += -dNdXs[n][I]*PK2[n](I,J)*F(j,J)*Jhatdet*weights[n];
