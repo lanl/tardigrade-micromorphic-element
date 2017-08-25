@@ -663,6 +663,13 @@ int test_deformation_measures(std::ofstream &results){
     int  test_num        = 3;
     bool test_results[test_num] = {false,false,false};
     
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
     std::vector< double > Unode;
@@ -689,7 +696,7 @@ int test_deformation_measures(std::ofstream &results){
     }
     
     //!Form the hexehedral test element.
-    micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU);
+    micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU,fparams);
     
     //!Set the gauss point
     element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
@@ -752,6 +759,249 @@ int test_deformation_measures(std::ofstream &results){
     return 1;
 }
 
+int test_balance_of_linear_momentum(std::ofstream &results){
+    /*!=========================================
+    |    test_balance_of_linear_momentum    |
+    =========================================
+    
+    Run tests on the formation of the residual of the 
+    balance of linear momentum.
+    
+    */
+    
+    //Seed the random number generator
+    srand (1);
+    
+    //!Initialize test results
+    int  test_num        = 1;
+    bool test_results[test_num] = {false};
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    //!Form the required vectors for element formation
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
+    std::vector< double > Unode;
+    std::vector< double > Xnode;
+    std::vector< double > U;
+    std::vector< double > dU;
+    Xnode.resize(3);
+    Unode.resize(96);
+    U.resize(96);
+    dU.resize(96);
+    int inc = 0;
+    for(int n=0; n<8; n++){
+        Xnode[0] = reference_coords[0+n*3]; //Get the position of the current node
+        Xnode[1] = reference_coords[1+n*3];
+        Xnode[2] = reference_coords[2+n*3];
+        
+        Unode = test_deformation(Xnode);    //Update the deformation
+        
+        for(int i=0; i<12; i++){
+            U[inc]  = Unode[i];   //Assign the deformation
+            dU[inc] = 0.1*Unode[i];  //Assign the change in deformation (1/10 of the deformation)
+            inc++;
+        }
+    }
+    
+    //!Form the hexehedral test element.
+    micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU,fparams);
+    
+    //!Set the gauss point
+    element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
+    
+    //!Compute the shape function values
+    element.update_shape_function_values();
+    
+    //!Set the fundamental deformation measures
+    element.set_fundamental_measures();
+    
+    //!Set the deformation measures
+    element.set_deformation_measures();
+    
+    //!Set the stresses at the gauss point
+    element.set_stresses();
+    
+    //!Set the residual vector due to the given gauss point
+    element.add_internal_nodal_forces();
+    
+    //!Compute the expected residual vector
+    std::vector< double > RHS(96,0.);
+    
+    //!Compute the internal forces
+    for(int n=0; n<8; n++){
+        for(int j=0; j<3; j++){
+            for(int I=0; I<3; I++){
+                for(int J=0; J<3; J++){
+                    RHS[j+3*n] += -element.get_dNdx(0,n)[I]*element.PK2[0](I,J)*element.get_F()(j,J)*element.get_Jhatdet(0)*element.weights[0];
+                }
+            }
+        }
+    }
+    
+    //!Compare the expected results to the element results
+    test_results[0] = true;
+    for(int i=0; i<96; i++){
+        test_results[0] *= 1e-9>fabs(element.RHS[i]-RHS[i]);
+    }
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_balance_of_linear_momentum & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_balance_of_linear_momentum & False\\\\\n\\hline\n";
+    }
+    
+    return 1;
+}
+
+int test_balance_of_first_moment_of_momentum(std::ofstream &results){
+    /*!==================================================
+    |    test_balance_of_first_moment_of_momentum    |
+    ==================================================
+    
+    Run tests on the formation of the residual of the 
+    first moment of momentum.
+    
+    */
+    
+    //Seed the random number generator
+    srand (1);
+    
+    //!Initialize test results
+    int  test_num        = 1;
+    bool test_results[test_num] = {false};
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    //!Form the required vectors for element formation
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
+    std::vector< double > Unode;
+    std::vector< double > Xnode;
+    std::vector< double > U;
+    std::vector< double > dU;
+    Xnode.resize(3);
+    Unode.resize(96);
+    U.resize(96);
+    dU.resize(96);
+    int inc = 0;
+    for(int n=0; n<8; n++){
+        Xnode[0] = reference_coords[0+n*3]; //Get the position of the current node
+        Xnode[1] = reference_coords[1+n*3];
+        Xnode[2] = reference_coords[2+n*3];
+        
+        Unode = test_deformation(Xnode);    //Update the deformation
+        
+        for(int i=0; i<12; i++){
+            U[inc]  = Unode[i];   //Assign the deformation
+            dU[inc] = 0.1*Unode[i];  //Assign the change in deformation (1/10 of the deformation)
+            inc++;
+        }
+    }
+    
+    //!Form the hexehedral test element.
+    micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU,fparams);
+    
+    //!Set the gauss point
+    element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
+    
+    //!Compute the shape function values
+    element.update_shape_function_values();
+    
+    //!Set the fundamental deformation measures
+    element.set_fundamental_measures();
+    
+    //!Set the deformation measures
+    element.set_deformation_measures();
+    
+    //!Set the stresses at the gauss point
+    element.set_stresses();
+    
+    //!Set the residual vector due to the given gauss point
+    element.add_internal_moments();
+    
+    //!Compute the expected residual vector
+    std::vector< double > RHS(96,0.);
+    
+    //!Define the internal stress balance
+    tensor::Tensor mu_int({3,3});
+    
+    //!Compute the internal forces
+    for(int n=0; n<8; n++){
+        mu_int = tensor::Tensor({3,3});
+        
+        for(int i=0; i<3; i++){
+            for(int j=0; j<3; j++){
+                for(int I=0; I<3; I++){
+                    for(int J=0; J<3; J++){
+                        mu_int(i,j) += -element.get_N(n)*element.get_F()(i,I)*(element.SIGMA[0](I,J) - element.PK2[0](I,J))*element.get_F()(j,J)*element.get_Jhatdet(0)*element.weights[0];
+                    }
+                }
+                for(int I=0; I<3; I++){
+                    for(int J=0; J<3; J++){
+                        for(int K=0; K<3; K++){
+                            mu_int(i,j) += -element.get_dNdx(0,n)[K]*element.get_F()(j,J)*element.get_chi()(i,I)*element.M[0](K,J,I)*element.get_Jhatdet(0)*element.weights[0];
+                        }
+                    }
+                }
+            }
+        }
+        
+        RHS[0+n*9+24] = mu_int(0,0);
+        RHS[1+n*9+24] = mu_int(1,1);
+        RHS[2+n*9+24] = mu_int(2,2);
+        RHS[3+n*9+24] = mu_int(1,2);
+        RHS[4+n*9+24] = mu_int(0,2);
+        RHS[5+n*9+24] = mu_int(0,1);
+        RHS[6+n*9+24] = mu_int(2,1);
+        RHS[7+n*9+24] = mu_int(2,0);
+        RHS[8+n*9+24] = mu_int(1,0);
+        
+    }
+    
+    //!Compare the expected results to the element results
+    test_results[0] = true;
+    for(int i=0; i<96; i++){
+        test_results[0] *= 1e-9>fabs(element.RHS[i]-RHS[i]);
+    }
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_balance_of_linear_momentum & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_balance_of_linear_momentum & False\\\\\n\\hline\n";
+    }
+    
+    return 1;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -771,6 +1021,8 @@ int main(){
     test_shape_functions(results);
     test_fundamental_measures(results);
     test_deformation_measures(results);
+    test_balance_of_linear_momentum(results);
+    test_balance_of_first_moment_of_momentum(results);
     
     //Close the results file
     results.close();
