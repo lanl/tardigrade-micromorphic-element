@@ -815,18 +815,64 @@ namespace micro_element
             }
             
             //Populate the right hand side tensor
-            RHS[initial_index+n*9+0] = mu_int(0,0);
-            RHS[initial_index+n*9+1] = mu_int(1,1);
-            RHS[initial_index+n*9+2] = mu_int(2,2);
-            RHS[initial_index+n*9+3] = mu_int(1,2);
-            RHS[initial_index+n*9+4] = mu_int(0,2);
-            RHS[initial_index+n*9+5] = mu_int(0,1);
-            RHS[initial_index+n*9+6] = mu_int(2,1);
-            RHS[initial_index+n*9+7] = mu_int(2,0);
-            RHS[initial_index+n*9+8] = mu_int(1,0);
+            RHS[initial_index+n*9+0] += mu_int(0,0);
+            RHS[initial_index+n*9+1] += mu_int(1,1);
+            RHS[initial_index+n*9+2] += mu_int(2,2);
+            RHS[initial_index+n*9+3] += mu_int(1,2);
+            RHS[initial_index+n*9+4] += mu_int(0,2);
+            RHS[initial_index+n*9+5] += mu_int(0,1);
+            RHS[initial_index+n*9+6] += mu_int(2,1);
+            RHS[initial_index+n*9+7] += mu_int(2,0);
+            RHS[initial_index+n*9+8] += mu_int(1,0);
         }
     }
     
+    //!=
+    //!| Element Integration 
+    //!=
+    
+    void Hex8::update_gauss_point(){
+        /*!============================
+        |    update_gauss_point    |
+        ============================
+        
+        Update the deformation and stress measures 
+        at a gauss point
+        
+        */
+        
+        //!Compute the shape function values
+        update_shape_function_values();
+    
+        //!Set the fundamental deformation measures
+        set_fundamental_measures();
+    
+        //!Set the deformation measures
+        set_deformation_measures();
+    
+        //!Set the stresses at the gauss point
+        set_stresses();
+        return;
+    }
+    
+    void Hex8::integrate_element(){
+        /*!===========================
+        |    integrate_element    |
+        ===========================
+        
+        Integrate the element
+        
+        */
+        
+        for(int i=0; i<number_gauss_points; i++){
+            gpt_num = i;          //Update the gauss point number
+            update_gauss_point(); //Update all of the gauss points
+            add_all_forces();     //Update the RHS vector from all of the forces
+            add_all_moments();    //Update the RHS vector from all of the stresses
+        }
+        
+        return;
+    }
     
     //!=
     //!| Test functions
