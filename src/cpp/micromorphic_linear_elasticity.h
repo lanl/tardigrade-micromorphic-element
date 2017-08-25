@@ -33,4 +33,8 @@ namespace micro_material{
                           const tensor::Tensor&,  const tensor::Tensor&, const tensor::Tensor&,
                           tensor::Tensor&,        tensor::Tensor&,       tensor::Tensor&);
     
+    tensor::Tensor generate_A_stiffness(const std::vector< double > &);
+    tensor::Tensor generate_B_stiffness(const std::vector< double > &);
+    tensor::Tensor generate_C_stiffness(const std::vector< double > &);
+    tensor::Tensor generate_D_stiffness(const std::vector< double > &);
 }

@@ -28,12 +28,13 @@
   
 #include <vector>
 #include <tensor.h>
+#include <micromorphic_linear_elasticity.h>
   
 namespace micro_material{
     
     void get_stress(const std::vector< double > &fparams, const std::vector< int > &iparams,
-                          const tensor::Tensor&   C,      const tensor::Tensor&   Psi,  const tensor::Tensor& Gamma,
-                          tensor::Tensor& PK2_stress,     tensor::Tensor& SIGMA_stress, tensor::Tensor& M_stress){
+                          const tensor::Tensor&   C_in,   const tensor::Tensor&   Psi_in,    const tensor::Tensor& Gamma_in,
+                          tensor::Tensor& PK2_stress,     tensor::Tensor& SIGMA_stress,      tensor::Tensor& M_stress){
         /*!========================================
         |              get_stress              |
         ========================================
@@ -53,11 +54,17 @@ namespace micro_material{
         */
         
         //!Common tensors
-        tensor::Tensor tensor::eye(); //!The second order identity tensor
+        tensor::Tensor ITEN = tensor::eye(); //!The second order identity tensor
+        
+        //!Copy over the deformation measures
+        tensor::Tensor C     = C_in;
+        tensor::Tensor Cinv  = C.inverse();
+        tensor::Tensor Psi   = Psi_in;
+        tensor::Tensor Gamma = Gamma_in;
         
         //!Compute the strain measures
-        macro_E = 0.5*(C - I); //The macro Green-Lagrange strain
-        micro_E = Psi - I;     //The micro equivalent of the Green-Lagrange strain
+        tensor::Tensor macro_E = 0.5*(C - ITEN); //The macro Green-Lagrange strain
+        tensor::Tensor micro_E = Psi - ITEN;     //The micro equivalent of the Green-Lagrange strain
         
         //!Compute the stiffness tensors
         tensor::Tensor A_stiffness = generate_A_stiffness(fparams);
@@ -68,7 +75,7 @@ namespace micro_material{
         //!Zero the stress measures
         PK2_stress   = tensor::Tensor({3,3});   //Zero out the Second Piola-Kirchhoff stress
         SIGMA_stress = tensor::Tensor({3,3});   //Zero out the symmetric micro-stress tensor
-        M_stress     = tensor::Tensor({3,3,3}): //Zero out the higher order couple stress
+        M_stress     = tensor::Tensor({3,3,3}); //Zero out the higher order couple stress
         
         //!Create temporary storage tensors for the common terms
         tensor::Tensor term1({3,3});
@@ -78,17 +85,17 @@ namespace micro_material{
             for(int J=0; J<3; J++){
                 for(int K=0; K<3; K++){
                     for(int L=0; L<3; L++){
-                        term1(I,J) += A_stiffness(I,J,K,L)*macro_E(K,L) + D(I,J,K,L)*micro_E(K,L);
-                    }
-                }
+                        term1(I,J) += A_stiffness(I,J,K,L)*macro_E(K,L) + D_stiffness(I,J,K,L)*micro_E(K,L);
                 
-                for(int Q=0; Q<3; Q++){
-                    for(int R=0; R<3; R++){
-                        for(int M=0; M<3; M++){
-                            for(int N=0; N<3; N++){
-                                term2(I,J) +=  (B_stiffness(I,Q,K,L)*micro_E(K,L)+D_stiffness(I,Q,K,L)*macro_E(K,L))*(micro_E(R,Q)+I(R,Q))*Cinv(J,R);
-                            }
+                        for(int Q=0; Q<3; Q++){
+                            for(int R=0; R<3; R++){
+                                for(int M=0; M<3; M++){
+                                    for(int N=0; N<3; N++){
+                                        term2(I,J) +=  (B_stiffness(I,Q,K,L)*micro_E(K,L)+D_stiffness(I,Q,K,L)*macro_E(K,L))*(micro_E(R,Q)+ITEN(R,Q))*Cinv(J,R);
+                                    }
                             
+                                }
+                            }
                         }
                     }
                 }
@@ -113,8 +120,8 @@ namespace micro_material{
         //!Compute the stress measures
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
-                PK2(I,J)   = term1(I,J)+term2(I,J);
-                SIGMA(I,J) = term1(I,J)+0.5*(term2(I,J)+term2(J,I)):
+                PK2_stress(I,J)   = term1(I,J)+term2(I,J);
+                SIGMA_stress(I,J) = term1(I,J)+0.5*(term2(I,J)+term2(J,I));
             }
         }
         
@@ -266,5 +273,6 @@ namespace micro_material{
             }
         }
         
-        return D_stiffness
+        return D_stiffness;
+    }
 }
