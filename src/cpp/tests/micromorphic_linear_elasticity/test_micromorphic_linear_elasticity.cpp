@@ -20,6 +20,9 @@
   | tensor: An implementation of a tensor which stores  |
   |         the data in a 2D matrix but allows access   |
   |         through n dimensional index notation.       |
+  | finite_difference: An implementation of the         |
+  |                    computation of the numeric       |
+  |                    gradient via finite differences. |
   =======================================================*/
   
 #include <functional>
@@ -206,6 +209,254 @@ void test_stiffness_tensors(std::ofstream &results){
     return;
 }
 
+std::vector< double > test_deformation(std::vector< double > reference_position){
+    /*!==========================
+    |    test_deformation    |
+    ==========================
+    
+    Compute a test deformation 
+    to show that the deformation gradient 
+    and microdisplacement are being computed 
+    correctly.
+    
+    */
+    
+    double X = reference_position[0];
+    double Y = reference_position[1];
+    double Z = reference_position[2];
+    
+    std::vector< double > U;
+    U.resize(12,0);
+    
+    //!Set the displacements
+    U[ 0] =  0.32*X-0.14*Y+0.61*Z;
+    U[ 1] = -0.50*X+0.24*Y-0.38*Z;
+    U[ 2] = -0.22*X+0.47*Y+0.62*Z;
+    U[ 3] = -1.10*X+0.04*Y+2.30*Z; //phi_11
+    U[ 4] = -0.74*X+1.22*Y+2.22*Z; //phi_22
+    U[ 5] = -2.24*X+5.51*Y+1.11*Z; //phi_33
+    U[ 6] = -5.75*X+2.26*Y+7.66*Z; //phi_23
+    U[ 7] = -6.22*X+8.63*Y+2.72*Z; //phi_13
+    U[ 8] = -2.76*X+3.37*Y+3.93*Z; //phi_12
+    U[ 9] = -6.32*X+6.73*Y+7.22*Z; //phi_32
+    U[10] = -3.83*X+4.29*Y+1.51*Z; //phi_31
+    U[11] = -9.18*X+3.61*Y+9.08*Z; //phi_21
+    
+    return U;
+    
+}
+    
+std::vector< std::vector< double > > compute_gradients(std::vector< double > reference_position){
+    /*!===========================
+    |    compute_gradients    |
+    ===========================
+    
+    Compute the gradients of the test 
+    deformation numerically so that the 
+    results are consistent.
+    
+    */
+    
+    finite_difference::FiniteDifference FD(test_deformation,2,reference_position,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+    
+}
+
+void test_get_stress(std::ofstream &results){
+    /*!=========================
+    |    test_get_stress    |
+    =========================
+    
+    A test for the computation of the 
+    stress tensors. They are compared to 
+    another formulation of the tensors 
+    to ensure that they are consistent.
+    
+    */
+    
+    //!Initialize test results
+    int  test_num        = 3;
+    bool test_results[test_num] = {false,false,false};
+    
+    //!Seed the random number generator
+    srand (1);
+    
+    //!Initialize the common tensors
+    tensor::Tensor ITEN = tensor::eye();
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = i+1;
+    }
+    
+    //!Initialize the fundamental deformation measures
+    tensor::Tensor F({3,3});
+    tensor::Tensor chi({3,3});
+    tensor::Tensor grad_chi({3,3,3});
+    
+    //!Populate the gradients
+    std::vector< double > position = {1.2, 2.4, -0.42};
+    std::vector< std::vector< double > > gradients = compute_gradients(position); //Compute the numeric gradients
+    
+    for(int i=0; i<3; i++){
+        //!Populate the deformation gradient
+        F(0,i)          = gradients[i][ 0];
+        F(1,i)          = gradients[i][ 1];
+        F(2,i)          = gradients[i][ 2];
+        //!Populate the gradient of chi
+        grad_chi(0,0,i) = gradients[i][ 3];
+        grad_chi(1,1,i) = gradients[i][ 4];
+        grad_chi(2,2,i) = gradients[i][ 5];
+        grad_chi(1,2,i) = gradients[i][ 6];
+        grad_chi(0,2,i) = gradients[i][ 7];
+        grad_chi(0,1,i) = gradients[i][ 8];
+        grad_chi(2,1,i) = gradients[i][ 9];
+        grad_chi(2,0,i) = gradients[i][10];
+        grad_chi(1,0,i) = gradients[i][11];
+    }
+    
+    //Because we are specifying the deformation, and 
+    //not the actual current coordinates, we have to 
+    //add 1 to the diagonal terms
+    F(0,0) += 1;
+    F(1,1) += 1;
+    F(2,2) += 1;
+    
+    //!Populate the chi
+    std::vector< double > U = test_deformation(position);
+    chi(0,0) = 1.+U[ 3];
+    chi(1,1) = 1.+U[ 4];
+    chi(2,2) = 1.+U[ 5];
+    chi(1,2) =    U[ 6];
+    chi(0,2) =    U[ 7];
+    chi(0,1) =    U[ 8];
+    chi(2,1) =    U[ 9];
+    chi(2,0) =    U[10];
+    chi(1,0) =    U[11];
+    
+    //!Populate derived deformation measures
+    tensor::Tensor C({3,3});          //!The right Cauchy-Green deformation tensor
+    tensor::Tensor Psi({3,3});        //!The micro-deformation measure
+    tensor::Tensor Gamma({3,3,3});    //!The higher order micro-deformation measure
+    
+    for(int I=0; I<3; I++){
+        for(int J=0; J<3; J++){
+            for(int i=0; i<3; i++){
+                C(I,J)   += F(i,I)*F(i,J);
+                Psi(I,J) += F(i,I)*chi(i,J);
+            }
+            for(int K=0; K<3; K++){
+                for(int i=0; i<3; i++){
+                    Gamma(I,J,K) += F(i,I)*grad_chi(i,J,K);
+                }
+            }
+        }
+    }
+    
+    tensor::Tensor Cinv = C.inverse();
+    
+    //!Compute the strain measures
+    tensor::Tensor macro_E = 0.5*(C-ITEN);
+    tensor::Tensor micro_E = Psi-ITEN;
+    
+    //!Compute the stiffness tensors
+    tensor::Tensor A_stiffness = micro_material::generate_A_stiffness(fparams);
+    tensor::Tensor B_stiffness = micro_material::generate_B_stiffness(fparams);
+    tensor::Tensor C_stiffness = micro_material::generate_C_stiffness(fparams);
+    tensor::Tensor D_stiffness = micro_material::generate_D_stiffness(fparams);
+    
+    tensor::Tensor PK2_answer({3,3});   //!The expected second Piola-Kirchhoff Stress
+    tensor::Tensor SIGMA_answer({3,3}); //!The symmetric micro-stress
+    tensor::Tensor M_answer({3,3,3});   //!The expected higher order stress
+    
+    //!Compute the answer stress tensors
+    for(int I=0; I<3; I++){
+        for(int J=0; J<3; J++){
+            for(int K=0; K<3; K++){
+                for(int L=0; L<3; L++){
+                    PK2_answer(I,J)   += A_stiffness(I,J,K,L)*macro_E(K,L) + D_stiffness(I,J,K,L)*micro_E(K,L);
+                    SIGMA_answer(I,J) += A_stiffness(I,J,K,L)*macro_E(K,L) + D_stiffness(I,J,K,L)*micro_E(K,L);
+                }
+            }
+            
+            for(int K=0; K<3; K++){
+                for(int L=0; L<3; L++){
+                    for(int Q=0; Q<3; Q++){
+                        for(int R=0; R<3; R++){
+                            PK2_answer(I,J)   +=   (B_stiffness(I,Q,K,L)*micro_E(K,L) + D_stiffness(I,Q,K,L)*macro_E(K,L))*(micro_E(R,Q) + ITEN(R,Q))*Cinv(J,R);
+                            SIGMA_answer(I,J) +=   (B_stiffness(I,Q,K,L)*micro_E(K,L) + D_stiffness(I,Q,K,L)*macro_E(K,L))*(micro_E(R,Q) + ITEN(R,Q))*Cinv(J,R)
+                                                 + (B_stiffness(J,Q,K,L)*micro_E(K,L) + D_stiffness(J,Q,K,L)*macro_E(K,L))*(micro_E(R,Q) + ITEN(R,Q))*Cinv(I,R);
+                        }
+                    }
+                }
+            }
+            
+            for(int Q=0; Q<3; Q++){
+                for(int R=0; R<3; R++){
+                    for(int L=0; L<3; L++){
+                        for(int M=0; M<3; M++){
+                            for(int N=0; N<3; N++){
+                                for(int S=0; S<3; S++){
+                                    PK2_answer(I,J)   +=   C_stiffness(I,Q,R,L,M,N)*Gamma(L,M,N)*Cinv(S,J)*Gamma(S,Q,R);
+                                    SIGMA_answer(I,J) +=   C_stiffness(I,Q,R,L,M,N)*Gamma(L,M,N)*Cinv(S,J)*Gamma(S,Q,R)
+                                                         + C_stiffness(J,Q,R,L,M,N)*Gamma(L,M,N)*Cinv(S,I)*Gamma(S,Q,R);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    for(int I=0; I<3; I++){
+        for(int J=0; J<3; J++){
+            for(int K=0; K<3; K++){
+                for(int L=0; L<3; L++){
+                    for(int M=0; M<3; M++){
+                        for(int N=0; N<3; N++){
+                            M_answer(I,J,K) += C_stiffness(I,J,K,L,M,N)*Gamma(L,M,N);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    //!The initialization of the result stress tensors
+    tensor::Tensor PK2_result({3,3});
+    tensor::Tensor SIGMA_result({3,3});
+    tensor::Tensor M_result({3,3,3});
+    
+    //!Compute and assign the stresses to the result measures
+    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    
+    test_results[0] = PK2_answer.data.isApprox(PK2_result.data);
+    test_results[1] = SIGMA_answer.data.isApprox(SIGMA_result.data);
+    test_results[2] = M_answer.data.isApprox(M_result.data);
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_get_stress & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_get_stress & False\\\\\n\\hline\n";
+    }
+    
+    return;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -222,7 +473,7 @@ int main(){
     
     //!Run the test functions
     test_stiffness_tensors(results);
-    
+    test_get_stress(results);
     
     //Close the results file
     results.close();
