@@ -86,15 +86,13 @@ namespace micro_material{
                 for(int K=0; K<3; K++){
                     for(int L=0; L<3; L++){
                         term1(I,J) += A_stiffness(I,J,K,L)*macro_E(K,L) + D_stiffness(I,J,K,L)*micro_E(K,L);
-                
+                    }
+                }
+                for(int K=0; K<3; K++){
+                    for(int L=0; L<3; L++){
                         for(int Q=0; Q<3; Q++){
                             for(int R=0; R<3; R++){
-                                for(int M=0; M<3; M++){
-                                    for(int N=0; N<3; N++){
-                                        term2(I,J) +=  (B_stiffness(I,Q,K,L)*micro_E(K,L)+D_stiffness(I,Q,K,L)*macro_E(K,L))*(micro_E(R,Q)+ITEN(R,Q))*Cinv(J,R);
-                                    }
-                            
-                                }
+                                term2(I,J) +=  (B_stiffness(I,Q,K,L)*micro_E(K,L)+D_stiffness(I,Q,K,L)*macro_E(K,L))*(micro_E(R,Q)+ITEN(R,Q))*Cinv(J,R);
                             }
                         }
                     }
@@ -110,7 +108,6 @@ namespace micro_material{
                                     }
                                 }
                             }
-                            
                         }
                     }
                 }
@@ -121,7 +118,7 @@ namespace micro_material{
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
                 PK2_stress(I,J)   = term1(I,J)+term2(I,J);
-                SIGMA_stress(I,J) = term1(I,J)+0.5*(term2(I,J)+term2(J,I));
+                SIGMA_stress(I,J) = term1(I,J)+(term2(I,J)+term2(J,I));
             }
         }
         
@@ -131,7 +128,7 @@ namespace micro_material{
                     for(int M=0; M<3; M++){
                         for(int N=0; N<3; N++){
                             for(int O=0; O<3; O++){
-                                M_stress(I,J,K) += C(I,J,K,M,N,O)*Gamma(M,N,O);
+                                M_stress(I,J,K) += C_stiffness(I,J,K,M,N,O)*Gamma(M,N,O);
                             }
                         }
                     }
