@@ -326,7 +326,7 @@ namespace tensor{
             
             if((*it>=shape[inc]) || (*it<0)){
                 //TODO: Should raise an error!
-                std::cout << "Error: index " << inc << "with value " << *it << "\noutside allowed bounds.\n";
+                std::cout << "Error: index " << inc << " with value " << *it << "\noutside allowed bounds.\n";
                 assert(1==0);
             }
             inc++;
