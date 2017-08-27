@@ -19,6 +19,7 @@
 #include <tensor.h>
 #include <micro_element.h>
 #include <micromorphic_linear_elasticity.h>
+#include <ctime>
   
 namespace micro_element
 {
@@ -561,7 +562,9 @@ namespace micro_element
         for(int n=0; n<reference_coords.size(); n++){
             chi += Ns[n]*node_phis[n];
         }
-        chi += tensor::eye();
+        chi(0,0) += 1;
+        chi(1,1) += 1;
+        chi(2,2) += 1;
         return;
     }
     
@@ -577,7 +580,7 @@ namespace micro_element
         
         //Initialize vectors
         tensor::Tensor chi_n = tensor::Tensor(sot_shape); //!The value of chi at a node
-        tensor::Tensor I     = tensor::eye(); //!The second order identity tensor
+        tensor::Tensor I     = tensor::eye();             //!The second order identity tensor
         
         //Set grad_chi to zero
         grad_chi = tensor::Tensor(tot_shape);
@@ -711,7 +714,6 @@ namespace micro_element
         gauss point.
         
         */
-        
         micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
         
         return;
