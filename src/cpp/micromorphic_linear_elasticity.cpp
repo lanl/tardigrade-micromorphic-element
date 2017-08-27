@@ -27,6 +27,7 @@
   =======================================================*/
   
 #include <vector>
+#include <ctime>
 #include <tensor.h>
 #include <micromorphic_linear_elasticity.h>
   
@@ -135,6 +136,7 @@ namespace micro_material{
                 }
             }
         }
+        
         return;
     }
     
