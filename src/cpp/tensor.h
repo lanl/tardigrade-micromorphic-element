@@ -145,8 +145,13 @@ namespace tensor
             void zero();
 
         private:
+            std::vector< int > index_factors;                                         //!The factors by which each index is multiplied  
+                                                                                      //!by in the mapping from the tensor indices to the 
+                                                                                      //!matrix form.
+            void set_factors();                                                       //!Set the multiplication factors for the tensor 
+                                                                                      //!index to matrix form
             std::array<int, 2> map_index(std::initializer_list< int > indices) const; //Map the tensor index to the data matrix
-            void set_dimensions();                 //Set the dimensions of the data matrix
+            void set_dimensions();                                                    //Set the dimensions of the data matrix
     };
     
     //!==

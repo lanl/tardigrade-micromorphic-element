@@ -39,6 +39,7 @@ namespace tensor{
         data.resize(0,0);
         data_dimensions[0] = 0;
         data_dimensions[1] = 0;
+        index_factors    = std::vector< int >(0,1);
     }
     
     Tensor::Tensor(std::vector< int > dimensions){
@@ -50,6 +51,9 @@ namespace tensor{
         
         //Set the data matrix dimensions
         set_dimensions();
+        
+        //Set the multiplication factors
+        set_factors();
         
     }
     
@@ -64,6 +68,9 @@ namespace tensor{
         
         //Set the data matrix dimensions
         set_dimensions();
+        
+        //Set the multiplication factors
+        set_factors();
         
         if((data.rows()==data_in.rows()) && (data.cols()==data_in.cols())){
             data = data_in;
@@ -96,6 +103,7 @@ namespace tensor{
         format          = T.format;
         index_split     = T.index_split;
         iterator_split  = T.iterator_split;
+        index_factors   = T.index_factors;
     }
     
     Tensor Tensor::operator+(const Tensor& T1){
@@ -221,6 +229,33 @@ namespace tensor{
     //!|
     //!==
     
+    void Tensor::set_factors(){
+        /*!=====================
+        |    set_factors    |
+        =====================
+        
+        Set the multiplication factors for each of the indices
+        
+        */
+        
+        index_factors    = std::vector< int >(shape.size(),1);
+        
+        //Get the row index
+        for(int i=0; i<index_split; i++){//Iterate through the pre-split indices
+        
+            for(int j=i+1; j<index_split; j++){//Assemble the index multiplier
+                index_factors[i] *= shape[j];
+            }
+        }
+        //Get the column index
+        for(int i=index_split; i<shape.size(); i++){//Iterate through the post-split indices
+            
+            for(int j=i+1; j<shape.size(); j++){//Assemble the index multipler
+                index_factors[i] *= shape[j];
+            }
+        }
+    }
+    
     void Tensor::set_dimensions(){
         /*!===========================
         |     set_dimensions       |
@@ -335,13 +370,8 @@ namespace tensor{
         //Get the row index
         inc = 0;
         for(it=indices.begin(); inc<index_split; it++){//Iterate through the pre-split indices
-            val = 1;
             
-            for(int j=inc+1; j<index_split; j++){//Assemble the index multiplier
-                val *= shape[j];
-            }
-            
-            data_indices[0] += *it*val;
+            data_indices[0] += *it*index_factors[inc];
             
             inc++;
             
@@ -349,13 +379,8 @@ namespace tensor{
         //Get the column index
         inc = index_split;
         for(it=(indices.begin()+inc); inc<shape.size(); it++){//Iterate through the post-split indices
-            val = 1;
             
-            for(int j=inc+1; j<shape.size(); j++){//Assemble the index multipler
-                val *= shape[j];
-            }
-            
-            data_indices[1] += *it*val;
+            data_indices[1] += *it*index_factors[inc];
             
             inc++;
         }
