@@ -43,7 +43,7 @@ int test_tensor_functionality(std::ofstream &results){
     std::vector< int > v_shape;                 //Vector shape vector
     v_shape.resize(1);                          //Resizing the shape vector to have only one index
     v_shape[0] = 6;                             //Setting the vector size
-    tensor::Tensor V = tensor::Tensor(v_shape); //Form the vector
+    tensor::Tensor V(v_shape);                  //Form the vector
     
     Eigen::MatrixXd V_compare(6,1); //Initialize the comparison matrix
     
@@ -72,7 +72,7 @@ int test_tensor_functionality(std::ofstream &results){
     m_shape[0] = 3;              //Create a 3x3 matrix
     m_shape[1] = 3;
     
-    tensor::Tensor M = tensor::Tensor(m_shape); //Initialize the matrix
+    tensor::Tensor M(m_shape);   //Initialize the matrix
     
     Eigen::MatrixXd M_compare(3,3); //Initialize the comparison matrix
     M_compare << 1,2,3,4,5,6,7,8,9;  //Set the initial values
@@ -104,7 +104,7 @@ int test_tensor_functionality(std::ofstream &results){
     t_shape[1] = 3;
     t_shape[2] = 7;
     
-    tensor::Tensor T = tensor::Tensor(t_shape); //Initialize the tensor
+    tensor::Tensor T(t_shape);                  //Initialize the tensor
     
     Eigen::MatrixXd T_compare(4,21); //Initialize the comparison tensor
     T_compare <<  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
