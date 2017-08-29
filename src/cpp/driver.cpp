@@ -25,6 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstdlib>
 #include <vector>
 #include <tensor.h>
 #include <micro_element.h>
@@ -63,14 +64,16 @@ std::vector< std::string > split(const std::string &str, const std::string& deli
     std::vector< std::string > split_str(0);
     std::size_t found_p = 0;
     std::size_t found   = str.find(delimiter); //Search the string for the delimiter
+   
     
-    while(found != std::string::npos){
-        split_str.push_back(str.substr(found_p,found)); //Get the substring
-        found_p = found;                                //set found_p to found
-        found = str.find(delimiter,found_p+1);          //Find the next delimiter
+    while((found != std::string::npos) && (found != found_p)){
+        if(found_p>0){split_str.push_back(str.substr(found_p+1,found-found_p-1));}//Get the substring
+        else{split_str.push_back(str.substr(found_p,found-found_p));}
+        found_p = found;                                 //Set found_p to found
+        found = str.find(delimiter,found_p+1);           //Find the next delimiter
     }
     
-    split_str.push_back(str.substr(found_p));
+    split_str.push_back(str.substr(found_p+1));
     return split_str;
 }
 
@@ -131,6 +134,39 @@ class Node{
     }
 };
 
+class Element{
+    /*!===
+       |
+       | E l e m e n t
+       |
+      ===
+        
+        A class which defines an element
+        
+    */
+    
+    public:
+        unsigned int         element_number; //!The element number
+        std::array<unsigned int,8>  nodes; //!The nodes which make up the element
+        
+        Element(){
+            /*!Default constructor*/
+        }
+        Element(unsigned int _element_number, unsigned int n1, unsigned int n2, unsigned int n3, unsigned int n4,
+                                              unsigned int n5, unsigned int n6, unsigned int n7, unsigned int n8){
+            /*!Full constructor*/
+            element_number = _element_number;
+            nodes[0] = n1;
+            nodes[1] = n2;
+            nodes[2] = n3;
+            nodes[3] = n4;
+            nodes[4] = n5;
+            nodes[5] = n6; 
+            nodes[6] = n7;
+            nodes[7] = n8;
+        }
+};
+
 class NodeSet{
     
     /*!===
@@ -149,6 +185,8 @@ class NodeSet{
         
     NodeSet(){
         /*!Default constructor*/
+        name = "";
+        nodes.resize(0);
     }
     
     NodeSet(std::string _name, std::vector< unsigned int> _nodes){
@@ -157,7 +195,39 @@ class NodeSet{
         nodes          = _nodes;
     }
 };
-  
+
+std::vector< double > mms_const_u(std::vector< double > coords){
+    /*!=====================
+    |    mms_const_u    |
+    =====================
+    
+    Compute the method of manufactured solutions for a 
+    constant displacement of u with the phi values 
+    fixed at zero.
+    
+    */
+    
+    return {0.1, 0.2, 0.3, 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+}
+
+std::vector< double > mms_linear_u(std::vector< double > coords){
+    /*!======================
+    |    mms_linear_u    |
+    ======================
+    
+    Compute the method of manufactured solutions for a 
+    linear displacement of u with the phi values 
+    fixed at zero.
+    
+    */
+    
+    double a = 0.021;
+    double b = 0.013;
+    double c = 0.034;
+    
+    return {0.1+a*coords[0], 0.2+b*coords[1], 0.3+c*coords[2], 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+}
+
 class InputParser{
     /*!===
        |
@@ -174,26 +244,28 @@ class InputParser{
     */
         
         public:
-            std::string filename;                                   //!The location and filename of the input deck
-            std::string path_to_file;                               //!String giving the path to the file
+            std::string filename;                                           //!The location and filename of the input deck
+            std::string path_to_file;                                       //!String giving the path to the file
             
-            std::string latex_string;                               //!The description of the input deck
-            std::vector< Node > nodes;                              //!List of the nodes in the finite element model
-                                                                    //!and their coordinates
-            std::vector< DirichletBC > dirichlet_bcs;               //!A list of the dirichlet boundary conditions
+            std::string latex_string;                                       //!The description of the input deck
+            std::vector< Node > nodes;                                      //!List of the nodes in the finite element model
+                                                                            //!and their coordinates
+            std::vector< DirichletBC > dirichlet_bcs;                       //!A list of the dirichlet boundary conditions
             
-            unsigned int node_dof;                                  //!The number of degrees of freedom at a node
-            std::vector< std::vector< unsigned int > > elements;    //!A list of the elements as defined by their nodes in the model
-            std::vector< float > fprops;                            //!The floating point properties of the material model
-            std::vector< std::vector< float > > svars;              //!A list of the state variables for each element
-            std::vector< NodeSet > nodesets;                        //!A list of the nodesets
+            unsigned int node_dof;                                          //!The number of degrees of freedom at a node
+            std::vector< Element > elements;                                //!A list of the elements as defined by their nodes in the model
+            std::vector< float > fprops;                                    //!The floating point properties of the material model
+            std::vector< std::vector< float > > svars;                      //!A list of the state variables for each element
+            std::vector< NodeSet > nodesets;                                //!A list of the nodesets
             
-            std::string mms_name = "";                              //!The name of the manufactured solution being tested
-            void (*mms_fxn)(unsigned int, std::string);             //!The function to compute U values for the method of 
-                                                                    //!manufactured solutions.
-                                                                    
-            std::vector< std::string > keywords = {"*NODES", "*DIRICHLET_BCS", "*ELEMENTS", "*PROPERTIES", "*LATEX", "*NSET", "*MMS"}; //!All of the currently defined keywords
-            void (InputParser::* keyword_fxn)(unsigned int, std::string);         //!The keyword processing function
+            std::string mms_name = "";                                      //!The name of the manufactured solution being tested
+            std::vector< double > (*mms_fxn)(std::vector< double >) = NULL; //!The function to compute U values for the method of 
+                                                                            //!manufactured solutions.
+            NodeSet mms_dirichlet_set;                                      //!The nodeset for the dirichlet boundary conditions for 
+                                                                            //!the method of manufactured solutions.
+            
+            bool verbose = 1;                                               //!The verbosity of the output
+            void (InputParser::* keyword_fxn)(unsigned int, std::string);   //!The keyword processing function
             
             //!=
             //!|=> Constructors
@@ -275,7 +347,7 @@ class InputParser{
             char keyword = '*'; //!Character which indicates a keyword
             
             //!Private methods
-            void process_keyword(unsigned int line_number, std::string line){
+            void process_keyword(const unsigned int &line_number, std::string &line){
                 /*!=========================
                 |    process_keyword    |
                 =========================
@@ -297,18 +369,28 @@ class InputParser{
                 }
                 else if (line.find("*DIRICHLET_BCS") != std::string::npos){
                     std::cout << "Keyword *DIRICHLET_BCS found\n";
+                    std::cout << "Error: Not currently implemented.\n";
+                    assert(1==0);
                 }
                 else if (line.find("*ELEMENTS") != std::string::npos){
                     std::cout << "Keyword *ELEMENTS found\n";
+                    keyword_fxn = &parse_elements;
+                    line.erase(line.begin(), line.begin()+9);
                 }
                 else if (line.find("*PROPERTIES") != std::string::npos){
                     std::cout << "Keyword *PROPERTIES found\n";
+                    keyword_fxn = &parse_properties;
+                    line.erase(line.begin(), line.begin()+11);
                 }
                 else if (line.find("*NSET") != std::string::npos){
                     std::cout << "Keyword *NSET found\n";
+                    keyword_fxn = &parse_nodesets;
+                    line.erase(line.begin(), line.begin()+5);
                 }
                 else if (line.find("*MMS") != std::string::npos){
                     std::cout << "Keyword *MMS found\n";
+                    keyword_fxn = &parse_manufactured_solution;
+                    line.erase(line.begin(), line.begin()+4);
                 }
                 else{
                     std::cout << "Error: Keyword not recognized\n";
@@ -371,11 +453,220 @@ class InputParser{
                 if(line.length()>0){
                     //Split the line at the commas
                     split_line =  split(line);
-                    for(int i=0; i<split_line.size(); i++){std::cout << "split_line["<<i<<"]: " << split_line[i] << "\n";}
+                    
+                    if(split_line.size()==1){node_dof = std::strtoul(split_line[0].c_str(),NULL,10);} //Handle the case when the original line was *NODE,node_dof
+                    else if(split_line.size()==4){
+                        nodes.push_back(Node(std::strtoul(split_line[0].c_str(),NULL,10),
+                                             std::strtod( split_line[1].c_str(),NULL),
+                                             std::strtod( split_line[2].c_str(),NULL),
+                                             std::strtod( split_line[3].c_str(),NULL))); //Convert to uint and double and create a node
+                    }
+                    else{
+                        std::cout << "Error: On line " << line_number << ", a node must be defined by its number,"<<
+                                     "       followed by its x,y,z coordinates.\n";
+                        assert(1==0);
+                    }
+                    
+                    if(verbose){
+                        if(nodes.size()>0){
+                            std::cout << "node number: " << nodes[nodes.size()-1].node_number;
+                            std::cout << " coordinates: ";
+                            for(int i=0; i<3; i++){std::cout << " " << nodes[nodes.size()-1].coordinates[i];}
+                            std::cout << "\n";
+                        }
+                    }
+                    
                 }
             }
             
+            void parse_elements(unsigned int line_number, std::string line){
+                /*!========================
+                |    parse_elements    |
+                ========================
+                
+                Parse the fine when triggered by a element keyword
+                
+                Appends a new element to the element vector
+                
+                input:
+                    line_number: The number of the line (used primarily for error handling)
+                    line:        The line read from the file
+                
+                */
+                
+                //Initialize the split line
+                std::vector< std::string> split_line;
+                
+                if(line.size()>0){ //Check if the line has useful information
+                
+                    split_line = split(line); //Split the line
+                
+                    //Only allow elements defined by the element number and eight nodes
+                    if(split_line.size()<9){
+                        std::cout << line;
+                        std::cout << "Error: On line " << line_number << ", an element must be defined by the number and 8 nodes.";
+                        assert(1==0);
+                    }
+                    else{
+                        elements.push_back(Element(std::strtoul(split_line[0].c_str(),NULL,10),
+                                                   std::strtoul(split_line[1].c_str(),NULL,10),
+                                                   std::strtoul(split_line[2].c_str(),NULL,10),
+                                                   std::strtoul(split_line[3].c_str(),NULL,10),
+                                                   std::strtoul(split_line[4].c_str(),NULL,10),
+                                                   std::strtoul(split_line[5].c_str(),NULL,10),
+                                                   std::strtoul(split_line[6].c_str(),NULL,10),
+                                                   std::strtoul(split_line[7].c_str(),NULL,10),
+                                                   std::strtoul(split_line[8].c_str(),NULL,10)));
+                    }
+                    if(verbose){
+                        if(elements.size()>0){
+                            std::cout << "element number: " << elements[elements.size()-1].element_number;
+                            std::cout << " nodes: ";
+                            for(int i=0; i<8; i++){std::cout << " " << elements[elements.size()-1].nodes[i];}
+                            std::cout << "\n";
+                        }
+                    }
+                    
+                }
+                
+            }
             
+            void parse_properties(unsigned int line_number, std::string line){
+                /*!==========================
+                |    parse_properties    |
+                ==========================
+                
+                Parse the properties when triggered by a element keyword
+                
+                input:
+                    line_number: The number of the line (used primarily for error handling)
+                    line:        The line read from the file
+                
+                */
+                
+                //Initialize the split line
+                std::vector< std::string> split_line;
+                
+                if(line.size()>0){//Check if the line has useful information
+                
+                    split_line = split(line); //Split the line
+                    
+                    //Append the properties if they have not been previously defined
+                    if(fprops.size()==0){
+                        fprops.resize(split_line.size());
+                        for(int i=0; i<split_line.size(); i++){fprops[i] = std::strtod( split_line[i].c_str(),NULL);}
+                    }
+                    else{
+                        std::cout << "Error: On line " << line_number << ", properties can only be defined once.";
+                        assert(1==0);
+                    }
+                    
+                    if(verbose){
+                        std::cout << "fprops: ";
+                        for(int i=0; i<fprops.size(); i++){std::cout << " " << fprops[i];}
+                        std::cout << "\n";
+                    }
+                }
+            }
+            
+            void parse_nodesets(unsigned int line_number, std::string line){
+                /*!========================
+                |    parse_nodesets    |
+                ========================
+                
+                Parse the line when triggered by a nodeset keyword
+                
+                Appends a new nodeset to the nodeset vector
+                
+                input:
+                    line_number: The number of the line (used primarily for error handling)
+                    line:        The line read from the file
+                
+                */
+            
+                //Initialize the split line
+                std::vector< std::string> split_line;
+            
+                //Initialize the nodes
+                std::vector< unsigned int > nset_nodes;
+                
+                if(line.size()>0){//Check if the line has useful information
+                
+                    split_line = split(line); //Split the line
+                    
+                    //Append the properties if they have not been previously defined
+                    if(split_line.size()<2){
+                        std::cout << "Error: On line " << line_number << ", a nodeset must have at least one node.";
+                        assert(1==0);
+                    }
+                    else{
+                        for(unsigned int i=1; i<split_line.size(); i++){nset_nodes.push_back(std::strtoul(split_line[i].c_str(),NULL,10));}
+                            nodesets.push_back(NodeSet(trim(split_line[0]),nset_nodes)); 
+                    }
+                    
+                    
+                    if(verbose){
+                        std::cout << "nodeset: " << nodesets[nodesets.size()-1].name <<"\n";
+                        for(int i=0; i<nodesets[nodesets.size()-1].nodes.size(); i++){std::cout << " " << nodesets[nodesets.size()-1].nodes[i];}
+                        std::cout << "\n";
+                    }
+                }
+            }
+            
+            void parse_manufactured_solution(unsigned int line_number, std::string line){
+                /*!=====================================
+                |    parse_manufactured_solution    |
+                =====================================
+                
+                Parse the line when triggered by a manufactured solutions keyword
+                
+                Defines the identified manufactured solution
+                
+                input:
+                    line_number: The number of the line (used primarily for error handling)
+                    line:        The line read from the file
+                
+                */
+                
+                //Initialize the split line
+                std::vector< std::string> split_line;
+                std::string fxn_name;
+                std::vector< unsigned int > nset_nodes;
+                
+                if(line.length()>0){
+                    
+                    split_line = split(line); //Split the line
+                    
+                    if((split_line.size()==1) && (mms_fxn==NULL)){ //Try to find the manufactured solution function name
+                        fxn_name = trim(split_line[0]); //Remove white space
+                        if(fxn_name.compare("const_u")){mms_fxn = &mms_const_u;}
+                        else if(fxn_name.compare("linear_u")){mms_fxn = &mms_linear_u;}
+                        else{
+                            std::cout << "Error: On line " << line_number << ", Method of Manufactured Solutions function name not found.";
+                            assert(1==0);
+                        }
+                        if(verbose){
+                            std::cout << "Manufactured Solution Function: " << fxn_name << "\n";
+                        }
+                    }
+                    else if(split_line.size()<2){
+                        std::cout << "Error: On line " << line_number << ", the nodeset for the method of manufactured\n"<<
+                                     "       solutions must have at least one node.\n";
+                        assert(1==0);
+                    }
+                    else{
+                        for(unsigned int i=1; i<split_line.size(); i++){nset_nodes.push_back(std::strtoul(split_line[i].c_str(),NULL,10));}
+                            mms_dirichlet_set = NodeSet(trim(split_line[0]),nset_nodes);
+                            
+                            if(verbose){
+                                std::cout << "nodeset: " << mms_dirichlet_set.name << "\n";
+                                for(int i=0; i<mms_dirichlet_set.nodes.size(); i++){std::cout << " " << mms_dirichlet_set.nodes[i];}
+                                std::cout << "\n";
+                            }
+                            
+                    }
+                }
+            }
 };
 
 int main( int argc, char *argv[] ){
