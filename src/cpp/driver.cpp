@@ -697,7 +697,13 @@ class FEAModel{
         
         std::vector< double > RHS;               //!The right hand side vector
         
+        int maxiter = 20;                        //!The maximum number of iterations allowed at each timestep
+        double atol = 1e-8;                      //!The absolute tolerance on the solver
+        double rtol = 1e-6;                      //!The relative tolerance on the solver
+        unsigned int increment_number = 0;       //!The current increment number
         
+        std::vector< double > F;                 //!The forcing function for the method of manufactured solutions
+        double alpha = 1.0;                      //!The relaxation parameter
     
 }
 
