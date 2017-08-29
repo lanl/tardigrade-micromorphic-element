@@ -262,7 +262,11 @@ class InputParser{
             std::vector< double > (*mms_fxn)(std::vector< double >) = NULL; //!The function to compute U values for the method of 
                                                                             //!manufactured solutions.
             NodeSet mms_dirichlet_set;                                      //!The nodeset for the dirichlet boundary conditions for 
-                                                                            //!the method of manufactured solutions.
+            
+            double total_time = 1.0;                                        //!The total time of the simulation
+            double t0         = 0.0;                                        //!The initial time
+            double t          = 0.0;                                        //!The current value of the time
+            double dt         = 0.3;                                        //!The current timestep
             
             bool verbose = 1;                                               //!The verbosity of the output
             void (InputParser::* keyword_fxn)(unsigned int, std::string);   //!The keyword processing function
@@ -668,6 +672,34 @@ class InputParser{
                 }
             }
 };
+
+class FEAModel{
+    /*!===
+       |
+       | F E A M o d e l
+       |
+      ===
+        
+        The base class for the finite element model class.
+        
+        This stores the solution and runs the model.
+        
+    */
+    
+    public:
+        InputParser input;                       //!The input parser class associated with the simulation
+        unsigned int total_ndof;                 //!The total number of degrees of freedom
+        std::vector< double > up;                //!The previous value of the degree of freedom vector
+        std::vector< double > u;                 //!The current value of the degree of freedom vector
+        std::vector< double > du;                //!The change in the degree of freedom vector in the increment
+        
+        std::vector< std::vector< unsigned int > > internal_nodes_dof; //!The global degrees of freedom associated with the nodes
+        
+        std::vector< double > RHS;               //!The right hand side vector
+        
+        
+    
+}
 
 int main( int argc, char *argv[] ){
     /*!===
