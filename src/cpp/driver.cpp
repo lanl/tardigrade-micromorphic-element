@@ -984,9 +984,49 @@ class FEAModel{
         
         */
         
-        std::cout << "increment_solution\n";
+        initialize_timestep();
+        update_increment();
+        
         return true;
     }
+    
+    void intialize_timestep(){
+        /*==============================
+        |    initialize_timestep    |
+        =============================
+        
+        Initialize the timestep for the 
+        current iteration.
+        
+        */
+        
+        form_increment_dof_vector();
+        increment_number += 1;
+        
+        return;
+    }
+    
+    void form_increment_dof_vector(){
+        /*!===================================
+        |    form_increment_dof_vector    |
+        ===================================
+        
+        Form the incremented dof vector at a given increment
+        
+        */
+        
+        double factor = input.dt/input.total_time; //!The scaling factor for the dirichlet boundary conditions
+        
+        u = up; //Copy the previous step to the current
+        
+        for(int dbc=0; dbc<dbcdof.size(); dbc++){//Apply the dirichlet boundary conditions
+            du[dbcdof[dbc].dof_number] = factor*dbcdof[dbc].value;
+            u[dbcdof[dbc].dof_number]  += du[dbcdof[dbc].dof_number];
+        }
+        return;
+    }
+    
+    
     
     void initialize_dof(){
         /*!========================
@@ -1144,10 +1184,9 @@ class FEAModel{
         
         set_mms_dof_vector();               //Set u to the manufactured solutions vector
         assemble_RHS_and_jacobian_matrix(); //Compute the residual value for the manufactured solution
-        std::cout << "Setting forcing vector\n";
         F = RHS;                            //Copy the residual vector to the forcing function vector
         
-        std::cout << "Forcing function created\n";
+        std::cout << "\n|=> Forcing function created\n";
         
         return;
     }
@@ -1220,7 +1259,7 @@ class FEAModel{
         return;
     }
     
-    compare_manufactured_solution(){
+    void compare_manufactured_solution(){
         /*!=======================================
         |    compare_manufactured_solution    |
         =======================================
@@ -1245,7 +1284,6 @@ class FEAModel{
         
         //TODO: Add file output
     }
-    
 };
 
 int main( int argc, char *argv[] ){
