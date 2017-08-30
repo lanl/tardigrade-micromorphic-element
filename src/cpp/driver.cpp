@@ -663,8 +663,8 @@ class InputParser{
                     
                     if((split_line.size()==1) && (mms_fxn==NULL)){ //Try to find the manufactured solution function name
                         fxn_name = trim(split_line[0]); //Remove white space
-                        if(fxn_name.compare("const_u")){mms_fxn = &mms_const_u;}
-                        else if(fxn_name.compare("linear_u")){mms_fxn = &mms_linear_u;}
+                        if(!fxn_name.compare("const_u")){mms_fxn = &mms_const_u;}
+                        else if(!fxn_name.compare("linear_u")){mms_fxn = &mms_linear_u;}
                         else{
                             std::cout << "Error: On line " << line_number << ", Method of Manufactured Solutions function name not found.";
                             assert(1==0);
@@ -740,6 +740,8 @@ class FEAModel{
     FEAModel(InputParser _input){
         /*!The full constructor*/
         
+        std::cout << "=\n|=> Constructing FEA Model\n=\n";
+        
         input = _input; //!Copy input
         
         //!Set the vector sizes
@@ -748,13 +750,26 @@ class FEAModel{
         u          = std::vector< double >(total_ndof,0.);
         du         = std::vector< double >(total_ndof,0.);
         
-        unsigned int current_node_number; //!The current node number in the element interpretation
-        std::vector< unsigned int > local_node_numbers(8,0); //!The local node numbers;
-        
         //!Define the internal node numbering of the elements
         map_element_nodes();
         
         map_nodesets();
+        
+        if(input.verbose){
+            for(int i=0; i<mapped_elements.size(); i++){
+                std::cout << "Element " << mapped_elements[i].number << " internal node numbers:";
+                for(int j=0; j<mapped_elements[i].nodes.size(); j++){std::cout << " " << mapped_elements[i].nodes[j];}
+                std::cout << "\n";
+            }
+            
+            for(int i=0; i<mapped_nodesets.size(); i++){
+                std::cout << "Nodeset: " << mapped_nodesets[i].name << " internal node numbers:";
+                for(int j=0; j<mapped_nodesets[i].nodes.size(); j++){std::cout << " " << mapped_nodesets[i].nodes[j];}
+                std::cout << "\n";
+            }
+        }
+        
+        
     }
     
     void map_element_nodes(){
@@ -768,6 +783,8 @@ class FEAModel{
         
         */
         
+        std::cout << "\n|=> Mapping element nodes\n";
+        
         bool node_number_check = false;                         //!Boolean which checks that the node numbers are 
                                                                 //!set coorectly
         unsigned int current_node_number;                       //!The current node number as defined by the user
@@ -780,7 +797,7 @@ class FEAModel{
                 for(int n=0; n<input.nodes.size(); n++){             //Search the list of nodes to find the indicated number
                     if(input.nodes[n].number==current_node_number){
                         internal_node_numbers[el_n] = n;
-                        node_number_check == true;
+                        node_number_check = true;
                     }
                 }
                 if(!node_number_check){//Check for if the indicated node is not defined
@@ -794,6 +811,8 @@ class FEAModel{
             mapped_elements.push_back(Element(input.elements[e].number, internal_node_numbers));
             
         }
+        
+        std::cout << "\n|=> Mapping complete\n";
     }
     
     void map_nodesets(){
@@ -806,6 +825,8 @@ class FEAModel{
         numbering.
         
         */
+        
+        std::cout << "\n|=> Mapping nodesets\n";
         
         unsigned int node_number; //!The current node
         
@@ -830,6 +851,8 @@ class FEAModel{
             }
         
         }
+        
+        std::cout << "\n|=> Mapping complete\n";
     }
     
     /*!=
@@ -996,7 +1019,6 @@ class FEAModel{
         Assign degrees of freedom to the nodes
         
         */
-        
         internal_nodes_dof.resize(input.nodes.size()); //!Resize the internal nodes to dof vector
         unsigned int dof_val = 0;                      //!The current degree of freedom value
         
@@ -1007,6 +1029,16 @@ class FEAModel{
                 dof_val++;
             }
         }
+        
+        if(input.verbose){
+            std::cout << "Global degrees of freedom at nodes (internal numbering)\n";
+            for(int n=0; n<internal_nodes_dof.size(); n++){
+                std::cout << "Node " << n << " dof:";
+                for(int i=0; i<internal_nodes_dof[n].size(); i++){std::cout << " " << internal_nodes_dof[n][i];}
+                std::cout << "\n";
+            }
+        }
+        
         return;
     }
     
@@ -1024,7 +1056,7 @@ class FEAModel{
         RHS = std::vector< double >(total_ndof,0.); //Zero the residual vector
         
         std::cout << "=\n"<<
-                     "| Computing RHS and global stiffness matrix"<<
+                     "| Computing RHS and global stiffness matrix\n"<<
                      "=\n";
         
         std::vector< double > element_coordinates(24,0.);      //!The coordinates of the nodes in a given element
@@ -1041,11 +1073,17 @@ class FEAModel{
                 internal_node_number = mapped_elements[e].nodes[n];
                 
                 for(int i=0; i<input.nodes[internal_node_number].coordinates.size(); i++){
-                    element_coordinates[i+n*8] = input.nodes[internal_node_number].coordinates[0];
+                    element_coordinates[i+n*input.nodes[internal_node_number].coordinates.size()] = input.nodes[internal_node_number].coordinates[i];
                 }
             }
-            //Construct the u vector and du for the element
             
+            if(input.verbose){
+                std::cout << "Element " << mapped_elements[e].number << " reference coords";
+                for(int i=0; i<element_coordinates.size(); i++){std::cout << " " << element_coordinates[i];}
+                std::cout << "\n";
+            }
+            
+            //Construct the u vector and du for the element
             for(int n=0; n<8; n++){
                 internal_node_number = mapped_elements[e].nodes[n];
                 for(int i=0; i<input.node_dof; i++){
@@ -1055,7 +1093,6 @@ class FEAModel{
             }
             
             //Construct the element
-            
             current_element = micro_element::Hex8(element_coordinates, element_u, element_du,
                                                   input.fprops, input.iprops);
             
@@ -1068,9 +1105,10 @@ class FEAModel{
                 for(int i=0; i<input.node_dof; i++){
                     RHS[internal_nodes_dof[internal_node_number][i]] += current_element.RHS[i+n*input.node_dof];
                 }
-                
             }
         }
+        
+        return;
     }
     
     /*!=
@@ -1102,9 +1140,14 @@ class FEAModel{
         
         */
         
+        std::cout << "\n|=> Computing the method of manufactured solutions forcing function.";
+        
         set_mms_dof_vector();               //Set u to the manufactured solutions vector
         assemble_RHS_and_jacobian_matrix(); //Compute the residual value for the manufactured solution
+        std::cout << "Setting forcing vector\n";
         F = RHS;                            //Copy the residual vector to the forcing function vector
+        
+        std::cout << "Forcing function created\n";
         
         return;
     }
@@ -1119,16 +1162,24 @@ class FEAModel{
         
         */
         
-        std::vector<double> utmp(input.node_dof,0); //!The temporary u value
-        mms_u = std::vector< double >(input.node_dof,0); //Initialize the manufactured solution vector
+        std::vector<double> utmp(input.node_dof,0);  //!The temporary u value
+        mms_u = std::vector< double >(total_ndof,0); //!Initialize the manufactured solution vector
         
         for(int n=0; n<input.nodes.size(); n++){
             utmp = input.mms_fxn(input.nodes[n].coordinates, input.t);
             
+            if(input.verbose){
+                std::cout << "Node " << n << " dof:";
+                for(int i=0; i<utmp.size(); i++){std::cout << " " << utmp[i];}
+                std::cout << "\n";
+            }
+            
             for(int j=0; j<input.node_dof; j++){
                 input.dirichlet_bcs.push_back(DirichletBC(input.nodes[n].number, j+1, utmp[j])); //!Define the dirichlet boundary conditions
-                                                                                   //!solutions.
-                mms_u[j+n*input.node_dof] = utmp[j]; //!Update the manufactured solution vector
+                                                                                                 //!solutions.
+                mms_u[j+n*input.node_dof] = utmp[j];                         //!Update the manufactured solution vector
+                du[j+n*input.node_dof]    = utmp[j] - u[j+n*input.node_dof]; //!Set the change in u for the manufactured solution
+                u[j+n*input.node_dof]     = utmp[j];                         //!Set u to the manufactured solution vector
             }
         }
         
