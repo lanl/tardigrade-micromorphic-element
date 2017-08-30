@@ -20,7 +20,7 @@ ERRORFLG=-fmax-errors=5
 driver: driver.o micro_element.o tensor.o micro_material.o newton_krylov.o
 	$(CC) $(STD) -o $@ driver.o micro_element.o micro_material.o tensor.o newton_krylov.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
-driver.o: driver.cpp micro_element.h tensor.h
+driver.o: driver.cpp micro_element.h tensor.h newton_krylov.h
 	$(CC) $(STD) -o $@ -c driver.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 micro_element.o: micro_element.h tensor.h micro_element.cpp micromorphic_linear_elasticity.h
