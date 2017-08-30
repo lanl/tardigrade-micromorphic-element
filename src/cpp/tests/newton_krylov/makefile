@@ -3,7 +3,7 @@ CC=g++
 #Standard option
 STD=-std=gnu++11
 #Compiler flags
-CFLAGS=-I.
+CFLAGS=-I. -I../..
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 #Debugging flag
@@ -14,8 +14,8 @@ all: test_newton_krylov
 test_newton_krylov: test_newton_krylov.o newton_krylov.o
 	$(CC) $(STD) -o $@ test_newton_krylov.o newton_krylov.o $(CFLAGS) $(ERRORFLG) $(DBG)
 
-test_newton_krylov.o: ../../test_newton_krylov.cpp
-	$(CC) $(STD) -o $@ -c ../../test_newton_krylov.cpp $(CFLAGS) $(ERRORFLG) $(DBG)
+test_newton_krylov.o: test_newton_krylov.cpp
+	$(CC) $(STD) -o $@ -c test_newton_krylov.cpp $(CFLAGS) $(ERRORFLG) $(DBG)
 
 newton_krylov.o: ../../newton_krylov.h ../../newton_krylov.cpp
 	$(CC) $(STD) -o $@ -c ../../newton_krylov.cpp $(CFLAGS) $(ERRORFLG) $(DBG)
