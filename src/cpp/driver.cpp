@@ -107,7 +107,7 @@ class DirichletBC{
 };
 
 class Node{
-    /*!===
+    /*!  ===
        |
        | N o d e
        |
@@ -118,16 +118,16 @@ class Node{
     */
     
     public:
-        unsigned int         node_number; //!The node number
-        std::array<float,3>  coordinates; //!The coordinates of the node
+        unsigned int          number; //!The node number
+        std::array<double,3>  coordinates; //!The coordinates of the node
         
     Node(){
         /*!Default constructor*/
     }
     
-    Node(unsigned int _node_number, float x, float y, float z){
+    Node(unsigned int _number, float x, float y, float z){
         /*!Full constructor*/
-        node_number    = _node_number;
+        number    = _number;
         coordinates[0] = x;
         coordinates[1] = y;
         coordinates[2] = z;
@@ -135,7 +135,7 @@ class Node{
 };
 
 class Element{
-    /*!===
+    /*!  ===
        |
        | E l e m e n t
        |
@@ -146,16 +146,16 @@ class Element{
     */
     
     public:
-        unsigned int         element_number; //!The element number
+        unsigned int               number; //!The element number
         std::array<unsigned int,8>  nodes; //!The nodes which make up the element
         
         Element(){
             /*!Default constructor*/
         }
-        Element(unsigned int _element_number, unsigned int n1, unsigned int n2, unsigned int n3, unsigned int n4,
+        Element(unsigned int _number, unsigned int n1, unsigned int n2, unsigned int n3, unsigned int n4,
                                               unsigned int n5, unsigned int n6, unsigned int n7, unsigned int n8){
             /*!Full constructor*/
-            element_number = _element_number;
+            number   = _number;
             nodes[0] = n1;
             nodes[1] = n2;
             nodes[2] = n3;
@@ -165,11 +165,19 @@ class Element{
             nodes[6] = n7;
             nodes[7] = n8;
         }
+        
+        Element(unsigned int _number, std::vector< unsigned int> _nodes){
+            /*!Constructor for vector form of node numbers*/
+            number = _number;
+            for(int i=0; i<8; i++){
+                nodes[i] = _nodes[i];
+            }
+        }
 };
 
 class NodeSet{
     
-    /*!===
+    /*!  ===
        |
        | N o d e S e t
        |
@@ -196,7 +204,7 @@ class NodeSet{
     }
 };
 
-std::vector< double > mms_const_u(std::vector< double > coords){
+std::vector< double > mms_const_u(std::array< double, 3 > coords, double t){
     /*!=====================
     |    mms_const_u    |
     =====================
@@ -210,7 +218,7 @@ std::vector< double > mms_const_u(std::vector< double > coords){
     return {0.1, 0.2, 0.3, 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 }
 
-std::vector< double > mms_linear_u(std::vector< double > coords){
+std::vector< double > mms_linear_u(std::array< double, 3 > coords, double t){
     /*!======================
     |    mms_linear_u    |
     ======================
@@ -244,36 +252,48 @@ class InputParser{
     */
         
         public:
-            std::string filename;                                           //!The location and filename of the input deck
-            std::string path_to_file;                                       //!String giving the path to the file
+            std::string filename;                                             //!The location and filename of the input deck
+            std::string path_to_file;                                         //!String giving the path to the file
             
-            std::string latex_string;                                       //!The description of the input deck
-            std::vector< Node > nodes;                                      //!List of the nodes in the finite element model
-                                                                            //!and their coordinates
-            std::vector< DirichletBC > dirichlet_bcs;                       //!A list of the dirichlet boundary conditions
+            std::string latex_string;                                         //!The description of the input deck
+            std::vector< Node > nodes;                                        //!List of the nodes in the finite element model
+                                                                              //!and their coordinates
+            std::vector< DirichletBC > dirichlet_bcs;                         //!A list of the dirichlet boundary conditions
             
-            unsigned int node_dof;                                          //!The number of degrees of freedom at a node
-            std::vector< Element > elements;                                //!A list of the elements as defined by their nodes in the model
-            std::vector< float > fprops;                                    //!The floating point properties of the material model
-            std::vector< std::vector< float > > svars;                      //!A list of the state variables for each element
-            std::vector< NodeSet > nodesets;                                //!A list of the nodesets
+            unsigned int node_dof;                                            //!The number of degrees of freedom at a node
+            std::vector< Element > elements;                                  //!A list of the elements as defined by their nodes in the model
+            std::vector< double > fprops;                                     //!The floating point properties of the material model
+            std::vector< int   > iprops;                                      //!The integer properties of the material model
+            std::vector< std::vector< float > > svars;                        //!A list of the state variables for each element
+            std::vector< NodeSet > nodesets;                                  //!A list of the nodesets
             
-            std::string mms_name = "";                                      //!The name of the manufactured solution being tested
-            std::vector< double > (*mms_fxn)(std::vector< double >) = NULL; //!The function to compute U values for the method of 
-                                                                            //!manufactured solutions.
-            NodeSet mms_dirichlet_set;                                      //!The nodeset for the dirichlet boundary conditions for 
+            std::string mms_name = "";                                        //!The name of the manufactured solution being tested
+            unsigned int mms_dirichlet_set_number = -1;                       //!The number of the dirichlet nodeset name in the nodesets vector
+            std::vector< double > (*mms_fxn)(std::array< double, 3 >, double) = NULL; //!The function to compute U values for the method of 
+                                                                                      //!manufactured solutions.
             
-            double total_time = 1.0;                                        //!The total time of the simulation
-            double t0         = 0.0;                                        //!The initial time
-            double t          = 0.0;                                        //!The current value of the time
-            double dt         = 0.3;                                        //!The current timestep
+            double total_time = 1.0;                                          //!The total time of the simulation
+            double tp         = 0.0;                                          //!The previous time
+            double t          = 0.0;                                          //!The current value of the time
+            double dt         = 0.3;                                          //!The current timestep
             
-            bool verbose = 1;                                               //!The verbosity of the output
-            void (InputParser::* keyword_fxn)(unsigned int, std::string);   //!The keyword processing function
+            bool verbose = 1;                                                 //!The verbosity of the output
+            void (InputParser::* keyword_fxn)(unsigned int, std::string);     //!The keyword processing function
             
             //!=
             //!|=> Constructors
             //!=
+            
+            InputParser(){
+                /*Default constructor*/
+                filename    = "";
+                keyword_fxn = &default_function;
+                nodes.resize(0);
+                elements.resize(0);
+                fprops.resize(0);
+                svars.resize(0);
+                nodesets.resize(0);
+            }
             
             InputParser(std::string _filename){
                 filename    = _filename;
@@ -473,7 +493,7 @@ class InputParser{
                     
                     if(verbose){
                         if(nodes.size()>0){
-                            std::cout << "node number: " << nodes[nodes.size()-1].node_number;
+                            std::cout << "node number: " << nodes[nodes.size()-1].number;
                             std::cout << " coordinates: ";
                             for(int i=0; i<3; i++){std::cout << " " << nodes[nodes.size()-1].coordinates[i];}
                             std::cout << "\n";
@@ -524,7 +544,7 @@ class InputParser{
                     }
                     if(verbose){
                         if(elements.size()>0){
-                            std::cout << "element number: " << elements[elements.size()-1].element_number;
+                            std::cout << "element number: " << elements[elements.size()-1].number;
                             std::cout << " nodes: ";
                             for(int i=0; i<8; i++){std::cout << " " << elements[elements.size()-1].nodes[i];}
                             std::cout << "\n";
@@ -660,11 +680,12 @@ class InputParser{
                     }
                     else{
                         for(unsigned int i=1; i<split_line.size(); i++){nset_nodes.push_back(std::strtoul(split_line[i].c_str(),NULL,10));}
-                            mms_dirichlet_set = NodeSet(trim(split_line[0]),nset_nodes);
+                            nodesets.push_back(NodeSet(trim(split_line[0]),nset_nodes));
+                            mms_dirichlet_set_number = nodesets.size()-1;
                             
                             if(verbose){
-                                std::cout << "nodeset: " << mms_dirichlet_set.name << "\n";
-                                for(int i=0; i<mms_dirichlet_set.nodes.size(); i++){std::cout << " " << mms_dirichlet_set.nodes[i];}
+                                std::cout << "nodeset: " << nodesets[mms_dirichlet_set_number].name << "\n";
+                                for(int i=0; i<nodesets[mms_dirichlet_set_number].nodes.size(); i++){std::cout << " " << nodesets[mms_dirichlet_set_number].nodes[i];}
                                 std::cout << "\n";
                             }
                             
@@ -687,25 +708,494 @@ class FEAModel{
     */
     
     public:
-        InputParser input;                       //!The input parser class associated with the simulation
-        unsigned int total_ndof;                 //!The total number of degrees of freedom
-        std::vector< double > up;                //!The previous value of the degree of freedom vector
-        std::vector< double > u;                 //!The current value of the degree of freedom vector
-        std::vector< double > du;                //!The change in the degree of freedom vector in the increment
+        InputParser input;                        //!The input parser class associated with the simulation
+        unsigned int total_ndof;                  //!The total number of degrees of freedom
+        std::vector< double > up;                 //!The previous value of the degree of freedom vector
+        std::vector< double > u;                  //!The current value of the degree of freedom vector
+        std::vector< double > du;                 //!The change in the degree of freedom vector in the increment
         
         std::vector< std::vector< unsigned int > > internal_nodes_dof; //!The global degrees of freedom associated with the nodes
+        std::vector< DirichletBC > dbcdof;        //!The dirichlet boundary conditions defined w.r.t. the global degrees of freedom
         
-        std::vector< double > RHS;               //!The right hand side vector
+        std::vector< Element > mapped_elements;   //!The elements defined with internal node numbering
+        std::vector< NodeSet > mapped_nodesets;   //!A list of the nodesets mapped to the internal node numbering
         
-        int maxiter = 20;                        //!The maximum number of iterations allowed at each timestep
-        double atol = 1e-8;                      //!The absolute tolerance on the solver
-        double rtol = 1e-6;                      //!The relative tolerance on the solver
-        unsigned int increment_number = 0;       //!The current increment number
+        std::vector< double > RHS;                //!The right hand side vector
         
-        std::vector< double > F;                 //!The forcing function for the method of manufactured solutions
-        double alpha = 1.0;                      //!The relaxation parameter
+        int maxiter = 20;                         //!The maximum number of iterations allowed at each timestep
+        double atol = 1e-8;                       //!The absolute tolerance on the solver
+        double rtol = 1e-6;                       //!The relative tolerance on the solver
+        unsigned int increment_number = 0;        //!The current increment number
+        
+        std::vector< double > F;                  //!The forcing function for the method of manufactured solutions
+        std::vector< double > mms_u;              //!The manufactured solution.
+        
+        double alpha = 1.0;                       //!The relaxation parameter
+        double tol   = 1e-9;                      //!The solution tolerance
     
-}
+    FEAModel(){
+        /*!Default constructor*/
+    }
+    
+    FEAModel(InputParser _input){
+        /*!The full constructor*/
+        
+        input = _input; //!Copy input
+        
+        //!Set the vector sizes
+        total_ndof = input.nodes.size()*input.node_dof;
+        up         = std::vector< double >(total_ndof,0.);
+        u          = std::vector< double >(total_ndof,0.);
+        du         = std::vector< double >(total_ndof,0.);
+        
+        unsigned int current_node_number; //!The current node number in the element interpretation
+        std::vector< unsigned int > local_node_numbers(8,0); //!The local node numbers;
+        
+        //!Define the internal node numbering of the elements
+        map_element_nodes();
+        
+        map_nodesets();
+    }
+    
+    void map_element_nodes(){
+        /*!===========================
+        |    map_element_nodes    |
+        ===========================
+        
+        Map the nodes that define each element 
+        as the user defined them to the internal 
+        node numbering.
+        
+        */
+        
+        bool node_number_check = false;                         //!Boolean which checks that the node numbers are 
+                                                                //!set coorectly
+        unsigned int current_node_number;                       //!The current node number as defined by the user
+        std::vector< unsigned int > internal_node_numbers(8,0); //!The internal node numbers for a given element
+        
+        for(int e=0; e<input.elements.size(); e++){//Iterate through the elements
+            for(int el_n=0; el_n<input.elements[e].nodes.size(); el_n++){//Iterate through the nodes in the element
+                current_node_number = input.elements[e].nodes[el_n]; //Set the current user defined node number
+                node_number_check   = false;                         //Reset the node number check boolean
+                for(int n=0; n<input.nodes.size(); n++){             //Search the list of nodes to find the indicated number
+                    if(input.nodes[n].number==current_node_number){
+                        internal_node_numbers[el_n] = n;
+                        node_number_check == true;
+                    }
+                }
+                if(!node_number_check){//Check for if the indicated node is not defined
+                    std::cout << "Error: Element "<<input.elements[e].number<< " calls for node number " << input.elements[e].nodes[el_n] <<
+                                 "       which is not defined.\n";
+                    assert(1==0);
+                }
+                
+            }
+            
+            mapped_elements.push_back(Element(input.elements[e].number, internal_node_numbers));
+            
+        }
+    }
+    
+    void map_nodesets(){
+        /*!======================
+        |    map_nodesets    |
+        ======================
+        
+        Map the nodesets from the user 
+        defined numbering to the internal 
+        numbering.
+        
+        */
+        
+        unsigned int node_number; //!The current node
+        
+        mapped_nodesets = input.nodesets; //!Copy over the nodesets
+        
+        
+        for(int n=0; n<input.nodes.size(); n++){//Iterate through all of the defined nodes
+            
+            node_number = input.nodes[n].number;
+            
+            for(int s=0; s<input.nodesets.size(); s++){//Iterate through all of the nodesets
+                
+                for(int m=0; m<input.nodesets[s].nodes.size(); m++){//Iterate through the nodes in the nodeset
+                    
+                    if(input.nodesets[s].nodes[m]==node_number){
+                        mapped_nodesets[s].nodes[m] = n; //Map the user defined node numbering to the global node numbering in the 
+                                                         //Nodesets
+                    }
+                    
+                }
+                
+            }
+        
+        }
+    }
+    
+    /*!=
+    |=> Degrees of freedom methods
+    =*/
+    
+    void initalize_dof(){
+        /*!========================
+        |    initialize_dof    |
+        ========================
+        
+        Initialize the degree of freedom vector
+        
+        */
+        
+        std::cout << "=\n"<<
+                     "|=> Initializing degrees of freedom\n"<<
+                     "=\n";
+                     
+        if(input.mms_fxn!=NULL){
+            apply_manufactured_solution(); //!Apply the manufactured solution forcing function
+        }
+        convert_local_dbc_to_global();     //!Convert the local dirichlet boundary conditions to 
+                                           //!global boundary conditions.
+                                           
+        std::cout << "=\n"<<
+                     "|=> Degrees of freedom initialized\n"<<
+                     "=\n";
+        return;
+    }
+    
+    void convert_local_dbc_to_global(){
+        /*!=====================================
+        |    convert_local_dbc_to_global    |
+        =====================================
+        
+        Convert the locally defined dirichlet boundary 
+        conditions to the global dof number
+        
+        */
+        
+        bool node_number_check = false;   //!Check to make sure the node is defined correctly
+        unsigned int current_node_number; //!The current node number
+        dbcdof = input.dirichlet_bcs;     //!Copy over the original boundary conditions
+        
+        for(int dbc=0; dbc<input.dirichlet_bcs.size(); dbc++){//Iterate through the dirichlet boundary conditions
+            node_number_check = false;
+            for(int n=0; n<input.nodes.size(); n++){//Iterate through the nodes
+                if(input.dirichlet_bcs[dbc].node_number==input.nodes[n].number){
+                    dbcdof.push_back(DirichletBC(n,internal_nodes_dof[n][input.dirichlet_bcs[dbc].dof_number],input.dirichlet_bcs[dbc].value)); //Append the dirichlet boundary condition to the list
+                    node_number_check = true;
+                }
+            }
+            if(!node_number_check){
+                std::cout << "Error: Node number " << input.dirichlet_bcs[dbc].node_number << " in the dirichlet boundary condition on"<<
+                             "       local degree of freedom " << input.dirichlet_bcs[dbc].dof_number << " with a "<<
+                             "       value of " << input.dirichlet_bcs[dbc].value << " is not defined.\n";
+                assert(1==0);
+            }
+        }
+        return;
+    }
+    
+    /*!=
+    |=> Solver methods
+    =*/
+    
+    bool solve(){
+        /*!===============
+        |    solve    |
+        ===============
+        
+        Solve the finite element problem
+        
+        */
+        
+        std::cout << "\n=================================================\n"<<
+                       "|                                               |\n"<<
+                       "|                BEGINNING SOLVER               |\n"<<
+                       "|                                               |\n"<<
+                       "=================================================\n";
+                       
+        initialize_dof();             //Initialize the degree of freedom vector
+        input.t += input.tp+input.dt; //Set initial timestep increment
+        bool result;
+        
+        while(input.tp<input.total_time){  //Iterate through the timesteps
+            
+            result = increment_solution(); //Increment the solution at the timestep
+            
+            if(result){
+                input.tp = input.t;          //Increment time
+                input.t  = input.t+input.dt;
+                if(input.t>input.total_time){
+                    input.t = input.total_time;
+                }
+                
+                up = u; //Set the previous dof vector to the current
+                
+            }
+            else{
+                if(input.mms_fxn!=NULL){
+                    compare_manufactured_solution();
+                }
+                return false;
+            }
+            
+        }
+        
+        std::cout << "\n=================================================\n"<<
+                       "|                                               |\n"<<
+                       "|                SOLVER COMPLETED               |\n"<<
+                       "|                                               |\n"<<
+                       "=================================================\n";
+        
+        if(input.mms_fxn!=NULL){
+            compare_manufactured_solution();
+        }
+        
+        return true;
+    }
+    
+    bool increment_solution(){
+        /*!============================
+        |    increment_solution    |
+        ============================
+        
+        Perform a timestep of the solution
+        
+        */
+        
+        std::cout << "increment_solution\n";
+        return true;
+    }
+    
+    void initialize_dof(){
+        /*!========================
+        |    initialize_dof    |
+        ========================
+        
+        Initialize the degree of freedom vector for the FEA problem"""
+        
+        */
+        
+        assign_dof(); //Assign the degrees of freedom to the nodes
+        if(input.mms_fxn!=NULL){
+            apply_manufactured_solution(); //Apply the manufactured solution if required
+        }
+        convert_local_dbc_to_global();
+        
+        std::cout << "=\n"<<
+                     "| Degrees of freedom initialized\n"<<
+                     "=\n";
+        
+        
+        return;
+    }
+    
+    void assign_dof(){
+        /*!====================
+        |    assign_dof    |
+        ====================
+        
+        Assign degrees of freedom to the nodes
+        
+        */
+        
+        internal_nodes_dof.resize(input.nodes.size()); //!Resize the internal nodes to dof vector
+        unsigned int dof_val = 0;                      //!The current degree of freedom value
+        
+        for(unsigned int n=0; n<input.nodes.size(); n++){
+            internal_nodes_dof[n].resize(input.node_dof);
+            for(int i=0; i<input.node_dof; i++){
+                internal_nodes_dof[n][i] = dof_val;
+                dof_val++;
+            }
+        }
+        return;
+    }
+    
+    void assemble_RHS_and_jacobian_matrix(){
+        /*!==========================================
+        |    assemble_RHS_and_jacobian_matrix    |
+        ==========================================
+        
+        Assemble the global right hand side vector and 
+        jacobian matrix if required for the solution 
+        technique.
+        
+        */
+        
+        RHS = std::vector< double >(total_ndof,0.); //Zero the residual vector
+        
+        std::cout << "=\n"<<
+                     "| Computing RHS and global stiffness matrix"<<
+                     "=\n";
+        
+        std::vector< double > element_coordinates(24,0.);      //!The coordinates of the nodes in a given element
+        unsigned int internal_node_number;                     //!The number of the node as defined in the code
+        std::vector< double > element_u(input.node_dof*8,0.);  //!The solution variable for the element
+        std::vector< double > element_du(input.node_dof*8,0.); //!The change in solution variable for the element
+        
+        micro_element::Hex8 current_element;                   //!The current element
+        
+        for(int e=0; e<mapped_elements.size(); e++){//Iterate through the elements
+            //Construct the reference coordinates of the element
+            for(int n=0; n<8; n++){
+                
+                internal_node_number = mapped_elements[e].nodes[n];
+                
+                for(int i=0; i<input.nodes[internal_node_number].coordinates.size(); i++){
+                    element_coordinates[i+n*8] = input.nodes[internal_node_number].coordinates[0];
+                }
+            }
+            //Construct the u vector and du for the element
+            
+            for(int n=0; n<8; n++){
+                internal_node_number = mapped_elements[e].nodes[n];
+                for(int i=0; i<input.node_dof; i++){
+                    element_u[i+n*input.node_dof]  =  u[internal_nodes_dof[internal_node_number][i]];
+                    element_du[i+n*input.node_dof] = du[internal_nodes_dof[internal_node_number][i]];
+                }
+            }
+            
+            //Construct the element
+            
+            current_element = micro_element::Hex8(element_coordinates, element_u, element_du,
+                                                  input.fprops, input.iprops);
+            
+            //Integrate the element
+            current_element.integrate_element();
+            
+            //Update the RHS vector and jacobian matrix
+            for(int n=0; n<8; n++){
+                internal_node_number = mapped_elements[e].nodes[n];
+                for(int i=0; i<input.node_dof; i++){
+                    RHS[internal_nodes_dof[internal_node_number][i]] += current_element.RHS[i+n*input.node_dof];
+                }
+                
+            }
+        }
+    }
+    
+    /*!=
+    |=> Manufactured solutions methods
+    =*/
+    
+    void apply_manufactured_solution(){
+        /*!=====================================
+        |    apply_manufactured_solution    |
+        =====================================
+        
+        Initialize the manufactured solution 
+        parameters as required.
+        
+        */
+        
+        compute_mms_forcing_function();
+        compute_mms_bc_values();
+        return;
+    }
+    
+    void compute_mms_forcing_function(){
+        /*!======================================
+        |    compute_mms_forcing_function    |
+        ======================================
+        
+        Compute the forcing function for the method 
+        of manufactured solutions.
+        
+        */
+        
+        set_mms_dof_vector();               //Set u to the manufactured solutions vector
+        assemble_RHS_and_jacobian_matrix(); //Compute the residual value for the manufactured solution
+        F = RHS;                            //Copy the residual vector to the forcing function vector
+        
+        return;
+    }
+    
+    void set_mms_dof_vector(){
+        /*!============================
+        |    set_mms_dof_vector    |
+        ============================
+        
+        Set the manufactured solutions 
+        degree of freedom vector.
+        
+        */
+        
+        std::vector<double> utmp(input.node_dof,0); //!The temporary u value
+        mms_u = std::vector< double >(input.node_dof,0); //Initialize the manufactured solution vector
+        
+        for(int n=0; n<input.nodes.size(); n++){
+            utmp = input.mms_fxn(input.nodes[n].coordinates, input.t);
+            
+            for(int j=0; j<input.node_dof; j++){
+                input.dirichlet_bcs.push_back(DirichletBC(input.nodes[n].number, j+1, utmp[j])); //!Define the dirichlet boundary conditions
+                                                                                   //!solutions.
+                mms_u[j+n*input.node_dof] = utmp[j]; //!Update the manufactured solution vector
+            }
+        }
+        
+        return;
+    }
+    
+    void compute_mms_bc_values(){
+        /*!===============================
+        |    compute_mms_bc_values    |
+        ===============================
+        
+        Compute the manufactured solution on the 
+        boundary.
+        
+        */
+        
+        //!Initialize required values
+        unsigned int node_number;                       //!The current node number (internal numbering)
+        std::vector< double > utmp(input.node_dof,0.);  //!Degree of freedom vector at the node
+        std::array< double, 3 > coordinates;            //!The coordinates of the node
+        std::vector< unsigned int > internal_dof;       //!The internal numbering of the degree of freedom at the internal numbering of the nodes
+        
+        for(int n=0; n<mapped_nodesets[input.mms_dirichlet_set_number].nodes.size(); n++){//Iterate through the boundary nodes (internal numbering)
+            node_number = mapped_nodesets[input.mms_dirichlet_set_number].nodes[n]; //Set the internal node number
+            
+            coordinates      = input.nodes[node_number].coordinates;         //Set the coordinates of the node
+            internal_dof     = internal_nodes_dof[node_number];              //Set the degrees of freedom of the node (internal numbering)
+            
+            utmp = input.mms_fxn(coordinates,input.t);                       //Compute the degree of freedom vector
+            
+            for(int i=0; i<internal_dof.size(); i++){     //Update the degree of freedom vector and the change in the 
+                                                                             //degree of freedom vector with the new boundary conditions
+                du[internal_dof[i]] = utmp[internal_dof[i]]-u[internal_dof[i]];
+                u[internal_dof[i]]  = utmp[internal_dof[i]];
+            }
+        }
+        
+        return;
+    }
+    
+    compare_manufactured_solution(){
+        /*!=======================================
+        |    compare_manufactured_solution    |
+        =======================================
+        
+        Compare the manufactured solution to the output 
+        from the code.
+        
+        */
+        
+        bool result;
+        
+        for(int i=0; i<mms_u.size(); i++){
+            result *= tol>fabs(mms_u[i]-u[i]);
+        }
+        
+        if(result){
+            std::cout << "Manufactured solution passed\n";
+        }
+        else{
+            std::cout << "Error: Manufactured solution did not pass";
+        }
+        
+        //TODO: Add file output
+    }
+    
+};
 
 int main( int argc, char *argv[] ){
     /*!===
@@ -727,6 +1217,8 @@ int main( int argc, char *argv[] ){
         // The first argument is assumed to be a filename to open
         InputParser IP(argv[1]);
         IP.read_input();
+        FEAModel FM = FEAModel(IP);
+        FM.solve();
     }
         
 }
