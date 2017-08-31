@@ -837,7 +837,7 @@ int test_balance_of_linear_momentum(std::ofstream &results){
         for(int j=0; j<3; j++){
             for(int I=0; I<3; I++){
                 for(int J=0; J<3; J++){
-                    RHS[j+3*n] += -element.get_dNdx(0,n)[I]*element.PK2[0](I,J)*element.get_F()(j,J)*element.get_Jhatdet(0)*element.weights[0];
+                    RHS[j+12*n] += -element.get_dNdx(0,n)[I]*element.PK2[0](I,J)*element.get_F()(j,J)*element.get_Jhatdet(0)*element.weights[0];
                 }
             }
         }
@@ -965,15 +965,15 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
             }
         }
         
-        RHS[0+n*9+24] = mu_int(0,0);
-        RHS[1+n*9+24] = mu_int(1,1);
-        RHS[2+n*9+24] = mu_int(2,2);
-        RHS[3+n*9+24] = mu_int(1,2);
-        RHS[4+n*9+24] = mu_int(0,2);
-        RHS[5+n*9+24] = mu_int(0,1);
-        RHS[6+n*9+24] = mu_int(2,1);
-        RHS[7+n*9+24] = mu_int(2,0);
-        RHS[8+n*9+24] = mu_int(1,0);
+        RHS[0+n*12+3] = mu_int(0,0);
+        RHS[1+n*12+3] = mu_int(1,1);
+        RHS[2+n*12+3] = mu_int(2,2);
+        RHS[3+n*12+3] = mu_int(1,2);
+        RHS[4+n*12+3] = mu_int(0,2);
+        RHS[5+n*12+3] = mu_int(0,1);
+        RHS[6+n*12+3] = mu_int(2,1);
+        RHS[7+n*12+3] = mu_int(2,0);
+        RHS[8+n*12+3] = mu_int(1,0);
         
     }
     
@@ -1084,7 +1084,7 @@ int test_integrate_element(std::ofstream &results){
             for(int j=0; j<3; j++){
                 for(int I=0; I<3; I++){
                     for(int J=0; J<3; J++){
-                        RHS[j+3*n] += -element.get_dNdx(0,n)[I]*element.PK2[gpt_num](I,J)*element.get_F()(j,J)*element.get_Jhatdet(0)*element.weights[gpt_num];
+                        RHS[j+12*n] += -element.get_dNdx(0,n)[I]*element.PK2[gpt_num](I,J)*element.get_F()(j,J)*element.get_Jhatdet(0)*element.weights[gpt_num];
                     }
                 }
             }
@@ -1109,15 +1109,15 @@ int test_integrate_element(std::ofstream &results){
                 }
             }
             
-            RHS[0+n*9+24] += mu_int(0,0);
-            RHS[1+n*9+24] += mu_int(1,1);
-            RHS[2+n*9+24] += mu_int(2,2);
-            RHS[3+n*9+24] += mu_int(1,2);
-            RHS[4+n*9+24] += mu_int(0,2);
-            RHS[5+n*9+24] += mu_int(0,1);
-            RHS[6+n*9+24] += mu_int(2,1);
-            RHS[7+n*9+24] += mu_int(2,0);
-            RHS[8+n*9+24] += mu_int(1,0);
+            RHS[0+n*12+3] += mu_int(0,0);
+            RHS[1+n*12+3] += mu_int(1,1);
+            RHS[2+n*12+3] += mu_int(2,2);
+            RHS[3+n*12+3] += mu_int(1,2);
+            RHS[4+n*12+3] += mu_int(0,2);
+            RHS[5+n*12+3] += mu_int(0,1);
+            RHS[6+n*12+3] += mu_int(2,1);
+            RHS[7+n*12+3] += mu_int(2,0);
+            RHS[8+n*12+3] += mu_int(1,0);
         
         }
     }
