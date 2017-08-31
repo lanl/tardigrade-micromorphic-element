@@ -145,33 +145,33 @@ class InputParser{
     */
         
         public:
-            std::string filename;                                             //!The location and filename of the input deck
-            std::string path_to_file;                                         //!String giving the path to the file
+            std::string filename;                                                     //!The location and filename of the input deck
+            std::string path_to_file;                                                 //!String giving the path to the file
             
-            std::string latex_string;                                         //!The description of the input deck
-            std::vector< Node > nodes;                                        //!List of the nodes in the finite element model
-                                                                              //!and their coordinates
-            std::vector< DirichletBC > dirichlet_bcs;                         //!A list of the dirichlet boundary conditions
+            std::string latex_string;                                                 //!The description of the input deck
+            std::vector< Node > nodes;                                                //!List of the nodes in the finite element model
+                                                                                      //!and their coordinates
+            std::vector< DirichletBC > dirichlet_bcs;                                 //!A list of the dirichlet boundary conditions
             
-            unsigned int node_dof;                                            //!The number of degrees of freedom at a node
-            std::vector< Element > elements;                                  //!A list of the elements as defined by their nodes in the model
-            std::vector< double > fprops;                                     //!The floating point properties of the material model
-            std::vector< int   > iprops;                                      //!The integer properties of the material model
-            std::vector< std::vector< float > > svars;                        //!A list of the state variables for each element
-            std::vector< NodeSet > nodesets;                                  //!A list of the nodesets
+            unsigned int node_dof;                                                    //!The number of degrees of freedom at a node
+            std::vector< Element > elements;                                          //!A list of the elements as defined by their nodes in the model
+            std::vector< double > fprops;                                             //!The floating point properties of the material model
+            std::vector< int   > iprops;                                              //!The integer properties of the material model
+            std::vector< std::vector< float > > svars;                                //!A list of the state variables for each element
+            std::vector< NodeSet > nodesets;                                          //!A list of the nodesets
             
-            std::string mms_name = "";                                        //!The name of the manufactured solution being tested
-            unsigned int mms_dirichlet_set_number = -1;                       //!The number of the dirichlet nodeset name in the nodesets vector
+            std::string mms_name = "";                                                //!The name of the manufactured solution being tested
+            unsigned int mms_dirichlet_set_number = -1;                               //!The number of the dirichlet nodeset name in the nodesets vector
             std::vector< double > (*mms_fxn)(std::array< double, 3 >, double) = NULL; //!The function to compute U values for the method of 
                                                                                       //!manufactured solutions.
             
-            double total_time = 1.0;                                          //!The total time of the simulation
-            double tp         = 0.0;                                          //!The previous time
-            double t          = 0.0;                                          //!The current value of the time
-            double dt         = 0.3;                                          //!The current timestep
+            double total_time = 1.0;                                                  //!The total time of the simulation
+            double tp         = 0.0;                                                  //!The previous time
+            double t          = 0.0;                                                  //!The current value of the time
+            double dt         = 0.3;                                                  //!The current timestep
             
-            bool verbose = false;                                             //!The verbosity of the output
-            void (InputParser::* keyword_fxn)(unsigned int, std::string);     //!The keyword processing function
+            bool verbose = false;                                                     //!The verbosity of the output
+            void (InputParser::* keyword_fxn)(unsigned int, std::string);             //!The keyword processing function
             
             //!=
             //!|=> Constructors
