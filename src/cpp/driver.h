@@ -170,7 +170,7 @@ class InputParser{
             double t          = 0.0;                                          //!The current value of the time
             double dt         = 0.3;                                          //!The current timestep
             
-            bool verbose = true;                                              //!The verbosity of the output
+            bool verbose = false;                                             //!The verbosity of the output
             void (InputParser::* keyword_fxn)(unsigned int, std::string);     //!The keyword processing function
             
             //!=
