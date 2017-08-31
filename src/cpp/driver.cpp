@@ -1130,15 +1130,12 @@ void FEAModel::assemble_RHS_and_jacobian_matrix(){
     */
        
     RHS = std::vector< double >(total_ndof,0.); //Zero the residual vector
-        
-    std::cout << "RHS: ";
+    
     if(input.mms_fxn!=NULL){//Add the manufactured solution forcing function if required
         for(int i=0; i<RHS.size(); i++){
-            RHS[i] = F[i];
-            std::cout << " " << RHS[i];
+            RHS[i] = -F[i];   //Negative because the RHS is the residual for the nonlinear calculation
         }
     }
-    std::cout << "\n";
         
     std::cout << "=\n"<<
                 "| Computing RHS and global stiffness matrix\n"<<
@@ -1240,12 +1237,6 @@ void FEAModel::compute_mms_forcing_function(){
     set_mms_dof_vector();                            //Set u to the manufactured solutions vector
     assemble_RHS_and_jacobian_matrix();              //Compute the residual value for the manufactured solution
     for(int i=0; i<RHS.size(); i++){F[i] = RHS[i];}  //Copy the residual vector to the forcing function vector
-    
-    print_vector("F",F);
-    std::cout << "F_sub: ";
-    for(int i=0; i<unbound_dof.size(); i++){std::cout << " " << F[unbound_dof[i]];}
-    std::cout << "\n";
-    assert(1==0);
     
     for(int j=0; j<up.size(); j++){
         u[j]  = up[j];              //Reset u
