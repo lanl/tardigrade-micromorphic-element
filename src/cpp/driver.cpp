@@ -84,6 +84,40 @@ std::vector< std::string > split(const std::string &str, const std::string& deli
     return split_str;
 }
 
+void print_vector(std::string name, std::vector< double > V){
+    /*!======================
+    |    print_vector    |
+    ======================
+    
+    Print a vector to the screen
+    
+    */
+    
+    std::cout << name << ": ";
+    
+    for(int i=0; i<V.size(); i++){
+        std::cout << V[i] << " ";
+    }
+    std::cout << "\n";
+}
+
+void print_vector_of_vectors(std::string name, std::vector< std::vector< double > > V){
+    /*!=================================
+    |    print_vector_of_vectors    |
+    =================================
+    
+    Print a vector of vectors to the screen
+    
+    */
+    
+    for(int i=0; i<V.size(); i++){
+        std::cout << name << "[" << i << "]: ";
+        for(int j=0; j<V[i].size(); j++){
+            std::cout << V[i][j] << " ";
+        }
+        std::cout << "\n";
+    }
+}
 
 DirichletBC::DirichletBC(){
     /*!Default constructor*/
@@ -157,7 +191,7 @@ std::vector< double > mms_const_u(std::array< double, 3 > coords, double t){
     
     */
     
-    return {0.1, 0.2, 0.3, 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+    return {0.1*t, 0.2*t, 0.3*t, 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 }
 
 std::vector< double > mms_linear_u(std::array< double, 3 > coords, double t){
@@ -175,7 +209,7 @@ std::vector< double > mms_linear_u(std::array< double, 3 > coords, double t){
     double b = 0.013;
     double c = 0.034;
     
-    return {0.1+a*coords[0], 0.2+b*coords[1], 0.3+c*coords[2], 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+    return {(0.1+a*coords[0])*t, (0.2+b*coords[1])*t, (0.3+c*coords[2])*t, 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 }
 
 double vector_norm(const std::vector< double > &x){
@@ -615,10 +649,16 @@ FEAModel::FEAModel(InputParser _input){
     u          = std::vector< double >(total_ndof,0.);
     du         = std::vector< double >(total_ndof,0.);
     
+    //!Initialize the size of the dirichlet boundary condition vector
+    dbcdof.resize(0);
+    
     //!Define the internal node numbering of the elements
     map_element_nodes();
     
     map_nodesets();
+    
+    //!Initialize the degree of freedom vector
+    initialize_dof();
     
     if(input.verbose){
         for(int i=0; i<mapped_elements.size(); i++){
@@ -717,7 +757,7 @@ void FEAModel::map_nodesets(){
 |=> Degrees of freedom methods
 =*/
     
-void FEAModel::initalize_dof(){
+void FEAModel::initialize_dof(){
     /*!========================
     |    initialize_dof    |
     ========================
@@ -730,12 +770,12 @@ void FEAModel::initalize_dof(){
                  "|=> Initializing degrees of freedom\n"<<
                  "=\n";
                      
-    if(input.mms_fxn!=NULL){
-        apply_manufactured_solution(); //!Apply the manufactured solution forcing function
-    }
+    assign_dof();                      //!Assign the degrees of freedom to the nodes
+    
     convert_local_dbc_to_global();     //!Convert the local dirichlet boundary conditions to 
                                        //!global boundary conditions.
-                                           
+    
+    id_unbound_dof();                  //!Identify all of the unbound dof
     std::cout << "=\n"<<
                  "|=> Degrees of freedom initialized\n"<<
                  "=\n";
@@ -754,13 +794,14 @@ void FEAModel::convert_local_dbc_to_global(){
         
     bool node_number_check = false;   //!Check to make sure the node is defined correctly
     unsigned int current_node_number; //!The current node number
-    dbcdof = input.dirichlet_bcs;     //!Copy over the original boundary conditions
+    dbcdof = input.dirichlet_bcs;     //!Copy over the dirichlet boundary condition vector
         
     for(int dbc=0; dbc<input.dirichlet_bcs.size(); dbc++){//Iterate through the dirichlet boundary conditions
         node_number_check = false;
+        //std::cout << "node_number: " << input.dirichlet_bcs[dbc].node_number << " dof number: " << input.dirichlet_bcs[dbc].dof_number << " value: " << input.dirichlet_bcs[dbc].value << "\n";
         for(int n=0; n<input.nodes.size(); n++){//Iterate through the nodes
             if(input.dirichlet_bcs[dbc].node_number==input.nodes[n].number){
-                dbcdof.push_back(DirichletBC(n,internal_nodes_dof[n][input.dirichlet_bcs[dbc].dof_number],input.dirichlet_bcs[dbc].value)); //Append the dirichlet boundary condition to the list
+                dbcdof[dbc] = DirichletBC(n,internal_nodes_dof[n][input.dirichlet_bcs[dbc].dof_number-1],input.dirichlet_bcs[dbc].value); //Append the dirichlet boundary condition to the list
                 node_number_check = true;
             }
         }
@@ -792,12 +833,15 @@ bool FEAModel::solve(){
                    "|                BEGINNING SOLVER               |\n"<<
                    "|                                               |\n"<<
                    "=================================================\n";
-                       
-    initialize_dof();             //Initialize the degree of freedom vector
-    input.t += input.tp+input.dt; //Set initial timestep increment
-    bool result;
+    
+    input.t += input.tp+input.dt; //!Set initial timestep increment
+    bool result;                  //!The result of the simulation
         
     while(input.tp<input.total_time){  //Iterate through the timesteps
+    
+        if(input.mms_fxn!=NULL){
+            apply_manufactured_solution(); //!Apply the manufactured solution forcing function
+        }
             
         result = increment_solution(); //Increment the solution at the timestep
             
@@ -805,10 +849,13 @@ bool FEAModel::solve(){
             input.tp = input.t;          //Increment time
             input.t  = input.t+input.dt;
             if(input.t>input.total_time){
-                input.t = input.total_time;
+                input.t  = input.total_time;
+                input.dt = input.t - input.tp;
             }
-                
-            up = u; //Set the previous dof vector to the current
+            
+            for(int i=0; i<u.size(); i++){
+                up[i] = u[i]; //Set the previous dof vector to the current
+            }
                 
         }
         else{
@@ -874,12 +921,44 @@ void FEAModel::update_increment(){
         
     */
         
-    std::cout << "=\n|=> Begining solution of increment\n=\n";
+    std::cout << "=\n|=> Begining solution of increment " << increment_number << "\n=\n";
         
-    if(solver.compare("NewtonKrylov")){//Solve the equations using a Jacobian free Newton-Krylov method
-            
+    if(input.verbose){
+        std::cout << "Solution prior to iteration\n";
+        for(int n=0; n<internal_nodes_dof.size(); n++){
+            std::cout << "Internal node " << n << " dof ";
+            for(int i=0; i<input.node_dof; i++){
+                std::cout << " (" << internal_nodes_dof[n][i] << ", " << u[internal_nodes_dof[n][i]]<<")";
+            }
+            std::cout << "\n";
+        }
+        std::cout << "Change in solution prior to iteration\n";
+        for(int n=0; n<internal_nodes_dof.size(); n++){
+            std::cout << "Internal node " << n << " dof ";
+            for(int i=0; i<input.node_dof; i++){
+                std::cout << " (" << internal_nodes_dof[n][i] << ", " << du[internal_nodes_dof[n][i]]<<")";
+            }
+            std::cout << "\n";
+        }
+    }
+        
+    if(!solver.compare("NewtonKrylov")){//Solve the equations using a Jacobian free Newton-Krylov method
         run_newton_krylov();
-            
+    }
+    
+    if(input.verbose){
+        std::cout << "Solution after iteration\n";
+        for(int n=0; n<internal_nodes_dof.size(); n++){
+            std::cout << "Internal node " << n << " dof ";
+            for(int i=0; i<input.node_dof; i++){
+                std::cout << " " << u[internal_nodes_dof[n][i]];
+            }
+            std::cout << "\n";
+        }
+    }
+    
+    for(int i=0; i<u.size(); i++){
+        up[i] = u[i];              //Update the previous value of u
     }
     
     return;
@@ -893,13 +972,73 @@ void FEAModel::run_newton_krylov(){
     Run the Newton-Krylov solver.
         
     */
-        
-    FEAKrylovSolver krylov_solver = FEAKrylovSolver(*this, du, 10, 40, true);
+    
+    std::vector< double > ub_du = get_unbound_du();
+    FEAKrylovSolver krylov_solver = FEAKrylovSolver(*this, ub_du, 10, 40, true);
     krylov_solver.solve();
     return;
 }
+
+void FEAModel::id_unbound_dof(){
+    /*!========================
+    |    id_unbound_dof    |
+    ========================
     
-std::vector< double > FEAModel::krylov_residual(std::vector<double> _du){
+    Identify the degrees of freedom 
+    which are unbound.
+    
+    */
+    
+    std::vector< bool > unbound_dof_bool(total_ndof,true); //!A vector indicating if a 
+                                                           //!degree of freedom is unbound or not
+    std::vector< unsigned int > dof_tmp(input.node_dof,0); //!A temporary vector of degrees of freedom
+    
+    if(input.mms_dirichlet_set_number>0){ //!Identify all of the dof associated with the dirichlet set if it exists
+        for(int i=0; i<mapped_nodesets[input.mms_dirichlet_set_number].nodes.size(); i++){//Index through the dirichlet bc set
+            dof_tmp = internal_nodes_dof[mapped_nodesets[input.mms_dirichlet_set_number].nodes[i]];
+            for(int j=0; j<dof_tmp.size(); j++){
+                unbound_dof_bool[dof_tmp[j]] = false;
+            }
+        }
+    }
+    
+    for(int i=0; dbcdof.size(); i++){//Identify all of the dof associated with Dirichlet boundary conditions
+        unbound_dof_bool[dbcdof[i].dof_number] = false;
+    }
+    
+    for(int i=0; i<unbound_dof_bool.size(); i++){//Set the unbound degrees of freedom
+        if(unbound_dof_bool[i]){
+            unbound_dof.push_back(i);
+        }
+    }
+    
+    if(input.verbose){
+        std::cout << "unbound dof: ";
+        for(int i=0; i<unbound_dof.size(); i++){std::cout << " " << unbound_dof[i];}
+        std::cout << "\n";
+    }
+}
+
+std::vector< double > FEAModel::get_unbound_du(){
+    /*!========================
+    |    get_unbound_du    |
+    ========================
+    
+    Get the change in all of the 
+    unbound degrees of freedom
+    
+    */
+    
+    std::vector< double > ub_du(0,0);
+    
+    for(int i=0; i<unbound_dof.size(); i++){
+        ub_du.push_back(du[unbound_dof[i]]);
+    }
+    
+    return ub_du;
+}
+    
+std::vector< double > FEAModel::krylov_residual(std::vector<double> ub_du){
     /*!=========================
     |    krylov_residual    |
     =========================
@@ -908,13 +1047,25 @@ std::vector< double > FEAModel::krylov_residual(std::vector<double> _du){
     Krylov solver.
         
     */
+    
+    unsigned int dof_num;
         
-    for(int i=0; i<_du.size(); i++){
-        du[i]  = _du[i];                 //Update du
-        u[i]   = up[i]+_du[i];           //Update u
+    for(int i=0; i<ub_du.size(); i++){
+        dof_num = unbound_dof[i];
+        du[dof_num]  = ub_du[i];                       //Update du
+        u[dof_num]   = up[dof_num] + du[dof_num];      //Update u
     }
+    
     assemble_RHS_and_jacobian_matrix(); //Compute the RHS
-    return RHS;                         //Return the residual
+    
+    std::vector< double > sub_RHS(ub_du.size(),0.); //Get the residual values associated 
+                                                    //with the degrees of freedom
+    
+    for(int i=0; i<unbound_dof.size(); i++){
+        sub_RHS[i] = RHS[unbound_dof[i]];           //Get the RHS values not on the boundary
+    }
+    
+    return sub_RHS;                         //Return the residual
 }
     
 void FEAModel::form_increment_dof_vector(){
@@ -925,40 +1076,13 @@ void FEAModel::form_increment_dof_vector(){
     Form the incremented dof vector at a given increment
         
     */
-        
+    
     double factor = input.dt/input.total_time; //!The scaling factor for the dirichlet boundary conditions
-        
-    u = up; //Copy the previous step to the current
-        
+    
     for(int dbc=0; dbc<dbcdof.size(); dbc++){//Apply the dirichlet boundary conditions
-        du[dbcdof[dbc].dof_number] = factor*dbcdof[dbc].value;
+        du[dbcdof[dbc].dof_number]  = factor*dbcdof[dbc].value;
         u[dbcdof[dbc].dof_number]  += du[dbcdof[dbc].dof_number];
     }
-    return;
-}
-    
-    
-    
-void FEAModel::initialize_dof(){
-    /*!========================
-    |    initialize_dof    |
-    ========================
-        
-    Initialize the degree of freedom vector for the FEA problem"""
-        
-    */
-        
-    assign_dof(); //Assign the degrees of freedom to the nodes
-    if(input.mms_fxn!=NULL){
-        apply_manufactured_solution(); //Apply the manufactured solution if required
-    }
-    convert_local_dbc_to_global();
-        
-    std::cout << "=\n"<<
-                 "| Degrees of freedom initialized\n"<<
-                 "=\n";
-        
-        
     return;
 }
     
@@ -1090,11 +1214,16 @@ void FEAModel::compute_mms_forcing_function(){
         
     */
         
-    std::cout << "\n|=> Computing the method of manufactured solutions forcing function.";
+    std::cout << "\n|=> Computing the method of manufactured solutions forcing function.\n";
         
     set_mms_dof_vector();               //Set u to the manufactured solutions vector
     assemble_RHS_and_jacobian_matrix(); //Compute the residual value for the manufactured solution
     F = RHS;                            //Copy the residual vector to the forcing function vector
+    
+    for(int j=0; j<up.size(); j++){
+        u[j]  = up[j];              //Reset u
+        du[j] = 0;                  //Reset du
+    }
         
     std::cout << "\n|=> Forcing function created\n";
         
@@ -1124,8 +1253,6 @@ void FEAModel::set_mms_dof_vector(){
         }
             
         for(int j=0; j<input.node_dof; j++){
-            input.dirichlet_bcs.push_back(DirichletBC(input.nodes[n].number, j+1, utmp[j])); //!Define the dirichlet boundary conditions
-                                                                                                 //!solutions.
             mms_u[j+n*input.node_dof] = utmp[j];                         //!Update the manufactured solution vector
             du[j+n*input.node_dof]    = utmp[j] - u[j+n*input.node_dof]; //!Set the change in u for the manufactured solution
             u[j+n*input.node_dof]     = utmp[j];                         //!Set u to the manufactured solution vector
@@ -1140,8 +1267,8 @@ void FEAModel::compute_mms_bc_values(){
     |    compute_mms_bc_values    |
     ===============================
         
-    Compute the manufactured solution on the 
-    boundary.
+    Compute and apply the manufactured solution 
+    on the boundary.
         
     */
         
@@ -1151,21 +1278,22 @@ void FEAModel::compute_mms_bc_values(){
     std::array< double, 3 > coordinates;            //!The coordinates of the node
     std::vector< unsigned int > internal_dof;       //!The internal numbering of the degree of freedom at the internal numbering of the nodes
         
-    for(int n=0; n<mapped_nodesets[input.mms_dirichlet_set_number].nodes.size(); n++){//Iterate through the boundary nodes (internal numbering)
-        node_number = mapped_nodesets[input.mms_dirichlet_set_number].nodes[n]; //Set the internal node number
+    if(input.mms_dirichlet_set_number>0){
+        for(int n=0; n<mapped_nodesets[input.mms_dirichlet_set_number].nodes.size(); n++){//Iterate through the boundary nodes (internal numbering)
+            node_number = mapped_nodesets[input.mms_dirichlet_set_number].nodes[n];       //Set the internal node number
             
-        coordinates      = input.nodes[node_number].coordinates;         //Set the coordinates of the node
-        internal_dof     = internal_nodes_dof[node_number];              //Set the degrees of freedom of the node (internal numbering)
+            coordinates      = input.nodes[node_number].coordinates;         //Set the coordinates of the node
+            internal_dof     = internal_nodes_dof[node_number];              //Set the degrees of freedom of the node (internal numbering)
             
-        utmp = input.mms_fxn(coordinates,input.t);                       //Compute the degree of freedom vector
+            utmp = input.mms_fxn(coordinates,input.t);                       //Compute the degree of freedom vector
             
-        for(int i=0; i<internal_dof.size(); i++){     //Update the degree of freedom vector and the change in the 
+            for(int i=0; i<internal_dof.size(); i++){     //Update the degree of freedom vector and the change in the 
                                                           //degree of freedom vector with the new boundary conditions
-            du[internal_dof[i]] = utmp[internal_dof[i]]-u[internal_dof[i]];
-            u[internal_dof[i]]  = utmp[internal_dof[i]];
-        }
+                du[internal_dof[i]] = utmp[i]-u[internal_dof[i]];
+                u[internal_dof[i]]  = utmp[i];
+            }
+        } 
     }
-        
     return;
 }
     
@@ -1179,20 +1307,33 @@ void FEAModel::compare_manufactured_solution(){
         
     */
         
-    bool result;
+    bool result=true;
+    double max_error=0;
+    double max_relative_error=0;
+    double error;
+    double relative_error;
         
     for(int i=0; i<mms_u.size(); i++){
-        result *= tol>fabs(mms_u[i]-u[i]);
+        error          = fabs(mms_u[i]-u[i]);
+        relative_error = error/max(fabs(mms_u[i]),fabs(u[i]));
+        if(error>max_error){max_error = error;}
+        if(relative_error>max_relative_error){max_relative_error = relative_error;}
     }
-        
+    
+    if((max_error>mms_tol) && (max_relative_error>mms_tol)){result=false;}
+    
     if(result){
         std::cout << "Manufactured solution passed\n";
     }
     else{
-        std::cout << "Error: Manufactured solution did not pass";
+        std::cout << "Error: Manufactured solution did not pass\n";
+        print_vector("u",u);
+        print_vector("mms_u",mms_u);
     }
+    
+    std::cout << "\nMaximum error: " << max_error << "\n";
         
-    //TODO: Add file output
+    
 }
 
 int main( int argc, char *argv[] ){

@@ -170,7 +170,7 @@ class InputParser{
             double t          = 0.0;                                          //!The current value of the time
             double dt         = 0.3;                                          //!The current timestep
             
-            bool verbose = 1;                                                 //!The verbosity of the output
+            bool verbose = true;                                              //!The verbosity of the output
             void (InputParser::* keyword_fxn)(unsigned int, std::string);     //!The keyword processing function
             
             //!=
@@ -235,19 +235,20 @@ class FEAModel{
         
         std::vector< Element > mapped_elements;   //!The elements defined with internal node numbering
         std::vector< NodeSet > mapped_nodesets;   //!A list of the nodesets mapped to the internal node numbering
+        std::vector< unsigned int > unbound_dof;  //!A list of all of the unbound degrees of freedom
         
         std::vector< double > RHS;                //!The right hand side vector
         
         int maxiter = 20;                         //!The maximum number of iterations allowed at each timestep
-        double atol = 1e-8;                       //!The absolute tolerance on the solver
-        double rtol = 1e-6;                       //!The relative tolerance on the solver
+        double atol = 1e-9;                       //!The absolute tolerance on the solver
+        double rtol = 1e-7;                       //!The relative tolerance on the solver
+        double mms_tol = 1e-6;                    //!The tolerance on the method of manufactured solutions comparison
         unsigned int increment_number = 0;        //!The current increment number
         
         std::vector< double > F;                  //!The forcing function for the method of manufactured solutions
         std::vector< double > mms_u;              //!The manufactured solution.
         
         double alpha = 1.0;                       //!The relaxation parameter
-        double tol   = 1e-9;                      //!The solution tolerance
         std::string solver = "NewtonKrylov";      //!The solution to use
     
     FEAModel();
@@ -262,9 +263,15 @@ class FEAModel{
     |=> Degrees of freedom methods
     =*/
     
-    void initalize_dof();
-    
     void convert_local_dbc_to_global();
+    
+    void form_increment_dof_vector();
+    
+    void initialize_dof();
+    
+    void assign_dof();
+    
+    void id_unbound_dof();
     
     /*!=
     |=> Solver methods
@@ -278,19 +285,13 @@ class FEAModel{
     
     void update_increment();
     
+    void assemble_RHS_and_jacobian_matrix();
+    
     void run_newton_krylov();
     
     std::vector< double > krylov_residual(std::vector<double> _du);
     
-    void form_increment_dof_vector();
-    
-    
-    
-    void initialize_dof();
-    
-    void assign_dof();
-    
-    void assemble_RHS_and_jacobian_matrix();
+    std::vector< double > get_unbound_du();
     
     /*!=
     |=> Manufactured solutions methods
