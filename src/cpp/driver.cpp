@@ -38,6 +38,7 @@
 #include <newton_krylov.h>
 #include <driver.h>
 #include <ctime>
+#include <algorithm>
 
 std::string trim(const std::string& str, const std::string& whitespace){
     /*!==============
@@ -1130,6 +1131,15 @@ void FEAModel::assemble_RHS_and_jacobian_matrix(){
        
     RHS = std::vector< double >(total_ndof,0.); //Zero the residual vector
         
+    std::cout << "RHS: ";
+    if(input.mms_fxn!=NULL){//Add the manufactured solution forcing function if required
+        for(int i=0; i<RHS.size(); i++){
+            RHS[i] = F[i];
+            std::cout << " " << RHS[i];
+        }
+    }
+    std::cout << "\n";
+        
     std::cout << "=\n"<<
                 "| Computing RHS and global stiffness matrix\n"<<
                 "=\n";
@@ -1181,7 +1191,16 @@ void FEAModel::assemble_RHS_and_jacobian_matrix(){
                 RHS[internal_nodes_dof[internal_node_number][i]] += current_element.RHS[i+n*input.node_dof];
             }
         }
+        
+        //for(int n=0; n<8; n++){
+        //    std::cout << "Element node " << n+1 << " RHS:";
+        //    for(int i=0; i<input.node_dof; i++){
+        //        std::cout << " " << current_element.RHS[i+n*input.node_dof];
+        //    }
+        //    std::cout << "\n";
+        //}
     }
+    //assert(1==0);
     return;
 }
     
@@ -1216,9 +1235,17 @@ void FEAModel::compute_mms_forcing_function(){
         
     std::cout << "\n|=> Computing the method of manufactured solutions forcing function.\n";
         
-    set_mms_dof_vector();               //Set u to the manufactured solutions vector
-    assemble_RHS_and_jacobian_matrix(); //Compute the residual value for the manufactured solution
-    F = RHS;                            //Copy the residual vector to the forcing function vector
+    F          = std::vector< double >(total_ndof,0.); //Initialize the forcing vector
+        
+    set_mms_dof_vector();                            //Set u to the manufactured solutions vector
+    assemble_RHS_and_jacobian_matrix();              //Compute the residual value for the manufactured solution
+    for(int i=0; i<RHS.size(); i++){F[i] = RHS[i];}  //Copy the residual vector to the forcing function vector
+    
+    print_vector("F",F);
+    std::cout << "F_sub: ";
+    for(int i=0; i<unbound_dof.size(); i++){std::cout << " " << F[unbound_dof[i]];}
+    std::cout << "\n";
+    assert(1==0);
     
     for(int j=0; j<up.size(); j++){
         u[j]  = up[j];              //Reset u
@@ -1315,7 +1342,7 @@ void FEAModel::compare_manufactured_solution(){
         
     for(int i=0; i<mms_u.size(); i++){
         error          = fabs(mms_u[i]-u[i]);
-        relative_error = error/max(fabs(mms_u[i]),fabs(u[i]));
+        relative_error = error/std::max(fabs(mms_u[i]),fabs(u[i]));
         if(error>max_error){max_error = error;}
         if(relative_error>max_relative_error){max_relative_error = relative_error;}
     }
