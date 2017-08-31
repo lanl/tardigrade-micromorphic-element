@@ -753,7 +753,7 @@ namespace micro_element
             for(int j=0; j<3; j++){
                 for(int I=0; I<3; I++){
                     for(int J=0; J<3; J++){
-                        RHS[j+n*3] += -dNdXs[n][I]*PK2[gpt_num](I,J)*F(j,J)*Jhatdet*weights[gpt_num];
+                        RHS[j+n*12] += -dNdXs[n][I]*PK2[gpt_num](I,J)*F(j,J)*Jhatdet*weights[gpt_num];
                     }
                 }
             }
@@ -790,7 +790,7 @@ namespace micro_element
         //Initialize the internal moment tensor
         tensor::Tensor mu_int = tensor::Tensor(sot_shape); //!The internal moment tensor
         
-        int initial_index = 3*reference_coords.size();
+        int initial_index = 3;//*reference_coords.size();
         //Create the moment residual at the different nodes
         for(int n=0; n<reference_coords.size(); n++){
             
@@ -817,15 +817,24 @@ namespace micro_element
             }
             
             //Populate the right hand side tensor
-            RHS[initial_index+n*9+0] += mu_int(0,0);
-            RHS[initial_index+n*9+1] += mu_int(1,1);
-            RHS[initial_index+n*9+2] += mu_int(2,2);
-            RHS[initial_index+n*9+3] += mu_int(1,2);
-            RHS[initial_index+n*9+4] += mu_int(0,2);
-            RHS[initial_index+n*9+5] += mu_int(0,1);
-            RHS[initial_index+n*9+6] += mu_int(2,1);
-            RHS[initial_index+n*9+7] += mu_int(2,0);
-            RHS[initial_index+n*9+8] += mu_int(1,0);
+            //RHS[initial_index+n*9+0] += mu_int(0,0);
+            //RHS[initial_index+n*9+1] += mu_int(1,1);
+            //RHS[initial_index+n*9+2] += mu_int(2,2);
+            //RHS[initial_index+n*9+3] += mu_int(1,2);
+            //RHS[initial_index+n*9+4] += mu_int(0,2);
+            //RHS[initial_index+n*9+5] += mu_int(0,1);
+            //RHS[initial_index+n*9+6] += mu_int(2,1);
+            //RHS[initial_index+n*9+7] += mu_int(2,0);
+            //RHS[initial_index+n*9+8] += mu_int(1,0);
+            RHS[initial_index+n*12+0] += mu_int(0,0);
+            RHS[initial_index+n*12+1] += mu_int(1,1);
+            RHS[initial_index+n*12+2] += mu_int(2,2);
+            RHS[initial_index+n*12+3] += mu_int(1,2);
+            RHS[initial_index+n*12+4] += mu_int(0,2);
+            RHS[initial_index+n*12+5] += mu_int(0,1);
+            RHS[initial_index+n*12+6] += mu_int(2,1);
+            RHS[initial_index+n*12+7] += mu_int(2,0);
+            RHS[initial_index+n*12+8] += mu_int(1,0);
         }
     }
     
