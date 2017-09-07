@@ -20,6 +20,7 @@ import subprocess
 
 make_command     = 'mingw32-make'                         #The system command to run make
 results_filename = "results.tex"                          #The results textfile
+original_stdout  = sys.stdout                             #The original stdout location
 
 def print_char(num,char="#"):
     ###Print out the number of char symbols indicated by num
@@ -39,7 +40,7 @@ def print_bound_whitespace(num,bound_symbol = "#"):
 
 def print_test_header(dir):
     ###Print the header associated with the directory dir
-    str = "#    Processing test in: " + os.path.join('tests',dir) + "    #"
+    str = "#    Processing test file in: " + os.path.join('tests',dir) + "    #"
     print ""
     print_char(len(str))
     print str
@@ -57,48 +58,121 @@ def print_header():
     print_bound_whitespace(len(str)-2)
     print_char(len(str))
     
+def print_regression_header():
+    ###Print the test script header
+    
+    str = "#    Processing the regression tests    #"
+    
+    print
+    print_char(len(str))
+    print_bound_whitespace(len(str)-2)
+    print str
+    print_bound_whitespace(len(str)-2)
+    print_char(len(str))
+    
+def print_error(str):
+    ###Print an error message
+    err_str = "!!!    " + str + "    !!!"
+    print
+    print_char(len(err_str),"!")
+    print err_str
+    print_char(len(err_str),"!")
+    
 def process_results_file():
     ###Process the results for a unit test
-    if(os.isfile(results_filename)):
-        
-        f = open(results_filename)
-        
-        
+    
+    result = True #The overall result
+    
+    if(os.path.isfile(results_filename)):
+        with open(results_filename,'r') as f:
+            for line in f:
+            
+                if("hline" not in line):
+                    if("true" not in line.lower()):
+                        result = False
+        return result
     else:
-        str = "!!!    Error: Results file not found    !!!"
-        print_char(len(str),"!")
-        print str
-        print_char(len(str),"!")
+        str = "Error: Results file not found."
+        print_err(str)
+        return None
     
     
 #Main code execution block
 if(__name__=="__main__"):
 
+    sys.stdout = open(results_filename,'w')                   #Reroute the stdout to a file
+
     print_header()
 
-    initial_directory = os.getcwd()                       #Get the current working directory
+    initial_directory = os.getcwd()                           #Get the current working directory
 
-    sub_directories = [x for x in os.walk('tests')][0][1] #Get the subdirectories
+    sub_directories = [x for x in os.walk('tests')][0][1]     #Get the subdirectories
 
     str = "#    Executing Unit Tests    #"
     print_char(len(str))
     print str
     print_char(len(str))
     
-    for dir in sub_directories:                           #Iterate through the directories
+    total_result = True                                       #The overall result
+    
+    for dir in sub_directories:                               #Iterate through the directories
+        result = None                                         #The result of the test
         if(dir!='regression_tests'):
-        
-            print_test_header(dir)                             #Print the header
-            os.chdir(os.path.join('tests',dir))           #Move to the directory
-            exe_name = 'test_' + dir + ".exe"             #The resulting executable is assumed 
-                                                      #to have the name test_directory.exe
+            print_test_header(dir)                            #Print the header
+            os.chdir(os.path.join('tests',dir))               #Move to the directory
+            exe_name = 'test_' + dir + ".exe"                 #The resulting executable is assumed 
+                                                              #to have the name test_directory.exe
             try:
                 subprocess.call(make_command)                 #Call make in the current directory
             except:
-                print "Error: Problem encountered during compilation."
+                str = "Error: Problem encountered during compilation."
+                print_error(str)
         
             try:
                 subprocess.call(exe_name)                     #Call the resulting executable
             except:
-                print "Error: Problem encountered during execution."
-            os.chdir(initial_directory)                   #Change back to the inital directory
+                str = "Error: Problem encountered during execution."
+                print_error(str)
+                
+            try:
+                result = process_results_file()
+            except:
+                str = "Error: Problem processing results file."
+                print_error(str)
+            os.chdir(initial_directory)                       #Change back to the inital directory
+        
+            if(result == True):
+                str = "#    PASS    #"
+            elif(result == False):
+                str = "#    FAIL    #"
+            elif(result == None):
+                str = "#    NO RESULT    #"
+            else:
+                str = "Error: result not True, False, or None."
+                print_error(str)
+            print
+            print_char(len(str))
+            print str
+            print_char(len(str))
+            
+            if((not total_result == None) and (not result == None)):
+                total_result *= result                           #Set the total result
+            else:
+                total_result = None
+            
+    print_regression_header()
+    
+    
+    if(total_result==True):
+        str = "#    ALL TESTS PASSED!    #"
+    elif(total_result==False):
+        str = "#    FAIL: SEE OUTPUT FOR DETAILS    #"
+    elif(total_result==None):
+        str = "#    FAIL: ONE OR MORE TESTS DO NOT HAVE OUTPUT FILES    #"
+        
+    print
+    print_char(len(str))
+    print str
+    print_char(len(str))
+    
+    sys.stdout = original_stdout
