@@ -109,9 +109,9 @@ void run_solver2(std::ofstream &results,int mode=1){
     krylov::Solver solver1 = krylov::Solver(residual_function2, u, 50, 10);
     solver1.solve();
     
-    std::cout << "Newton-Krylov Solution fxn 2:\n" << "x1: " << solver1.u[0] << "\nx2: " << solver1.u[1] << "\nx3: " << solver1.u[2];
+    //std::cout << "Newton-Krylov Solution fxn 2:\n" << "x1: " << solver1.u[0] << "\nx2: " << solver1.u[1] << "\nx3: " << solver1.u[2];
     for(int i=0; i<3; i++){test_result *= 1e-6>fabs(solver1.u[i]-r[i]);}
-    std::cout << "\ntest_result: " << test_result << "\n";
+    //std::cout << "\ntest_result: " << test_result << "\n";
     
     if(mode==1){
         if(test_result){results << "test_newton_krylov_2_mode_1 & True\\\\\n\\hline\n";}
