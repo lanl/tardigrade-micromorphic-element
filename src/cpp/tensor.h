@@ -20,10 +20,10 @@
   
 namespace tensor
 {
-    class Tensor{
+    template<int m, int n> class BaseTensor{
         /*!===
            |
-           | T e n s o r
+           | B a s e T e n s o r
            |
           ===
         
@@ -37,6 +37,13 @@ namespace tensor
         string that indicates how the information should be 
         stored
         
+        The class is a template that requires the number of rows and 
+        columns to be input. The default values are for a dynamic 
+        matrix size which is the most general case. For better speed 
+        on smaller tensors (>16 terms) the number of terms in the 
+        matrix should be specified unless the size of the tensor will 
+        be changing over time.
+        
         */
         
         public:
@@ -49,7 +56,7 @@ namespace tensor
         
             std::vector< int >                  shape;              //!The shape of the tensor a vector of integers indicating each dimensions length
             std::array< int,2 >                 data_dimensions;    //!The dimensions of the data matrix
-            Eigen::MatrixXd                     data;               //!The data object for the tensor a Eigen::MatrixXd
+            Eigen::Matrix<double, m, n>         data;               //!The data object for the tensor a Eigen::Matrix
             std::string                         format = "default"; //!The format of the data object. This modifies the way the tensor is stored
                                                                     //!options: (default)
             int                                 index_split;        //!Where, in the indices for the tensor, the split between rows and
@@ -63,22 +70,22 @@ namespace tensor
             //!|
             //!==
             
-            Tensor();
-            Tensor(std::vector< int >);
-            Tensor(std::vector< int >, Eigen::MatrixXd);
+            BaseTensor();
+            BaseTensor(std::vector< int >);
+            BaseTensor(std::vector< int >, Eigen::MatrixXd);
 
             //!==
             //!|
             //!| Operators
             //!|
             //!==
-            Tensor& operator=(const Tensor& T);
-            Tensor operator+(const Tensor& T1);
-            void operator+=(const Tensor& T2);
+            template< int m, int n> class BaseTensor& operator=(const BaseTensor& T);
+            template< int m, int n> class BaseTensor operator+(const BaseTensor& T1);
+            void operator+=(const BaseTensor& T2);
             
-            Tensor operator-(const Tensor& T1);
-            Tensor operator-();
-            void operator-=(const Tensor &T1);
+            BaseTensor operator-(const BaseTensor& T1);
+            BaseTensor operator-();
+            void operator-=(const BaseTensor &T1);
             
             template <typename ...ArgsT>
             double& operator()(ArgsT ...indices){
@@ -140,7 +147,7 @@ namespace tensor
             //!|
             //!==
             
-            Tensor inverse();
+            BaseTensor inverse();
             double det();
             void zero();
 
@@ -156,12 +163,21 @@ namespace tensor
     
     //!==
     //!|
+    //!| Type definitions
+    //!|
+    //!==
+    
+    typedef BaseTensor<3,3> Tensor23;
+    typedef BaseTensor<9,9> Tensor43;
+    
+    //!==
+    //!|
     //!| Functions
     //!|
     //!==
         
-    Tensor eye();
-    Tensor FOT_eye();
+    Tensor23 eye();     //!Return the second order identity tensor in three dimensions
+    Tensor43 FOT_eye(); //!Return the fourth order identity tensor in four dimensions
     
     //!==
     //!|
@@ -169,7 +185,7 @@ namespace tensor
     //!|
     //!==
     
-    Tensor operator*(const double&,const Tensor&);
+    BaseTensor operator*(const double&,const Tensor&);
     Tensor operator*(const int&,   const Tensor&);
     
     Tensor operator*(const Tensor&,const double&);
