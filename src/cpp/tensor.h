@@ -114,11 +114,102 @@ namespace tensor
             //!| Operators
             //!|
             //!==
-            template< int m, int n> class BaseTensor& operator=(const BaseTensor<m,n>& T);
-            template< int m, int n> class BaseTensor operator+(const BaseTensor<m,n>& T1);
-            void operator+=(const BaseTensor& T2);
+            template< int m, int n> class BaseTensor& operator=(const BaseTensor<m,n>& T){
+                /*!================================================
+                |               Tensor::operator=               |
+                =================================================
+        
+                Redefine the copy operator
+        
+                */
+        
+                shape           = T.shape;
+                data_dimensions = T.data_dimensions;
+                data            = T.data;
+                format          = T.format;
+                index_split     = T.index_split;
+                iterator_split  = T.iterator_split;
+                index_factors   = T.index_factors;
+            }
+    
+            template< int m, int n> class BaseTensor operator+(const BaseTensor<m,n>& T1){
+                /*!================================================
+                |               Tensor::operator+               |
+                =================================================
+        
+                Redefine the addition operator
+        
+                */
+        
+                if(T1.shape != shape){
+                    std::cout << "\nError: tensors must have the same shape\n";
+                    assert(1==0); //TODO: allow to raise error
+                }
+                
+                if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+                    std::cout << "\nError: tensors must have the same storage format\n";
+                    assert(1==0); //TODO: allow to raise error
+                }
+        
+                Eigen::Matrix<double,m,n> new_data = T1.data + data;
+        
+                BaseTensor<m,n> T = BaseTensor<m,n>(T1.shape,new_data);
+                return T;
+        
+            }
             
-            template< int m, int n> BaseTensor operator-(const BaseTensor<m,n>& T1);
+            template<int m, int n>
+            void operator+=(const BaseTensor<m,n>& T1){
+                /*!================================================
+                |               Tensor::operator+=              |
+                =================================================
+        
+                Redefine the addition equals operator
+        
+                */
+        
+                if(T1.shape != shape){
+                    std::cout << "\nError: tensors must have the same shape\n";
+                    assert(1==0); //TODO: allow to raise error
+                }
+        
+                if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+                    std::cout << "\nError: tensors must have the same storage format\n";
+                    assert(1==0); //TODO: allow to raise error
+                }
+        
+                data += T1.data;
+        
+                return;
+        
+            }
+            
+            template< int m, int n> BaseTensor operator-(const BaseTensor<m,n>& T1){
+                /*!================================================
+                |               Tensor::operator-               |
+                =================================================
+        
+                Redefine the subtraction operator
+        
+                */
+        
+                if(T1.shape != shape){
+                    std::cout << "\nError: tensors must have the same shape\n";
+                    assert(1==0); //TODO: allow to raise error
+                }
+        
+                if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+                    std::cout << "\nError: tensors must have the same storage format\n";
+                    assert(1==0); //TODO: allow to raise error
+                }
+        
+                Eigen::Matrix<double,m,n> new_data = data - T1.data;
+        
+                BaseTensor<m,n> T = tensor::BaseTensor<m,n>(T1.shape,new_data);
+                return T;
+        
+            }
+    
             template< int m, int n> BaseTensor operator-();
             void operator-=(const BaseTensor &T1);
             
