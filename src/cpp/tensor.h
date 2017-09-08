@@ -20,7 +20,7 @@
   
 namespace tensor
 {
-    template<int m, int n> class BaseTensor{
+    template<int m_b, int n_b> class BaseTensor{
         /*!===
            |
            | B a s e T e n s o r
@@ -54,15 +54,15 @@ namespace tensor
             //!|
             //!==
         
-            std::vector< int >                  shape;              //!The shape of the tensor a vector of integers indicating each dimensions length
-            std::array< int,2 >                 data_dimensions;    //!The dimensions of the data matrix
-            Eigen::Matrix<double, m, n>         data;               //!The data object for the tensor a Eigen::Matrix
-            std::string                         format = "default"; //!The format of the data object. This modifies the way the tensor is stored
-                                                                    //!options: (default)
-            int                                 index_split;        //!Where, in the indices for the tensor, the split between rows and
-                                                                    //!Columns occurs for the storage array. This is the first index 
-                                                                    //!associated with the columns.
-            std::vector< int >::const_iterator  iterator_split;     //!The location of the iterator which marks the split in the array
+            std::vector< int >                  shape;                          //!The shape of the tensor a vector of integers indicating each dimensions length
+            std::array< int,2 >                 data_dimensions = {m_b,n_b};    //!The dimensions of the data matrix
+            Eigen::Matrix<double, m_b, n_b>     data;                           //!The data object for the tensor a Eigen::Matrix
+            std::string                         format = "default";             //!The format of the data object. This modifies the way the tensor is stored
+                                                                                //!options: (default)
+            int                                 index_split;                    //!Where, in the indices for the tensor, the split between rows and
+                                                                                //!Columns occurs for the storage array. This is the first index 
+                                                                                //!associated with the columns.
+            std::vector< int >::const_iterator  iterator_split;                 //!The location of the iterator which marks the split in the array
         
             //!==
             //!|
@@ -70,21 +70,56 @@ namespace tensor
             //!|
             //!==
             
-            BaseTensor();
-            BaseTensor(std::vector< int >);
-            BaseTensor(std::vector< int >, Eigen::MatrixXd);
+            BaseTensor(){
+                /*!The default constructor for the tensor.*/
+            }
+            
+            
+            BaseTensor(std::vector< int > dimensions){
+                /*!A constructor for a tensor where the dimensions of the tensor are read in
+                The tensor will be initialized to 0.*/
+        
+                //Assign the incoming dimensions to shape
+                shape = dimensions;
+        
+                //Set the multiplication factors
+                set_factors();
+        
+            }
+            
+            BaseTensor(std::vector< int > dimensions, Eigen::MatrixXd data_in){
+                /*!A constructor for a tensor where the dimensions of the tensor are read in
+                along with the data values.
+        
+                dimensions and data must be consistent!*/
+        
+                //Assign the incoming dimensions to shape
+                shape = dimensions;
+        
+                //Set the multiplication factors
+                set_factors();
+        
+                if((data.rows()==data_in.rows()) && (data.cols()==data_in.cols())){
+                    data = data_in;
+                }
+                else{
+                    std::cout << "\nError: Tensor dimensions and the provided data matrix are\n";
+                    std::cout << "         not consistent.";
+                    assert(1==0);
+                }
+            }
 
             //!==
             //!|
             //!| Operators
             //!|
             //!==
-            template< int m, int n> class BaseTensor& operator=(const BaseTensor& T);
-            template< int m, int n> class BaseTensor operator+(const BaseTensor& T1);
+            template< int m, int n> class BaseTensor& operator=(const BaseTensor<m,n>& T);
+            template< int m, int n> class BaseTensor operator+(const BaseTensor<m,n>& T1);
             void operator+=(const BaseTensor& T2);
             
-            BaseTensor operator-(const BaseTensor& T1);
-            BaseTensor operator-();
+            template< int m, int n> BaseTensor operator-(const BaseTensor<m,n>& T1);
+            template< int m, int n> BaseTensor operator-();
             void operator-=(const BaseTensor &T1);
             
             template <typename ...ArgsT>
@@ -147,7 +182,7 @@ namespace tensor
             //!|
             //!==
             
-            BaseTensor inverse();
+            template< int m, int n> BaseTensor inverse();
             double det();
             void zero();
 
@@ -161,6 +196,22 @@ namespace tensor
             void set_dimensions();                                                    //Set the dimensions of the data matrix
     };
     
+    //!==
+    //!|
+    //!| Operators
+    //!|
+    //!==
+    
+    template< int m, int n> BaseTensor<m,n> operator*(const double&,const BaseTensor<m,n>&);
+    template< int m, int n> BaseTensor<m,n> operator*(const int&,   const BaseTensor<m,n>&);
+    
+    template< int m, int n> BaseTensor<m,n> operator*(const BaseTensor<m,n>&,const double&);
+    template< int m, int n> BaseTensor<m,n> operator*(const BaseTensor<m,n>&,const int&);
+    
+    template< int m, int n> BaseTensor<m,n> operator/(const BaseTensor<m,n>&,const double&);
+    template< int m, int n> BaseTensor<m,n> operator/(const BaseTensor<m,n>&,const int&);
+    
+        
     //!==
     //!|
     //!| Type definitions
@@ -178,19 +229,4 @@ namespace tensor
         
     Tensor23 eye();     //!Return the second order identity tensor in three dimensions
     Tensor43 FOT_eye(); //!Return the fourth order identity tensor in four dimensions
-    
-    //!==
-    //!|
-    //!| Operators
-    //!|
-    //!==
-    
-    BaseTensor operator*(const double&,const Tensor&);
-    Tensor operator*(const int&,   const Tensor&);
-    
-    Tensor operator*(const Tensor&,const double&);
-    Tensor operator*(const Tensor&,const int&);
-    
-    Tensor operator/(const Tensor&,const double&);
-    Tensor operator/(const Tensor&,const int&);
 }

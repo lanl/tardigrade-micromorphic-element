@@ -30,57 +30,57 @@ namespace tensor{
     //!|
     //!==
     
-    Tensor::Tensor(){
-        /*!The default constructor for the tensor. 
-        Zeros the sizes of the shape and data attributes
-        to save space*/
-        
-        shape.resize(0);
-        data.resize(0,0);
-        data_dimensions[0] = 0;
-        data_dimensions[1] = 0;
-        index_factors    = std::vector< int >(0,1);
-    }
-    
-    Tensor::Tensor(std::vector< int > dimensions){
-        /*!A constructor for a tensor where the dimensions of the tensor are read in
-        The tensor will be initialized to 0.*/
-        
-        //Assign the incoming dimensions to shape
-        shape = dimensions;
-        
-        //Set the data matrix dimensions
-        set_dimensions();
-        
-        //Set the multiplication factors
-        set_factors();
-        
-    }
-    
-    Tensor::Tensor(std::vector< int > dimensions, Eigen::MatrixXd data_in){
-        /*!A constructor for a tensor where the dimensions of the tensor are read in
-        along with the data values.
-        
-        dimensions and data must be consistent!*/
-        
-        //Assign the incoming dimensions to shape
-        shape = dimensions;
-        
-        //Set the data matrix dimensions
-        set_dimensions();
-        
-        //Set the multiplication factors
-        set_factors();
-        
-        if((data.rows()==data_in.rows()) && (data.cols()==data_in.cols())){
-            data = data_in;
-        }
-        else{
-            std::cout << "\nError: Tensor dimensions and the provided data matrix are\n";
-            std::cout << "         not consistent.";
-            assert(1==0);
-        }
-    }
+//    Tensor::Tensor(){
+//        /*!The default constructor for the tensor. 
+//        Zeros the sizes of the shape and data attributes
+//        to save space*/
+//        
+//        shape.resize(0);
+//        data.resize(0,0);
+//        data_dimensions[0] = 0;
+//        data_dimensions[1] = 0;
+//        index_factors    = std::vector< int >(0,1);
+//    }
+//    
+//    Tensor::Tensor(std::vector< int > dimensions){
+//        /*!A constructor for a tensor where the dimensions of the tensor are read in
+//        The tensor will be initialized to 0.*/
+//        
+//        //Assign the incoming dimensions to shape
+//        shape = dimensions;
+//        
+//        //Set the data matrix dimensions
+//        set_dimensions();
+//        
+//        //Set the multiplication factors
+//        set_factors();
+//        
+//    }
+//    
+//    Tensor::Tensor(std::vector< int > dimensions, Eigen::MatrixXd data_in){
+//        /*!A constructor for a tensor where the dimensions of the tensor are read in
+//        along with the data values.
+//        
+//        dimensions and data must be consistent!*/
+//        
+//        //Assign the incoming dimensions to shape
+//        shape = dimensions;
+//        
+//        //Set the data matrix dimensions
+//        set_dimensions();
+//        
+//        //Set the multiplication factors
+//        set_factors();
+//        
+//        if((data.rows()==data_in.rows()) && (data.cols()==data_in.cols())){
+//            data = data_in;
+//        }
+//        else{
+//            std::cout << "\nError: Tensor dimensions and the provided data matrix are\n";
+//            std::cout << "         not consistent.";
+//            assert(1==0);
+//        }
+//    }
     
     //!==
     //!|
