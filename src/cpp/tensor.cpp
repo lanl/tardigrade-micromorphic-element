@@ -182,46 +182,46 @@ namespace tensor{
 //        return T;
 //        
 //    }
-    
-    Tensor Tensor::operator-(){
-        /*!================================================
-        |               Tensor::operator-               |
-        =================================================
-        
-        Redefine the negative operator
-        
-        */
-        
-        Eigen::MatrixXd new_data = -data;
-        
-        tensor::Tensor T = tensor::Tensor(shape,new_data);
-        return T;
-        
-    }
-    
-    void Tensor::operator-=(const Tensor& T1){
-        /*!================================================
-        |               Tensor::operator-=              |
-        =================================================
-        
-        Redefine the subtraction equals operator
-        
-        */
-        
-        if(T1.shape != shape){
-            std::cout << "\nError: tensors must have the same shape\n";
-            assert(1==0); //TODO: allow to raise error
-        }
-        
-        if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
-            std::cout << "\nError: tensors must have the same storage format\n";
-            assert(1==0); //TODO: allow to raise error
-        }
-        
-        data -= T1.data;
-        return;
-        
-    }
+//    
+//    Tensor Tensor::operator-(){
+//        /*!================================================
+//        |               Tensor::operator-               |
+//        =================================================
+//        
+//        Redefine the negative operator
+//        
+//        */
+//        
+//        Eigen::MatrixXd new_data = -data;
+//        
+//        tensor::Tensor T = tensor::Tensor(shape,new_data);
+//        return T;
+//        
+//    }
+//    
+//    void Tensor::operator-=(const Tensor& T1){
+//        /*!================================================
+//        |               Tensor::operator-=              |
+//        =================================================
+//        
+//        Redefine the subtraction equals operator
+//        
+//        */
+//        
+//        if(T1.shape != shape){
+//            std::cout << "\nError: tensors must have the same shape\n";
+//            assert(1==0); //TODO: allow to raise error
+//        }
+//        
+//        if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+//            std::cout << "\nError: tensors must have the same storage format\n";
+//            assert(1==0); //TODO: allow to raise error
+//        }
+//        
+//        data -= T1.data;
+//        return;
+//        
+//    }
     
     //!==
     //!|

@@ -210,8 +210,46 @@ namespace tensor
         
             }
     
-            template< int m, int n> BaseTensor operator-();
-            void operator-=(const BaseTensor &T1);
+            template< int m, int n> BaseTensor operator-(){
+                /*!================================================
+                |               Tensor::operator-               |
+                =================================================
+        
+                Redefine the negative operator
+        
+                */
+        
+                Eigen::Matrix<double, m, n> new_data = -data;
+        
+                BaseTensor T<m,n> = BaseTensor<m,n>(shape,new_data);
+                return T;
+        
+            }
+    
+            template< int m, int n>
+            void operator-=(const BaseTensor<m,n> &T1){
+                /*!================================================
+                |               Tensor::operator-=              |
+                =================================================
+        
+                Redefine the subtraction equals operator
+        
+                */
+        
+                if(T1.shape != shape){
+                    std::cout << "\nError: tensors must have the same shape\n";
+                    assert(1==0); //TODO: allow to raise error
+                }
+        
+                if(T1.format.compare(format)){//Note, this is not strictly accurate but it makes sense to only use tensors with the same storage format
+                    std::cout << "\nError: tensors must have the same storage format\n";
+                    assert(1==0); //TODO: allow to raise error
+                }
+        
+                data -= T1.data;
+                return;
+        
+            }
             
             template <typename ...ArgsT>
             double& operator()(ArgsT ...indices){
