@@ -572,7 +572,7 @@ namespace tensor
         
         */
         
-        Eigen::Matrix<float,m,n> new_data = a*T.data;
+        Eigen::Matrix<double,m,n> new_data = a*T.data;
         BaseTensor<m,n> Tout(T.shape,new_data);
         
         return Tout;
@@ -588,7 +588,7 @@ namespace tensor
         
         */
         
-        Eigen::Matrix<float,m,n> new_data = a*T.data;
+        Eigen::Matrix<double,m,n> new_data = a*T.data;
         BaseTensor<m,n> Tout(T.shape,new_data);
         
         return Tout;
@@ -641,7 +641,7 @@ namespace tensor
         
         */
         
-        Eigen::Matrix<float,m,n> new_data = T.data/a;
+        Eigen::Matrix<double,m,n> new_data = T.data/a;
         BaseTensor<m,n> Tout(T.shape,new_data);
         
         return Tout;
@@ -654,8 +654,10 @@ namespace tensor
     //!|
     //!==
     
-    typedef BaseTensor<3,3> Tensor23;
-    typedef BaseTensor<9,9> Tensor43;
+    typedef BaseTensor<3,3>   Tensor23;
+    typedef BaseTensor<9,3>   Tensor33;
+    typedef BaseTensor<9,9>   Tensor43;
+    typedef BaseTensor<27,27> Tensor63;
     typedef BaseTensor<Eigen::Dynamic, Eigen::Dynamic> Tensor;
     
     //!==
