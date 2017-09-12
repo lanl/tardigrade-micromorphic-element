@@ -72,6 +72,7 @@ namespace tensor
             
             BaseTensor(){
                 /*!The default constructor for the tensor.*/
+                data.setZero();
             }
             
             
@@ -82,11 +83,9 @@ namespace tensor
                 int temp_rows; //!A temporary variable indicating the expected number of rows 
                                //!Of the matrix given the current value of index_split
                 
+                data.setZero(); //!Set the data matrix to zero
                 //Assign the incoming dimensions to shape
                 shape = _shape;
-                
-                std::cout << "data.rows(): " << data.rows() << " data.cols(): " << data.cols() << "\n";
-                std::cout << "data_dimensions[0]: " << data_dimensions[0] << " data_dimensions[1]: " << data_dimensions[1] << "\n";
                 
                 if((data_dimensions[0]==Eigen::Dynamic) || (data_dimensions[1]==Eigen::Dynamic)){
                     set_dimensions();
@@ -98,13 +97,16 @@ namespace tensor
                     index_split = 1;
                     temp_rows   = shape[0];
                     while((temp_rows<data.rows()) && (index_split<shape.size())){
-                        temp_rows += shape[index_split];
+                        temp_rows *= shape[index_split];
                         index_split++;
+                    }
+                    if(index_split>=shape.size()){
+                        std::cout << "Error: value of index_split is outside of allowable range.\n";
+                        assert(1==0);
                     }
                 }
         
                 //Set the multiplication factors
-                std::cout << "setting factors\n";
                 set_factors();
         
             }
@@ -115,11 +117,30 @@ namespace tensor
         
                 dimensions and data must be consistent!*/
                 
+                int temp_rows; //!A temporary variable indicating the expected number of rows 
+                               //!Of the matrix given the current value of index_split
+                
+                data.setZero(); //!Set the data matrix to zero
                 //Assign the incoming dimensions to shape
                 shape = _shape;
                 
                 if((data_dimensions[0]==Eigen::Dynamic) || (data_dimensions[1]==Eigen::Dynamic)){
                     set_dimensions();
+                }
+                else{
+                    //Assign the value to index_split which 
+                    //Corresponds with the assigned data 
+                    //matrix dimensions.
+                    index_split = 1;
+                    temp_rows   = shape[0];
+                    while((temp_rows<data.rows()) && (index_split<shape.size())){
+                        temp_rows *= shape[index_split];
+                        index_split++;
+                    }
+                    if(index_split>=shape.size()){
+                        std::cout << "Error: value of index_split is outside of allowable range.\n";
+                        assert(1==0);
+                    }
                 }
         
                 //Set the multiplication factors
@@ -383,8 +404,6 @@ namespace tensor
                 */
         
                 index_factors    = std::vector< int >(shape.size(),1);
-                std::cout << "index_factors.size(): " << index_factors.size() << "\n";
-                std::cout << "index_split:          " << index_split << "\n";
         
                 //Get the row index
                 for(int i=0; i<index_split; i++){//Iterate through the pre-split indices
