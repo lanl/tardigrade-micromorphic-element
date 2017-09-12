@@ -55,7 +55,7 @@ namespace micro_element
                                                                      {-1,-1, 1},{ 1,-1, 1},{ 1, 1, 1},{-1, 1, 1}}; //!The current coordinates of the element's nodes
             std::vector< std::vector< double > > local_coords     = {{-1,-1,-1},{ 1,-1,-1},{ 1, 1,-1},{-1, 1,-1},
                                                                      {-1,-1, 1},{ 1,-1, 1},{ 1, 1, 1},{-1, 1, 1}}; //!The local coordinates of the element's nodes
-            std::vector< tensor::Tensor > node_phis;
+            std::vector< tensor::Tensor23 > node_phis;                                                             //!The nodal microdisplacements
             //!=
             //!| Gauss Quadrature
             //!=
@@ -99,9 +99,9 @@ namespace micro_element
             //!| Stresses
             //!=
             
-            std::vector< tensor::Tensor >   PK2;   //!The second Piola-Kirchhoff stresses at the gauss points
-            std::vector< tensor::Tensor >   SIGMA; //!The symmetric stress in the reference configuration at the gauss points
-            std::vector< tensor::Tensor >   M;     //!The higher order stress at the gauss points
+            std::vector< tensor::Tensor23 >   PK2;   //!The second Piola-Kirchhoff stresses at the gauss points
+            std::vector< tensor::Tensor23 >   SIGMA; //!The symmetric stress in the reference configuration at the gauss points
+            std::vector< tensor::Tensor33 >   M;     //!The higher order stress at the gauss points
             
             //!==
             //!|
@@ -217,17 +217,17 @@ namespace micro_element
             void set_gpt_num(int);
             double get_N(int);
             std::vector< double > get_dNdxi(int);
-            tensor::Tensor get_jacobian(int);
+            tensor::Tensor23 get_jacobian(int);
             std::vector< double > get_dNdx(bool,int);
             double get_Jhatdet(bool);
             
-            tensor::Tensor get_F();
-            tensor::Tensor get_chi();
-            tensor::Tensor get_grad_chi();
+            tensor::Tensor23 get_F();
+            tensor::Tensor23 get_chi();
+            tensor::Tensor33 get_grad_chi();
             
-            tensor::Tensor get_C();
-            tensor::Tensor get_Psi();
-            tensor::Tensor get_Gamma();
+            tensor::Tensor23 get_C();
+            tensor::Tensor23 get_Psi();
+            tensor::Tensor33 get_Gamma();
             
         private:
             //!=
@@ -250,19 +250,19 @@ namespace micro_element
                                                                         //!to the current configuration.
             std::vector< std::vector< double > > dNdXs;                 //!The derivatives of the shape function with respect 
                                                                         //!to the reference configuration.
-            tensor::Tensor J                 = tensor::Tensor({3,3});   //!The jacobian of transformation e.g. dxi dX
-            tensor::Tensor Jinv              = tensor::Tensor({3,3});   //!The inverse of the jacobian of transformation e.g. (dxi dX)^(-1)
+            tensor::Tensor23 J = tensor::Tensor23({3,3});               //!The jacobian of transformation e.g. dxi dX
+            tensor::Tensor23 Jinv = tensor::Tensor23({3,3});            //!The inverse of the jacobian of transformation e.g. (dxi dX)^(-1)
             double Jhatdet  = 0;                                        //!The determinant of the jacobian of transformation 
                                                                         //!to the reference configuration. e.g. det(dxi dX)
             
-            tensor::Tensor F                 = tensor::Tensor({3,3});   //!The deformation gradient
-            tensor::Tensor chi               = tensor::Tensor({3,3});   //!The microdisplacement tensor
-            tensor::Tensor grad_chi          = tensor::Tensor({3,3,3}); //!The gradient of the microdisplacement tensor
+            tensor::Tensor23 F = tensor::Tensor23({3,3});               //!The deformation gradient
+            tensor::Tensor23 chi = tensor::Tensor23({3,3});             //!The microdisplacement tensor
+            tensor::Tensor33 grad_chi = tensor::Tensor33({3,3,3});      //!The gradient of the microdisplacement tensor
             
-            tensor::Tensor C                 = tensor::Tensor({3,3});   //!The Right Cauchy-Green deformation tensor
-            tensor::Tensor Cinv              = tensor::Tensor({3,3});   //!The inverse of teh Right Cauchy-Green deformation tensor
-            tensor::Tensor Psi               = tensor::Tensor({3,3});   //!The micro deformation tensor
-            tensor::Tensor Gamma             = tensor::Tensor({3,3,3}); //!The higher order deformation tensor
+            tensor::Tensor23 C = tensor::Tensor23({3,3});               //!The Right Cauchy-Green deformation tensor
+            tensor::Tensor23 Cinv = tensor::Tensor23({3,3});            //!The inverse of teh Right Cauchy-Green deformation tensor
+            tensor::Tensor23 Psi = tensor::Tensor23({3,3});             //!The micro deformation tensor
+            tensor::Tensor33 Gamma = tensor::Tensor33({3,3,3});         //!The higher order deformation tensor
             
             double Fdet = 0;                                            //!The determinant of the jacobian of the deformation gradient
             
@@ -279,5 +279,5 @@ namespace micro_element
     //!|
     //!==
     
-    tensor::Tensor vector_dyadic_product(const std::vector< double > &, const std::vector< double >&);
+    tensor::Tensor23 vector_dyadic_product(const std::vector< double > &, const std::vector< double >&); //!Dyadic product for second order tensors
 }

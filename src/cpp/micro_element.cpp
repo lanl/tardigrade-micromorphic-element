@@ -42,7 +42,7 @@ namespace micro_element
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
         for(int n=0; n<reference_coords.size(); n++){
-            node_phis[n] = tensor::Tensor(sot_shape);
+            node_phis[n] = tensor::Tensor23({3,3});
         }
         
         //Resize the stress measure vectors
@@ -52,9 +52,9 @@ namespace micro_element
         
         //Initialize stress measures to zero
         for(int i=0; i<3; i++){
-            PK2[i]   = tensor::Tensor({3,3});
-            SIGMA[i] = tensor::Tensor({3,3});
-            M[i]     = tensor::Tensor({3,3,3});
+            PK2[i]   = tensor::Tensor23({3,3});
+            SIGMA[i] = tensor::Tensor23({3,3});
+            M[i]     = tensor::Tensor33({3,3,3});
         }
         
         //Resize the private vector attributes
@@ -107,7 +107,7 @@ namespace micro_element
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
         for(int n=0; n<reference_coords.size(); n++){
-            node_phis[n] = tensor::Tensor(sot_shape);
+            node_phis[n] = tensor::Tensor23({3,3});
         }
         
         //Resize the stress measure vectors
@@ -117,9 +117,9 @@ namespace micro_element
         
         //Initialize stress measures to zero
         for(int i=0; i<3; i++){
-            PK2[i]   = tensor::Tensor({3,3});
-            SIGMA[i] = tensor::Tensor({3,3});
-            M[i]     = tensor::Tensor({3,3,3});
+            PK2[i]   = tensor::Tensor23({3,3});
+            SIGMA[i] = tensor::Tensor23({3,3});
+            M[i]     = tensor::Tensor33({3,3,3});
         }
         
         reference_coords = parse_incoming_vectors(1,rcs);
@@ -190,7 +190,7 @@ namespace micro_element
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
         for(int n=0; n<reference_coords.size(); n++){
-            node_phis[n] = tensor::Tensor(sot_shape);
+            node_phis[n] = tensor::Tensor23({3,3});
         }
         
         //Resize the stress measure vectors
@@ -200,9 +200,9 @@ namespace micro_element
         
         //Initialize stress measures to zero
         for(int i=0; i<3; i++){
-            PK2[i]   = tensor::Tensor({3,3});
-            SIGMA[i] = tensor::Tensor({3,3});
-            M[i]     = tensor::Tensor({3,3,3});
+            PK2[i]   = tensor::Tensor23({3,3});
+            SIGMA[i] = tensor::Tensor23({3,3});
+            M[i]     = tensor::Tensor33({3,3,3});
         }
         
         //Resize the private vector attributes
@@ -405,7 +405,7 @@ namespace micro_element
         */
         
         //Initialize the jacobian value i.e. set to zero
-        J = tensor::Tensor({3,3});
+        J.data.setZero();
 
         //Set up a temporary renaming variable depending on the mode
         std::vector< std::vector< double > > coordinates;
@@ -518,8 +518,8 @@ namespace micro_element
         */
         
         //Initialize vectors
-        tensor::Tensor dxdxi({3,3}); //!The derivative of the current coordinates w.r.t. the local coordinates
-        tensor::Tensor dXdxi({3,3}); //!The derivative of the reference coordinates w.r.t. the local coordinates
+        tensor::Tensor23 dxdxi; //!The derivative of the current coordinates w.r.t. the local coordinates
+        tensor::Tensor23 dXdxi; //!The derivative of the reference coordinates w.r.t. the local coordinates
         
         //Compute the derivatives of the reference and current coordinates w.r.t. xi
         for(int n=0; n<reference_coords.size(); n++){
@@ -527,10 +527,10 @@ namespace micro_element
             dXdxi += vector_dyadic_product(reference_coords[n],dNdxis[n]);
         }
         
-        tensor::Tensor dxidX = dXdxi.inverse(); //!The derivative of the local coordinates w.r.t. the reference coordinates
+        tensor::Tensor23 dxidX = dXdxi.inverse(); //!The derivative of the local coordinates w.r.t. the reference coordinates
         
         //Reset F to zero
-        F = tensor::Tensor(sot_shape); //!The deformation gradient
+        F.data.setZero(); //!The deformation gradient
         
         for(int i = 0; i<3; i++){
             for(int J=0; J<3; J++){
@@ -556,7 +556,7 @@ namespace micro_element
         
         */
         //Reset chi to zero
-        chi = tensor::Tensor(sot_shape);
+        chi.data.setZero();
         
         //Interpolate the nodal phis to xi
         for(int n=0; n<reference_coords.size(); n++){
@@ -579,11 +579,11 @@ namespace micro_element
         */
         
         //Initialize vectors
-        tensor::Tensor chi_n = tensor::Tensor(sot_shape); //!The value of chi at a node
-        tensor::Tensor I     = tensor::eye();             //!The second order identity tensor
+        tensor::Tensor23 chi_n;                 //!The value of chi at a node
+        tensor::Tensor23 I     = tensor::eye(); //!The second order identity tensor
         
         //Set grad_chi to zero
-        grad_chi = tensor::Tensor(tot_shape);
+        grad_chi.data.setZero();
         
         for(int n=0; n<reference_coords.size(); n++){
             chi_n = node_phis[n]+I;
@@ -634,7 +634,7 @@ namespace micro_element
         */
         
         //Zero the contents of C
-        C = tensor::Tensor(sot_shape);
+        C.data.setZero();
         
         //Form the right Cauchy-Green deformation tensor
         for(int I=0; I<3; I++){
@@ -661,7 +661,7 @@ namespace micro_element
         */
         
         //Zero the contents of Psi
-        Psi = tensor::Tensor(sot_shape);
+        Psi.data.setZero();
         
         //Form Psi
         for(int I=0; I<3; I++){
@@ -686,7 +686,7 @@ namespace micro_element
         */
         
         //Zero the contents of Gamma
-        Gamma = tensor::Tensor(tot_shape);
+        Gamma.data.setZero();
         
         //Form Gamma
         for(int I=0; I<3; I++){
@@ -788,13 +788,13 @@ namespace micro_element
         */
         
         //Initialize the internal moment tensor
-        tensor::Tensor mu_int = tensor::Tensor(sot_shape); //!The internal moment tensor
+        tensor::Tensor23 mu_int; //!The internal moment tensor
         
         int initial_index = 3;//*reference_coords.size();
         //Create the moment residual at the different nodes
         for(int n=0; n<reference_coords.size(); n++){
             
-            mu_int = tensor::Tensor({3,3});
+            mu_int.data.setZero();
             
             //Create the current value of mu_int
             for(int i=0; i<3; i++){
@@ -816,16 +816,6 @@ namespace micro_element
                 }
             }
             
-            //Populate the right hand side tensor
-            //RHS[initial_index+n*9+0] += mu_int(0,0);
-            //RHS[initial_index+n*9+1] += mu_int(1,1);
-            //RHS[initial_index+n*9+2] += mu_int(2,2);
-            //RHS[initial_index+n*9+3] += mu_int(1,2);
-            //RHS[initial_index+n*9+4] += mu_int(0,2);
-            //RHS[initial_index+n*9+5] += mu_int(0,1);
-            //RHS[initial_index+n*9+6] += mu_int(2,1);
-            //RHS[initial_index+n*9+7] += mu_int(2,0);
-            //RHS[initial_index+n*9+8] += mu_int(1,0);
             RHS[initial_index+n*12+0] += mu_int(0,0);
             RHS[initial_index+n*12+1] += mu_int(1,1);
             RHS[initial_index+n*12+2] += mu_int(2,2);
@@ -966,7 +956,7 @@ namespace micro_element
         return dNdxis[_n];
     }
     
-    tensor::Tensor Hex8::get_jacobian(int _mode){
+    tensor::Tensor23 Hex8::get_jacobian(int _mode){
         /*!======================
         |    get_jacobian    |
         ======================
@@ -1057,7 +1047,7 @@ namespace micro_element
         else{     return dNdXs[_node];}
     }
     
-    tensor::Tensor Hex8::get_F(){
+    tensor::Tensor23 Hex8::get_F(){
         /*!===============
         |    get_F    |
         ===============
@@ -1082,7 +1072,7 @@ namespace micro_element
         return F;
     }
     
-    tensor::Tensor Hex8::get_chi(){
+    tensor::Tensor23 Hex8::get_chi(){
         /*!=================
         |    get_chi    |
         =================
@@ -1107,7 +1097,7 @@ namespace micro_element
         return chi;
     }
     
-    tensor::Tensor Hex8::get_grad_chi(){
+    tensor::Tensor33 Hex8::get_grad_chi(){
         /*!======================
         |    get_grad_chi    |
         ======================
@@ -1132,7 +1122,7 @@ namespace micro_element
         return grad_chi;
     }
     
-    tensor::Tensor Hex8::get_C(){
+    tensor::Tensor23 Hex8::get_C(){
         /*!===============
         |    get_C    |
         ===============
@@ -1157,7 +1147,7 @@ namespace micro_element
         return C;
     }
     
-    tensor::Tensor Hex8::get_Psi(){
+    tensor::Tensor23 Hex8::get_Psi(){
         /*!=================
         |    get_Psi    |
         =================
@@ -1182,7 +1172,7 @@ namespace micro_element
         return Psi;
     }
     
-    tensor::Tensor Hex8::get_Gamma(){
+    tensor::Tensor33 Hex8::get_Gamma(){
         /*!===================
         |    get_Gamma    |
         ===================
@@ -1267,7 +1257,7 @@ namespace micro_element
     //!|
     //!==
     
-    tensor::Tensor vector_dyadic_product(const std::vector< double > & V1, const std::vector< double >& V2){
+    tensor::Tensor23 vector_dyadic_product(const std::vector< double > & V1, const std::vector< double >& V2){
         /*================================
         |    vector_dyadic_product    |
         ===============================
@@ -1287,7 +1277,7 @@ namespace micro_element
         int cols = V2.size();
         
         //Initialize the tensor data and shape variables
-        Eigen::MatrixXd data = Eigen::MatrixXd::Zero(rows,cols);
+        Eigen::Matrix<double,3,3> data = Eigen::MatrixXd::Zero(rows,cols);
         std::vector< int > shape = {rows, cols};
         
         //Compute the dyadic product of the two vectors
@@ -1297,7 +1287,7 @@ namespace micro_element
             }
         }
         
-        tensor::Tensor T = tensor::Tensor(shape,data);
+        tensor::Tensor23 T = tensor::Tensor23(shape,data);
         return T;
     }
 }

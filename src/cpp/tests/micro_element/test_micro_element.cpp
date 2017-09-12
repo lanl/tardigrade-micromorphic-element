@@ -93,7 +93,7 @@ std::vector< double > generate_current_coordinates(std::vector< double > referen
     return current_coord;
 }
 
-tensor::Tensor get_gradient_coordinates(std::vector< double > reference_coord){
+tensor::Tensor23 get_gradient_coordinates(std::vector< double > reference_coord){
     /*!==================================
     |    get_gradient_coordinates    |
     ==================================
@@ -109,8 +109,7 @@ tensor::Tensor get_gradient_coordinates(std::vector< double > reference_coord){
     
     */
     
-    std::vector< int > shape = {3,3};
-    tensor::Tensor T = tensor::Tensor(shape);
+    tensor::Tensor23 T;
     T(0,0) =  1.300;
     T(0,1) = -0.375;
     T(0,2) =  1.200;
@@ -208,8 +207,7 @@ int test_constructors(std::ofstream &results){
     
     //!|=> Test 5
     //!Check if the phi values were updated correctly
-    std::vector< int > shape = {3,3};
-    tensor::Tensor phic = tensor::Tensor(shape);
+    tensor::Tensor23 phic({3,3});
     
     test_results[7] = true;
     for(int n=0; n<8; n++){
@@ -363,20 +361,18 @@ int test_shape_functions(std::ofstream &results){
     //!Test whether the jacobian is computed correctly for the reference coordinates 
     //!at a location off the center of the element.
     
-    tensor::Tensor J_answer({3,3}); //!The answer jacobian.
-    tensor::Tensor J_result = element.get_jacobian(0);
-    
+    tensor::Tensor23 J_answer({3,3}); //!The answer jacobian.
+    tensor::Tensor23 J_result = element.get_jacobian(0);
     for(int n=0; n<8; n++){
         //J_answer += micro_element::vector_dyadic_product(dNdxi_answers[n],element.reference_coords[n]); //Compute the expected value of the jacobian
         J_answer += micro_element::vector_dyadic_product(element.reference_coords[n],dNdxi_answers[n]);
     }
-    
     test_results[4] = J_result.data.isApprox(J_answer.data); //Test the results
     
     //!|=> Test 6
     //!Test whether the jacobian is computed correctly for the current coordinates
     
-    J_answer = tensor::Tensor({3,3});
+    J_answer.data.setZero();
     J_result = element.get_jacobian(1);
     
     for(int n=0; n<8; n++){
@@ -392,8 +388,8 @@ int test_shape_functions(std::ofstream &results){
     
     std::vector< std::vector< double > > dNdX_answer; //Initialize the expected answer
     dNdX_answer.resize(8);
-    tensor::Tensor Jtemp = element.get_jacobian(0); //Get dXdxi
-    Jtemp = Jtemp.inverse();                        //Get dxidX
+    tensor::Tensor23 Jtemp = element.get_jacobian(0); //Get dXdxi
+    Jtemp = Jtemp.inverse();                          //Get dxidX
     
     for(int n=0; n<8; n++){
         dNdX_answer[n].resize(3); //Resize the gradient to be in three dimensions
@@ -575,12 +571,14 @@ int test_fundamental_measures(std::ofstream &results){
     element.update_shape_function_values();
     
     //!Set the fundamental deformation measures
+    std::cout << "here?\n";
     element.set_fundamental_measures();
     
     //!Compare the computed values to the expected result
-    tensor::Tensor F_answer({3,3});
-    tensor::Tensor chi_answer({3,3});
-    tensor::Tensor grad_chi_answer({3,3,3});
+    std::cout << "hi!\n";
+    tensor::Tensor23 F_answer({3,3});
+    tensor::Tensor23 chi_answer({3,3});
+    tensor::Tensor33 grad_chi_answer({3,3,3});
     
     //!Populate the expected gradients
     std::vector< std::vector< double > > gradients = compute_gradients(element.points[0]); //Compute the numeric gradients
@@ -628,7 +626,7 @@ int test_fundamental_measures(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -711,9 +709,9 @@ int test_deformation_measures(std::ofstream &results){
     element.set_deformation_measures();
     
     //!Compare the computed values to the expected result
-    tensor::Tensor C_answer({3,3});
-    tensor::Tensor Psi_answer({3,3});
-    tensor::Tensor Gamma_answer({3,3,3});
+    tensor::Tensor23 C_answer;
+    tensor::Tensor23 Psi_answer;
+    tensor::Tensor33 Gamma_answer;
     
     for(int I=0; I<3; I++){
         for(int J=0; J<3; J++){
@@ -942,11 +940,11 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     std::vector< double > RHS(96,0.);
     
     //!Define the internal stress balance
-    tensor::Tensor mu_int({3,3});
+    tensor::Tensor23 mu_int;
     
     //!Compute the internal stresses
     for(int n=0; n<8; n++){
-        mu_int = tensor::Tensor({3,3});
+        mu_int.data.setZero();
         
         for(int i=0; i<3; i++){
             for(int j=0; j<3; j++){
@@ -1070,7 +1068,7 @@ int test_integrate_element(std::ofstream &results){
     std::vector< double > RHS(96,0.);
     
     //!Define the internal stress balance
-    tensor::Tensor mu_int({3,3});
+    tensor::Tensor23 mu_int;
     
     //!Integrate the element
     for(int gpt_num=0; gpt_num<8; gpt_num++){
@@ -1090,7 +1088,7 @@ int test_integrate_element(std::ofstream &results){
             }
             
             //!Add the internal stress residual
-            mu_int = tensor::Tensor({3,3});
+            mu_int.data.setZero();
         
             for(int i=0; i<3; i++){
                 for(int j=0; j<3; j++){
@@ -1162,12 +1160,19 @@ int main(){
     results.open ("results.tex");
     
     //!Run the test functions
+    std::cout << "testing constructors\n";
     test_constructors(results);
+    std::cout << "testing shape functions\n";
     test_shape_functions(results);
+    std::cout << "testing fundamental measures\n";
     test_fundamental_measures(results);
+    std::cout << "testing deformation measures\n";
     test_deformation_measures(results);
+    std::cout << "test balance of linear momentum\n";
     test_balance_of_linear_momentum(results);
+    std::cout << "tests balance of first moment of momentum\n";
     test_balance_of_first_moment_of_momentum(results);
+    std::cout << "test integrate element\n";
     test_integrate_element(results);
     
     //Close the results file
