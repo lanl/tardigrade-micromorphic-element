@@ -137,7 +137,7 @@ int test_tensor_functionality(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -318,11 +318,8 @@ int test_inverse(std::ofstream &results){
     tensor::Tensor T = tensor::Tensor(m_shape); //Initialize and populate the tensor
     T.data << 2,4,3,5,1,3,4,6,1;
     
-    std::cout << "Running inverse\n";
     tensor::Tensor Tinv = T.inverse(); //Invert the tensor
-    std::cout << "Ending inverse\n";
     
-    std::cout << "Computing product\n";
     tensor::Tensor product = tensor::Tensor(m_shape); //Compute the product of the tensor and its inverse
     
     for(int i=0; i<3; i++){
@@ -332,17 +329,10 @@ int test_inverse(std::ofstream &results){
             }
         }
     }
-    std::cout << "Ending product\n";
-    
-    std::cout << "product:\n" << product.data << "\n";
     
     tensor::Tensor23 I = tensor::eye(); //Get the second order identity tensor
     
-    std::cout << "I:\n" << I.data << "\n";
-    
     test_results[0] = I.data.isApprox(product.data);
-    
-    std::cout << "test_results[0]: " << test_results[0] << "\n";
     
     /*!Test the inverse of a fourth order tensor*/
     std::vector< int > fot_shape; //Initialize the shape vector
@@ -564,17 +554,11 @@ int main(){
     results.open ("results.tex");
         
     //!Run the test functions
-    std::cout << "test functionality\n";
     test_tensor_functionality(results);
-    std::cout << "test inverse\n";
     test_inverse(results);
-    std::cout << "test eye\n";
     test_eye(results);
-    std::cout << "test FOT eye\n";
     test_FOT_eye(results);
-    std::cout << "test determinant\n";
     test_det(results);
-    std::cout << "Test operators\n";
     test_operators(results);
     
     //Close the results file
