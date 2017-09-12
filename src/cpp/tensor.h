@@ -190,6 +190,12 @@ namespace tensor
         
                 if(T1.shape != shape){
                     std::cout << "\nError: tensors must have the same shape\n";
+                    std::cout << "first tensor shape: {";
+                    for(int i=0; i<shape.size(); i++){std::cout << " " << shape[i];}
+                    std::cout << "}\n";
+                    std::cout << "second matrix shape: {";
+                    for(int i=0; i<T1.shape.size(); i++){std::cout << " " << T1.shape[i];}
+                    std::cout << " }\n";
                     assert(1==0); //TODO: allow to raise error
                 }
                 
@@ -217,6 +223,12 @@ namespace tensor
         
                 if(T1.shape != shape){
                     std::cout << "\nError: tensors must have the same shape\n";
+                    std::cout << "base tensor shape: {";
+                    for(int i=0; i<shape.size(); i++){std::cout << " " << shape[i];}
+                    std::cout << "}\n";
+                    std::cout << "added tensor shape: {";
+                    for(int i=0; i<T1.shape.size(); i++){std::cout << " " << T1.shape[i];}
+                    std::cout << " }\n";
                     assert(1==0); //TODO: allow to raise error
                 }
         
@@ -441,7 +453,7 @@ namespace tensor
                 //Error Handling
                 if(indices.size() != shape.size()){//Make sure the number of indices is equal to the tensor order
                     //TODO: Should raise an error!
-                    std::cout << "Error: indices size does not equal the order of the tensor.";
+                    std::cout << "Error: indices size does not equal the order of the tensor.\n";
                     assert(1==0);
                 }
         
