@@ -34,8 +34,8 @@
 namespace micro_material{
     
     void get_stress(const std::vector< double > &fparams, const std::vector< int > &iparams,
-                          const tensor::Tensor&   C_in,   const tensor::Tensor&   Psi_in,    const tensor::Tensor& Gamma_in,
-                          tensor::Tensor& PK2_stress,     tensor::Tensor& SIGMA_stress,      tensor::Tensor& M_stress){
+                          const tensor::Tensor23&   C_in,   const tensor::Tensor23&   Psi_in,    const tensor::Tensor33& Gamma_in,
+                          tensor::Tensor23& PK2_stress,     tensor::Tensor23& SIGMA_stress,      tensor::Tensor33& M_stress){
         /*!========================================
         |              get_stress              |
         ========================================
@@ -55,32 +55,32 @@ namespace micro_material{
         */
         
         //!Common tensors
-        tensor::Tensor ITEN = tensor::eye(); //!The second order identity tensor
+        tensor::Tensor23 ITEN = tensor::eye(); //!The second order identity tensor
         
         //!Copy over the deformation measures
-        tensor::Tensor C     = C_in;
-        tensor::Tensor Cinv  = C.inverse();
-        tensor::Tensor Psi   = Psi_in;
-        tensor::Tensor Gamma = Gamma_in;
+        tensor::Tensor23 C     = C_in;
+        tensor::Tensor23 Cinv  = C.inverse();
+        tensor::Tensor23 Psi   = Psi_in;
+        tensor::Tensor33 Gamma = Gamma_in;
         
         //!Compute the strain measures
-        tensor::Tensor macro_E = 0.5*(C - ITEN); //The macro Green-Lagrange strain
-        tensor::Tensor micro_E = Psi - ITEN;     //The micro equivalent of the Green-Lagrange strain
+        tensor::Tensor23 macro_E = 0.5*(C - ITEN); //The macro Green-Lagrange strain
+        tensor::Tensor23 micro_E = Psi - ITEN;     //The micro equivalent of the Green-Lagrange strain
         
         //!Compute the stiffness tensors
-        tensor::Tensor A_stiffness = generate_A_stiffness(fparams);
-        tensor::Tensor B_stiffness = generate_B_stiffness(fparams);
-        tensor::Tensor C_stiffness = generate_C_stiffness(fparams);
-        tensor::Tensor D_stiffness = generate_D_stiffness(fparams);
+        tensor::Tensor43 A_stiffness      = generate_A_stiffness(fparams);
+        tensor::Tensor43 B_stiffness      = generate_B_stiffness(fparams);
+        tensor::Tensor63 C_stiffness = generate_C_stiffness(fparams);
+        tensor::Tensor43 D_stiffness      = generate_D_stiffness(fparams);
         
         //!Zero the stress measures
-        PK2_stress   = tensor::Tensor({3,3});   //Zero out the Second Piola-Kirchhoff stress
-        SIGMA_stress = tensor::Tensor({3,3});   //Zero out the symmetric micro-stress tensor
-        M_stress     = tensor::Tensor({3,3,3}); //Zero out the higher order couple stress
+        PK2_stress.data.setZero();   //Zero out the Second Piola-Kirchhoff stress
+        SIGMA_stress.data.setZero(); //Zero out the symmetric micro-stress tensor
+        M_stress.data.setZero();     //Zero out the higher order couple stress
         
         //!Create temporary storage tensors for the common terms
-        tensor::Tensor term1({3,3});
-        tensor::Tensor term2({3,3});
+        tensor::Tensor23 term1({3,3});
+        tensor::Tensor23 term2({3,3});
         
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
@@ -140,7 +140,7 @@ namespace micro_material{
         return;
     }
     
-    tensor::Tensor generate_A_stiffness(const std::vector< double > &fparams){
+    tensor::Tensor43 generate_A_stiffness(const std::vector< double > &fparams){
         /*!==============================
         |    generate_A_stiffness    |
         ==============================
@@ -150,10 +150,10 @@ namespace micro_material{
         
         */
         
-        tensor::Tensor I = tensor::eye();      //!Second order identity tensor
-        tensor::Tensor A_stiffness({3,3,3,3}); //!Fourth order stiffness tensor A
-        double lambda = fparams[0];            //!lambda micromorphic material parameter
-        double mu     = fparams[1];            //!mu micromorphic material parameter
+        tensor::Tensor23 I = tensor::eye();      //!Second order identity tensor
+        tensor::Tensor43 A_stiffness({3,3,3,3}); //!Fourth order stiffness tensor A
+        double lambda = fparams[0];              //!lambda micromorphic material parameter
+        double mu     = fparams[1];              //!mu micromorphic material parameter
         
         for(int K=0; K<3; K++){
             for(int L=0; L<3; L++){
@@ -168,7 +168,7 @@ namespace micro_material{
         return A_stiffness;
     }
     
-    tensor::Tensor generate_B_stiffness(const std::vector< double > &fparams){
+    tensor::Tensor43 generate_B_stiffness(const std::vector< double > &fparams){
         /*!==============================
         |    generate_B_stiffness    |
         ==============================
@@ -178,13 +178,13 @@ namespace micro_material{
         
         */
         
-        tensor::Tensor I = tensor::eye();      //!Second order identity tensor
-        tensor::Tensor B_stiffness({3,3,3,3}); //!Fourth order stiffness tensor B
-        double eta   = fparams[2];             //!eta micromorphic material parameter
-        double tau   = fparams[3];             //!tau micromorphic material parameter
-        double kappa = fparams[4];             //!kappa micromorphic material parameter
-        double nu    = fparams[5];             //!nu micromorphic material parameter
-        double sigma = fparams[6];             //!sigma micromorphic material parameter
+        tensor::Tensor23 I = tensor::eye();      //!Second order identity tensor
+        tensor::Tensor43 B_stiffness({3,3,3,3}); //!Fourth order stiffness tensor B
+        double eta   = fparams[2];               //!eta micromorphic material parameter
+        double tau   = fparams[3];               //!tau micromorphic material parameter
+        double kappa = fparams[4];               //!kappa micromorphic material parameter
+        double nu    = fparams[5];               //!nu micromorphic material parameter
+        double sigma = fparams[6];               //!sigma micromorphic material parameter
         
         for(int K=0; K<3; K++){
             for(int L=0; L<3; L++){
@@ -200,7 +200,7 @@ namespace micro_material{
         return B_stiffness;
     }
     
-    tensor::Tensor generate_C_stiffness(const std::vector< double > &fparams){
+    tensor::Tensor63 generate_C_stiffness(const std::vector< double > &fparams){
         /*!==============================
         |    generate_C_stiffness    |
         ==============================
@@ -210,19 +210,19 @@ namespace micro_material{
         
         */
         
-        tensor::Tensor I = tensor::eye();          //!Second order identity tensor
-        tensor::Tensor C_stiffness({3,3,3,3,3,3}); //!Sixth order stiffness tensor C
-        double tau1  = fparams[ 7];                //!tau1  micromorphic material parameter
-        double tau2  = fparams[ 8];                //!tau2  micromorphic material parameter
-        double tau3  = fparams[ 9];                //!tau3  micromorphic material parameter
-        double tau4  = fparams[10];                //!tau4  micromorphic material parameter
-        double tau5  = fparams[11];                //!tau5  micromorphic material parameter
-        double tau6  = fparams[12];                //!tau6  micromorphic material parameter
-        double tau7  = fparams[13];                //!tau7  micromorphic material parameter
-        double tau8  = fparams[14];                //!tau8  micromorphic material parameter
-        double tau9  = fparams[15];                //!tau9  micromorphic material parameter
-        double tau10 = fparams[16];                //!tau10 micromorphic material parameter
-        double tau11 = fparams[17];                //!tau11 micromorphic material parameter
+        tensor::Tensor23 I = tensor::eye();          //!Second order identity tensor
+        tensor::Tensor63 C_stiffness({3,3,3,3,3,3}); //!Sixth order stiffness tensor C
+        double tau1  = fparams[ 7];                  //!tau1  micromorphic material parameter
+        double tau2  = fparams[ 8];                  //!tau2  micromorphic material parameter
+        double tau3  = fparams[ 9];                  //!tau3  micromorphic material parameter
+        double tau4  = fparams[10];                  //!tau4  micromorphic material parameter
+        double tau5  = fparams[11];                  //!tau5  micromorphic material parameter
+        double tau6  = fparams[12];                  //!tau6  micromorphic material parameter
+        double tau7  = fparams[13];                  //!tau7  micromorphic material parameter
+        double tau8  = fparams[14];                  //!tau8  micromorphic material parameter
+        double tau9  = fparams[15];                  //!tau9  micromorphic material parameter
+        double tau10 = fparams[16];                  //!tau10 micromorphic material parameter
+        double tau11 = fparams[17];                  //!tau11 micromorphic material parameter
         
         for(int K=0; K<3; K++){
             for(int L=0; L<3; L++){
@@ -247,7 +247,7 @@ namespace micro_material{
         return C_stiffness;
     }
     
-    tensor::Tensor generate_D_stiffness(const std::vector< double > &fparams){
+    tensor::Tensor43 generate_D_stiffness(const std::vector< double > &fparams){
         /*!==============================
         |    generate_D_stiffness    |
         ==============================
@@ -257,10 +257,10 @@ namespace micro_material{
         
         */
         
-        tensor::Tensor I = tensor::eye();      //!Second order identity tensor
-        tensor::Tensor D_stiffness({3,3,3,3}); //!Fourth order stiffness tensor D
-        double tau   = fparams[3];             //!tau micromorphic material parameter
-        double sigma = fparams[6];             //!sigma micromorphic material parameter
+        tensor::Tensor23 I = tensor::eye();      //!Second order identity tensor
+        tensor::Tensor43 D_stiffness({3,3,3,3}); //!Fourth order stiffness tensor D
+        double tau   = fparams[3];               //!tau micromorphic material parameter
+        double sigma = fparams[6];               //!sigma micromorphic material parameter
         
         for(int K=0; K<3; K++){
             for(int L=0; L<3; L++){

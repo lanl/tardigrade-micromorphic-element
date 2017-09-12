@@ -30,11 +30,11 @@
 namespace micro_material{
     
     void get_stress(const std::vector< double >&, const std::vector< int >&,
-                          const tensor::Tensor&,  const tensor::Tensor&, const tensor::Tensor&,
-                          tensor::Tensor&,        tensor::Tensor&,       tensor::Tensor&);
+                          const tensor::Tensor23&,  const tensor::Tensor23&, const tensor::Tensor33&,
+                          tensor::Tensor23&,        tensor::Tensor23&,       tensor::Tensor33&);
     
-    tensor::Tensor generate_A_stiffness(const std::vector< double > &);
-    tensor::Tensor generate_B_stiffness(const std::vector< double > &);
-    tensor::Tensor generate_C_stiffness(const std::vector< double > &);
-    tensor::Tensor generate_D_stiffness(const std::vector< double > &);
+    tensor::Tensor43 generate_A_stiffness(const std::vector< double > &);
+    tensor::Tensor43 generate_B_stiffness(const std::vector< double > &);
+    tensor::Tensor63 generate_C_stiffness(const std::vector< double > &);
+    tensor::Tensor43 generate_D_stiffness(const std::vector< double > &);
 }
