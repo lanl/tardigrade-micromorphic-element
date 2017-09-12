@@ -95,19 +95,19 @@ void test_stiffness_tensors(std::ofstream &results){
     }
     
     //!Initialize the common tensors
-    tensor::Tensor I = tensor::eye();
+    tensor::Tensor23 I = tensor::eye();
     
     //!initialize the tensor answers
-    tensor::Tensor A_answer({3,3,3,3});
-    tensor::Tensor B_answer({3,3,3,3});
-    tensor::Tensor C_answer({3,3,3,3,3,3});
-    tensor::Tensor D_answer({3,3,3,3});
+    tensor::Tensor43 A_answer({3,3,3,3});
+    tensor::Tensor43 B_answer({3,3,3,3});
+    tensor::Tensor63 C_answer({3,3,3,3,3,3});
+    tensor::Tensor43 D_answer({3,3,3,3});
     
     //!Compute the expected tensors
-    tensor::Tensor A_result = micro_material::generate_A_stiffness(fparams);
-    tensor::Tensor B_result = micro_material::generate_B_stiffness(fparams);
-    tensor::Tensor C_result = micro_material::generate_C_stiffness(fparams);
-    tensor::Tensor D_result = micro_material::generate_D_stiffness(fparams);
+    tensor::Tensor43 A_result = micro_material::generate_A_stiffness(fparams);
+    tensor::Tensor43 B_result = micro_material::generate_B_stiffness(fparams);
+    tensor::Tensor63 C_result = micro_material::generate_C_stiffness(fparams);
+    tensor::Tensor43 D_result = micro_material::generate_D_stiffness(fparams);
     
     //!Extract the values of fparams
     double lambda = fparams[ 0];             //!lambda micromorphic material parameter
@@ -283,7 +283,7 @@ void test_get_stress(std::ofstream &results){
     srand (1);
     
     //!Initialize the common tensors
-    tensor::Tensor ITEN = tensor::eye();
+    tensor::Tensor23 ITEN = tensor::eye();
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(18,0.);
@@ -338,9 +338,9 @@ void test_get_stress(std::ofstream &results){
     chi(1,0) =    U[11];
     
     //!Populate derived deformation measures
-    tensor::Tensor C({3,3});          //!The right Cauchy-Green deformation tensor
-    tensor::Tensor Psi({3,3});        //!The micro-deformation measure
-    tensor::Tensor Gamma({3,3,3});    //!The higher order micro-deformation measure
+    tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor
+    tensor::Tensor23 Psi({3,3});        //!The micro-deformation measure
+    tensor::Tensor33 Gamma({3,3,3});    //!The higher order micro-deformation measure
     
     for(int I=0; I<3; I++){
         for(int J=0; J<3; J++){
@@ -356,21 +356,21 @@ void test_get_stress(std::ofstream &results){
         }
     }
     
-    tensor::Tensor Cinv = C.inverse();
+    tensor::Tensor23 Cinv = C.inverse();
     
     //!Compute the strain measures
-    tensor::Tensor macro_E = 0.5*(C-ITEN);
-    tensor::Tensor micro_E = Psi-ITEN;
+    tensor::Tensor23 macro_E = 0.5*(C-ITEN);
+    tensor::Tensor23 micro_E = Psi-ITEN;
     
     //!Compute the stiffness tensors
-    tensor::Tensor A_stiffness = micro_material::generate_A_stiffness(fparams);
-    tensor::Tensor B_stiffness = micro_material::generate_B_stiffness(fparams);
-    tensor::Tensor C_stiffness = micro_material::generate_C_stiffness(fparams);
-    tensor::Tensor D_stiffness = micro_material::generate_D_stiffness(fparams);
+    tensor::Tensor43 A_stiffness = micro_material::generate_A_stiffness(fparams);
+    tensor::Tensor43 B_stiffness = micro_material::generate_B_stiffness(fparams);
+    tensor::Tensor63 C_stiffness = micro_material::generate_C_stiffness(fparams);
+    tensor::Tensor43 D_stiffness = micro_material::generate_D_stiffness(fparams);
     
-    tensor::Tensor PK2_answer({3,3});   //!The expected second Piola-Kirchhoff Stress
-    tensor::Tensor SIGMA_answer({3,3}); //!The symmetric micro-stress
-    tensor::Tensor M_answer({3,3,3});   //!The expected higher order stress
+    tensor::Tensor23 PK2_answer({3,3});   //!The expected second Piola-Kirchhoff Stress
+    tensor::Tensor23 SIGMA_answer({3,3}); //!The symmetric micro-stress
+    tensor::Tensor33 M_answer({3,3,3});   //!The expected higher order stress
     
     //!Compute the answer stress tensors
     for(int I=0; I<3; I++){
@@ -427,9 +427,9 @@ void test_get_stress(std::ofstream &results){
     }
     
     //!The initialization of the result stress tensors
-    tensor::Tensor PK2_result({3,3});
-    tensor::Tensor SIGMA_result({3,3});
-    tensor::Tensor M_result({3,3,3});
+    tensor::Tensor23 PK2_result({3,3});
+    tensor::Tensor23 SIGMA_result({3,3});
+    tensor::Tensor33 M_result({3,3,3});
     
     //!Compute and assign the stresses to the result measures
     micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
