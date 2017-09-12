@@ -38,17 +38,11 @@ namespace tensor{
         
         //Initialize the matrix
         
-        std::cout << "pre construction\n";
-        
         Tensor23 I({3,3});
-        
-        std::cout << "post construction\n";
         
         for(int i=0; i<3; i++){
             I(i,i) = 1.;
         }
-        
-        std::cout << "I constructed\n";
         return I;
     }
     Tensor43 FOT_eye(){
