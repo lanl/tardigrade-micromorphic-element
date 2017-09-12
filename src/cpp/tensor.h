@@ -20,7 +20,7 @@
   
 namespace tensor
 {
-    template<int m_b = Eigen::Dynamic, int n_b=Eigen::Dynamic> class BaseTensor{
+    template<int m_b = Eigen::Dynamic, int n_b = Eigen::Dynamic> class BaseTensor{
         /*!===
            |
            | B a s e T e n s o r
@@ -54,15 +54,15 @@ namespace tensor
             //!|
             //!==
         
-            std::vector< int >                  shape;                          //!The shape of the tensor a vector of integers indicating each dimensions length
-            std::array< int,2 >                 data_dimensions = {m_b,n_b};    //!The dimensions of the data matrix
-            Eigen::Matrix<double, m_b, n_b>     data;                           //!The data object for the tensor a Eigen::Matrix
-            std::string                         format = "default";             //!The format of the data object. This modifies the way the tensor is stored
-                                                                                //!options: (default)
-            int                                 index_split;                    //!Where, in the indices for the tensor, the split between rows and
-                                                                                //!Columns occurs for the storage array. This is the first index 
-                                                                                //!associated with the columns.
-            std::vector< int >::const_iterator  iterator_split;                 //!The location of the iterator which marks the split in the array
+            std::vector< int >                  shape;                           //!The shape of the tensor a vector of integers indicating each dimensions length
+            std::array< int,2 >                 data_dimensions = { {m_b,n_b} }; //!The dimensions of the data matrix (note, double braces for gcc compiler)
+            Eigen::Matrix<double, m_b, n_b>     data;                            //!The data object for the tensor a Eigen::Matrix
+            std::string                         format = "default";              //!The format of the data object. This modifies the way the tensor is stored
+                                                                                 //!options: (default)
+            int                                 index_split;                     //!Where, in the indices for the tensor, the split between rows and
+                                                                                 //!Columns occurs for the storage array. This is the first index 
+                                                                                 //!associated with the columns.
+            std::vector< int >::const_iterator  iterator_split;                  //!The location of the iterator which marks the split in the array
         
             //!==
             //!|
@@ -75,33 +75,52 @@ namespace tensor
             }
             
             
-            BaseTensor(std::vector< int > dimensions){
+            BaseTensor(std::vector< int > _shape){
                 /*!A constructor for a tensor where the dimensions of the tensor are read in
                 The tensor will be initialized to 0.*/
+                
+                int temp_rows; //!A temporary variable indicating the expected number of rows 
+                               //!Of the matrix given the current value of index_split
+                
+                //Assign the incoming dimensions to shape
+                shape = _shape;
+                
+                std::cout << "data.rows(): " << data.rows() << " data.cols(): " << data.cols() << "\n";
+                std::cout << "data_dimensions[0]: " << data_dimensions[0] << " data_dimensions[1]: " << data_dimensions[1] << "\n";
                 
                 if((data_dimensions[0]==Eigen::Dynamic) || (data_dimensions[1]==Eigen::Dynamic)){
                     set_dimensions();
                 }
-        
-                //Assign the incoming dimensions to shape
-                shape = dimensions;
+                else{
+                    //Assign the value to index_split which 
+                    //Corresponds with the assigned data 
+                    //matrix dimensions.
+                    index_split = 1;
+                    temp_rows   = shape[0];
+                    while((temp_rows<data.rows()) && (index_split<shape.size())){
+                        temp_rows += shape[index_split];
+                        index_split++;
+                    }
+                }
         
                 //Set the multiplication factors
+                std::cout << "setting factors\n";
                 set_factors();
         
             }
             
-            BaseTensor(std::vector< int > dimensions, Eigen::MatrixXd data_in){
+            BaseTensor(std::vector< int > _shape, Eigen::MatrixXd data_in){
                 /*!A constructor for a tensor where the dimensions of the tensor are read in
                 along with the data values.
         
                 dimensions and data must be consistent!*/
+                
+                //Assign the incoming dimensions to shape
+                shape = _shape;
+                
                 if((data_dimensions[0]==Eigen::Dynamic) || (data_dimensions[1]==Eigen::Dynamic)){
                     set_dimensions();
                 }
-        
-                //Assign the incoming dimensions to shape
-                shape = dimensions;
         
                 //Set the multiplication factors
                 set_factors();
@@ -121,7 +140,7 @@ namespace tensor
             //!| Operators
             //!|
             //!==
-            template< int m, int n> class BaseTensor& operator=(const BaseTensor<m,n>& T){
+            BaseTensor<m_b,n_b>& operator=(const BaseTensor<m_b,n_b>& T){
                 /*!================================================
                 |               Tensor::operator=               |
                 =================================================
@@ -139,7 +158,7 @@ namespace tensor
                 index_factors   = T.index_factors;
             }
     
-            template< int m, int n> class BaseTensor operator+(const BaseTensor<m,n>& T1){
+            BaseTensor<m_b,n_b> operator+(const BaseTensor<m_b,n_b>& T1){
                 /*!================================================
                 |               Tensor::operator+               |
                 =================================================
@@ -158,15 +177,15 @@ namespace tensor
                     assert(1==0); //TODO: allow to raise error
                 }
         
-                Eigen::Matrix<double,m,n> new_data = T1.data + data;
+                Eigen::Matrix<double,m_b,n_b> new_data = T1.data + data;
         
-                BaseTensor<m,n> T = BaseTensor<m,n>(T1.shape,new_data);
+                BaseTensor<m_b,n_b> T(T1.shape,new_data);
                 return T;
         
             }
             
-            template<int m, int n>
-            void operator+=(const BaseTensor<m,n>& T1){
+            //template<int m, int n>
+            void operator+=(const BaseTensor<m_b,n_b>& T1){
                 /*!================================================
                 |               Tensor::operator+=              |
                 =================================================
@@ -191,7 +210,7 @@ namespace tensor
         
             }
             
-            template< int m, int n> BaseTensor operator-(const BaseTensor<m,n>& T1){
+            BaseTensor<m_b,n_b> operator-(const BaseTensor<m_b,n_b>& T1){
                 /*!================================================
                 |               Tensor::operator-               |
                 =================================================
@@ -210,14 +229,14 @@ namespace tensor
                     assert(1==0); //TODO: allow to raise error
                 }
         
-                Eigen::Matrix<double,m,n> new_data = data - T1.data;
+                Eigen::Matrix<double,m_b,n_b> new_data = data - T1.data;
         
-                BaseTensor<m,n> T = BaseTensor<m,n>(T1.shape,new_data);
+                BaseTensor<m_b,n_b> T(T1.shape,new_data);
                 return T;
         
             }
     
-            template< int m, int n> BaseTensor operator-(){
+            BaseTensor<m_b,n_b> operator-(){
                 /*!================================================
                 |               Tensor::operator-               |
                 =================================================
@@ -226,15 +245,14 @@ namespace tensor
         
                 */
         
-                Eigen::Matrix<double, m, n> new_data = -data;
+                Eigen::Matrix<double, m_b, n_b> new_data = -data;
         
-                BaseTensor<m,n> T = BaseTensor<m,n>(shape,new_data);
+                BaseTensor<m_b,n_b> T(shape,new_data);
                 return T;
         
             }
     
-            template< int m, int n>
-            void operator-=(const BaseTensor<m,n> &T1){
+            void operator-=(const BaseTensor<m_b,n_b> &T1){
                 /*!================================================
                 |               Tensor::operator-=              |
                 =================================================
@@ -318,17 +336,18 @@ namespace tensor
             //!|
             //!==
             
-            template< int m, int n> BaseTensor inverse(){
+            BaseTensor<m_b,n_b> inverse(){
                 /*!Invert a tensor of even order. 
         
                 This method directly inverts the data matrix which returns an inverse
                 of the tensor. This method will only work with tensors of even order 
                 such that the storage matrix is square.*/
         
-                Eigen::Matrix<float,m,n> inv_data = data.inverse();
-                BaseTensor<m,n> T_out = BaseTensor(shape,inv_data);
+                Eigen::Matrix<double,m_b,n_b> inv_data = data.inverse();
+                BaseTensor<m_b,n_b> T_out(shape,inv_data);
                 return T_out;
             }
+            
             double det(){
                 /*!Get the determinant of a tensor of even order
         
@@ -338,6 +357,7 @@ namespace tensor
         
                 return data.determinant();
             }
+            
             void zero(){
                 /*! Set all values of the tensor to zero */
         
@@ -363,6 +383,8 @@ namespace tensor
                 */
         
                 index_factors    = std::vector< int >(shape.size(),1);
+                std::cout << "index_factors.size(): " << index_factors.size() << "\n";
+                std::cout << "index_split:          " << index_split << "\n";
         
                 //Get the row index
                 for(int i=0; i<index_split; i++){//Iterate through the pre-split indices
@@ -615,6 +637,7 @@ namespace tensor
     
     typedef BaseTensor<3,3> Tensor23;
     typedef BaseTensor<9,9> Tensor43;
+    typedef BaseTensor<Eigen::Dynamic, Eigen::Dynamic> Tensor;
     
     //!==
     //!|
@@ -622,44 +645,6 @@ namespace tensor
     //!|
     //!==
         
-    Tensor23 eye(){
-        /*!Return the second order identity tensor
-        
-        Populate the second order identity tensor.
-        This function is useful so that a consistent identity tensor can be used 
-        with different storage schemes.*/
-        
-        //Initialize the matrix
-        Tensor23 I = Tensor23({3,3});
-        
-        for(int i=0; i<3; i++){
-            I(i,i) = 1.;
-        }
-        return I;
-    }
-    Tensor43 FOT_eye(){
-        /*!Return the fourth order identity tensor
-        
-        Populate the fourth order identity tensor.
-        This function is useful so that a consistent identity tensor can be used
-        with different storage schemes.*/
-        
-        //Initialize the tensor
-        Tensor43 FOTI = Tensor43({3,3,3,3});
-        Tensor23 I    = eye(); //Get the second order identity tensor
-        
-        for(int i=0; i<3; i++){
-            for(int j=0; j<3; j++){
-                for(int k=0; k<3; k++){
-                    for(int l=0; l<3; l++){
-                        FOTI(i,j,k,l) = I(i,k)*I(j,l);
-                    }
-                }
-            }
-        }
-        
-        return FOTI;
-    }
-    
-    
+    Tensor23 eye();
+    Tensor43 FOT_eye();
 }
