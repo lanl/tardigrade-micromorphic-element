@@ -68,10 +68,10 @@ namespace micro_material{
         tensor::Tensor23 micro_E = Psi - ITEN;     //The micro equivalent of the Green-Lagrange strain
         
         //!Compute the stiffness tensors
-        tensor::Tensor43 A_stiffness      = generate_A_stiffness(fparams);
-        tensor::Tensor43 B_stiffness      = generate_B_stiffness(fparams);
+        tensor::Tensor43 A_stiffness = generate_A_stiffness(fparams);
+        tensor::Tensor43 B_stiffness = generate_B_stiffness(fparams);
         tensor::Tensor63 C_stiffness = generate_C_stiffness(fparams);
-        tensor::Tensor43 D_stiffness      = generate_D_stiffness(fparams);
+        tensor::Tensor43 D_stiffness = generate_D_stiffness(fparams);
         
         //!Zero the stress measures
         PK2_stress.data.setZero();   //Zero out the Second Piola-Kirchhoff stress
