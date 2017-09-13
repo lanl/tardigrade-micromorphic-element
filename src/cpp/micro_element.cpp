@@ -51,7 +51,7 @@ namespace micro_element
         M.resize(number_gauss_points);
         
         //Initialize stress measures to zero
-        for(int i=0; i<3; i++){
+        for(int i=0; i<number_gauss_points; i++){
             PK2[i]   = tensor::Tensor23({3,3});
             SIGMA[i] = tensor::Tensor23({3,3});
             M[i]     = tensor::Tensor33({3,3,3});
@@ -116,7 +116,7 @@ namespace micro_element
         M.resize(number_gauss_points);
         
         //Initialize stress measures to zero
-        for(int i=0; i<3; i++){
+        for(int i=0; i<number_gauss_points; i++){
             PK2[i]   = tensor::Tensor23({3,3});
             SIGMA[i] = tensor::Tensor23({3,3});
             M[i]     = tensor::Tensor33({3,3,3});
@@ -199,7 +199,7 @@ namespace micro_element
         M.resize(number_gauss_points);
         
         //Initialize stress measures to zero
-        for(int i=0; i<3; i++){
+        for(int i=0; i<number_gauss_points; i++){
             PK2[i]   = tensor::Tensor23({3,3});
             SIGMA[i] = tensor::Tensor23({3,3});
             M[i]     = tensor::Tensor33({3,3,3});
@@ -518,8 +518,8 @@ namespace micro_element
         */
         
         //Initialize vectors
-        tensor::Tensor23 dxdxi; //!The derivative of the current coordinates w.r.t. the local coordinates
-        tensor::Tensor23 dXdxi; //!The derivative of the reference coordinates w.r.t. the local coordinates
+        tensor::Tensor23 dxdxi({3,3}); //!The derivative of the current coordinates w.r.t. the local coordinates
+        tensor::Tensor23 dXdxi({3,3}); //!The derivative of the reference coordinates w.r.t. the local coordinates
         
         //Compute the derivatives of the reference and current coordinates w.r.t. xi
         for(int n=0; n<reference_coords.size(); n++){
@@ -579,7 +579,7 @@ namespace micro_element
         */
         
         //Initialize vectors
-        tensor::Tensor23 chi_n;                 //!The value of chi at a node
+        tensor::Tensor23 chi_n({3,3});          //!The value of chi at a node
         tensor::Tensor23 I     = tensor::eye(); //!The second order identity tensor
         
         //Set grad_chi to zero
@@ -714,6 +714,7 @@ namespace micro_element
         gauss point.
         
         */
+        
         micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
         
         return;
@@ -788,7 +789,7 @@ namespace micro_element
         */
         
         //Initialize the internal moment tensor
-        tensor::Tensor23 mu_int; //!The internal moment tensor
+        tensor::Tensor23 mu_int({3,3}); //!The internal moment tensor
         
         int initial_index = 3;//*reference_coords.size();
         //Create the moment residual at the different nodes

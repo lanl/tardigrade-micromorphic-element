@@ -571,11 +571,9 @@ int test_fundamental_measures(std::ofstream &results){
     element.update_shape_function_values();
     
     //!Set the fundamental deformation measures
-    std::cout << "here?\n";
     element.set_fundamental_measures();
     
     //!Compare the computed values to the expected result
-    std::cout << "hi!\n";
     tensor::Tensor23 F_answer({3,3});
     tensor::Tensor23 chi_answer({3,3});
     tensor::Tensor33 grad_chi_answer({3,3,3});
@@ -626,7 +624,7 @@ int test_fundamental_measures(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -709,9 +707,9 @@ int test_deformation_measures(std::ofstream &results){
     element.set_deformation_measures();
     
     //!Compare the computed values to the expected result
-    tensor::Tensor23 C_answer;
-    tensor::Tensor23 Psi_answer;
-    tensor::Tensor33 Gamma_answer;
+    tensor::Tensor23 C_answer({3,3});
+    tensor::Tensor23 Psi_answer({3,3});
+    tensor::Tensor33 Gamma_answer({3,3,3});
     
     for(int I=0; I<3; I++){
         for(int J=0; J<3; J++){
@@ -940,7 +938,7 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     std::vector< double > RHS(96,0.);
     
     //!Define the internal stress balance
-    tensor::Tensor23 mu_int;
+    tensor::Tensor23 mu_int({3,3});
     
     //!Compute the internal stresses
     for(int n=0; n<8; n++){
@@ -1049,10 +1047,10 @@ int test_integrate_element(std::ofstream &results){
         }
     }
     
-    //std::clock_t start;
-    //double duration;
+    std::clock_t start;
+    double duration;
 
-    //start = std::clock();
+    start = std::clock();
     
     //!Form the hexehedral test element.
     micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU,fparams);
@@ -1060,15 +1058,15 @@ int test_integrate_element(std::ofstream &results){
     //!Integrate the element
     element.integrate_element();
     
-    //duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
-    //std::cout<<"printf: "<< duration <<'\n';
+    std::cout<<"printf: "<< duration <<'\n';
     
     //!Compute the expected residual vector
     std::vector< double > RHS(96,0.);
     
     //!Define the internal stress balance
-    tensor::Tensor23 mu_int;
+    tensor::Tensor23 mu_int({3,3});
     
     //!Integrate the element
     for(int gpt_num=0; gpt_num<8; gpt_num++){
