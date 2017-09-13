@@ -33,9 +33,13 @@
   
 namespace micro_material{
     
-    void get_stress(const std::vector< double > &fparams, const std::vector< int > &iparams,
-                          const tensor::Tensor23&   C_in,   const tensor::Tensor23&   Psi_in,    const tensor::Tensor33& Gamma_in,
-                          tensor::Tensor23& PK2_stress,     tensor::Tensor23& SIGMA_stress,      tensor::Tensor33& M_stress){
+    void get_stress(const std::vector< double > &fparams,  const std::vector< int > &iparams,                                    //Material parameters
+                          const tensor::Tensor23&   C_in,   const tensor::Tensor23&   Psi_in,  const tensor::Tensor33& Gamma_in, //Deformation measures
+                            tensor::Tensor23& PK2_stress,     tensor::Tensor23& SIGMA_stress,        tensor::Tensor33& M_stress, //Stress measures
+                                tensor::Tensor43& dPK2dC,         tensor::Tensor43& dPK2dPsi,      tensor::Tensor53& dPK2dGamma, //Tangents of PK2 stress
+                              tensor::Tensor43& dSIGMAdC,       tensor::Tensor43& dSIGMAdPsi,    tensor::Tensor53& dSIGMAdGamma, //Tangents of symmetric stress
+                              tensor::Tensor53&     dMdC,       tensor::Tensor53&     dMdPsi,        tensor::Tensor63& dMdGamma, //Tangents of couple stress
+                          bool get_tangent){                                                                                     //Flags
         /*!========================================
         |              get_stress              |
         ========================================
@@ -141,6 +145,128 @@ namespace micro_material{
                     }
                 }
             }
+        }
+        
+        //!=
+        //!| Compute the tangent if required
+        //!=
+        
+        //!Common terms
+        tensor::Tensor43 term1T({3,3,3,3});
+        tensor::Tensor43 term2T({3,3,3,3});
+        tensor::Tensor43 term3T({3,3,3,3});
+        
+        tensor::Tensor43 dCinvdC({3,3,3,3});
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int K=0; K<3; K++){
+                    for(int L=0; L<3; L++){
+                        dCinvdC(I,J,K,L) = -Cinv(I,K)*Cinv(L,J);
+                    }
+                }
+            }
+        }
+        
+        if(get_tangent){
+            
+            //!Compute tangents w.r.t. C
+            for(int I=0; I<3; I++){
+                for(int J=0; J<3; J++){
+                    for(int O=0; O<3; O++){
+                        for(int P=0; P<3; P++){
+                            term1T(I,J,O,P) = 0.5*A_stiffness(I,J,O,P);
+                            
+                            for(int Q=0; Q<3; Q++){
+                                for(int R=0; R<3; R++){
+                                    
+                                    term2T(I,J,O,P) += 0.5*D_stiffness(I,Q,O,P)*(micro_E(R,Q)+ITEN(R,Q))*Cinv(J,R);
+                                    term3T(I,J,O,P) += 0.5*D_stiffness(J,Q,O,P)*(micro_E(R,Q)+ITEN(R,Q))*Cinv(I,R);
+                                }
+                            }
+                            
+                            for(int Q=0; Q<3; Q++){
+                                for(int R=0; R<3; R++){
+                                    for(int K=0; K<3; K++){
+                                        for(int L=0; L<3; L++){
+                                            term2T(I,J,O,P) += (B_stiffness(I,Q,K,L)*micro_E(K,L)+D_stiffness(I,Q,K,L)*macro_E(K,L))*(micro_E(R,Q)+ITEN(R,Q))*dCinvdC(J,R,O,P);
+                                            term3T(I,J,O,P) += (B_stiffness(J,Q,K,L)*micro_E(K,L)+D_stiffness(J,Q,K,L)*macro_E(K,L))*(micro_E(R,Q)+ITEN(R,Q))*dCinvdC(I,R,O,P);
+                                        }
+                                    }
+                                    
+                                    for(int L=0; L<3; L++){
+                                        for(int M=0; M<3; <++){
+                                            for(int N=0; N<3; N++){
+                                                for(int S=0; S<3; S++){
+                                                    TERM2(I,J,O,P) += C_stiffness(I,Q,R,L,M,N)*Gamma(L,M,N)*Gamma(S,Q,R)*dCinvdC(J,S,O,P);
+                                                    TERM3(I,J,O,P) += C_stiffness(J,Q,R,L,M,N)*Gamma(L,M,N)*Gamma(S,Q,R)*dCinvdC(I,S,O,P);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            dPK2dC(I,J,O,P)   = term1T(I,J,O,P) + term2T(I,J,O,P);
+                            dSIGMAdC(I,J,O,P) = term1T(I,J,O,P) + (term2T(I,J,O,P)+term3T(I,J,O,P));
+                        }
+                    }
+                }
+            }
+            
+            //!Compute tangents w.r.t. Psi
+            term1T.data.setZero();
+            term2T.data.setZero();
+            term3T.data.setZero();
+            
+            for(int I=0; I<3; I++){
+                for(int J=0; J<3; J++){
+                    for(int O=0; O<3; O++){
+                        for(int P=3; P<3; P++){
+                            dPK2dPsi(I,J,O,P)   = D_stiffness(I,J,O,P);
+                            dSIGMAdPsi(I,J,O,P) = D_stiffness(I,J,O,P);
+                    
+                            for(int Q=3; Q<3; Q++){
+                                for(int R=0; R<3; R++){
+                                    term2T(I,J,O,P) += B_stiffness(I,Q,O,P)*(micro_E(R,Q)+ITEN(R,Q))*Cinv(J,R);
+                                    term3T(I,J,O,P) += B_stiffness(J,Q,O,P)*(micro_E(R,Q)+ITEN(R,Q))*Cinv(I,R);
+                                }
+                            }
+                            
+                            for(int K=0; K<3; K++){
+                                for(int L=0; L<3; L++){
+                                    term2T(I,J,O,P) += (B_stiffness(I,P,K,L)*micro_E(K,L)+D_stiffness(I,P,K,L)*macro_E(K,L))*Cinv(J,O);
+                                    term3T(I,J,O,P) += (B_stiffness(J,P,K,L)*micro_E(K,L)+D_stiffness(J,P,K,L)*macro_E(K,L))*Cinv(I,O);
+                                }
+                            }
+                                    
+                            dPK2dPsi(I,J,O,P)   += term2T(I,J,O,P);
+                            dSIGMAdPsi(I,J,O,P) += term2T(I,J,O,P) + term3T(I,J,O,P);
+                        }
+                    }
+                }
+            }
+            
+            //!Compute tangents w.r.t. Gamma
+            for(int I=0; I<3; I++){
+                for(int J=0; J<3; J++){
+                    for(int T=0; T<3; T++){
+                        for(int U=0; U<3; U++){
+                            for(int V=0; V<3; V++){
+                                for(int S=0; S<3; S++){
+                                    for(int Q=0; Q<3; Q++){
+                                        for(int R=0; R<3; R++){
+                                    
+                                            dPK2dGamma(I,J,T,U,V)   += C_stiffness(I,Q,R,T,U,V)*Cinv(J,S)*Gamma(S,Q,R) + C_stiffness(I,U,V,S,Q,R)*Gamma(S,Q,R)*Cinv(J,T);
+                                            dSIGMAdGamma(I,J,T,U,V) += C_stiffness(I,Q,R,T,U,V)*Cinv(J,S)*Gamma(S,Q,R) + C_stiffness(I,U,V,S,Q,R)*Gamma(S,Q,R)*Cinv(J,T)
+                                                                      +C_stiffness(J,Q,R,T,U,V)*Cinv(I,S)*Gamma(S,Q,R) + C_stiffness(J,U,V,S,Q,R)*Gamma(S,Q,R)*Cinv(I,T);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            dMdGamma.data = C_stiffness.data;
         }
         
         return;
