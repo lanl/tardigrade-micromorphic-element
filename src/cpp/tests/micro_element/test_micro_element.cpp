@@ -1047,20 +1047,22 @@ int test_integrate_element(std::ofstream &results){
         }
     }
     
-    std::clock_t start;
-    double duration;
+    //std::clock_t start;
+    //double duration;
 
-    start = std::clock();
+    
     
     //!Form the hexehedral test element.
     micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU,fparams);
     
+    //start = std::clock();
+    
     //!Integrate the element
     element.integrate_element();
     
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    //duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
-    std::cout<<"printf: "<< duration <<'\n';
+    //std::cout<<"printf: "<< duration <<'\n';
     
     //!Compute the expected residual vector
     std::vector< double > RHS(96,0.);
