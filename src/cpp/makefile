@@ -5,7 +5,7 @@ CC=g++
 STD=-std=gnu++11
 
 #Compiler flags
-CFLAGS=-I.
+CFLAGS=-I. -O1
 
 #Include Eigen Library
 EIGEN = -I C:/usr/share/cpp/eigen3.3.4
