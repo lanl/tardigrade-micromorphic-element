@@ -1160,19 +1160,12 @@ int main(){
     results.open ("results.tex");
     
     //!Run the test functions
-    std::cout << "testing constructors\n";
     test_constructors(results);
-    std::cout << "testing shape functions\n";
     test_shape_functions(results);
-    std::cout << "testing fundamental measures\n";
     test_fundamental_measures(results);
-    std::cout << "testing deformation measures\n";
     test_deformation_measures(results);
-    std::cout << "test balance of linear momentum\n";
     test_balance_of_linear_momentum(results);
-    std::cout << "tests balance of first moment of momentum\n";
     test_balance_of_first_moment_of_momentum(results);
-    std::cout << "test integrate element\n";
     test_integrate_element(results);
     
     //Close the results file
