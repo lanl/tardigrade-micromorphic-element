@@ -669,6 +669,7 @@ namespace tensor
     typedef BaseTensor<3,3>   Tensor23;
     typedef BaseTensor<9,3>   Tensor33;
     typedef BaseTensor<9,9>   Tensor43;
+    typedef BaseTensor<27,9>  Tensor53;
     typedef BaseTensor<27,27> Tensor63;
     typedef BaseTensor<Eigen::Dynamic, Eigen::Dynamic> Tensor;
     
