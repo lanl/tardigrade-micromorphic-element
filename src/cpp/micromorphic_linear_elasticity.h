@@ -33,8 +33,8 @@ namespace micro_material{
                           const tensor::Tensor23&,  const tensor::Tensor23&, const tensor::Tensor33&,
                           tensor::Tensor23&,        tensor::Tensor23&,       tensor::Tensor33&);
     
-    tensor::Tensor43 generate_A_stiffness(const std::vector< double > &);
-    tensor::Tensor43 generate_B_stiffness(const std::vector< double > &);
-    tensor::Tensor63 generate_C_stiffness(const std::vector< double > &);
-    tensor::Tensor43 generate_D_stiffness(const std::vector< double > &);
+    void generate_A_stiffness(const std::vector< double > &, tensor::Tensor43&);
+    void generate_B_stiffness(const std::vector< double > &, tensor::Tensor43&);
+    void generate_C_stiffness(const std::vector< double > &, tensor::Tensor63&);
+    void generate_D_stiffness(const std::vector< double > &, tensor::Tensor43&);
 }

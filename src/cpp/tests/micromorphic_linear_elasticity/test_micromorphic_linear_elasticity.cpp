@@ -103,11 +103,17 @@ void test_stiffness_tensors(std::ofstream &results){
     tensor::Tensor63 C_answer({3,3,3,3,3,3});
     tensor::Tensor43 D_answer({3,3,3,3});
     
+    //!initialize the tensor results
+    tensor::Tensor43 A_result({3,3,3,3});
+    tensor::Tensor43 B_result({3,3,3,3});
+    tensor::Tensor63 C_result({3,3,3,3,3,3});
+    tensor::Tensor43 D_result({3,3,3,3});
+    
     //!Compute the expected tensors
-    tensor::Tensor43 A_result = micro_material::generate_A_stiffness(fparams);
-    tensor::Tensor43 B_result = micro_material::generate_B_stiffness(fparams);
-    tensor::Tensor63 C_result = micro_material::generate_C_stiffness(fparams);
-    tensor::Tensor43 D_result = micro_material::generate_D_stiffness(fparams);
+    micro_material::generate_A_stiffness(fparams,A_result);
+    micro_material::generate_B_stiffness(fparams,B_result);
+    micro_material::generate_C_stiffness(fparams,C_result);
+    micro_material::generate_D_stiffness(fparams,D_result);
     
     //!Extract the values of fparams
     double lambda = fparams[ 0];             //!lambda micromorphic material parameter
@@ -362,11 +368,17 @@ void test_get_stress(std::ofstream &results){
     tensor::Tensor23 macro_E = 0.5*(C-ITEN);
     tensor::Tensor23 micro_E = Psi-ITEN;
     
+    //!Initialize the stiffness tensors
+    tensor::Tensor43 A_stiffness({3,3,3,3});
+    tensor::Tensor43 B_stiffness({3,3,3,3});
+    tensor::Tensor63 C_stiffness({3,3,3,3,3,3});
+    tensor::Tensor43 D_stiffness({3,3,3,3});
+        
     //!Compute the stiffness tensors
-    tensor::Tensor43 A_stiffness = micro_material::generate_A_stiffness(fparams);
-    tensor::Tensor43 B_stiffness = micro_material::generate_B_stiffness(fparams);
-    tensor::Tensor63 C_stiffness = micro_material::generate_C_stiffness(fparams);
-    tensor::Tensor43 D_stiffness = micro_material::generate_D_stiffness(fparams);
+    micro_material::generate_A_stiffness(fparams,A_stiffness);
+    micro_material::generate_B_stiffness(fparams,B_stiffness);
+    micro_material::generate_C_stiffness(fparams,C_stiffness);
+    micro_material::generate_D_stiffness(fparams,D_stiffness);
     
     tensor::Tensor23 PK2_answer({3,3});   //!The expected second Piola-Kirchhoff Stress
     tensor::Tensor23 SIGMA_answer({3,3}); //!The symmetric micro-stress
