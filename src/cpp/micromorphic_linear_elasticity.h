@@ -29,9 +29,23 @@
   
 namespace micro_material{
     
-    void get_stress(const std::vector< double >&, const std::vector< int >&,
-                          const tensor::Tensor23&,  const tensor::Tensor23&, const tensor::Tensor33&,
-                          tensor::Tensor23&,        tensor::Tensor23&,       tensor::Tensor33&);
+    void get_stress( const std::vector< double >&, const std::vector< int >&,
+                     const tensor::Tensor23&,      const tensor::Tensor23&,   const tensor::Tensor33&,
+                           tensor::Tensor23&,            tensor::Tensor23&,         tensor::Tensor33&
+                   );
+    
+    void get_stress( const std::vector< double >&, const std::vector< int >&,
+                     const tensor::Tensor23&,      const tensor::Tensor23&,   const tensor::Tensor33&,
+                           tensor::Tensor23&,            tensor::Tensor23&,         tensor::Tensor33&,
+                           tensor::Tensor43&,            tensor::Tensor43&,         tensor::Tensor53&,
+                           tensor::Tensor43&,            tensor::Tensor43&,         tensor::Tensor53&,
+                           tensor::Tensor53&,            tensor::Tensor53&,         tensor::Tensor63&
+                   );
+    
+    void compute_stresses(const tensor::Tensor43& A_stiffness, const tensor::Tensor43& B_stiffness,  const tensor::Tensor63& C_stiffness, const tensor::Tensor43& D_stiffness,
+                          const tensor::Tensor23& C,           const tensor::Tensor23& Cinv,         const tensor::Tensor33& Gamma,
+                          const tensor::Tensor23& macro_E,     const tensor::Tensor23& micro_E,      const tensor::Tensor23& ITEN,
+                                tensor::Tensor23& PK2_stress,        tensor::Tensor23& SIGMA_stress,       tensor::Tensor33& M_stress);
     
     void generate_A_stiffness(const std::vector< double > &, tensor::Tensor43&);
     void generate_B_stiffness(const std::vector< double > &, tensor::Tensor43&);
