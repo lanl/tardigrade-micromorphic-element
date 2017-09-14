@@ -251,7 +251,7 @@ std::vector< double > test_deformation(std::vector< double > reference_position)
     return U;
     
 }
-    
+
 std::vector< std::vector< double > > compute_gradients(std::vector< double > reference_position){
     /*!===========================
     |    compute_gradients    |
@@ -269,34 +269,15 @@ std::vector< std::vector< double > > compute_gradients(std::vector< double > ref
     
 }
 
-void test_get_stress(std::ofstream &results){
-    /*!=========================
-    |    test_get_stress    |
-    =========================
+void populate_deformation_measures(tensor::Tensor23& C, tensor::Tensor23& Psi, tensor::Tensor33& Gamma){
+    /*!=======================================
+    |    populate_deformation_measures    |
+    =======================================
     
-    A test for the computation of the 
-    stress tensors. They are compared to 
-    another formulation of the tensors 
-    to ensure that they are consistent.
+    Populate the deformation measures in a consistent 
+    way.
     
     */
-    
-    //!Initialize test results
-    int  test_num        = 3;
-    bool test_results[test_num] = {false,false,false};
-    
-    //!Seed the random number generator
-    srand (1);
-    
-    //!Initialize the common tensors
-    tensor::Tensor23 ITEN = tensor::eye();
-    
-    //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
-    
-    for(int i=0; i<18; i++){
-        fparams[i] = i+1;
-    }
     
     //!Initialize the fundamental deformation measures
     tensor::Tensor F({3,3});
@@ -343,11 +324,6 @@ void test_get_stress(std::ofstream &results){
     chi(2,0) =    U[10];
     chi(1,0) =    U[11];
     
-    //!Populate derived deformation measures
-    tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor
-    tensor::Tensor23 Psi({3,3});        //!The micro-deformation measure
-    tensor::Tensor33 Gamma({3,3,3});    //!The higher order micro-deformation measure
-    
     for(int I=0; I<3; I++){
         for(int J=0; J<3; J++){
             for(int i=0; i<3; i++){
@@ -361,6 +337,104 @@ void test_get_stress(std::ofstream &results){
             }
         }
     }
+    return;
+}
+
+
+std::vector<double> dStressddef_parser(std::vector<double> C0){
+    /*!=======================
+    |    dPK2dC_parser    |
+    =======================
+    
+    A function which parses the PK2
+    stress being varied by the 
+    right Cauchy-Green deformation 
+    tensor.
+    
+    Input:
+    
+        C0:            Initial point to compute the 
+                       gradient around.
+    
+    */
+    
+    std::vector<double> parsed_stress; //!The stress after being parsed
+    parsed_stress.resize(9);
+    
+    //!Populate derived deformation measures
+    tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor (will be discarded)
+    tensor::Tensor23 Psi({3,3});        //!The micro-deformation measure
+    tensor::Tensor33 Gamma({3,3,3});    //!The higher order micro-deformation measure
+    
+    populate_deformation_measures(C,Psi,Gamma);
+    
+    //!The initialization of the result stress tensors
+    tensor::Tensor23 PK2_result({3,3});
+    tensor::Tensor23 SIGMA_result({3,3});
+    tensor::Tensor33 M_result({3,3,3});
+    
+    //!Reset C
+    C(0,0) = C0[0];
+    C(0,1) = C0[1];
+    C(0,2) = C0[2];
+    C(1,0) = C0[3];
+    C(1,1) = C0[4];
+    C(1,2) = C0[5];
+    C(2,0) = C0[6];
+    C(2,1) = C0[7];
+    C(2,2) = C0[8];
+    
+    //!Compute and assign the stresses to the result measures
+    micro_material::get_stress(fparams, {}, C0, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    
+    parsed_stress[0] = PK2_result(0,0);
+    parsed_stress[1] = PK2_result(0,1);
+    parsed_stress[2] = PK2_result(0,2);
+    parsed_stress[3] = PK2_result(1,0);
+    parsed_stress[4] = PK2_result(1,1);
+    parsed_stress[5] = PK2_result(1,2);
+    parsed_stress[6] = PK2_result(2,0);
+    parsed_stress[7] = PK2_result(2,1);
+    parsed_stress[8] = PK2_result(2,2);
+    
+    return parsed_stress;
+}
+
+void test_get_stress(std::ofstream &results){
+    /*!=========================
+    |    test_get_stress    |
+    =========================
+    
+    A test for the computation of the 
+    stress tensors. They are compared to 
+    another formulation of the tensors 
+    to ensure that they are consistent.
+    
+    */
+    
+    //!Initialize test results
+    int  test_num        = 3;
+    bool test_results[test_num] = {false,false,false};
+    
+    //!Seed the random number generator
+    srand (1);
+    
+    //!Initialize the common tensors
+    tensor::Tensor23 ITEN = tensor::eye();
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = i+1;
+    }
+    
+    //!Populate derived deformation measures
+    tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor
+    tensor::Tensor23 Psi({3,3});        //!The micro-deformation measure
+    tensor::Tensor33 Gamma({3,3,3});    //!The higher order micro-deformation measure
+    
+    populate_deformation_measures(C,Psi,Gamma);
     
     tensor::Tensor23 Cinv = C.inverse();
     
