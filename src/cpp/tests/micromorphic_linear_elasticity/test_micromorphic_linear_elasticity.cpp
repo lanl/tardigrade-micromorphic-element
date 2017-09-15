@@ -73,7 +73,7 @@ void print_vector_of_vectors(std::string name, std::vector< std::vector< double 
 }
 
 template< int n_m, int m_m>
-bool compare_vectors_matrix(std::vector<std::vector< double > > V, Eigen::Matrix<double,n_m,m_m> M, double tol=1e-7){
+bool compare_vectors_matrix(std::vector<std::vector< double > > V, Eigen::Matrix<double,n_m,m_m> M, double tol=1e-5){
     /*!================================
     |    compare_vectors_matrix    |
     ================================
@@ -95,6 +95,8 @@ bool compare_vectors_matrix(std::vector<std::vector< double > > V, Eigen::Matrix
             //std::cout << "M("<<i<<","<<j<<"): "<<M(i,j)<<" V["<<i<<"]["<<j<<"]: " << V[i][j] <<"\n";
             abs_error = fabs(M(i,j)-V[i][j]);
             rel_error = fabs(M(i,j)-V[i][j])/std::max(fabs(M(i,j)),fabs(V[i][j]));
+            //std::cout << "abs error: " << abs_error << "\n";
+            //std::cout << "rel error: " << rel_error << "\n";
             if((tol<abs_error)&&(tol<rel_error)){return false;}
         }
     }
@@ -499,7 +501,7 @@ std::vector<double> dSIGMAdC_parser(std::vector<double> C_in){
     tensor::Tensor23 SIGMA_result({3,3});
     tensor::Tensor33 M_result({3,3,3});
     
-    //!Reset C
+    //!Reset Psi
     C(0,0) = C_in[0];
     C(0,1) = C_in[1];
     C(0,2) = C_in[2];
@@ -563,7 +565,7 @@ std::vector<double> dPK2dPsi_parser(std::vector<double> Psi_in){
     tensor::Tensor23 SIGMA_result({3,3});
     tensor::Tensor33 M_result({3,3,3});
     
-    //!Reset C
+    //!Reset Psi
     Psi(0,0) = Psi_in[0];
     Psi(0,1) = Psi_in[1];
     Psi(0,2) = Psi_in[2];
@@ -661,6 +663,133 @@ std::vector<double> dSIGMAdPsi_parser(std::vector<double> Psi_in){
     return parsed_stress;
 }
 
+std::vector<double> dPK2dGamma_parser(std::vector<double> Gamma_in){
+    /*!===========================
+    |    dPK2dGamma_parser    |
+    ===========================
+    
+    A function which parses the PK2
+    stress being varied by the 
+    micro-deformation gradient tensor Gamma.
+    
+    Input:
+    
+        Psi_in:    The perturbed value of Psi.
+    
+    */
+    
+    std::vector<double> parsed_stress; //!The stress after being parsed
+    parsed_stress.resize(9);
+    
+    //!Populate derived deformation measures
+    tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor (will be discarded)
+    tensor::Tensor23 Psi({3,3});        //!The micro-deformation measure
+    tensor::Tensor33 Gamma({3,3,3});    //!The higher order micro-deformation measure
+    
+    populate_deformation_measures(C,Psi,Gamma);
+    
+    //!The initialization of the result stress tensors
+    tensor::Tensor23 PK2_result({3,3});
+    tensor::Tensor23 SIGMA_result({3,3});
+    tensor::Tensor33 M_result({3,3,3});
+    
+    //!Reset Gamma
+    int temp_indx = 0;
+    for(int K=0; K<3; K++){
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                Gamma(I,J,K) = Gamma_in[temp_indx];
+                temp_indx++;
+            }
+        }
+    }
+    
+    //!Set the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = i+1;
+    }
+    
+    //!Compute and assign the stresses to the result measures
+    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    
+    parsed_stress[0] = PK2_result(0,0);
+    parsed_stress[1] = PK2_result(0,1);
+    parsed_stress[2] = PK2_result(0,2);
+    parsed_stress[3] = PK2_result(1,0);
+    parsed_stress[4] = PK2_result(1,1);
+    parsed_stress[5] = PK2_result(1,2);
+    parsed_stress[6] = PK2_result(2,0);
+    parsed_stress[7] = PK2_result(2,1);
+    parsed_stress[8] = PK2_result(2,2);
+    
+    return parsed_stress;
+}
+
+std::vector<double> dSIGMAdGamma_parser(std::vector<double> Gamma_in){
+    /*!=========================
+    |    dSIGMAdGamma_parser    |
+    =========================
+    
+    A function which parses the symmetric
+    stress being varied by the 
+    micro-deformation gradient tensor Gamma.
+    
+    Input:
+    
+        Psi_in:    The perturbed value of Psi.
+    
+    */
+    
+    std::vector<double> parsed_stress; //!The stress after being parsed
+    parsed_stress.resize(9);
+    
+    //!Populate derived deformation measures
+    tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor (will be discarded)
+    tensor::Tensor23 Psi({3,3});        //!The micro-deformation measure
+    tensor::Tensor33 Gamma({3,3,3});    //!The higher order micro-deformation measure
+    
+    populate_deformation_measures(C,Psi,Gamma);
+    
+    //!The initialization of the result stress tensors
+    tensor::Tensor23 PK2_result({3,3});
+    tensor::Tensor23 SIGMA_result({3,3});
+    tensor::Tensor33 M_result({3,3,3});
+    
+    //!Reset Gamma
+    int temp_indx = 0;
+    for(int K=0; K<3; K++){
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                Gamma(I,J,K) = Gamma_in[temp_indx];
+                temp_indx++;
+            }
+        }
+    }
+    
+    //!Set the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = i+1;
+    }
+    
+    //!Compute and assign the stresses to the result measures
+    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    
+    parsed_stress[0] = SIGMA_result(0,0);
+    parsed_stress[1] = SIGMA_result(0,1);
+    parsed_stress[2] = SIGMA_result(0,2);
+    parsed_stress[3] = SIGMA_result(1,0);
+    parsed_stress[4] = SIGMA_result(1,1);
+    parsed_stress[5] = SIGMA_result(1,2);
+    parsed_stress[6] = SIGMA_result(2,0);
+    parsed_stress[7] = SIGMA_result(2,1);
+    parsed_stress[8] = SIGMA_result(2,2);
+    
+    return parsed_stress;
+}
 
 void test_get_stress(std::ofstream &results){
     /*!=========================
@@ -675,8 +804,8 @@ void test_get_stress(std::ofstream &results){
     */
     
     //!Initialize test results
-    int  test_num        = 7;
-    bool test_results[test_num] = {false,false,false,false,false,false,false};
+    int  test_num        = 10;
+    bool test_results[test_num] = {false,false,false,false,false,false,false,false,false,false};
     
     //!Seed the random number generator
     srand (1);
@@ -861,10 +990,65 @@ void test_get_stress(std::ofstream &results){
     
     test_results[6] = compare_vectors_matrix_transpose(temp_gradient,dSIGMAdPsi.data);
     
+    int temp_indx=0;
+    
+    vec_ten.resize(27);
+    for(int K=0; K<3; K++){
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                vec_ten[temp_indx] = Gamma(I,J,K);
+                temp_indx++;
+            }
+        }
+    }
+    
+    FD = finite_difference::FiniteDifference(dPK2dGamma_parser,2,vec_ten,1e-6);
+    temp_gradient = FD.numeric_gradient();
+    
+    //Rearrange the gradient into a form we can compare easily
+    std::vector< std::vector< double > > rearranged_gradient;
+    rearranged_gradient.resize(27);
+    for(int I=0; I<rearranged_gradient.size(); I++){rearranged_gradient[I].resize(9);}
+    
+    for(int N=0; N<9; N++){
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int K=0; K<3; K++){
+                    rearranged_gradient[K+9*I+3*J][N] = temp_gradient[9*K+3*I+J][N];
+                }
+            }
+        }
+    }
+    //print_vector_of_vectors("dPK2dGamma_answer",rearranged_gradient);
+    //std::cout << "dPK2dGamma_result\n" << dPK2dGamma.data << "\n";
+    
+    test_results[7] = compare_vectors_matrix_transpose(rearranged_gradient,dPK2dGamma.data);
+    
+    FD = finite_difference::FiniteDifference(dSIGMAdGamma_parser,2,vec_ten,1e-6);
+    temp_gradient = FD.numeric_gradient();
+    
+    //Rearrange the gradient into a form we can compare easily
+    
+    for(int N=0; N<9; N++){
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int K=0; K<3; K++){
+                    rearranged_gradient[K+9*I+3*J][N] = temp_gradient[9*K+3*I+J][N];
+                }
+            }
+        }
+    }
+    //print_vector_of_vectors("dPK2dGamma_answer",rearranged_gradient);
+    //std::cout << "dPK2dGamma_result\n" << dPK2dGamma.data << "\n";
+    
+    test_results[8] = compare_vectors_matrix_transpose(rearranged_gradient,dSIGMAdGamma.data);
+    
+    test_results[9] = dMdGamma.data.isApprox(C_stiffness.data);
+    
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
