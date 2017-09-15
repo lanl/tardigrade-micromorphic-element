@@ -103,7 +103,7 @@ bool compare_vectors_matrix(std::vector<std::vector< double > > V, Eigen::Matrix
 }
 
 template< int n_m, int m_m>
-bool compare_vectors_matrix_transpose(std::vector<std::vector< double > > V, Eigen::Matrix<double,n_m,m_m> M, double tol=1e-7){
+bool compare_vectors_matrix_transpose(std::vector<std::vector< double > > V, Eigen::Matrix<double,n_m,m_m> M, double tol=1e-5){
     /*!================================
     |    compare_vectors_matrix    |
     ================================
@@ -597,6 +597,70 @@ std::vector<double> dPK2dPsi_parser(std::vector<double> Psi_in){
     return parsed_stress;
 }
 
+std::vector<double> dSIGMAdPsi_parser(std::vector<double> Psi_in){
+    /*!===========================
+    |    dSIGMAdPsi_parser    |
+    ===========================
+    
+    A function which parses the symmetric
+    stress being varied by the 
+    micro-deformation tensor Psi.
+    
+    Input:
+    
+        Psi_in:    The perturbed value of Psi.
+    
+    */
+    
+    std::vector<double> parsed_stress; //!The stress after being parsed
+    parsed_stress.resize(9);
+    
+    //!Populate derived deformation measures
+    tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor (will be discarded)
+    tensor::Tensor23 Psi({3,3});        //!The micro-deformation measure
+    tensor::Tensor33 Gamma({3,3,3});    //!The higher order micro-deformation measure
+    
+    populate_deformation_measures(C,Psi,Gamma);
+    
+    //!The initialization of the result stress tensors
+    tensor::Tensor23 PK2_result({3,3});
+    tensor::Tensor23 SIGMA_result({3,3});
+    tensor::Tensor33 M_result({3,3,3});
+    
+    //!Reset C
+    Psi(0,0) = Psi_in[0];
+    Psi(0,1) = Psi_in[1];
+    Psi(0,2) = Psi_in[2];
+    Psi(1,0) = Psi_in[3];
+    Psi(1,1) = Psi_in[4];
+    Psi(1,2) = Psi_in[5];
+    Psi(2,0) = Psi_in[6];
+    Psi(2,1) = Psi_in[7];
+    Psi(2,2) = Psi_in[8];
+    
+    //!Set the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = i+1;
+    }
+    
+    //!Compute and assign the stresses to the result measures
+    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    
+    parsed_stress[0] = SIGMA_result(0,0);
+    parsed_stress[1] = SIGMA_result(0,1);
+    parsed_stress[2] = SIGMA_result(0,2);
+    parsed_stress[3] = SIGMA_result(1,0);
+    parsed_stress[4] = SIGMA_result(1,1);
+    parsed_stress[5] = SIGMA_result(1,2);
+    parsed_stress[6] = SIGMA_result(2,0);
+    parsed_stress[7] = SIGMA_result(2,1);
+    parsed_stress[8] = SIGMA_result(2,2);
+    
+    return parsed_stress;
+}
+
 
 void test_get_stress(std::ofstream &results){
     /*!=========================
@@ -611,8 +675,8 @@ void test_get_stress(std::ofstream &results){
     */
     
     //!Initialize test results
-    int  test_num        = 6;
-    bool test_results[test_num] = {false,false,false,false,false,false};
+    int  test_num        = 7;
+    bool test_results[test_num] = {false,false,false,false,false,false,false};
     
     //!Seed the random number generator
     srand (1);
@@ -784,10 +848,18 @@ void test_get_stress(std::ofstream &results){
     FD = finite_difference::FiniteDifference(dPK2dPsi_parser,2,vec_ten,1e-6);
     temp_gradient = FD.numeric_gradient();
     
-    print_vector_of_vectors("dPK2dPsi_answer",temp_gradient);
-    std::cout << "dPK2dPsi_result\n" << dPK2dPsi.data << "\n";
+    //print_vector_of_vectors("dPK2dPsi_answer",temp_gradient);
+    //std::cout << "dPK2dPsi_result\n" << dPK2dPsi.data << "\n";
     
     test_results[5] = compare_vectors_matrix_transpose(temp_gradient,dPK2dPsi.data);
+    
+    FD = finite_difference::FiniteDifference(dSIGMAdPsi_parser,2,vec_ten,1e-6);
+    temp_gradient = FD.numeric_gradient();
+    
+    //print_vector_of_vectors("dSIGMAdPsi_answer",temp_gradient);
+    //std::cout << "dSIGMAdPsi_result\n" << dSIGMAdPsi.data << "\n";
+    
+    test_results[6] = compare_vectors_matrix_transpose(temp_gradient,dSIGMAdPsi.data);
     
     //Compare all test results
     bool tot_result = true;
