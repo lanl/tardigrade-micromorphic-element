@@ -231,7 +231,7 @@ namespace micro_material{
                         dPK2dPsi(I,J,O,P)   = D_stiffness(I,J,O,P);
                         dSIGMAdPsi(I,J,O,P) = D_stiffness(I,J,O,P);
                     
-                        for(int Q=3; Q<3; Q++){
+                        for(int Q=0; Q<3; Q++){
                             for(int R=0; R<3; R++){
                                 term2T(I,J,O,P) += B_stiffness(I,Q,O,P)*(micro_E(R,Q)+ITEN(R,Q))*Cinv(J,R);
                                 term3T(I,J,O,P) += B_stiffness(J,Q,O,P)*(micro_E(R,Q)+ITEN(R,Q))*Cinv(I,R);
@@ -245,8 +245,8 @@ namespace micro_material{
                             }
                         }
                                     
-                        dPK2dPsi(I,J,O,P)   = term2T(I,J,O,P);
-                        dSIGMAdPsi(I,J,O,P) = term2T(I,J,O,P) + term3T(I,J,O,P);
+                        dPK2dPsi(I,J,O,P)   += term2T(I,J,O,P);
+                        dSIGMAdPsi(I,J,O,P) += term2T(I,J,O,P) + term3T(I,J,O,P);
                     }
                 }
             }
