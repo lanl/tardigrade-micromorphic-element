@@ -72,6 +72,68 @@ void print_vector_of_vectors(std::string name, std::vector< std::vector< double 
     }
 }
 
+template< int n_m, int m_m>
+bool compare_vectors_matrix(std::vector<std::vector< double > > V, Eigen::Matrix<double,n_m,m_m> M, double tol=1e-7){
+    /*!================================
+    |    compare_vectors_matrix    |
+    ================================
+    
+    Compare a vector of equal length vectors to a matrix
+    
+    */
+    
+    bool result = true;
+    double abs_error;   //!The absolute error
+    double rel_error;   //!The relative error
+    
+    if(V.size() != M.rows()){std::cout << "Error: vector of vectors and matrix do not have the same number of rows.\n";return false;}
+    
+    for(int i=0; i<M.rows(); i++){
+        if(V[i].size()!=M.cols()){std::cout << "Error: vector of vectors and matrix do not have the same number of columns in row "<<i <<".";return false;}
+        
+        for(int j=0; j<M.cols(); j++){
+            //std::cout << "M("<<i<<","<<j<<"): "<<M(i,j)<<" V["<<i<<"]["<<j<<"]: " << V[i][j] <<"\n";
+            abs_error = fabs(M(i,j)-V[i][j]);
+            rel_error = fabs(M(i,j)-V[i][j])/std::max(fabs(M(i,j)),fabs(V[i][j]));
+            if((tol<abs_error)&&(tol<rel_error)){return false;}
+        }
+    }
+    
+    return true;
+}
+
+template< int n_m, int m_m>
+bool compare_vectors_matrix_transpose(std::vector<std::vector< double > > V, Eigen::Matrix<double,n_m,m_m> M, double tol=1e-7){
+    /*!================================
+    |    compare_vectors_matrix    |
+    ================================
+    
+    Compare a vector of equal length vectors to a matrix
+    
+    */
+    
+    bool result = true;
+    double abs_error;   //!The absolute error
+    double rel_error;   //!The relative error
+    
+    if(V.size() != M.cols()){std::cout << "Error: vector of vectors and matrix do not have the same number of rows.\n";return false;}
+    
+    for(int i=0; i<M.cols(); i++){
+        if(V[i].size()!=M.rows()){std::cout << "Error: vector of vectors and matrix do not have the same number of columns in row "<<i <<".";return false;}
+        
+        for(int j=0; j<M.rows(); j++){
+            //std::cout << "M("<<j<<","<<i<<"): "<<M(j,i)<<" V["<<i<<"]["<<j<<"]: " << V[i][j] <<"\n";
+            abs_error = fabs(M(j,i)-V[i][j]);
+            rel_error = fabs(M(j,i)-V[i][j])/std::max(fabs(M(j,i)),fabs(V[i][j]));
+            //std::cout << "abs error: " << abs_error << "\n";
+            //std::cout << "rel error: " << rel_error << "\n";
+            if((tol<abs_error)&&(tol<rel_error)){return false;}
+            
+        }
+    }
+    return true;
+}
+
 void test_stiffness_tensors(std::ofstream &results){
     /*!================================
     |    test_stiffness_tensors    |
@@ -341,7 +403,7 @@ void populate_deformation_measures(tensor::Tensor23& C, tensor::Tensor23& Psi, t
 }
 
 
-std::vector<double> dStressddef_parser(std::vector<double> C0){
+std::vector<double> dPK2dC_parser(std::vector<double> C_in){
     /*!=======================
     |    dPK2dC_parser    |
     =======================
@@ -353,8 +415,7 @@ std::vector<double> dStressddef_parser(std::vector<double> C0){
     
     Input:
     
-        C0:            Initial point to compute the 
-                       gradient around.
+        C_in:    The perturbed value of C.
     
     */
     
@@ -374,18 +435,25 @@ std::vector<double> dStressddef_parser(std::vector<double> C0){
     tensor::Tensor33 M_result({3,3,3});
     
     //!Reset C
-    C(0,0) = C0[0];
-    C(0,1) = C0[1];
-    C(0,2) = C0[2];
-    C(1,0) = C0[3];
-    C(1,1) = C0[4];
-    C(1,2) = C0[5];
-    C(2,0) = C0[6];
-    C(2,1) = C0[7];
-    C(2,2) = C0[8];
+    C(0,0) = C_in[0];
+    C(0,1) = C_in[1];
+    C(0,2) = C_in[2];
+    C(1,0) = C_in[3];
+    C(1,1) = C_in[4];
+    C(1,2) = C_in[5];
+    C(2,0) = C_in[6];
+    C(2,1) = C_in[7];
+    C(2,2) = C_in[8];
+    
+    //!Set the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = i+1;
+    }
     
     //!Compute and assign the stresses to the result measures
-    micro_material::get_stress(fparams, {}, C0, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
     
     parsed_stress[0] = PK2_result(0,0);
     parsed_stress[1] = PK2_result(0,1);
@@ -400,6 +468,136 @@ std::vector<double> dStressddef_parser(std::vector<double> C0){
     return parsed_stress;
 }
 
+std::vector<double> dSIGMAdC_parser(std::vector<double> C_in){
+    /*!=========================
+    |    dSIGMAdC_parser    |
+    =========================
+    
+    A function which parses the symmetric
+    stress being varied by the 
+    right Cauchy-Green deformation 
+    tensor.
+    
+    Input:
+    
+        C_in:    The perturbed value of C.
+    
+    */
+    
+    std::vector<double> parsed_stress; //!The stress after being parsed
+    parsed_stress.resize(9);
+    
+    //!Populate derived deformation measures
+    tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor (will be discarded)
+    tensor::Tensor23 Psi({3,3});        //!The micro-deformation measure
+    tensor::Tensor33 Gamma({3,3,3});    //!The higher order micro-deformation measure
+    
+    populate_deformation_measures(C,Psi,Gamma);
+    
+    //!The initialization of the result stress tensors
+    tensor::Tensor23 PK2_result({3,3});
+    tensor::Tensor23 SIGMA_result({3,3});
+    tensor::Tensor33 M_result({3,3,3});
+    
+    //!Reset C
+    C(0,0) = C_in[0];
+    C(0,1) = C_in[1];
+    C(0,2) = C_in[2];
+    C(1,0) = C_in[3];
+    C(1,1) = C_in[4];
+    C(1,2) = C_in[5];
+    C(2,0) = C_in[6];
+    C(2,1) = C_in[7];
+    C(2,2) = C_in[8];
+    
+    //!Set the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = i+1;
+    }
+    
+    //!Compute and assign the stresses to the result measures
+    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    
+    parsed_stress[0] = SIGMA_result(0,0);
+    parsed_stress[1] = SIGMA_result(0,1);
+    parsed_stress[2] = SIGMA_result(0,2);
+    parsed_stress[3] = SIGMA_result(1,0);
+    parsed_stress[4] = SIGMA_result(1,1);
+    parsed_stress[5] = SIGMA_result(1,2);
+    parsed_stress[6] = SIGMA_result(2,0);
+    parsed_stress[7] = SIGMA_result(2,1);
+    parsed_stress[8] = SIGMA_result(2,2);
+    
+    return parsed_stress;
+}
+
+std::vector<double> dPK2dPsi_parser(std::vector<double> Psi_in){
+    /*!=========================
+    |    dPK2dPsi_parser    |
+    =========================
+    
+    A function which parses the PK2
+    stress being varied by the 
+    micro-deformation tensor Psi.
+    
+    Input:
+    
+        Psi_in:    The perturbed value of Psi.
+    
+    */
+    
+    std::vector<double> parsed_stress; //!The stress after being parsed
+    parsed_stress.resize(9);
+    
+    //!Populate derived deformation measures
+    tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor (will be discarded)
+    tensor::Tensor23 Psi({3,3});        //!The micro-deformation measure
+    tensor::Tensor33 Gamma({3,3,3});    //!The higher order micro-deformation measure
+    
+    populate_deformation_measures(C,Psi,Gamma);
+    
+    //!The initialization of the result stress tensors
+    tensor::Tensor23 PK2_result({3,3});
+    tensor::Tensor23 SIGMA_result({3,3});
+    tensor::Tensor33 M_result({3,3,3});
+    
+    //!Reset C
+    Psi(0,0) = Psi_in[0];
+    Psi(0,1) = Psi_in[1];
+    Psi(0,2) = Psi_in[2];
+    Psi(1,0) = Psi_in[3];
+    Psi(1,1) = Psi_in[4];
+    Psi(1,2) = Psi_in[5];
+    Psi(2,0) = Psi_in[6];
+    Psi(2,1) = Psi_in[7];
+    Psi(2,2) = Psi_in[8];
+    
+    //!Set the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = i+1;
+    }
+    
+    //!Compute and assign the stresses to the result measures
+    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    
+    parsed_stress[0] = PK2_result(0,0);
+    parsed_stress[1] = PK2_result(0,1);
+    parsed_stress[2] = PK2_result(0,2);
+    parsed_stress[3] = PK2_result(1,0);
+    parsed_stress[4] = PK2_result(1,1);
+    parsed_stress[5] = PK2_result(1,2);
+    parsed_stress[6] = PK2_result(2,0);
+    parsed_stress[7] = PK2_result(2,1);
+    parsed_stress[8] = PK2_result(2,2);
+    
+    return parsed_stress;
+}
+
+
 void test_get_stress(std::ofstream &results){
     /*!=========================
     |    test_get_stress    |
@@ -413,8 +611,8 @@ void test_get_stress(std::ofstream &results){
     */
     
     //!Initialize test results
-    int  test_num        = 3;
-    bool test_results[test_num] = {false,false,false};
+    int  test_num        = 6;
+    bool test_results[test_num] = {false,false,false,false,false,false};
     
     //!Seed the random number generator
     srand (1);
@@ -524,10 +722,77 @@ void test_get_stress(std::ofstream &results){
     test_results[1] = SIGMA_answer.data.isApprox(SIGMA_result.data);
     test_results[2] = M_answer.data.isApprox(M_result.data);
     
+    
+    //!Compute the tangents and compare them to the numeric results
+    
+    //!Initialize the tangents
+    tensor::Tensor43 dPK2dC = tensor::Tensor43({3,3,3,3});
+    tensor::Tensor43 dPK2dPsi = tensor::Tensor43({3,3,3,3});
+    tensor::Tensor53 dPK2dGamma = tensor::Tensor53({3,3,3,3,3});
+    
+    tensor::Tensor43 dSIGMAdC = tensor::Tensor43({3,3,3,3});
+    tensor::Tensor43 dSIGMAdPsi = tensor::Tensor43({3,3,3,3});
+    tensor::Tensor53 dSIGMAdGamma = tensor::Tensor53({3,3,3,3,3});
+    
+    tensor::Tensor53 dMdC = tensor::Tensor53({3,3,3,3,3});
+    tensor::Tensor53 dMdPsi = tensor::Tensor53({3,3,3,3,3});
+    tensor::Tensor63 dMdGamma = tensor::Tensor63({3,3,3,3,3,3});
+    
+    micro_material::get_stress( fparams,         {},            C, Psi, Gamma, PK2_result, SIGMA_result, M_result,
+                                 dPK2dC,   dPK2dPsi,   dPK2dGamma,
+                               dSIGMAdC, dSIGMAdPsi, dSIGMAdGamma,
+                                   dMdC,     dMdPsi,     dMdGamma);
+    
+    //!Compute the numeric results for dPK2dC
+    std::vector<double> vec_ten;
+    vec_ten.resize(9);
+    vec_ten[0] = C(0,0);
+    vec_ten[1] = C(0,1);
+    vec_ten[2] = C(0,2);
+    vec_ten[3] = C(1,0);
+    vec_ten[4] = C(1,1);
+    vec_ten[5] = C(1,2);
+    vec_ten[6] = C(2,0);
+    vec_ten[7] = C(2,1);
+    vec_ten[8] = C(2,2);
+    finite_difference::FiniteDifference FD(dPK2dC_parser,2,vec_ten,1e-6);
+    std::vector< std::vector< double > > temp_gradient = FD.numeric_gradient();
+    
+    test_results[3]=compare_vectors_matrix_transpose(temp_gradient,dPK2dC.data);
+    
+    //print_vector_of_vectors("dPK2dC_answer",temp_gradient);
+    //std::cout << "dPK2dC_result\n" << dPK2dC.data << "\n";
+    
+    //!Compute the numeric results for dSIGMAdC
+    FD = finite_difference::FiniteDifference(dSIGMAdC_parser,2,vec_ten,1e-6);
+    temp_gradient = FD.numeric_gradient();
+    
+    //print_vector_of_vectors("dSIGMAdC_answer",temp_gradient);
+    //std::cout << "dSIGMAdC_result\n" << dSIGMAdC.data << "\n";
+    
+    test_results[4] = compare_vectors_matrix_transpose(temp_gradient,dSIGMAdC.data);
+    
+    vec_ten[0] = Psi(0,0);
+    vec_ten[1] = Psi(0,1);
+    vec_ten[2] = Psi(0,2);
+    vec_ten[3] = Psi(1,0);
+    vec_ten[4] = Psi(1,1);
+    vec_ten[5] = Psi(1,2);
+    vec_ten[6] = Psi(2,0);
+    vec_ten[7] = Psi(2,1);
+    vec_ten[8] = Psi(2,2);
+    FD = finite_difference::FiniteDifference(dPK2dPsi_parser,2,vec_ten,1e-6);
+    temp_gradient = FD.numeric_gradient();
+    
+    print_vector_of_vectors("dPK2dPsi_answer",temp_gradient);
+    std::cout << "dPK2dPsi_result\n" << dPK2dPsi.data << "\n";
+    
+    test_results[5] = compare_vectors_matrix_transpose(temp_gradient,dPK2dPsi.data);
+    
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }

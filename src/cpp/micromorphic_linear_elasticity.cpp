@@ -93,7 +93,7 @@ namespace micro_material{
     }
     
     void get_stress(const std::vector< double > &fparams,  const std::vector< int > &iparams,                                         //Material parameters
-                    const tensor::Tensor23&   C_in,        const tensor::Tensor23&   Psi_in,    const tensor::Tensor33& Gamma_in,     //Deformation measures
+                    const tensor::Tensor23& C_in,          const tensor::Tensor23& Psi_in,      const tensor::Tensor33& Gamma_in,     //Deformation measures
                           tensor::Tensor23& PK2_stress,          tensor::Tensor23& SIGMA_stress,      tensor::Tensor33& M_stress,     //Stress measures
                           tensor::Tensor43& dPK2dC,              tensor::Tensor43& dPK2dPsi,          tensor::Tensor53& dPK2dGamma,   //Tangents of PK2 stress
                           tensor::Tensor43& dSIGMAdC,            tensor::Tensor43& dSIGMAdPsi,        tensor::Tensor53& dSIGMAdGamma, //Tangents of symmetric stress
@@ -175,7 +175,7 @@ namespace micro_material{
                 }
             }
         }
-            
+        
         //!Compute tangents w.r.t. C
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
@@ -199,7 +199,7 @@ namespace micro_material{
                                         term3T(I,J,O,P) += (B_stiffness(J,Q,K,L)*micro_E(K,L)+D_stiffness(J,Q,K,L)*macro_E(K,L))*(micro_E(R,Q)+ITEN(R,Q))*dCinvdC(I,R,O,P);
                                     }
                                 }
-                                
+
                                 for(int L=0; L<3; L++){
                                     for(int M=0; M<3; M++){
                                         for(int N=0; N<3; N++){
@@ -227,7 +227,7 @@ namespace micro_material{
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
                 for(int O=0; O<3; O++){
-                    for(int P=3; P<3; P++){
+                    for(int P=0; P<3; P++){
                         dPK2dPsi(I,J,O,P)   = D_stiffness(I,J,O,P);
                         dSIGMAdPsi(I,J,O,P) = D_stiffness(I,J,O,P);
                     
@@ -245,13 +245,13 @@ namespace micro_material{
                             }
                         }
                                     
-                        dPK2dPsi(I,J,O,P)   += term2T(I,J,O,P);
-                        dSIGMAdPsi(I,J,O,P) += term2T(I,J,O,P) + term3T(I,J,O,P);
+                        dPK2dPsi(I,J,O,P)   = term2T(I,J,O,P);
+                        dSIGMAdPsi(I,J,O,P) = term2T(I,J,O,P) + term3T(I,J,O,P);
                     }
                 }
             }
         }
-            
+        
         //!Compute tangents w.r.t. Gamma
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
@@ -316,7 +316,7 @@ namespace micro_material{
                             for(int N=0; N<3; N++){
                                 for(int L=0; L<3; L++){
                                     for(int S=0; S<3; S++){
-                                        term2(I,J) += C_stiffness(I,Q,R,L,M,N)*Gamma(L,M,N)*Cinv(S,J)*Gamma(S,Q,R);
+                                        term2(I,J) += C_stiffness(I,Q,R,L,M,N)*Gamma(L,M,N)*Cinv(J,S)*Gamma(S,Q,R);
                                     }
                                 }
                             }
