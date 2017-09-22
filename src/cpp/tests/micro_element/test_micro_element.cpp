@@ -517,6 +517,56 @@ std::vector< std::vector< double > > compute_gradients(std::vector< double > ref
     return gradient;
     
 }
+
+std::vector< double > parse_F(std::vector< double > U_in){
+    /*!=================
+    |    parse_F    |
+    =================
+    
+    Parse the computed deformation gradient 
+    into a form which can be read by the 
+    gradient computation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    micro_element::Hex8 test_element(reference_coords,U_in,U_in);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
+    tensor::Tensor23 Ftmp = test_element.get_F();
+        
+    //Parse the current value of the deformation gradient
+    std::vector< double > out_F(9,0);
+    out_F[0] = Ftmp(0,0);
+    out_F[1] = Ftmp(0,1);
+    out_F[2] = Ftmp(0,2);
+    out_F[3] = Ftmp(1,0);
+    out_F[4] = Ftmp(1,1);
+    out_F[5] = Ftmp(1,2);
+    out_F[6] = Ftmp(2,0);
+    out_F[7] = Ftmp(2,1);
+    out_F[8] = Ftmp(2,2);
+        
+    return out_F;
+}
+
+std::vector< std::vector< double > > compute_gradient_F(std::vector< double > U){
+    /*!============================
+    |    compute_gradient_F    |
+    ============================
+    
+    Compute a numeric gradient of the 
+    deformation gradient with respect to 
+    the degree of freedom vector.
+    
+    */
+    
+    //Define a lambda function to parse the deformation gradient
+    
+    finite_difference::FiniteDifference FD(parse_F,2,U,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
     
 int test_fundamental_measures(std::ofstream &results){
     /*!===================================
@@ -620,6 +670,13 @@ int test_fundamental_measures(std::ofstream &results){
     test_results[0] = F_answer.data.isApprox(element.get_F().data,1e-9);
     test_results[1] = chi_answer.data.isApprox(element.get_chi().data);
     test_results[2] = grad_chi_answer.data.isApprox(element.get_grad_chi().data,1e-9);
+    
+    //!Compare tangents
+    element.set_fundamental_tangents(); //Compute the tangents for the element
+    
+    std::vector< std::vector< double > > gradient = compute_gradient_F(U);
+    
+    
     
     //Compare all test results
     bool tot_result = true;
