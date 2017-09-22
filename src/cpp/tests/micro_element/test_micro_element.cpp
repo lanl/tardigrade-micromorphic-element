@@ -694,6 +694,185 @@ std::vector< std::vector< double > > compute_gradient_grad_chi(std::vector< doub
     std::vector< std::vector< double > > gradient = FD.numeric_gradient();
     return gradient;
 }
+
+std::vector< double > parse_C(std::vector< double > U_in){
+    /*!=================
+    |    parse_C    |
+    =================
+    
+    Parse the computed right Cauchy-Green 
+    deformation tensor into a form which 
+    can be read by the gradient computation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    micro_element::Hex8 test_element(reference_coords,U_in,U_in);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0); //Use the first gauss point
+    test_element.update_shape_function_values();
+    test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
+    test_element.set_deformation_measures();                       //Set the deformation measures
+    tensor::Tensor23 Ctmp = test_element.get_C();
+        
+    //Parse the current value of the deformation gradient
+    std::vector< double > out_C(9,0);
+    out_C[0] = Ctmp(0,0);
+    out_C[1] = Ctmp(0,1);
+    out_C[2] = Ctmp(0,2);
+    out_C[3] = Ctmp(1,0);
+    out_C[4] = Ctmp(1,1);
+    out_C[5] = Ctmp(1,2);
+    out_C[6] = Ctmp(2,0);
+    out_C[7] = Ctmp(2,1);
+    out_C[8] = Ctmp(2,2);
+        
+    return out_C;
+}
+
+std::vector< std::vector< double > > compute_gradient_C(std::vector< double > U){
+    /*!============================
+    |    compute_gradient_C    |
+    ============================
+    
+    Compute a numeric gradient of the 
+    right Cauchy-Green deformation tensor  
+    the degree of freedom vector.
+    
+    */
+    
+    //Define a lambda function to parse the deformation gradient
+    
+    finite_difference::FiniteDifference FD(parse_C,2,U,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
+
+std::vector< double > parse_Psi(std::vector< double > U_in){
+    /*!===================
+    |    parse_Psi    |
+    ===================
+    
+    Parse the computed micro-deformation
+    tensor into a form which can be read 
+    by the gradient computation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    micro_element::Hex8 test_element(reference_coords,U_in,U_in);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0); //Use the first gauss point
+    test_element.update_shape_function_values();
+    test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
+    test_element.set_deformation_measures();                       //Set the deformation measures
+    tensor::Tensor23 Psitmp = test_element.get_Psi();
+        
+    //Parse the current value of the deformation gradient
+    std::vector< double > out_Psi(9,0);
+    out_Psi[0] = Psitmp(0,0);
+    out_Psi[1] = Psitmp(0,1);
+    out_Psi[2] = Psitmp(0,2);
+    out_Psi[3] = Psitmp(1,0);
+    out_Psi[4] = Psitmp(1,1);
+    out_Psi[5] = Psitmp(1,2);
+    out_Psi[6] = Psitmp(2,0);
+    out_Psi[7] = Psitmp(2,1);
+    out_Psi[8] = Psitmp(2,2);
+        
+    return out_Psi;
+}
+
+std::vector< std::vector< double > > compute_gradient_Psi(std::vector< double > U){
+    /*!==============================
+    |    compute_gradient_Psi    |
+    ==============================
+    
+    Compute a numeric gradient of the 
+    micro-deformation tensor with 
+    respect to the degree of freedom 
+    vector.
+    
+    */
+    
+    //Define a lambda function to parse the deformation gradient
+    
+    finite_difference::FiniteDifference FD(parse_Psi,2,U,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
+
+std::vector< double > parse_Gamma(std::vector< double > U_in){
+    /*!=====================
+    |    parse_Gamma    |
+    =====================
+    
+    Parse the computed value of 
+    gamma into a form which can 
+    be read by the gradient 
+    computation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    micro_element::Hex8 test_element(reference_coords,U_in,U_in);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0); //Use the first gauss point
+    test_element.update_shape_function_values();
+    test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
+    test_element.set_deformation_measures();                       //Set the deformation measures.
+    tensor::Tensor33 Gamma = test_element.get_Gamma();
+        
+    //Parse the current value of the deformation gradient
+    std::vector< double > out_Gamma(27,0);
+    out_Gamma[ 0] = Gamma(0,0,0);
+    out_Gamma[ 1] = Gamma(0,1,0);
+    out_Gamma[ 2] = Gamma(0,2,0);
+    out_Gamma[ 3] = Gamma(1,0,0);
+    out_Gamma[ 4] = Gamma(1,1,0);
+    out_Gamma[ 5] = Gamma(1,2,0);
+    out_Gamma[ 6] = Gamma(2,0,0);
+    out_Gamma[ 7] = Gamma(2,1,0);
+    out_Gamma[ 8] = Gamma(2,2,0);
+    out_Gamma[ 9] = Gamma(0,0,1);
+    out_Gamma[10] = Gamma(0,1,1);
+    out_Gamma[11] = Gamma(0,2,1);
+    out_Gamma[12] = Gamma(1,0,1);
+    out_Gamma[13] = Gamma(1,1,1);
+    out_Gamma[14] = Gamma(1,2,1);
+    out_Gamma[15] = Gamma(2,0,1);
+    out_Gamma[16] = Gamma(2,1,1);
+    out_Gamma[17] = Gamma(2,2,1);
+    out_Gamma[18] = Gamma(0,0,2);
+    out_Gamma[19] = Gamma(0,1,2);
+    out_Gamma[20] = Gamma(0,2,2);
+    out_Gamma[21] = Gamma(1,0,2);
+    out_Gamma[22] = Gamma(1,1,2);
+    out_Gamma[23] = Gamma(1,2,2);
+    out_Gamma[24] = Gamma(2,0,2);
+    out_Gamma[25] = Gamma(2,1,2);
+    out_Gamma[26] = Gamma(2,2,2);
+        
+    return out_Gamma;
+}
+
+std::vector< std::vector< double > > compute_gradient_Gamma(std::vector< double > U){
+    /*!================================
+    |    compute_gradient_Gamma    |
+    ================================
+    
+    Compute a numeric gradient of the 
+    gradient of Gamma with respect to 
+    the degree of freedom vector.
+    
+    */
+    
+    //Define a lambda function to parse the deformation gradient
+    
+    finite_difference::FiniteDifference FD(parse_Gamma,2,U,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
     
 int test_fundamental_measures(std::ofstream &results){
     /*!===================================
@@ -907,8 +1086,8 @@ int test_deformation_measures(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 3;
-    bool test_results[test_num] = {false,false,false};
+    int  test_num        = 6;
+    bool test_results[test_num] = {false,false,false,false,false,false};
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(18,0.);
@@ -987,10 +1166,91 @@ int test_deformation_measures(std::ofstream &results){
     test_results[1] = Psi_answer.data.isApprox(element.get_Psi().data);
     test_results[2] = Gamma_answer.data.isApprox(element.get_Gamma().data);
     
+    //!Compare tangents
+    
+    element.set_fundamental_tangents();
+    element.set_deformation_tangents();
+    
+    //!Compare the deformation gradient tangent
+    std::vector< std::vector< double > > gradient = compute_gradient_C(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    
+    //Compare the numeric and analytic tangents
+    test_results[3] = true;
+    
+    tensor::BaseTensor<3,288> dCdU_result = element.get_dCdU();
+    
+    //std::cout << "dCdU:\n" << dCdU_result.data << "\n";
+    
+    for(int K=0; K<96; K++){
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                test_results[3] *= 1e-9>fabs(gradient[K][3*I+J] - dCdU_result(I,J,K));
+                //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dFdU_result(I,J,K) << "\n";
+                if(!test_results[3]){break;}
+            }
+            if(!test_results[3]){break;}
+        }
+        if(!test_results[3]){break;}
+    }
+    
+    //!Compare the micro-deformation tangent
+    gradient = compute_gradient_Psi(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    
+    test_results[4] = true;
+    
+    tensor::BaseTensor<3,288> dPsidU_result = element.get_dPsidU();
+    
+    //std::cout << "dPsidU:\n" << dPsidU_result.data << "\n";
+    
+    for(int K=0; K<96; K++){
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                test_results[4] *= 1e-9>fabs(gradient[K][3*I+J] - dPsidU_result(I,J,K));
+                //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dchidU_result(I,J,K) << "\n";
+                if(!test_results[4]){break;}
+            }
+            if(!test_results[4]){break;}
+        }
+        if(!test_results[4]){break;}
+    }
+    
+    //!Compare the gradient of Gamma tangent
+    gradient = compute_gradient_Gamma(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    
+    test_results[5] = true;
+    
+    tensor::BaseTensor<9,288> dGammadU_result = element.get_dGammadU();
+    
+    //std::cout << "dGammadU_result:\n" << dGammadU_result.data << "\n";
+    
+    for(int I=0; I<3; I++){
+        for(int J=0; J<3; J++){
+            for(int K=0; K<3; K++){
+                for(int L=0; L<96; L++){
+                    test_results[5] *= 1e-8>fabs(gradient[L][9*K+3*I+J] - dGammadU_result(I,J,K,L));
+                    //std::cout << "answer: " << gradient[L][9*K+3*I+J] << "\nresult: " << dGammadU_result(I,J,K,L) << "\n";
+                    //std::cout << I << J << K << L << "\n";
+                    if(!test_results[5]){break;}
+                }
+                if(!test_results[5]){break;}
+            }
+            if(!test_results[5]){break;}
+        }
+        if(!test_results[5]){break;}
+    }
+    
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
