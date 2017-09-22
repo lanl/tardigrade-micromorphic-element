@@ -1784,6 +1784,88 @@ namespace micro_element
         return dGammadU;
     }
     
+    tensor::BaseTensor<3,288> Hex8::get_dPK2dU(){
+        /*!====================
+        |    get_dPK2dU    |
+        ====================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the tangent of the 
+        second Piola-Kirchhoff stress tensor.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        
+        */
+        
+        return dPK2dU;
+    }
+    
+    tensor::BaseTensor<3,288> Hex8::get_dSIGMAdU(){
+        /*!======================
+        |    get_dSIGMAdU    |
+        ======================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the tangent of the 
+        symmetric micro-stress.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        
+        */
+        
+        return dSIGMAdU;
+    }
+    
+    tensor::BaseTensor<9,288> Hex8::get_dMdU(){
+        /*!==================
+        |    get_dMdU    |
+        ==================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the tangent of the 
+        gradient of the higher order stress 
+        tensor.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        
+        */
+        
+        return dMdU;
+    }
+    
     //!==
     //!|
     //!| Private Methods
