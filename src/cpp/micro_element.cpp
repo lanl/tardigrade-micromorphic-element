@@ -166,7 +166,10 @@ namespace micro_element
                
             U:  The vector of changes of the degree of freedom 
                 vector. It is organized such that the degrees of 
-                freedom are in the order of the nodes.
+                freedom are in the order of the nodes. Each node's 
+                dof is organized:
+                
+                u1, u2, u3, phi11, phi22, phi33, phi23, phi13, phi12, phi32, phi31, phi21
             
             dU: The change in the degree of freedom vector over the 
                 last increment. The organization is the same as for 
@@ -894,11 +897,17 @@ namespace micro_element
         for(int n=0; n<8; n++){//Iterate through the nodes
             //Set the derivatives of the deformation gradient w.r.t. the 
             //degree of freedom vector
-            for(int i=0; i<3; i++){
-                for(int j=0; j<3; j++){
-                    dchidU(i,j,3+12*n+3*i+j) = Ns[n];
-                }
-            }
+            
+            dchidU(0,0, 3+12*n) = Ns[n];
+            dchidU(1,1, 4+12*n) = Ns[n];
+            dchidU(2,2, 5+12*n) = Ns[n];
+            dchidU(1,2, 6+12*n) = Ns[n];
+            dchidU(0,2, 7+12*n) = Ns[n];
+            dchidU(0,1, 8+12*n) = Ns[n];
+            dchidU(2,1, 9+12*n) = Ns[n];
+            dchidU(2,0,10+12*n) = Ns[n];
+            dchidU(1,0,11+12*n) = Ns[n];
+            
         }
         return;
     }
@@ -917,16 +926,22 @@ namespace micro_element
         for(int n=0; n<8; n++){//Iterate through the nodes
             //Set the derivatives of the deformation gradient w.r.t. the 
             //degree of freedom vector
-            for(int i=0; i<3; i++){
-                for(int j=0; j<3; j++){
-                    for(int k=0; k<3; k++){
-                        dgrad_chidU(i,j,k,3+12*n+i*3+j) = dNdXs[n][k];
-                    }
-                }
+            
+            for(int K=0; K<3; K++){
+                
+                dgrad_chidU(0,0,K, 3+12*n) = dNdXs[n][K];
+                dgrad_chidU(1,1,K, 4+12*n) = dNdXs[n][K];
+                dgrad_chidU(2,2,K, 5+12*n) = dNdXs[n][K];
+                dgrad_chidU(1,2,K, 6+12*n) = dNdXs[n][K];
+                dgrad_chidU(0,2,K, 7+12*n) = dNdXs[n][K];
+                dgrad_chidU(0,1,K, 8+12*n) = dNdXs[n][K];
+                dgrad_chidU(2,1,K, 9+12*n) = dNdXs[n][K];
+                dgrad_chidU(2,0,K,10+12*n) = dNdXs[n][K];
+                dgrad_chidU(1,0,K,11+12*n) = dNdXs[n][K];
+                
             }
         }
-        
-        
+        return;
     }
     
      //!|=> Compute derivatives of derived deformation measures
@@ -1611,6 +1626,87 @@ namespace micro_element
         */
         
         return dFdU;
+    }
+    
+    tensor::BaseTensor<3,288> Hex8::get_dchidU(){
+        /*!====================
+        |    get_dchidU    |
+        ====================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the tangent of the 
+        micro-displacement tensor.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        
+        */
+        
+        return dchidU;
+    }
+    
+    tensor::BaseTensor<9,288> Hex8::get_dgrad_chidU(){
+        /*!=========================
+        |    get_dgrad_chidU    |
+        =========================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the tangent of the 
+        gradient of the micro-displacement tensor.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        
+        */
+        
+        return dgrad_chidU;
+    }
+    
+    tensor::BaseTensor<3,288> Hex8::get_dPsidU(){
+        /*!====================
+        |    get_dPsidU    |
+        ====================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the tangent of the 
+        micro-deformation gradient.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        
+        */
+        
+        return dPsidU;
     }
     
     //!==

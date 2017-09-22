@@ -253,6 +253,9 @@ namespace micro_element
             tensor::Tensor33 get_Gamma();
             
             tensor::BaseTensor<3,288> get_dFdU();
+            tensor::BaseTensor<3,288> get_dchidU();
+            tensor::BaseTensor<9,288> get_dgrad_chidU();
+            tensor::BaseTensor<3,288> get_dPsidU();
             
         private:
             //!=
