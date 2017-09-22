@@ -255,7 +255,14 @@ namespace micro_element
             tensor::BaseTensor<3,288> get_dFdU();
             tensor::BaseTensor<3,288> get_dchidU();
             tensor::BaseTensor<9,288> get_dgrad_chidU();
+            
+            tensor::BaseTensor<3,288> get_dCdU();
             tensor::BaseTensor<3,288> get_dPsidU();
+            tensor::BaseTensor<9,288> get_dGammadU();
+            
+            tensor::BaseTensor<3,288> get_dPK2dU();
+            tensor::BaseTensor<3,288> get_dSIGMAdU();
+            tensor::BaseTensor<9,288> get_dMdU();
             
         private:
             //!=

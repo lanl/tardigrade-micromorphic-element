@@ -943,6 +943,25 @@ namespace micro_element
         }
         return;
     }
+        
+    //!|=> Compute the derivatives of the deformation measures
+        
+    void Hex8::set_deformation_tangents(){
+        /*!==================================
+        |    set_deformation_tangents    |
+        ==================================
+        
+        Set the tangents of the deformation 
+        measures.
+        
+        */
+        
+        set_dCdU();
+        set_dPsidU();
+        set_dGammadU();
+        
+        return;
+    }
     
      //!|=> Compute derivatives of derived deformation measures
     
@@ -1682,6 +1701,34 @@ namespace micro_element
         return dgrad_chidU;
     }
     
+    tensor::BaseTensor<3,288> Hex8::get_dCdU(){
+        /*!==================
+        |    get_dCdU    |
+        ==================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the tangent of the 
+        right Cauchy-Green deformation 
+        tensor.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        
+        */
+        
+        return dCdU;
+    }
+    
     tensor::BaseTensor<3,288> Hex8::get_dPsidU(){
         /*!====================
         |    get_dPsidU    |
@@ -1707,6 +1754,34 @@ namespace micro_element
         */
         
         return dPsidU;
+    }
+    
+    tensor::BaseTensor<9,288> Hex8::get_dGammadU(){
+        /*!======================
+        |    get_dGammadU    |
+        ======================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the tangent of the 
+        gradient of the micro-deformation 
+        gradient.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        
+        */
+        
+        return dGammadU;
     }
     
     //!==
