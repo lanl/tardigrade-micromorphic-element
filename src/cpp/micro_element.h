@@ -191,17 +191,40 @@ namespace micro_element
             //!| Tangents
             //!=
             
+            //!|=> Compute derivatives of fundamental deformation measures
+            
+            void set_fundamental_tangents();
+            void set_dFdU();
+            void set_dchidU();
+            void set_dgradchi_dU();
+            
+            //!|=> Compute derivatives of micromorphic deformation measures
+            
+            void set_deformation_tangents();
+            void set_dCdU();
+            void set_dPsidU();
+            void set_dGammadU();
+            
+            //!|=> Compute derivatives of stress measures
+            
+            void set_stress_tangents();
+            void set_dPK2dU();
+            void set_dSIGMAdU();
+            void set_dMdU();
+            
             //!|=> Balance of Linear Momentum
             
-            void add_dFint_ddof();
-            void add_dFext_ddof();
-            void add_dFkin_ddof();
+            void set_force_tangent();
+            void add_dFintdU();
+            void add_dFextdU();
+            void add_dFkindU();
             
             //!|=> Balance of First Moment of Momentum
             
-            void add_dMint_ddof();
-            void add_dMext_ddof();
-            void add_dMkin_ddof();
+            void set_moment_tangents();
+            void add_dMintdU();
+            void add_dMextdU();
+            void add_dMkindU();
             
             //!=
             //!| Element Integration 
@@ -265,6 +288,41 @@ namespace micro_element
             tensor::Tensor33 Gamma = tensor::Tensor33({3,3,3});         //!The higher order deformation tensor
             
             double Fdet = 0;                                            //!The determinant of the jacobian of the deformation gradient
+            
+            
+            //!|=> Tangents
+            
+            //!Fundamental deformation measures
+            
+            tensor::BaseTensor<3,288> dFdU        = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of F w.r.t. the degree of freedom vector
+            tensor::BaseTensor<3,288> dchidU      = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of chi w.r.t. the degree of freedom vector
+            tensor::BaseTensor<9,288> dgrad_chidU = tensor::BaseTensor<9,288>({3,3,3,96}); //!The derivative of grad_chi w.r.t. the degree of freedom vector
+            
+            //!Derived deformation measures
+            
+            tensor::BaseTensor<3,288> dCdU        = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of C w.r.t. the degree of freedom vector
+            tensor::BaseTensor<3,288> dPsidU      = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of Psi w.r.t. the degree of freedom vector
+            tensor::BaseTensor<9,288> dGammadU    = tensor::BaseTensor<9,288>({3,3,3,96}); //!The derivative of Gamma w.r.t. the degree of freedom vector
+            
+            //!Stress derivatives
+            
+            tensor::BaseTensor<3,288> dPK2dU      = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of the second Piola-Kirchhoff stress w.r.t the degree of freedom vector
+            tensor::BaseTensor<3,288> dSIGMAdU    = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of the symmetric stress tensor in the reference configuration w.r.t. the degree of freedom vector
+            tensor::BaseTensor<9,288> dMdU        = tensor::BaseTensor<9,288>({3,3,3,96}); //!The derivative of the higher order stress tensor in the reference configuration w.r.t. the degree of freedom vector
+            
+            //!Stress tangents from constitutive model
+            
+            tensor::BaseTensor<9,9>   dPK2dC       = tensor::BaseTensor<9,9>({3,3,3,3});     //!The derivative of the second Piola-Kirchhoff stress w.r.t. the right Cauchy-Green deformation tensor
+            tensor::BaseTensor<9,9>   dSIGMAdC     = tensor::BaseTensor<9,9>({3,3,3,3});     //!The derivative of the symmetric stress w.r.t. the right Cauchy-Green deformation tensor
+            tensor::BaseTensor<9,27>  dMdC         = tensor::BaseTensor<9,27>({3,3,3,3,3});  //!The derivative of the higher order stress w.r.t. the right Cauchy-Green deformation tensor
+            
+            tensor::BaseTensor<9,9>   dPK2dPsi     = tensor::BaseTensor<9,9>({3,3,3,3});     //!The derivative of the second Piola-Kirchhoff stress w.r.t. the micro-deformation tensor
+            tensor::BaseTensor<9,9>   dSIGMAdPsi   = tensor::BaseTensor<9,9>({3,3,3,3});     //!The derivative of the symmetric stress w.r.t. the micro-deformation tensor
+            tensor::BaseTensor<9,27>  dMdPsi       = tensor::BaseTensor<9,27>({3,3,3,3,3});  //!The derivative of the higher order stress w.r.t. the micro-deformation tensor
+            
+            tensor::BaseTensor<9,27>  dPK2dGamma   = tensor::BaseTensor<9,27>({3,3,3,3});    //!The derivative of the second Piola-Kirchhoff stress w.r.t. micro-gradient deformation tensor
+            tensor::BaseTensor<9,27>  dSIGMAdGamma = tensor::BaseTensor<9,27>({3,3,3,3});    //!The derivative of the symmetric stress w.r.t. micro-gradient deformation tensor
+            tensor::BaseTensor<27,27> dMdGamma     = tensor::BaseTensor<27,27>({3,3,3,3,3}); //!The derivative of the higher order stress w.r.t. micro-gradient deformation tensor
             
             //!=
             //!| Parse incoming vectors

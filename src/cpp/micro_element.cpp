@@ -830,6 +830,392 @@ namespace micro_element
     }
     
     //!=
+    //!| Tangents
+    //!=
+            
+    //!|=> Compute derivatives of fundamental deformation measures
+    
+    void Hex8::set_fundamental_tangents(){
+        /*!==================================
+        |    set_fundamental_tangents    |
+        ==================================
+        
+        Set the tangents of the fundamental 
+        deformation measures.
+        
+        */
+        
+        set_dFdU();
+        set_dchidU();
+        set_dgradchi_dU();
+        
+        return;
+    }
+    
+    void Hex8::set_dFdU(){
+        /*!==================
+        |    set_dFdU    |
+        ==================
+        
+        Set the derivative of the deformation gradient w.r.t.
+        the degree of freedom vector.
+        
+        Note that currently a large part of this tangent is 
+        populated with zeros. Future updates should investigate 
+        how to reduce this unused space.
+        
+        */
+        
+        for(int n=0; n<8; n++){//Iterate through the nodes
+            //Set the derivatives of the deformation gradient w.r.t. the 
+            //degree of freedom vector
+            for(int i=0; i<3; i++){
+                for(int j=0; j<3; j++){
+                    dFdU(i,j,i+n*12) = dNdXs[n][i];
+                }
+            }
+        }
+        return;
+    }
+    
+    void Hex8::set_dchidU(){
+        /*!====================
+        |    set_dchidU    |
+        ====================
+        
+        Set the derivative of the micro-displacement 
+        tensor with respect to the degree of freedom 
+        vector.
+        
+        */
+        
+        for(int n=0; n<8; n++){//Iterate through the nodes
+            //Set the derivatives of the deformation gradient w.r.t. the 
+            //degree of freedom vector
+            for(int i=0; i<3; i++){
+                for(int j=0; j<3; j++){
+                    dchidU(i,j,3+12*n+3*i+j) = Ns[n];
+                }
+            }
+        }
+        return;
+    }
+    
+    void Hex8::set_dgradchi_dU(){
+        /*!=========================
+        |    set_dgradchi_dU    |
+        =========================
+        
+        Set the derivative of the derivative 
+        of the gradient of the micro-deformation 
+        tensor with respect to the degree of 
+        freedom vector.
+        
+        */
+        for(int n=0; n<8; n++){//Iterate through the nodes
+            //Set the derivatives of the deformation gradient w.r.t. the 
+            //degree of freedom vector
+            for(int i=0; i<3; i++){
+                for(int j=0; j<3; j++){
+                    for(int k=0; k<3; k++){
+                        dgrad_chidU(i,j,k,3+12*n+i*3+j) = dNdXs[n][k];
+                    }
+                }
+            }
+        }
+        
+        
+    }
+    
+     //!|=> Compute derivatives of derived deformation measures
+    
+    void Hex8::set_dCdU(){
+        /*!==================
+        |    set_dCdU    |
+        ==================
+        
+        Set the derivative of the right 
+        Cauchy-Green deformation tensor 
+        with respect to the degree of 
+        freedom vector.
+        
+        Note: Could potentially remove some 
+              multipliciations by intelegently 
+              iterating through K.
+        
+        */
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int K=0; K<96; K++){
+                    
+                    for(int i=0; i<3; i++){
+                        dCdU(I,J,K) += F(i,J)*dFdU(i,I,K) + F(i,I)*dFdU(i,J,K);
+                    }
+                }
+            }
+        }
+        return;
+    }
+    
+    void Hex8::set_dPsidU(){
+        /*!====================
+        |    set_dPsidU    |
+        ====================
+        
+        Set the derivative of the 
+        micro-deformation tensor 
+        with respect to the degree 
+        of freedom vector.
+        
+        Note: Could potentially remove some 
+              multipliciations by intelegently 
+              iterating through K.
+        
+        */
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int K=0; K<96; K++){
+                    
+                    for(int i=0; i<3; i++){
+                        dPsidU(I,J,K) += chi(i,J)*dFdU(i,I,K) + F(i,I)*dchidU(i,J,K);
+                    }
+                    
+                }
+            }
+        }
+        return;
+    }
+    
+    void Hex8::set_dGammadU(){
+        /*!======================
+        |    set_dGammadU    |
+        ======================
+        
+        Set the derivative of Gamma 
+        with respect to the degree 
+        of freedom vector.
+        
+        Note: Could potentially remove some 
+              multipliciations by intelegently 
+              iterating through K.
+        
+        */
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int L=0; L<3; L++){
+                    for(int K=0; K<96; K++){
+                        
+                        for(int i=0; i<3; i++){
+                            dGammadU(I,J,L,K) += grad_chi(i,J,L)*dFdU(i,I,K) + F(i,I)*dgrad_chidU(i,J,L,K);
+                        }
+                    }
+                }
+            }
+        }
+        return;
+    }
+    
+    //!|=> Stress tangents
+    
+    void Hex8::set_dPK2dU(){
+        /*!====================
+        |    set_dPK2dU    |
+        ====================
+        
+        Set the derivative of the second 
+        Piola-Kirchhoff stress with respect 
+        to the degree of freedom vector.
+        
+        Note: Efficiencies may be gained by 
+              more inteligently iterating through 
+              the degrees of freedom.
+        
+        */
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int K=0; K<96; K++){
+                    
+                    //Add the contributions of the lower order stress tensors
+                    for(int L=0; L<3; L++){
+                        for(int M=0; M<3; M++){
+                            dPK2dU(I,J,K) += dPK2dC(I,J,L,M)*dCdU(L,M,K) + dPK2dPsi(I,J,L,M)*dPsidU(L,M,K);
+                        }
+                    }
+                    
+                    //Add the contributions of the higher order stress tensor
+                    for(int L=0; L<3; L++){
+                        for(int M=0; M<3; M++){
+                            for(int N=0; N<3; N++){
+                                dPK2dU(I,J,K) += dPK2dGamma(I,J,L,M,N)*dGammadU(L,M,N,K);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return;
+    }
+    
+    void Hex8::set_dSIGMAdU(){
+        /*!======================
+        |    set_dSIGMAdU    |
+        ======================
+        
+        Set the derivative of the symmetric 
+        stress tensor in the reference configuration 
+        w.r.t. the degree of freedom vector.
+        
+        Note: Efficiencies may be gained by 
+              more inteligently iterating through 
+              the degrees of freedom.
+        
+        */
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int K=0; K<96; K++){
+                    
+                    //Add the contributions of the lower order deformation tensors
+                    for(int L=0; L<3; L++){
+                        for(int M=0; M<3; M++){
+                            dSIGMAdU(I,J,K) += dSIGMAdC(I,J,L,M)*dCdU(L,M,K) + dSIGMAdPsi(I,J,L,M)*dPsidU(L,M,K);
+                        }
+                    }
+                    
+                    //Add the contributions of the higher order deformation tensor
+                    for(int L=0; L<3; L++){
+                        for(int M=0; M<3; M++){
+                            for(int N=0; N<3; N++){
+                                dSIGMAdU(I,J,K) += dSIGMAdGamma(I,J,L,M,N)*dGammadU(L,M,N,K);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return;
+    }
+    
+    void Hex8::set_dMdU(){
+        /*!====================
+        |    set_dMdU    |
+        ====================
+        
+        Set the derivative of the higher
+        order stress with respect to the 
+        degree of freedom vector.
+        
+        Note: Efficiencies may be gained by 
+              more inteligently iterating through 
+              the degrees of freedom.
+        
+        */
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                for(int K=0; K<3; K++){
+                    for(int L=0; L<96; L++){
+                        
+                        //Add the contributions of the lower order deformation tensors
+                        for(int O=0; O<3; O++){
+                            for(int P=0; P<3; P++){
+                                dMdU(I,J,K,L) += dMdC(I,J,K,O,P)*dCdU(O,P,L) + dMdPsi(I,J,K,O,P)*dPsidU(O,P,L);
+                            }
+                        }
+                        
+                        //Add the contributions of the higher order deformation tensor
+                        for(int O=0; O<3; O++){
+                            for(int P=0; P<3; P++){
+                                for(int Q=0; Q<3; Q++){
+                                    dMdU(I,J,K,L) += dMdGamma(I,J,K,O,P,Q)*dGammadU(O,P,Q,L);
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+            }
+        }
+        return;
+    }
+    
+    //!|=> Add contribution of gauss point to the element stiffness matrix
+    
+    void Hex8::add_dFintdU(){
+        /*!=====================
+        |    add_dFintdU    |
+        =====================
+        
+        Add the contribution of the gauss point 
+        to the derivative of the balance of linear 
+        momentum to the overall element stiffness.
+        
+        */
+        
+        for(int n=0; n<8; n++){
+
+            for(int j=0; j<3; j++){
+                
+                for(int K=0; K<96; K++){
+                    
+                    for(int I=0; I<3; I++){
+                        for(int J=0; J<3; J++){
+                            AMATRX[j+n*12][K] -= dNdXs[n][I]*(dPK2dU(I,J,K)*F(j,J) + PK2[gpt_num](I,J)*dFdU(j,J,K))*weights[gpt_num]*Jhatdet;
+                        }
+                    }
+                }
+            }
+        }
+        return;
+    }
+    
+    void Hex8::add_dMintdU(){
+        /*!=====================
+        |    add_dMintdU    |
+        =====================
+        
+        Add the derivative of the internal 
+        stress term in the balance of first 
+        moment of momentum with respect to 
+        the degree of freedom vector to the 
+        element stiffness matrix.
+        
+        */
+        
+        for(int n=0; n<8; n++){
+            
+            for(int i=0; i<3; i++){
+                for(int j=0; j<3; j++){
+                    for(int L=0; L<96; L++){
+                        
+                        for(int I=0; I<3; I++){
+                            for(int J=0; J<3; J++){
+                                
+                                AMATRX[3+n*12+3*i+j][L] -= ( Ns[n]*(dFdU(i,I,L)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*F(j,J)
+                                                            +F(i,I)*(dSIGMAdU(I,J,L) - dPK2dU(I,J,L))*F(j,J) + F(i,I)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*dFdU(j,J,L)))*weights[gpt_num]*Jhatdet;
+                                
+                            }
+                        }
+                        
+                        for(int I=0; I<3; I++){
+                            for(int J=0; J<3; J++){
+                                for(int K=0; K<3; K++){
+                                    AMATRX[3+n*12+3*i+j][L] -= dNdXs[n][K]*(dFdU(j,J,L)*chi(i,I)*M[gpt_num](K,J,I) + F(j,J)*dchidU(i,I,L)*M[gpt_num](K,J,I) + F(j,J)*chi(i,I)*dMdU(K,J,I,L))*weights[gpt_num]*Jhatdet;
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+            }
+        }
+    }
+    
+    //!=
     //!| Element Integration 
     //!=
     
