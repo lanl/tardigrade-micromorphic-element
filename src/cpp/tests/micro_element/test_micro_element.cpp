@@ -532,6 +532,8 @@ std::vector< double > parse_F(std::vector< double > U_in){
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
     
     micro_element::Hex8 test_element(reference_coords,U_in,U_in);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0); //Use the first gauss point
+    test_element.update_shape_function_values();
     test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
     tensor::Tensor23 Ftmp = test_element.get_F();
         
@@ -583,8 +585,8 @@ int test_fundamental_measures(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 3;
-    bool test_results[test_num] = {false,false,false};
+    int  test_num        = 4;
+    bool test_results[test_num] = {false,false,false,false};
     
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
@@ -676,7 +678,22 @@ int test_fundamental_measures(std::ofstream &results){
     
     std::vector< std::vector< double > > gradient = compute_gradient_F(U);
     
+    //Compare the numeric and analytic tangents
+    test_results[3] = true;
     
+    tensor::BaseTensor<3,288> dFdU_result = element.get_dFdU();
+    for(int K=0; K<96; K++){
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                test_results[3] *= 1e-9>fabs(gradient[K][3*I+J] - dFdU_result(I,J,K));
+                //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dFdU_result(I,J,K) << "\n";
+                if(!test_results[3]){break;}
+            }
+            if(!test_results[3]){break;}
+        }
+        if(!test_results[3]){break;}
+    }
     
     //Compare all test results
     bool tot_result = true;
