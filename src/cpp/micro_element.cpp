@@ -870,8 +870,10 @@ namespace micro_element
             //Set the derivatives of the deformation gradient w.r.t. the 
             //degree of freedom vector
             for(int i=0; i<3; i++){
-                for(int j=0; j<3; j++){
-                    dFdU(i,j,i+n*12) = dNdXs[n][i];
+                for(int J=0; J<3; J++){
+                    for(int K=0; K<3; K++){
+                        if(K==i){dFdU(i,J,K+n*12) = dNdXs[n][J];}
+                    }
                 }
             }
         }
@@ -1582,6 +1584,33 @@ namespace micro_element
         here for testing purposes.
         */
         return Gamma;
+    }
+    
+    tensor::BaseTensor<3,288> Hex8::get_dFdU(){
+        /*!==================
+        |    get_dFdU    |
+        ==================
+        
+        !!!!!!!!!!! WARNING !!!!!!!!!!!!!!!
+        ! DO NOT USE THIS FUNCTION EXCEPT !
+        ! TO TEST THE CODE!               !
+        !                                 !
+        ! ELEMENT INTEGRATION SHOULD BE   !
+        ! PERFORMED USING EXISTING        !
+        ! METHODS!                        !
+        !!!!!!!!!!!!! WARNING !!!!!!!!!!!!!
+        
+        Get the value of the tangent of the 
+        deformation gradient.
+        
+        Used to access the private variable 
+        from outside the class. This should 
+        not be done in general but is allowed 
+        here for testing purposes.
+        
+        */
+        
+        return dFdU;
     }
     
     //!==

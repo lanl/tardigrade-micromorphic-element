@@ -252,6 +252,8 @@ namespace micro_element
             tensor::Tensor23 get_Psi();
             tensor::Tensor33 get_Gamma();
             
+            tensor::BaseTensor<3,288> get_dFdU();
+            
         private:
             //!=
             //!| Common solution variables
