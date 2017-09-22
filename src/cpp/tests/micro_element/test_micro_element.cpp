@@ -569,6 +569,131 @@ std::vector< std::vector< double > > compute_gradient_F(std::vector< double > U)
     std::vector< std::vector< double > > gradient = FD.numeric_gradient();
     return gradient;
 }
+
+std::vector< double > parse_chi(std::vector< double > U_in){
+    /*!===================
+    |    parse_chi    |
+    ===================
+    
+    Parse the computed micro-displacement
+    tensor into a form which can be 
+    read by the gradient computation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    micro_element::Hex8 test_element(reference_coords,U_in,U_in);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0); //Use the first gauss point
+    test_element.update_shape_function_values();
+    test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
+    tensor::Tensor23 chitmp = test_element.get_chi();
+        
+    //Parse the current value of the deformation gradient
+    std::vector< double > out_chi(9,0);
+    out_chi[0] = chitmp(0,0);
+    out_chi[1] = chitmp(0,1);
+    out_chi[2] = chitmp(0,2);
+    out_chi[3] = chitmp(1,0);
+    out_chi[4] = chitmp(1,1);
+    out_chi[5] = chitmp(1,2);
+    out_chi[6] = chitmp(2,0);
+    out_chi[7] = chitmp(2,1);
+    out_chi[8] = chitmp(2,2);
+        
+    return out_chi;
+}
+
+std::vector< std::vector< double > > compute_gradient_chi(std::vector< double > U){
+    /*!==============================
+    |    compute_gradient_chi    |
+    ==============================
+    
+    Compute a numeric gradient of the 
+    micro-displacement tensor with 
+    respect to the degree of freedom 
+    vector.
+    
+    */
+    
+    //Define a lambda function to parse the deformation gradient
+    
+    finite_difference::FiniteDifference FD(parse_chi,2,U,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
+
+std::vector< double > parse_grad_chi(std::vector< double > U_in){
+    /*!========================
+    |    parse_grad_chi    |
+    ========================
+    
+    Parse the computed gradient of 
+    the micro-displacement tensor 
+    into a form which can be read 
+    by the gradient computation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    micro_element::Hex8 test_element(reference_coords,U_in,U_in);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0); //Use the first gauss point
+    test_element.update_shape_function_values();
+    test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
+    tensor::Tensor33 grad_chitmp = test_element.get_grad_chi();
+        
+    //Parse the current value of the deformation gradient
+    std::vector< double > out_grad_chi(27,0);
+    out_grad_chi[ 0] = grad_chitmp(0,0,0);
+    out_grad_chi[ 1] = grad_chitmp(0,1,0);
+    out_grad_chi[ 2] = grad_chitmp(0,2,0);
+    out_grad_chi[ 3] = grad_chitmp(1,0,0);
+    out_grad_chi[ 4] = grad_chitmp(1,1,0);
+    out_grad_chi[ 5] = grad_chitmp(1,2,0);
+    out_grad_chi[ 6] = grad_chitmp(2,0,0);
+    out_grad_chi[ 7] = grad_chitmp(2,1,0);
+    out_grad_chi[ 8] = grad_chitmp(2,2,0);
+    out_grad_chi[ 9] = grad_chitmp(0,0,1);
+    out_grad_chi[10] = grad_chitmp(0,1,1);
+    out_grad_chi[11] = grad_chitmp(0,2,1);
+    out_grad_chi[12] = grad_chitmp(1,0,1);
+    out_grad_chi[13] = grad_chitmp(1,1,1);
+    out_grad_chi[14] = grad_chitmp(1,2,1);
+    out_grad_chi[15] = grad_chitmp(2,0,1);
+    out_grad_chi[16] = grad_chitmp(2,1,1);
+    out_grad_chi[17] = grad_chitmp(2,2,1);
+    out_grad_chi[18] = grad_chitmp(0,0,2);
+    out_grad_chi[19] = grad_chitmp(0,1,2);
+    out_grad_chi[20] = grad_chitmp(0,2,2);
+    out_grad_chi[21] = grad_chitmp(1,0,2);
+    out_grad_chi[22] = grad_chitmp(1,1,2);
+    out_grad_chi[23] = grad_chitmp(1,2,2);
+    out_grad_chi[24] = grad_chitmp(2,0,2);
+    out_grad_chi[25] = grad_chitmp(2,1,2);
+    out_grad_chi[26] = grad_chitmp(2,2,2);
+        
+    return out_grad_chi;
+}
+
+std::vector< std::vector< double > > compute_gradient_grad_chi(std::vector< double > U){
+    /*!===================================
+    |    compute_gradient_grad_chi    |
+    ===================================
+    
+    Compute a numeric gradient of the 
+    gradient of the micro-displacement 
+    tensor with respect to the degree 
+    of freedom vector.
+    
+    */
+    
+    //Define a lambda function to parse the deformation gradient
+    
+    finite_difference::FiniteDifference FD(parse_grad_chi,2,U,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
     
 int test_fundamental_measures(std::ofstream &results){
     /*!===================================
@@ -585,8 +710,8 @@ int test_fundamental_measures(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 4;
-    bool test_results[test_num] = {false,false,false,false};
+    int  test_num        = 6;
+    bool test_results[test_num] = {false,false,false,false,false,false};
     
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
@@ -676,6 +801,7 @@ int test_fundamental_measures(std::ofstream &results){
     //!Compare tangents
     element.set_fundamental_tangents(); //Compute the tangents for the element
     
+    //!Compare the deformation gradient tangent
     std::vector< std::vector< double > > gradient = compute_gradient_F(U);
     
     //Compare the numeric and analytic tangents
@@ -695,10 +821,61 @@ int test_fundamental_measures(std::ofstream &results){
         if(!test_results[3]){break;}
     }
     
+    //!Compare the micro-displacement tangent
+    gradient = compute_gradient_chi(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    
+    test_results[4] = true;
+    
+    tensor::BaseTensor<3,288> dchidU_result = element.get_dchidU();
+    
+    //std::cout << "dchidU:\n" << dchidU_result.data << "\n";
+    
+    for(int K=0; K<96; K++){
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                test_results[4] *= 1e-9>fabs(gradient[K][3*I+J] - dchidU_result(I,J,K));
+                //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dchidU_result(I,J,K) << "\n";
+                if(!test_results[4]){break;}
+            }
+            if(!test_results[4]){break;}
+        }
+        if(!test_results[4]){break;}
+    }
+    
+    //!Compare the micro-displacement gradient tangent
+    gradient = compute_gradient_grad_chi(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    
+    test_results[5] = true;
+    
+    tensor::BaseTensor<9,288> dgrad_chidU_result = element.get_dgrad_chidU();
+    
+    //std::cout << "dgrad_chidU_result:\n" << dgrad_chidU_result.data << "\n";
+    
+    for(int I=0; I<3; I++){
+        for(int J=0; J<3; J++){
+            for(int K=0; K<3; K++){
+                for(int L=0; L<96; L++){
+                    test_results[5] *= 1e-9>fabs(gradient[L][9*K+3*I+J] - dgrad_chidU_result(I,J,K,L));
+                    //std::cout << "answer: " << gradient[L][9*K+3*I+J] << "\nresult: " << dgrad_chidU_result(I,J,K,L) << "\n";
+                    if(!test_results[5]){break;}
+                }
+                if(!test_results[5]){break;}
+            }
+            if(!test_results[5]){break;}
+        }
+        if(!test_results[5]){break;}
+    }
+    
+    
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
