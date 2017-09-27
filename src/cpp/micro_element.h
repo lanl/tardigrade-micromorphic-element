@@ -167,7 +167,7 @@ namespace micro_element
             //!| Constitutive Model Interface
             //!=
             
-            void set_stresses(bool set_tangents = true);
+            void set_stresses(bool set_tangents = false);
             
             //!=
             //!| Residuals
@@ -230,8 +230,8 @@ namespace micro_element
             //!| Element Integration 
             //!=
             
-            void update_gauss_point();
-            void integrate_element();
+            void update_gauss_point(bool set_tangents = false);
+            void integrate_element(bool set_tangents = false);
             
             //!=
             //!| Test functions
@@ -324,17 +324,17 @@ namespace micro_element
             
             //!Stress tangents from constitutive model
             
-            tensor::BaseTensor<9,9>   dPK2dC       = tensor::BaseTensor<9,9>({3,3,3,3});     //!The derivative of the second Piola-Kirchhoff stress w.r.t. the right Cauchy-Green deformation tensor
-            tensor::BaseTensor<9,9>   dSIGMAdC     = tensor::BaseTensor<9,9>({3,3,3,3});     //!The derivative of the symmetric stress w.r.t. the right Cauchy-Green deformation tensor
-            tensor::BaseTensor<9,27>  dMdC         = tensor::BaseTensor<9,27>({3,3,3,3,3});  //!The derivative of the higher order stress w.r.t. the right Cauchy-Green deformation tensor
+            tensor::Tensor43 dPK2dC       = tensor::Tensor43({3,3,3,3});     //!The derivative of the second Piola-Kirchhoff stress w.r.t. the right Cauchy-Green deformation tensor
+            tensor::Tensor43 dSIGMAdC     = tensor::Tensor43({3,3,3,3});     //!The derivative of the symmetric stress w.r.t. the right Cauchy-Green deformation tensor
+            tensor::Tensor53 dMdC         = tensor::Tensor53({3,3,3,3,3});   //!The derivative of the higher order stress w.r.t. the right Cauchy-Green deformation tensor
             
-            tensor::BaseTensor<9,9>   dPK2dPsi     = tensor::BaseTensor<9,9>({3,3,3,3});     //!The derivative of the second Piola-Kirchhoff stress w.r.t. the micro-deformation tensor
-            tensor::BaseTensor<9,9>   dSIGMAdPsi   = tensor::BaseTensor<9,9>({3,3,3,3});     //!The derivative of the symmetric stress w.r.t. the micro-deformation tensor
-            tensor::BaseTensor<9,27>  dMdPsi       = tensor::BaseTensor<9,27>({3,3,3,3,3});  //!The derivative of the higher order stress w.r.t. the micro-deformation tensor
+            tensor::Tensor43 dPK2dPsi     = tensor::Tensor43({3,3,3,3});     //!The derivative of the second Piola-Kirchhoff stress w.r.t. the micro-deformation tensor
+            tensor::Tensor43 dSIGMAdPsi   = tensor::Tensor43({3,3,3,3});     //!The derivative of the symmetric stress w.r.t. the micro-deformation tensor
+            tensor::Tensor53 dMdPsi       = tensor::Tensor53({3,3,3,3,3});   //!The derivative of the higher order stress w.r.t. the micro-deformation tensor
             
-            tensor::BaseTensor<9,27>  dPK2dGamma   = tensor::BaseTensor<9,27>({3,3,3,3});    //!The derivative of the second Piola-Kirchhoff stress w.r.t. micro-gradient deformation tensor
-            tensor::BaseTensor<9,27>  dSIGMAdGamma = tensor::BaseTensor<9,27>({3,3,3,3});    //!The derivative of the symmetric stress w.r.t. micro-gradient deformation tensor
-            tensor::BaseTensor<27,27> dMdGamma     = tensor::BaseTensor<27,27>({3,3,3,3,3}); //!The derivative of the higher order stress w.r.t. micro-gradient deformation tensor
+            tensor::Tensor53 dPK2dGamma   = tensor::Tensor53({3,3,3,3,3});   //!The derivative of the second Piola-Kirchhoff stress w.r.t. micro-gradient deformation tensor
+            tensor::Tensor53 dSIGMAdGamma = tensor::Tensor53({3,3,3,3,3});   //!The derivative of the symmetric stress w.r.t. micro-gradient deformation tensor
+            tensor::Tensor63 dMdGamma     = tensor::Tensor63({3,3,3,3,3,3}); //!The derivative of the higher order stress w.r.t. micro-gradient deformation tensor
             
             //!=
             //!| Parse incoming vectors
