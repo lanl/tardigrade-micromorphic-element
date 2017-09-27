@@ -74,6 +74,13 @@ namespace micro_material{
         tensor::Tensor63 C_stiffness({3,3,3,3,3,3});
         tensor::Tensor43 D_stiffness({3,3,3,3});
         
+        //!Error handling on fparams
+        if(fparams.size()<18){
+            std::cout << "Error: 18 parameters required in fparams.\n"
+                      << "       " << fparams.size() << " parameters provided.\n";
+            assert(1==0);
+        }
+        
         //!Compute the stiffness tensors
         generate_A_stiffness(fparams,A_stiffness);
         generate_B_stiffness(fparams,B_stiffness);
