@@ -167,7 +167,7 @@ namespace micro_element
             //!| Constitutive Model Interface
             //!=
             
-            void set_stresses();
+            void set_stresses(bool set_tangents = true);
             
             //!=
             //!| Residuals
