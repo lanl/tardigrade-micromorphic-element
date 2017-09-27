@@ -707,7 +707,7 @@ namespace micro_element
     //!| Constitutive Model Interface
     //!=
     
-    void Hex8::set_stresses(){
+    void Hex8::set_stresses(bool set_tangents){
         /*!========================
         |     set_stresses     |
         ========================
@@ -718,7 +718,15 @@ namespace micro_element
         
         */
         
-        micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
+        if(set_tangents){
+            micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num],
+                                         dPK2dC,  dPK2dPsi,  dPK2dGamma,
+                                       dSIGMAdC,dSIGMAdPsi,dSIGMAdGamma,
+                                           dMdC,    dMdPsi,    dMdGamma);
+        }
+        else{
+            micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
+        }
         
         return;
     }
