@@ -1064,6 +1064,23 @@ namespace micro_element
     
     //!|=> Stress tangents
     
+    void Hex8::set_stress_tangents(){
+        /*!=============================
+        |    set_stress_tangents    |
+        =============================
+        
+        Set the tangents of the stress 
+        measures with respect to the 
+        degree of freedom vector.
+        
+        */
+        
+        set_dPK2dU();
+        set_dSIGMAdU();
+        set_dMdU();
+        return;
+    }
+    
     void Hex8::set_dPK2dU(){
         /*!====================
         |    set_dPK2dU    |
@@ -1263,7 +1280,7 @@ namespace micro_element
     //!| Element Integration 
     //!=
     
-    void Hex8::update_gauss_point(){
+    void Hex8::update_gauss_point(bool set_tangents){
         /*!============================
         |    update_gauss_point    |
         ============================
@@ -1281,13 +1298,24 @@ namespace micro_element
     
         //!Set the deformation measures
         set_deformation_measures();
-    
+        
         //!Set the stresses at the gauss point
-        set_stresses();
+        
+        //!Set the tangents if required
+        if(set_tangents){
+            set_fundamental_tangents();
+            set_deformation_tangents();
+            set_stresses(set_tangents);
+            set_stress_tangents();
+        }
+        else{
+            set_stresses();
+        }
+        
         return;
     }
     
-    void Hex8::integrate_element(){
+    void Hex8::integrate_element(bool set_tangents){
         /*!===========================
         |    integrate_element    |
         ===========================
@@ -1297,10 +1325,10 @@ namespace micro_element
         */
         
         for(int i=0; i<number_gauss_points; i++){
-            gpt_num = i;          //Update the gauss point number
-            update_gauss_point(); //Update all of the gauss points
-            add_all_forces();     //Update the RHS vector from all of the forces
-            add_all_moments();    //Update the RHS vector from all of the stresses
+            gpt_num = i;                      //Update the gauss point number
+            update_gauss_point(set_tangents); //Update all of the gauss points
+            add_all_forces();                 //Update the RHS vector from all of the forces
+            add_all_moments();                //Update the RHS vector from all of the stresses
         }
         
         return;
