@@ -68,6 +68,25 @@ void print_vector_of_vectors(std::string name, std::vector< std::vector< double 
     }
 }
 
+bool double_compare(double d1, double d2, double abs_tol=1e-6, double rel_tol = 1e-6){
+    /*!========================
+    |    double_compare    |
+    ========================
+    
+    Compare two doubles using a 
+    tolerance.
+    
+    */
+    
+    double abs_error = fabs(d1-d2);
+    double rel_error = fabs(d1-d2)/std::max(fabs(d1),fabs(d2));
+    
+    if((abs_error>abs_tol) && (rel_error>rel_tol)){return false;}
+    else{return true;}
+    
+    
+}
+
 std::vector< double > generate_current_coordinates(std::vector< double > reference_coord){
     /*!======================================
     |    generate_current_coordinates    |
@@ -867,9 +886,205 @@ std::vector< std::vector< double > > compute_gradient_Gamma(std::vector< double 
     
     */
     
-    //Define a lambda function to parse the deformation gradient
-    
     finite_difference::FiniteDifference FD(parse_Gamma,2,U,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
+
+std::vector< double > parse_PK2(std::vector< double > U_in){
+    /*!===================
+    |    parse_PK2    |
+    ===================
+    
+    Parse the computed second Piola-Kirchhoff 
+    stress tensor into a form which can be 
+    read by the gradient computation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    micro_element::Hex8 test_element = micro_element::Hex8(reference_coords,U_in,U_in,fparams);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0); //Use the first gauss point
+    test_element.update_shape_function_values();
+    test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
+    test_element.set_deformation_measures();                       //Set the deformation measures
+    test_element.set_stresses();                                   //Set the stress measures
+    tensor::Tensor23 PK2tmp = test_element.PK2[0];                 //Using first gauss point
+        
+    //Parse the current value of the deformation gradient
+    std::vector< double > out_PK2(9,0);
+    out_PK2[0] = PK2tmp(0,0);
+    out_PK2[1] = PK2tmp(0,1);
+    out_PK2[2] = PK2tmp(0,2);
+    out_PK2[3] = PK2tmp(1,0);
+    out_PK2[4] = PK2tmp(1,1);
+    out_PK2[5] = PK2tmp(1,2);
+    out_PK2[6] = PK2tmp(2,0);
+    out_PK2[7] = PK2tmp(2,1);
+    out_PK2[8] = PK2tmp(2,2);
+        
+    return out_PK2;
+}
+
+std::vector< std::vector< double > > compute_gradient_PK2(std::vector< double > U){
+    /*!==============================
+    |    compute_gradient_PK2    |
+    ==============================
+    
+    Compute the numeric gradient of the 
+    second Piola-Kirchhoff stress tensor 
+    with respect to the degree of 
+    freedom vector.
+    
+    */
+    
+    finite_difference::FiniteDifference FD(parse_PK2,2,U,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
+
+std::vector< double > parse_SIGMA(std::vector< double > U_in){
+    /*!=====================
+    |    parse_SIGMA    |
+    =====================
+    
+    Parse the computed symmetric 
+    stress tensor into a form which can be 
+    read by the gradient computation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    micro_element::Hex8 test_element = micro_element::Hex8(reference_coords,U_in,U_in,fparams);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0); //Use the first gauss point
+    test_element.update_shape_function_values();
+    test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
+    test_element.set_deformation_measures();                       //Set the deformation measures
+    test_element.set_stresses();                                   //Set the stress measures
+    tensor::Tensor23 SIGMAtmp = test_element.SIGMA[0];             //Using first gauss point
+        
+    //Parse the current value of the deformation gradient
+    std::vector< double > out_SIGMA(9,0);
+    out_SIGMA[0] = SIGMAtmp(0,0);
+    out_SIGMA[1] = SIGMAtmp(0,1);
+    out_SIGMA[2] = SIGMAtmp(0,2);
+    out_SIGMA[3] = SIGMAtmp(1,0);
+    out_SIGMA[4] = SIGMAtmp(1,1);
+    out_SIGMA[5] = SIGMAtmp(1,2);
+    out_SIGMA[6] = SIGMAtmp(2,0);
+    out_SIGMA[7] = SIGMAtmp(2,1);
+    out_SIGMA[8] = SIGMAtmp(2,2);
+        
+    return out_SIGMA;
+}
+
+std::vector< std::vector< double > > compute_gradient_SIGMA(std::vector< double > U){
+    /*!================================
+    |    compute_gradient_SIGMA    |
+    ================================
+    
+    Compute the numeric gradient of the 
+    symmetric stress tensor 
+    with respect to the degree of 
+    freedom vector.
+    
+    */
+    
+    finite_difference::FiniteDifference FD(parse_SIGMA,2,U,1e-6);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
+
+std::vector< double > parse_M(std::vector< double > U_in){
+    /*!=================
+    |    parse_M    |
+    =================
+    
+    Parse the higher order  
+    stress tensor into a form which can be 
+    read by the gradient computation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    micro_element::Hex8 test_element = micro_element::Hex8(reference_coords,U_in,U_in,fparams);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0); //Use the first gauss point
+    test_element.update_shape_function_values();
+    test_element.set_fundamental_measures();                       //Set the fundamental deformation measures
+    test_element.set_deformation_measures();                       //Set the deformation measures
+    test_element.set_stresses();                                   //Set the stress measures
+    tensor::Tensor33 Mtmp = test_element.M[0];                     //Using first gauss point
+        
+    //Parse the current value of the deformation gradient
+    std::vector< double > out_M(27,0);
+    out_M[ 0] = Mtmp(0,0,0);
+    out_M[ 1] = Mtmp(0,1,0);
+    out_M[ 2] = Mtmp(0,2,0);
+    out_M[ 3] = Mtmp(1,0,0);
+    out_M[ 4] = Mtmp(1,1,0);
+    out_M[ 5] = Mtmp(1,2,0);
+    out_M[ 6] = Mtmp(2,0,0);
+    out_M[ 7] = Mtmp(2,1,0);
+    out_M[ 8] = Mtmp(2,2,0);
+    out_M[ 9] = Mtmp(0,0,1);
+    out_M[10] = Mtmp(0,1,1);
+    out_M[11] = Mtmp(0,2,1);
+    out_M[12] = Mtmp(1,0,1);
+    out_M[13] = Mtmp(1,1,1);
+    out_M[14] = Mtmp(1,2,1);
+    out_M[15] = Mtmp(2,0,1);
+    out_M[16] = Mtmp(2,1,1);
+    out_M[17] = Mtmp(2,2,1);
+    out_M[18] = Mtmp(0,0,2);
+    out_M[19] = Mtmp(0,1,2);
+    out_M[20] = Mtmp(0,2,2);
+    out_M[21] = Mtmp(1,0,2);
+    out_M[22] = Mtmp(1,1,2);
+    out_M[23] = Mtmp(1,2,2);
+    out_M[24] = Mtmp(2,0,2);
+    out_M[25] = Mtmp(2,1,2);
+    out_M[26] = Mtmp(2,2,2);
+        
+    return out_M;
+}
+
+std::vector< std::vector< double > > compute_gradient_M(std::vector< double > U){
+    /*!============================
+    |    compute_gradient_M    |
+    ============================
+    
+    Compute the numeric gradient of the 
+    higher order stress tensor 
+    with respect to the degree of 
+    freedom vector.
+    
+    */
+    
+    finite_difference::FiniteDifference FD(parse_M,2,U,1e-6);
     std::vector< std::vector< double > > gradient = FD.numeric_gradient();
     return gradient;
 }
@@ -1054,7 +1269,7 @@ int test_fundamental_measures(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -1250,7 +1465,7 @@ int test_deformation_measures(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -1261,6 +1476,169 @@ int test_deformation_measures(std::ofstream &results){
     }
     else{
         results << "test_deformation_measures & False\\\\\n\\hline\n";
+    }
+    
+    return 1;
+}
+
+int test_stress_tangents(std::ofstream &results){
+    /*!==============================
+    |    test_stress_tangents    |
+    ==============================
+    
+    Run tests of the tangents of the stress 
+    measures with respect to the degree of 
+    freedom vector.
+    
+    */
+    
+    //Seed the random number generator
+    srand (1);
+    
+    //!Initialize test results
+    int  test_num        = 3;
+    bool test_results[test_num] = {false,false,false};
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    //!Form the required vectors for element formation
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
+    std::vector< double > Unode;
+    std::vector< double > Xnode;
+    std::vector< double > U;
+    std::vector< double > dU;
+    Xnode.resize(3);
+    Unode.resize(96);
+    U.resize(96);
+    dU.resize(96);
+    int inc = 0;
+    for(int n=0; n<8; n++){
+        Xnode[0] = reference_coords[0+n*3]; //Get the position of the current node
+        Xnode[1] = reference_coords[1+n*3];
+        Xnode[2] = reference_coords[2+n*3];
+        
+        Unode = test_deformation(Xnode);    //Update the deformation
+        
+        for(int i=0; i<12; i++){
+            U[inc]  = Unode[i];   //Assign the deformation
+            dU[inc] = 0.1*Unode[i];  //Assign the change in deformation (1/10 of the deformation)
+            inc++;
+        }
+    }
+    
+    //!Form the hexehedral test element.
+    micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU,fparams);
+    
+    //!Set the gauss point
+    element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
+    
+    //!Compute the shape function values
+    element.update_shape_function_values();
+    
+    //!Set the fundamental deformation measures
+    element.set_fundamental_measures();
+    
+    //!Set the deformation measures
+    element.set_deformation_measures();
+    
+    //!Set the deformation tangents
+    element.set_fundamental_tangents();
+    element.set_deformation_tangents();
+    
+    //!Set the stresses at the gauss point
+    element.set_stresses(true);
+    
+    //!Set the stress tangents
+    element.set_stress_tangents();
+    
+    //!Compare the PK2 tangent
+    std::vector< std::vector< double > > gradient = compute_gradient_PK2(U);
+    
+    //Compare the numeric and analytic tangents
+    test_results[0] = true;
+    
+    tensor::BaseTensor<3,288> dPK2dU_result = element.get_dPK2dU();
+    
+    for(int K=0; K<96; K++){
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                test_results[0] *= double_compare(gradient[K][3*I+J],dPK2dU_result(I,J,K));
+                //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dPK2dU_result(I,J,K) << "\n";
+                if(!test_results[0]){break;}
+            }
+            if(!test_results[0]){break;}
+        }
+        if(!test_results[0]){break;}
+    }
+    
+    //!Compare the SIGMA tangent
+    gradient = compute_gradient_SIGMA(U);
+    
+    //Compare the numeric and analytic tangents
+    test_results[1] = true;
+    
+    tensor::BaseTensor<3,288> dSIGMAdU_result = element.get_dSIGMAdU();
+    
+    for(int K=0; K<96; K++){
+        
+        for(int I=0; I<3; I++){
+            for(int J=0; J<3; J++){
+                test_results[2] *= double_compare(gradient[K][3*I+J],dSIGMAdU_result(I,J,K));
+                //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dPK2dU_result(I,J,K) << "\n";
+                if(!test_results[1]){break;}
+            }
+            if(!test_results[1]){break;}
+        }
+        if(!test_results[1]){break;}
+    }
+    
+    //!Compare the gradient of higher order stress
+    gradient = compute_gradient_M(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    
+    test_results[2] = true;
+    
+    tensor::BaseTensor<9,288> dMdU_result = element.get_dMdU();
+    
+    //std::cout << "dMdU_result:\n" << dMdU_result.data << "\n";
+    
+    for(int I=0; I<3; I++){
+        for(int J=0; J<3; J++){
+            for(int K=0; K<3; K++){
+                for(int L=0; L<96; L++){
+                    test_results[2] *= double_compare(gradient[L][9*K+3*I+J],dMdU_result(I,J,K,L));
+                    //std::cout << "answer: " << gradient[L][9*K+3*I+J] << "\nresult: " << dMdU_result(I,J,K,L) << "\n";
+                    //std::cout << I << J << K << L << "\n";
+                    if(!test_results[2]){break;}
+                }
+                if(!test_results[2]){break;}
+            }
+            if(!test_results[2]){break;}
+        }
+        if(!test_results[2]){break;}
+    }
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_stress_tangents & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_stress_tangents & False\\\\\n\\hline\n";
     }
     
     return 1;
@@ -1349,6 +1727,9 @@ int test_balance_of_linear_momentum(std::ofstream &results){
             }
         }
     }
+    
+    //!Compare the tangents
+    
     
     //!Compare the expected results to the element results
     test_results[0] = true;
@@ -1675,6 +2056,7 @@ int main(){
     test_shape_functions(results);
     test_fundamental_measures(results);
     test_deformation_measures(results);
+    test_stress_tangents(results);
     test_balance_of_linear_momentum(results);
     test_balance_of_first_moment_of_momentum(results);
     test_integrate_element(results);
