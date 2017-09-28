@@ -1206,6 +1206,20 @@ namespace micro_element
     
     //!|=> Add contribution of gauss point to the element stiffness matrix
     
+    void Hex8::set_force_tangent(){
+        /*!===========================
+        |    set_force_tangent    |
+        ===========================
+        
+        Set the tangent of the linear momentum 
+        with respect to the degree of freedom
+        vector.
+        
+        */
+        
+        add_dFintdU();
+    }
+    
     void Hex8::add_dFintdU(){
         /*!=====================
         |    add_dFintdU    |
