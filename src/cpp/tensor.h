@@ -57,6 +57,8 @@ namespace tensor
             std::vector< int >                  shape;                           //!The shape of the tensor a vector of integers indicating each dimensions length
             std::array< int,2 >                 data_dimensions = { {m_b,n_b} }; //!The dimensions of the data matrix (note, double braces for gcc compiler)
             Eigen::Matrix<double, m_b, n_b>     data;                            //!The data object for the tensor a Eigen::Matrix
+            enum { NeedsToAlign = (sizeof(data)%16)==0 };                        //!Checks if the data object needs to be aligned
+            EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
             std::string                         format = "default";              //!The format of the data object. This modifies the way the tensor is stored
                                                                                  //!options: (default)
             int                                 index_split;                     //!Where, in the indices for the tensor, the split between rows and
@@ -399,6 +401,40 @@ namespace tensor
                         data(i,j) = 0.;
                     }
                 }
+            }
+            
+            void print_factors(){
+                /*!=======================
+                |    print_factors    |
+                =======================
+                
+                Method which prints the multiplicative factors 
+                of the indices. Useful for debugging.
+                
+                */
+                
+                std::cout << "index_factors:";
+                for(int i=0; i<index_factors.size(); i++){std::cout << " " << index_factors[i];}
+                std::cout << "\n";
+                return;
+            }
+            
+            template <typename ...ArgsT>
+            void print_data_indices(ArgsT ...indices){
+                /*!============================
+                |    print_data_indices    |
+                ============================
+                
+                Method which prints the mapped indices to the 
+                data matrix.k Useful for debugging.
+                
+                */
+                
+                std::array< int, 2>  data_indices  = map_index({indices...});  //! The row and column numbers
+                std::cout << "data_indices:";
+                for(int i=0; i<2; i++){std::cout << " " << data_indices[i];}
+                std::cout << "\n";
+                return;
             }
 
         private:
