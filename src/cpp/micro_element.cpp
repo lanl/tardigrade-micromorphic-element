@@ -429,8 +429,9 @@ namespace micro_element
         }
         
         Jinv    = J.inverse();
-        if(mode){
-            Jhatdet = J.det();
+        if(!mode){
+            Jhatdet = J.det(); //!Jhatdet is the jacobian of transformation for volumes in the reference coordinates to volumes in 
+                               //!the local (or master) coordinate system.
         }
         
         return;
@@ -1218,6 +1219,7 @@ namespace micro_element
         */
         
         add_dFintdU();
+        return;
     }
     
     void Hex8::add_dFintdU(){
@@ -1231,20 +1233,24 @@ namespace micro_element
         
         */
         
-        for(int n=0; n<8; n++){
+        for(int n=0; n<reference_coords.size(); n++){
 
             for(int j=0; j<3; j++){
                 
-                for(int K=0; K<96; K++){
+                for(int I=0; I<3; I++){
                     
-                    for(int I=0; I<3; I++){
-                        for(int J=0; J<3; J++){
+                    for(int J=0; J<3; J++){
+                        
+                        for(int K=0; K<96; K++){
+                            
                             AMATRX[j+n*12][K] -= dNdXs[n][I]*(dPK2dU(I,J,K)*F(j,J) + PK2[gpt_num](I,J)*dFdU(j,J,K))*weights[gpt_num]*Jhatdet;
+                            
                         }
                     }
                 }
             }
         }
+        
         return;
     }
     
