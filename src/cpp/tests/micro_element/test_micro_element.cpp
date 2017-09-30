@@ -79,12 +79,14 @@ bool double_compare(double d1, double d2, double abs_tol=1e-6, double rel_tol = 
     */
     
     double abs_error = fabs(d1-d2);
-    double rel_error = fabs(d1-d2)/std::max(fabs(d1),fabs(d2));
+    double rel_error;
+    
+    if(std::max(fabs(d1),fabs(d2))>abs_tol){
+        rel_error = fabs(d1-d2)/std::max(fabs(d1),fabs(d2));
+    }
     
     if((abs_error>abs_tol) && (rel_error>rel_tol)){return false;}
-    else{return true;}
-    
-    
+    return true;
 }
 
 std::vector< double > generate_current_coordinates(std::vector< double > reference_coord){
@@ -1088,6 +1090,76 @@ std::vector< std::vector< double > > compute_gradient_M(std::vector< double > U)
     std::vector< std::vector< double > > gradient = FD.numeric_gradient();
     return gradient;
 }
+
+//extern double test_temp1 = 0;
+//extern double test_temp2 = 0;
+
+std::vector< double > parse_Fint(std::vector< double > U_in){
+    /*!====================
+    |    parse_Fint    |
+    ====================
+    
+    Parse the internal force vector 
+    for gradient calculation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    //print_vector("U_in:",U_in);
+    
+    micro_element::Hex8 test_element = micro_element::Hex8(reference_coords,U_in,U_in,fparams);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0);                                                                 //Use the first gauss point
+    test_element.update_gauss_point();
+    
+    test_element.add_internal_nodal_forces();                                                    //Add the internal nodal forces to the RHS vector
+    
+    std::vector< double > out(96,0.);
+    for(int i=0; i<96; i++){out[i] = test_element.RHS[i];}
+    
+    //print_vector("out",out);
+    
+    //if(fabs(test_temp1)<1e-9){test_temp1=out[0];}
+    //else{
+    //    test_temp2=out[0];
+    
+    //if(fabs(test_temp1)<1e-9){test_temp1=test_element.get_Jhatdet(0);}
+    //else{
+    //    test_temp2 = test_element.get_Jhatdet(0);
+    //    std::cout << "test_temp1: " << test_temp1 << "\n";
+    //    std::cout << "test_temp2: " << test_temp2 << "\n";
+    //    std::cout << test_temp2 - test_temp1 << "\n";
+    //    std::cout << "dJhatdetdU: " << (test_temp2-test_temp1)/(2.*1e-7) << "\n";
+    //    
+    //    test_temp1 = 0.;
+    //    test_temp2 = 0.;
+    //}
+    
+    return out;
+}
+
+std::vector< std::vector< double > > compute_gradient_Fint(std::vector< double > U){
+    /*!===============================
+    |    compute_gradient_Fint    |
+    ===============================
+    
+    Compute the numeric gradient of the 
+    forces with respect to the degree 
+    of freedom vector.
+    
+    */
+    
+    finite_difference::FiniteDifference FD(parse_Fint,2,U,1e-7);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
     
 int test_fundamental_measures(std::ofstream &results){
     /*!===================================
@@ -1202,6 +1274,9 @@ int test_fundamental_measures(std::ofstream &results){
     test_results[3] = true;
     
     tensor::BaseTensor<3,288> dFdU_result = element.get_dFdU();
+    
+    //std::cout << "dFdU:\n" << dFdU_result.data << "\n";
+    
     for(int K=0; K<96; K++){
         
         for(int I=0; I<3; I++){
@@ -1563,6 +1638,7 @@ int test_stress_tangents(std::ofstream &results){
     test_results[0] = true;
     
     tensor::BaseTensor<3,288> dPK2dU_result = element.get_dPK2dU();
+    //std::cout << "dPK2dU checked:\n" << dPK2dU_result.data << "\n";
     
     for(int K=0; K<96; K++){
         
@@ -1628,7 +1704,7 @@ int test_stress_tangents(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -1658,8 +1734,8 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 1;
-    bool test_results[test_num] = {false};
+    int  test_num        = 2;
+    bool test_results[test_num] = {false,false};
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(18,0.);
@@ -1698,8 +1774,8 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     
     //!Set the gauss point
     element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
-    
-    //!Compute the shape function values
+    element.update_gauss_point(true); //!Update the values for the gauss point
+/*    //!Compute the shape function values
     element.update_shape_function_values();
     
     //!Set the fundamental deformation measures
@@ -1708,8 +1784,15 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     //!Set the deformation measures
     element.set_deformation_measures();
     
+    //!Set the deformation tangents
+    element.set_fundamental_tangents();
+    element.set_deformation_tangents();
+    
     //!Set the stresses at the gauss point
-    element.set_stresses();
+    element.set_stresses(true);
+    
+    //!Set the stress tangents
+    element.set_stress_tangents();*/
     
     //!Set the residual vector due to the given gauss point
     element.add_internal_nodal_forces();
@@ -1728,19 +1811,40 @@ int test_balance_of_linear_momentum(std::ofstream &results){
         }
     }
     
-    //!Compare the tangents
-    
-    
     //!Compare the expected results to the element results
     test_results[0] = true;
     for(int i=0; i<96; i++){
         test_results[0] *= 1e-9>fabs(element.RHS[i]-RHS[i]);
     }
     
+    //!Compare the tangents
+    
+    element.add_dFintdU();
+    
+    std::vector< std::vector< double > > gradient = compute_gradient_Fint(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    //print_vector_of_vectors("AMATRX",element.AMATRX);
+    
+    test_results[1]=true;
+    for(int i=95; i>=0; i--){
+        for(int j=95; j>=0; j--){
+            test_results[1] *= double_compare(gradient[i][j],element.AMATRX[j][i],1e-5,1e-5);
+            //std::cout << "(" << i << ", " << j << ")\n";
+            //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
+            if(!test_results[1]){break;}
+        }
+        if(!test_results[1]){break;}
+    }
+    
+    
+    
+    
+    
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -1881,10 +1985,10 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     }
     
     if(tot_result){
-        results << "test_balance_of_linear_momentum & True\\\\\n\\hline\n";
+        results << "test_balance_of_first_moment_of_momentum & True\\\\\n\\hline\n";
     }
     else{
-        results << "test_balance_of_linear_momentum & False\\\\\n\\hline\n";
+        results << "test_balance_of_first_moment_of_momentum & False\\\\\n\\hline\n";
     }
     
     return 1;
@@ -2028,10 +2132,10 @@ int test_integrate_element(std::ofstream &results){
     }
     
     if(tot_result){
-        results << "test_balance_of_linear_momentum & True\\\\\n\\hline\n";
+        results << "test_integrate_element & True\\\\\n\\hline\n";
     }
     else{
-        results << "test_balance_of_linear_momentum & False\\\\\n\\hline\n";
+        results << "test_integrate_element & False\\\\\n\\hline\n";
     }
     
     return 1;
