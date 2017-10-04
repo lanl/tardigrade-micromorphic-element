@@ -1267,6 +1267,12 @@ namespace micro_element
         
         */
         
+        double T; //!Internal variable to make code more readable
+        
+        int value_map[3][3] = { {0,5,4},
+                                {8,1,3},
+                                {7,6,2}}; //!Map of i,j indicices to the AMATRX index
+        
         for(int n=0; n<8; n++){
             
             for(int i=0; i<3; i++){
@@ -1276,18 +1282,21 @@ namespace micro_element
                         for(int I=0; I<3; I++){
                             for(int J=0; J<3; J++){
                                 
-                                AMATRX[3+n*12+3*i+j][L] -= ( Ns[n]*(dFdU(i,I,L)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*F(j,J)
-                                                            +F(i,I)*(dSIGMAdU(I,J,L) - dPK2dU(I,J,L))*F(j,J) + F(i,I)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*dFdU(j,J,L)))*weights[gpt_num]*Jhatdet;
+                                AMATRX[3+n*12+value_map[i][j]][L] -= ( Ns[n]*(dFdU(i,I,L)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*F(j,J)
+                                                                                  +F(i,I)*(    dSIGMAdU(I,J,L) -     dPK2dU(I,J,L))*F(j,J)
+                                                                                  +F(i,I)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*dFdU(j,J,L)))*weights[gpt_num]*Jhatdet;
                                 
                             }
                         }
                         
-                        for(int I=0; I<3; I++){
-                            for(int J=0; J<3; J++){
-                                for(int K=0; K<3; K++){
-                                    AMATRX[3+n*12+3*i+j][L] -= dNdXs[n][K]*(dFdU(j,J,L)*chi(i,I)*M[gpt_num](K,J,I) + F(j,J)*dchidU(i,I,L)*M[gpt_num](K,J,I) + F(j,J)*chi(i,I)*dMdU(K,J,I,L))*weights[gpt_num]*Jhatdet;
+                        for(int K=0; K<3; K++){
+                            T = 0;
+                            for(int I=0; I<3; I++){
+                                for(int J=0; J<3; J++){
+                                    T += dFdU(j,J,L)*chi(i,I)*M[gpt_num](K,J,I) + F(j,J)*dchidU(i,I,L)*M[gpt_num](K,J,I) + F(j,J)*chi(i,I)*dMdU(K,J,I,L);
                                 }
                             }
+                            AMATRX[3+n*12+value_map[i][j]][L] -= dNdXs[n][K]*T*weights[gpt_num]*Jhatdet;
                         }
                         
                     }
