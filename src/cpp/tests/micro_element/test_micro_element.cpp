@@ -1160,6 +1160,74 @@ std::vector< std::vector< double > > compute_gradient_Fint(std::vector< double >
     std::vector< std::vector< double > > gradient = FD.numeric_gradient();
     return gradient;
 }
+
+std::vector< double > parse_Mint(std::vector< double > U_in){
+    /*!====================
+    |    parse_Mint    |
+    ====================
+    
+    Parse the internal force vector 
+    for gradient calculation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    //print_vector("U_in:",U_in);
+    
+    micro_element::Hex8 test_element = micro_element::Hex8(reference_coords,U_in,U_in,fparams);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.set_gpt_num(0);                                                                 //Use the first gauss point
+    test_element.update_gauss_point();
+    
+    test_element.add_internal_moments();                                                    //Add the internal nodal forces to the RHS vector
+    
+    std::vector< double > out(96,0.);
+    for(int i=0; i<96; i++){out[i] = test_element.RHS[i];}
+    
+    //print_vector("out",out);
+    
+    //if(fabs(test_temp1)<1e-9){test_temp1=out[0];}
+    //else{
+    //    test_temp2=out[0];
+    
+    //if(fabs(test_temp1)<1e-9){test_temp1=test_element.get_Jhatdet(0);}
+    //else{
+    //    test_temp2 = test_element.get_Jhatdet(0);
+    //    std::cout << "test_temp1: " << test_temp1 << "\n";
+    //    std::cout << "test_temp2: " << test_temp2 << "\n";
+    //    std::cout << test_temp2 - test_temp1 << "\n";
+    //    std::cout << "dJhatdetdU: " << (test_temp2-test_temp1)/(2.*1e-7) << "\n";
+    //    
+    //    test_temp1 = 0.;
+    //    test_temp2 = 0.;
+    //}
+    
+    return out;
+}
+
+std::vector< std::vector< double > > compute_gradient_Mint(std::vector< double > U){
+    /*!===============================
+    |    compute_gradient_Mint    |
+    ===============================
+    
+    Compute the numeric gradient of the 
+    internal term in the balance of first 
+    moment of momentum.
+    
+    */
+    
+    finite_difference::FiniteDifference FD(parse_Mint,2,U,1e-7);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
+
     
 int test_fundamental_measures(std::ofstream &results){
     /*!===================================
@@ -1844,7 +1912,7 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     //Compare all test results
     bool tot_result = true;
     for(int i = 0; i<test_num; i++){
-        std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
         if(!test_results[i]){
             tot_result = false;
         }
@@ -1874,8 +1942,8 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 1;
-    bool test_results[test_num] = {false};
+    int  test_num        = 2;
+    bool test_results[test_num] = {false,false};
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(18,0.);
@@ -1915,7 +1983,10 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     //!Set the gauss point
     element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
     
-    //!Compute the shape function values
+    //!Update the values for the gauss point
+    element.update_gauss_point(true);
+    
+/*    //!Compute the shape function values
     element.update_shape_function_values();
     
     //!Set the fundamental deformation measures
@@ -1925,7 +1996,7 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     element.set_deformation_measures();
     
     //!Set the stresses at the gauss point
-    element.set_stresses();
+    element.set_stresses();*/
     
     //!Set the residual vector due to the given gauss point
     element.add_internal_moments();
@@ -1967,6 +2038,25 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
         RHS[7+n*12+3] = mu_int(2,0);
         RHS[8+n*12+3] = mu_int(1,0);
         
+    }
+    
+    //!Compare the tangents
+    element.add_dMintdU();
+    
+    std::vector< std::vector< double > > gradient = compute_gradient_Mint(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    //print_vector_of_vectors("AMATRX",element.AMATRX);
+    
+    test_results[1]=true;
+    for(int i=0; i<96; i++){
+        for(int j=0; j<96; j++){
+            test_results[1] *= double_compare(gradient[i][j],element.AMATRX[j][i],1e-5,1e-5);
+            //std::cout << "(" << i << ", " << j << ")\n";
+            //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
+            if(!test_results[1]){break;}
+        }
+        if(!test_results[1]){break;}
     }
     
     //!Compare the expected results to the element results
