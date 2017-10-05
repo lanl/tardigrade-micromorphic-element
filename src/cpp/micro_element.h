@@ -221,10 +221,13 @@ namespace micro_element
             
             //!|=> Balance of First Moment of Momentum
             
-            void set_moment_tangents();
+            void set_moment_tangent();
             void add_dMintdU();
             void add_dMextdU();
             void add_dMkindU();
+            
+            //!|=> Tangent utilities
+            void reset_tangents();
             
             //!=
             //!| Element Integration 
@@ -306,11 +309,19 @@ namespace micro_element
             
             //!Fundamental deformation measures
             
+            bool                      dFdU_flag        = false;
+            bool                      dchidU_flag      = false;
+            bool                      dgrad_chidU_flag = false;
+            
             tensor::BaseTensor<3,288> dFdU        = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of F w.r.t. the degree of freedom vector
             tensor::BaseTensor<3,288> dchidU      = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of chi w.r.t. the degree of freedom vector
             tensor::BaseTensor<9,288> dgrad_chidU = tensor::BaseTensor<9,288>({3,3,3,96}); //!The derivative of grad_chi w.r.t. the degree of freedom vector
             
             //!Derived deformation measures
+            
+            bool                      dCdU_flag     = false;
+            bool                      dPsidU_flag   = false;
+            bool                      dGammadU_flag = false;
             
             tensor::BaseTensor<3,288> dCdU        = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of C w.r.t. the degree of freedom vector
             tensor::BaseTensor<3,288> dPsidU      = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of Psi w.r.t. the degree of freedom vector
@@ -318,11 +329,17 @@ namespace micro_element
             
             //!Stress derivatives
             
+            bool                      dPK2dU_flag   = false;
+            bool                      dSIGMAdU_flag = false;
+            bool                      dMdU_flag     = false;
+            
             tensor::BaseTensor<3,288> dPK2dU      = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of the second Piola-Kirchhoff stress w.r.t the degree of freedom vector
             tensor::BaseTensor<3,288> dSIGMAdU    = tensor::BaseTensor<3,288>({3,3,96});   //!The derivative of the symmetric stress tensor in the reference configuration w.r.t. the degree of freedom vector
             tensor::BaseTensor<9,288> dMdU        = tensor::BaseTensor<9,288>({3,3,3,96}); //!The derivative of the higher order stress tensor in the reference configuration w.r.t. the degree of freedom vector
             
             //!Stress tangents from constitutive model
+            
+            bool             stress_tangent_flag = false;
             
             tensor::Tensor43 dPK2dC       = tensor::Tensor43({3,3,3,3});     //!The derivative of the second Piola-Kirchhoff stress w.r.t. the right Cauchy-Green deformation tensor
             tensor::Tensor43 dSIGMAdC     = tensor::Tensor43({3,3,3,3});     //!The derivative of the symmetric stress w.r.t. the right Cauchy-Green deformation tensor
