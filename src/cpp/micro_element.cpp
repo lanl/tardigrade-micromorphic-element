@@ -724,6 +724,9 @@ namespace micro_element
                                          dPK2dC,  dPK2dPsi,  dPK2dGamma,
                                        dSIGMAdC,dSIGMAdPsi,dSIGMAdGamma,
                                            dMdC,    dMdPsi,    dMdGamma);
+                                           
+            stress_tangent_flag = true; //Alert the element that the stress tangents have been set
+        
         }
         else{
             micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
@@ -889,6 +892,9 @@ namespace micro_element
                 }
             }
         }
+        
+        dFdU_flag = true; //Alert the element that dFdU has been set
+        
         return;
     }
     
@@ -918,6 +924,8 @@ namespace micro_element
             dchidU(1,0,11+12*n) = Ns[n];
             
         }
+        
+        dchidU_flag = true; //Alert the element that dchidU has been set
         return;
     }
     
@@ -950,6 +958,9 @@ namespace micro_element
                 
             }
         }
+        
+        bool dgrad_chidU_flag = true; //Alert the element that dgrad_chidU has been set
+        
         return;
     }
         
@@ -1000,6 +1011,9 @@ namespace micro_element
                 }
             }
         }
+        
+        dCdU_flag = true; //Alert the element that dCdU has been set
+        
         return;
     }
     
@@ -1030,6 +1044,9 @@ namespace micro_element
                 }
             }
         }
+        
+        dPsidU_flag = true; //Alert the element that dPsidU has been set
+        
         return;
     }
     
@@ -1060,6 +1077,9 @@ namespace micro_element
                 }
             }
         }
+        
+        dGammadU_flag = true; //Alert the element that dGammadU has been set
+        
         return;
     }
     
@@ -1119,6 +1139,9 @@ namespace micro_element
                 }
             }
         }
+        
+        dPK2dU_flag = true; //Alert the element that dPK2dU has been set
+        
         return;
     }
     
@@ -1159,6 +1182,9 @@ namespace micro_element
                 }
             }
         }
+        
+        dSIGMAdU_flag = true; //Alert the element that dSigmadU has been set
+        
         return;
     }
     
@@ -1202,6 +1228,9 @@ namespace micro_element
                 }
             }
         }
+        
+        dMdU_flag = true; //Alert the element that dMdU has been set
+        
         return;
     }
     
@@ -1250,6 +1279,22 @@ namespace micro_element
                 }
             }
         }
+        
+        return;
+    }
+    
+    void Hex8::set_moment_tangent(){
+        /*!============================
+        |    set_moment_tangent    |
+        ============================
+        
+        Set the tangents for the first 
+        moment of momentum with respect 
+        to the degree of freedom vector.
+        
+        */
+        
+        add_dMintdU();
         
         return;
     }
@@ -1305,6 +1350,55 @@ namespace micro_element
         }
     }
     
+    void Hex8::reset_tangents(){
+        /*!========================
+        |    reset_tangents    |
+        ========================
+        
+        Reset the tangents which have been set
+        
+        */
+        
+        //!Reset fundamental deformation tangents
+        if(dFdU_flag)        {dFdU.zero();                dFdU_flag        = false;}
+        if(dchidU_flag)      {dchidU.zero();              dchidU_flag      = false;}
+        if(dgrad_chidU_flag) {dgrad_chidU.zero();         dgrad_chidU_flag = false;}
+        
+        //!Reset deformation measure tangents
+        if(dCdU_flag)        {dCdU.zero();                dCdU_flag        = false;}
+        if(dPsidU_flag)      {dPsidU.zero();              dPsidU_flag      = false;}
+        if(dGammadU_flag)    {dGammadU.zero();            dGammadU_flag    = false;}
+        
+        //!Reset stress tangents from material model
+        if(stress_tangent_flag){
+            
+            //!Set derivatives with respect to C to zero
+            dPK2dC.zero();
+            dSIGMAdC.zero();
+            dMdC.zero();
+            
+            //!Set derivatives with respect to Psi to zero
+            dPK2dPsi.zero();
+            dSIGMAdPsi.zero();
+            dMdPsi.zero();
+            
+            //!Set derivatives with respect to Gamma to zero
+            dPK2dGamma.zero();
+            dSIGMAdGamma.zero();
+            dMdGamma.zero();
+            
+            stress_tangent_flag = false;
+        }
+        
+        //!Reset stress tangents
+        
+        if(dPK2dU_flag)        {dPK2dU.zero();                dPK2dU_flag        = false;}
+        if(dSIGMAdU_flag)      {dSIGMAdU.zero();              dSIGMAdU_flag      = false;}
+        if(dMdU_flag)          {dMdU.zero();                  dMdU_flag          = false;}
+        
+        return;
+    }
+    
     //!=
     //!| Element Integration 
     //!=
@@ -1318,6 +1412,9 @@ namespace micro_element
         at a gauss point
         
         */
+        
+        //!Reset tangents if required
+        reset_tangents();
         
         //!Compute the shape function values
         update_shape_function_values();
@@ -1358,6 +1455,10 @@ namespace micro_element
             update_gauss_point(set_tangents); //Update all of the gauss points
             add_all_forces();                 //Update the RHS vector from all of the forces
             add_all_moments();                //Update the RHS vector from all of the stresses
+            if(set_tangents){                 //Update AMATRX from the forces and stresses
+                set_force_tangent();
+                set_moment_tangent();
+            }
         }
         
         return;
