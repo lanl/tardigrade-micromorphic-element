@@ -396,11 +396,13 @@ namespace tensor
             void zero(){
                 /*! Set all values of the tensor to zero */
         
-                for(int i=0; i<data.rows(); i++){
-                    for(int j=0; j<data.rows(); j++){
-                        data(i,j) = 0.;
-                    }
-                }
+                data.setZero();        
+        
+                //for(int i=0; i<data.rows(); i++){
+                //    for(int j=0; j<data.rows(); j++){
+                //        data(i,j) = 0.;
+                //    }
+                //}
             }
             
             void print_factors(){
