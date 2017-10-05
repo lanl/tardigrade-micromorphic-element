@@ -1228,6 +1228,71 @@ std::vector< std::vector< double > > compute_gradient_Mint(std::vector< double >
     return gradient;
 }
 
+std::vector< double > parse_RHS(std::vector< double > U_in){
+    /*!===================
+    |    parse_RHS    |
+    ===================
+    
+    Parse the right hand side 
+    vector for the gradient 
+    calculation.
+    
+    */
+    
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(18,0.);
+    
+    for(int i=0; i<18; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    //print_vector("U_in:",U_in);
+    
+    micro_element::Hex8 test_element = micro_element::Hex8(reference_coords,U_in,U_in,fparams);  //Note: dU is a copy of U. This shouldn't matter.
+    test_element.integrate_element();                                                            //Integrate the element
+    
+    std::vector< double > out(96,0.);
+    for(int i=0; i<96; i++){out[i] = test_element.RHS[i];}
+    
+    //print_vector("out",out);
+    
+    //if(fabs(test_temp1)<1e-9){test_temp1=out[0];}
+    //else{
+    //    test_temp2=out[0];
+    
+    //if(fabs(test_temp1)<1e-9){test_temp1=test_element.get_Jhatdet(0);}
+    //else{
+    //    test_temp2 = test_element.get_Jhatdet(0);
+    //    std::cout << "test_temp1: " << test_temp1 << "\n";
+    //    std::cout << "test_temp2: " << test_temp2 << "\n";
+    //    std::cout << test_temp2 - test_temp1 << "\n";
+    //    std::cout << "dJhatdetdU: " << (test_temp2-test_temp1)/(2.*1e-7) << "\n";
+    //    
+    //    test_temp1 = 0.;
+    //    test_temp2 = 0.;
+    //}
+    
+    return out;
+}
+
+std::vector< std::vector< double > > compute_gradient_element(std::vector< double > U){
+    /*!==================================
+    |    compute_gradient_element    |
+    ==================================
+    
+    Compute the numeric gradient of the 
+    element with respect to the degree 
+    of freedom vector.
+    
+    */
+    
+    finite_difference::FiniteDifference FD(parse_RHS,2,U,1e-7);
+    std::vector< std::vector< double > > gradient = FD.numeric_gradient();
+    return gradient;
+}
+
     
 int test_fundamental_measures(std::ofstream &results){
     /*!===================================
@@ -2098,8 +2163,8 @@ int test_integrate_element(std::ofstream &results){
     srand (1);
     
     //!Initialize test results
-    int  test_num        = 1;
-    bool test_results[test_num] = {false};
+    int  test_num        = 2;
+    bool test_results[test_num] = {false,false};
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(18,0.);
@@ -2144,7 +2209,7 @@ int test_integrate_element(std::ofstream &results){
     //start = std::clock();
     
     //!Integrate the element
-    element.integrate_element();
+    element.integrate_element(true);
     
     //duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
@@ -2210,6 +2275,24 @@ int test_integrate_element(std::ofstream &results){
     test_results[0] = true;
     for(int i=0; i<96; i++){
         test_results[0] *= 1e-9>fabs(element.RHS[i]-RHS[i]);
+    }
+    
+    //!Compare the tangents
+    
+    std::vector< std::vector< double > > gradient = compute_gradient_element(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    //print_vector_of_vectors("AMATRX",element.AMATRX);
+    
+    test_results[1]=true;
+    for(int i=0; i<96; i++){
+        for(int j=0; j<96; j++){
+            test_results[1] *= double_compare(gradient[i][j],element.AMATRX[j][i],1e-5,1e-5);
+            //std::cout << "(" << i << ", " << j << ")\n";
+            //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
+            if(!test_results[1]){break;}
+        }
+        if(!test_results[1]){break;}
     }
     
     //Compare all test results
