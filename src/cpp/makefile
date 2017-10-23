@@ -8,7 +8,7 @@ STD=-std=gnu++11
 CFLAGS=-I. -O1
 
 #Include Eigen Library
-EIGEN = -I C:/usr/share/cpp/eigen3.3.4
+EIGEN = -I /data/home/students/nami2227/Code/Eigen/eigen3.3.4
 
 #Debugging flag
 DBG = -ggdb
