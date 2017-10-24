@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import fileinput
 
 """A script which runs the test suite and generates the various manuals.
  
@@ -12,6 +13,9 @@ bibliography_file       = "micromorphic.bib"
 documentation_directory = "doc"
 manual_locations = ["Report","TheoryManual","UsersManual","ProgrammersManual"]
 
+#Define the absolute paths to the required libraries
+eigen_location   = "/data/home/students/nami2227/Code/Eigen/eigen3.3.4"
+
 #Form the source path
 source_path      = os.path.join(documentation_directory,bibliography_file)
 
@@ -20,6 +24,19 @@ for location in manual_locations:
     destination_path = os.path.join(documentation_directory,location,bibliography_file)
     #Copy the micromorphic bibliography
     shutil.copyfile(source_path,destination_path)
+
+#Find all of the makefiles in src/cpp
+makefiles = []
+for dirpath,_,filenames in os.walk("."):
+    for f in filenames:
+        if(f.lower() == "makefile"):
+            makefiles.append( os.path.abspath(os.path.join(dirpath,f)))
+
+#Replace the keystring with the location of Eigen
+for file in makefiles:
+    for line in fileinput.input(file, inplace = True):
+        line = line.replace("EIGEN_LOCATION",eigen_location)
+        sys.stdout.write(line)
     
-os.system("python run_tests.py")
-os.system("python documentation_generator.py")
+#os.system("python run_tests.py")
+#os.system("python documentation_generator.py")
