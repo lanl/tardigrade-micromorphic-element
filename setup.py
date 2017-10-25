@@ -16,6 +16,9 @@ manual_locations = ["Report","TheoryManual","UsersManual","ProgrammersManual"]
 #Define the absolute paths to the required libraries
 eigen_location   = "/data/home/students/nami2227/Code/Eigen/eigen3.3.4"
 
+#Define the compiler command
+compiler_commans = "g++"
+
 #Form the source path
 source_path      = os.path.join(documentation_directory,bibliography_file)
 
@@ -36,6 +39,7 @@ for dirpath,_,filenames in os.walk("."):
 for file in makefiles:
     for line in fileinput.input(file, inplace = True):
         line = line.replace("EIGEN_LOCATION",eigen_location)
+        line = line.replace("COMPILER_COMMAND",compiler_command)
         sys.stdout.write(line)
     
 #os.system("python run_tests.py")
