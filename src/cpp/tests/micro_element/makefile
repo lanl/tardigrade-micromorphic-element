@@ -1,5 +1,5 @@
 #Compiler option
-CC=g++
+CC=COMPILER_COMMAND
 
 #Standard option
 STD=-std=gnu++11
@@ -8,7 +8,7 @@ STD=-std=gnu++11
 CFLAGS=-I. -I ../..
 
 #Include Eigen Library
-EIGEN = -I /data/home/students/nami2227/Code/Eigen/eigen3.3.4
+EIGEN = -I EIGEN_LOCATION
 
 #Debugging flag
 DBG = -ggdb
