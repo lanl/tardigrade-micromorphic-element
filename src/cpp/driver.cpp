@@ -236,7 +236,7 @@ double vector_norm(const std::vector< double > &x){
 InputParser::InputParser(){
     /*Default constructor*/
     filename    = "";
-    keyword_fxn = &default_function;
+    keyword_fxn = &InputParser::default_function;
     nodes.resize(0);
     elements.resize(0);
     fprops.resize(0);
@@ -246,7 +246,7 @@ InputParser::InputParser(){
             
 InputParser::InputParser(std::string _filename){
     filename    = _filename;
-    keyword_fxn = &default_function;
+    keyword_fxn = &InputParser::default_function;
     nodes.resize(0);
     elements.resize(0);
     fprops.resize(0);
@@ -325,12 +325,12 @@ void InputParser::process_keyword(const unsigned int &line_number, std::string &
     
     if (line.find("*LATEX") != std::string::npos){
         std::cout << "Keyword *LATEX found\n";
-        keyword_fxn = &parse_latex;
+        keyword_fxn = &InputParser::parse_latex;
         line.erase(line.begin(), line.begin()+6);
     }
     else if (line.find("*NODES") != std::string::npos){
         std::cout << "Keyword *NODES found\n";
-        keyword_fxn = &parse_nodes;
+        keyword_fxn = &InputParser::parse_nodes;
         line.erase(line.begin(), line.begin()+6);
     }
     else if (line.find("*DIRICHLET_BCS") != std::string::npos){
@@ -340,22 +340,22 @@ void InputParser::process_keyword(const unsigned int &line_number, std::string &
     }
     else if (line.find("*ELEMENTS") != std::string::npos){
         std::cout << "Keyword *ELEMENTS found\n";
-        keyword_fxn = &parse_elements;
+        keyword_fxn = &InputParser::parse_elements;
         line.erase(line.begin(), line.begin()+9);
     }
     else if (line.find("*PROPERTIES") != std::string::npos){
         std::cout << "Keyword *PROPERTIES found\n";
-        keyword_fxn = &parse_properties;
+        keyword_fxn = &InputParser::parse_properties;
         line.erase(line.begin(), line.begin()+11);
     }
     else if (line.find("*NSET") != std::string::npos){
         std::cout << "Keyword *NSET found\n";
-        keyword_fxn = &parse_nodesets;
+        keyword_fxn = &InputParser::parse_nodesets;
         line.erase(line.begin(), line.begin()+5);
     }
     else if (line.find("*MMS") != std::string::npos){
         std::cout << "Keyword *MMS found\n";
-        keyword_fxn = &parse_manufactured_solution;
+        keyword_fxn = &InputParser::parse_manufactured_solution;
         line.erase(line.begin(), line.begin()+4);
     }
     else{
