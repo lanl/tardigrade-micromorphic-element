@@ -17,7 +17,7 @@ manual_locations = ["Report","TheoryManual","UsersManual","ProgrammersManual"]
 eigen_location   = "/data/home/students/nami2227/Code/Eigen/eigen3.3.4"
 
 #Define the compiler command
-compiler_commans = "g++"
+compiler_command = "g++"
 
 #Form the source path
 source_path      = os.path.join(documentation_directory,bibliography_file)
