@@ -1,5 +1,5 @@
 #Compiler option
-CC=g++
+CC=COMPILER_COMMAND
 #Standard option
 STD=-std=gnu++11
 #Compiler flags
