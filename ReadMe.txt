@@ -106,7 +106,7 @@ A local installation of GCC can be used by:
 3. Running the command '''./configure --prefix=/absolute/path/to/install/directory'''
 4. Running the command '''make'''
 5. Before running a program compiled with this compiler one must set the environment 
-   variable export '''LD_LIBRARY_PATH=/absolute/path/to/install/directory'''
+   variable '''export LD_LIBRARY_PATH=/absolute/path/to/install/directory'''
 
 Also requires the library [Eigen]{http://eigen.tuxfamily.org} which requires that 
 the path is defined in '''setup.py''' ('''eigen_location = /absolute/path/to/eigen''')
