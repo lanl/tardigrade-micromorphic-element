@@ -14,7 +14,7 @@ documentation_directory = "doc"
 manual_locations = ["Report","TheoryManual","UsersManual","ProgrammersManual"]
 
 #Define the absolute paths to the required libraries
-eigen_location   = "/data/home/students/nami2227/Code/Eigen/eigen3.3.4"
+eigen_location   = "C:\usr\share\cpp\eigen3.3.4"
 
 #Define the compiler command
 compiler_command = "g++"
