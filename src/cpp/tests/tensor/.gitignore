@@ -1,3 +1,4 @@
 results.tex
 *.o
 *.exe
+makefile
