@@ -21,7 +21,7 @@ eigen_location   = config.eigen
 compiler_command = config.compiler
 
 #Define the make command
-make_command     = "make"
+make_command     = config.make
 
 #Form the source path
 source_path      = os.path.join(documentation_directory,bibliography_file)

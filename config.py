@@ -20,3 +20,6 @@ class Configuration(object):
 
         #Uncomment for nami2227@soils.colorado.edu location
         #self.compiler = "/data/home/students/nami2227/Code/gcc/gcc-7.2.0/bin/g++"
+
+        ### Define the make command
+        self.make = "make"
