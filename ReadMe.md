@@ -31,9 +31,9 @@ oriented nature but the Fortran approach is more well trod.
 
 ** Upcoming work **
 
-> Debug the python code finding the source of non-convergence
-> Port the python code to C++
-> Continue to improve the documentation
+- Debug the python code finding the source of non-convergence
+- Port the python code to C++
+- Continue to improve the documentation
 
 ** Description of directories **
 
@@ -58,12 +58,12 @@ functions are pdflatex and bibtex respectively
 *** LaTeX packages ***
 
 - Report/Users Manual/Programmers Manual:
-\usepackage{listings, xcolor, subcaption, placeins}
-\usepackage{undertilde}
-\usepackage{algorithm,algpseudocode}
-\usepackage{multicol}
-\usepackage{makecell}
-\usepackage[table]{colortbl}
+-- \usepackage{listings, xcolor, subcaption, placeins}
+-- \usepackage{undertilde}
+-- \usepackage{algorithm,algpseudocode}
+-- \usepackage{multicol}
+-- \usepackage{makecell}
+-- \usepackage[table]{colortbl}
 
 - Theory Manual:
 
