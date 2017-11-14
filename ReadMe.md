@@ -48,7 +48,7 @@ oriented nature but the Fortran approach is more well trod.
 ** Python Requirements **
 
 Requires default python libraries (python.org) as well as numpy (numpy.org). These packages are 
-available for download in a convenient package at [continuum]{www.continuum.io/downloads}.
+available for download in a convenient package at [continuum](www.continuum.io/downloads).
 
 ** LaTeX Requirements **
 
@@ -77,7 +77,7 @@ functions are pdflatex and bibtex respectively
 
 ** C++ Compiler Requirements **
 
-Requires the library [Eigen]{http://eigen.tuxfamily.org} which is a collection of header files and does
+Requires the library [Eigen](http://eigen.tuxfamily.org) which is a collection of header files and does
 not require any compilation. The user must define the path to this library in '''setup.py'''
 ('''eigen_location = /absolute/path/to/eigen''')
 
