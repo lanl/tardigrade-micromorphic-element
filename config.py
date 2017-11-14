@@ -16,6 +16,7 @@ class Configuration(object):
         self.compiler = "/path/to/compiler"
         
         #Uncomment for Nathan Miller's laptop
+        #self.compiler = "/data/home/students/nami2227/Code/Eigen/eigen3.3.4"
 
         #Uncomment for nami2227@soils.colorado.edu location
         #self.compiler = "/data/home/students/nami2227/Code/gcc/gcc-7.2.0/bin/g++"
