@@ -15,13 +15,13 @@ documentation_directory = "doc"
 manual_locations = ["Report","TheoryManual","UsersManual","ProgrammersManual"]
 
 #Define the absolute paths to the required libraries
-eigen_location   = config.eigen
+eigen_location   = config.Configuration().eigen
 
 #Define the compiler command
-compiler_command = config.compiler
+compiler_command = config.Configuration().compiler
 
 #Define the make command
-make_command     = config.make
+make_command     = config.Configuration().make
 
 #Form the source path
 source_path      = os.path.join(documentation_directory,bibliography_file)
