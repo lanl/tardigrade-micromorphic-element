@@ -1,5 +1,5 @@
 ####################
-Micromorphic_UEL
+# Micromorphic_UEL
 ####################
 Developed by:
 
@@ -35,7 +35,7 @@ oriented nature but the Fortran approach is more well trod.
 > Port the python code to C++
 > Continue to improve the documentation
 
-# Description of directories
+** Description of directories **
 
 .\doc: Where all of the genereated LaTeX documentation will be located. This includes 
        the main report of the testing of the code, the users manual, the programmers 
@@ -45,25 +45,19 @@ oriented nature but the Fortran approach is more well trod.
        subdirectories, python, cpp, and fortran which contain all python, C++, and 
        Fortran files required to compile the code.
 
-# Python Requirements
+** Python Requirements
 
 Requires default python libraries (python.org) as well as numpy (numpy.org). These packages are 
 available for download in a convenient package at [continuum]{www.continuum.io/downloads}.
 
-# LaTeX Requirements
+** LaTeX Requirements
 
 The documentation requires an installation of LaTeX and Bibtex. It is assumed that the commands for these 
 functions are pdflatex and bibtex respectively
 
-# C++ Compiler Requirements
+*** LaTeX packages
 
-Requires the library [Eigen]{http://eigen.tuxfamily.org} which is a collection of header files and does 
-not require any compilation. The user must define the path to this library in '''setup.py'''
-('''eigen_location = /absolute/path/to/eigen''')
-
-** LaTeX packages include: **
-
-### Report/Users Manual/Programmers Manual:
+- Report/Users Manual/Programmers Manual:
 \usepackage{listings, xcolor, subcaption, placeins}
 \usepackage{undertilde}
 \usepackage{algorithm,algpseudocode}
@@ -71,7 +65,7 @@ not require any compilation. The user must define the path to this library in ''
 \usepackage{makecell}
 \usepackage[table]{colortbl}
 
-### Theory Manual:
+- Theory Manual:
 
 beamer theme Pittsburg
 \usepackage[utf8]{inputenc}
@@ -81,6 +75,12 @@ beamer theme Pittsburg
 \usepackage{undertilde}
 \usepackage{bm}
 \usepackage{subcaption}
+
+** C++ Compiler Requirements
+
+Requires the library [Eigen]{http://eigen.tuxfamily.org} which is a collection of header files and does
+not require any compilation. The user must define the path to this library in '''setup.py'''
+('''eigen_location = /absolute/path/to/eigen''')
 
 ** Code Setup **
 
