@@ -18,7 +18,7 @@ import os
 import sys
 import subprocess
 
-make_command     = 'mingw32-make'                         #The system command to run make
+make_command     = MAKE_COMMAND                           #The system command to run make
 results_filename = "results.tex"                          #The results textfile
 original_stdout  = sys.stdout                             #The original stdout location
 
