@@ -58,23 +58,22 @@ functions are pdflatex and bibtex respectively
 *** LaTeX packages ***
 
 - Report/Users Manual/Programmers Manual:
--- \usepackage{listings, xcolor, subcaption, placeins}
--- \usepackage{undertilde}
--- \usepackage{algorithm,algpseudocode}
--- \usepackage{multicol}
--- \usepackage{makecell}
--- \usepackage[table]{colortbl}
+    - \usepackage{listings, xcolor, subcaption, placeins}
+    - \usepackage{undertilde}
+    - \usepackage{algorithm,algpseudocode}
+    - \usepackage{multicol}
+    - \usepackage{makecell}
+    - \usepackage[table]{colortbl}
 
 - Theory Manual:
-
-beamer theme Pittsburg
-\usepackage[utf8]{inputenc}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amssymb}
-\usepackage{undertilde}
-\usepackage{bm}
-\usepackage{subcaption}
+    - beamer theme Pittsburg
+    - \usepackage[utf8]{inputenc}
+    - \usepackage{amsmath}
+    - \usepackage{amsfonts}
+    - \usepackage{amssymb}
+    - \usepackage{undertilde}
+    - \usepackage{bm}
+    - \usepackage{subcaption}
 
 ** C++ Compiler Requirements **
 
