@@ -45,6 +45,11 @@ for file in makefiles:
         line = line.replace("EIGEN_LOCATION",eigen_location)
         line = line.replace("COMPILER_COMMAND",compiler_command)
         sys.stdout.write(line)
+
+
+for line in fileinput.input("./src/cpp/run_tests.py", inplace=True):
+    line = line.replace("MAKE_COMMAND",make_command)
+    sys.stdout.write(line)
     
 #os.system("python run_tests.py")
 #os.system("python documentation_generator.py")
