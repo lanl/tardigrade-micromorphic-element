@@ -25,3 +25,4 @@ src/python/tests/regression_tests/const_u/results.tex
 src/python/tests/regression_tests/linear_u/description.tex
 src/python/tests/regression_tests/linear_u/results.tex
 results.txt
+makefile

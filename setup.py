@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import fileinput
+import config
 
 """A script which runs the test suite and generates the various manuals.
  
@@ -14,10 +15,13 @@ documentation_directory = "doc"
 manual_locations = ["Report","TheoryManual","UsersManual","ProgrammersManual"]
 
 #Define the absolute paths to the required libraries
-eigen_location   = "C:\usr\share\cpp\eigen3.3.4"
+eigen_location   = config.Configuration().eigen
 
 #Define the compiler command
-compiler_command = "g++"
+compiler_command = config.Configuration().compiler
+
+#Define the make command
+make_command     = config.Configuration().make
 
 #Form the source path
 source_path      = os.path.join(documentation_directory,bibliography_file)
@@ -41,6 +45,11 @@ for file in makefiles:
         line = line.replace("EIGEN_LOCATION",eigen_location)
         line = line.replace("COMPILER_COMMAND",compiler_command)
         sys.stdout.write(line)
+
+
+for line in fileinput.input("./src/cpp/run_tests.py", inplace=True):
+    line = line.replace("MAKE_COMMAND",make_command)
+    sys.stdout.write(line)
     
 #os.system("python run_tests.py")
 #os.system("python documentation_generator.py")
