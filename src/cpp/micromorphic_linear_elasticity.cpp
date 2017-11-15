@@ -30,12 +30,14 @@
 #include <ctime>
 #include <tensor.h>
 #include <micromorphic_linear_elasticity.h>
+
+
   
 namespace micro_material{
     
-    void get_stress(const std::vector< double > &fparams,  const std::vector< int > &iparams,                                         //Material parameters
-                    const tensor::Tensor23&   C_in,        const tensor::Tensor23&   Psi_in,   const tensor::Tensor33& Gamma_in,      //Deformation measures
-                            tensor::Tensor23& PK2_stress,  tensor::Tensor23& SIGMA_stress,     tensor::Tensor33& M_stress){           //Stress measures
+    void get_stress(      Vector_Xd_Map& &fparams,       Vector_Xd_Map &iparams,                                                    //Material parameters
+                    const tensor::Tensor23&   C_in,      const tensor::Tensor23&   Psi_in,   const tensor::Tensor33& Gamma_in,      //Deformation measures
+                          tensor::Tensor23& PK2_stress,  tensor::Tensor23& SIGMA_stress,     tensor::Tensor33& M_stress){           //Stress measures
                             
         /*!========================================
         |              get_stress              |
@@ -358,7 +360,7 @@ namespace micro_material{
         return;
     }
     
-    void generate_A_stiffness(const std::vector< double > &fparams, tensor::Tensor43& A_stiffness){
+    void generate_A_stiffness(Vector_Xd_Map &fparams, tensor::Tensor43& A_stiffness){
         /*!==============================
         |    generate_A_stiffness    |
         ==============================
@@ -385,7 +387,7 @@ namespace micro_material{
         return;
     }
     
-    void generate_B_stiffness(const std::vector< double > &fparams, tensor::Tensor43& B_stiffness){
+    void generate_B_stiffness(Vector_Xd_Map &fparams, tensor::Tensor43& B_stiffness){
         /*!==============================
         |    generate_B_stiffness    |
         ==============================
@@ -416,7 +418,7 @@ namespace micro_material{
         return;
     }
     
-    void generate_C_stiffness(const std::vector< double > &fparams, tensor::Tensor63& C_stiffness){
+    void generate_C_stiffness(Vector_Xd_Map &fparams, tensor::Tensor63& C_stiffness){
         /*!==============================
         |    generate_C_stiffness    |
         ==============================
@@ -462,7 +464,7 @@ namespace micro_material{
         return;
     }
     
-    void generate_D_stiffness(const std::vector< double > &fparams, tensor::Tensor43& D_stiffness){
+    void generate_D_stiffness(Vector_Xd_Map &fparams, tensor::Tensor43& D_stiffness){
         /*!==============================
         |    generate_D_stiffness    |
         ==============================

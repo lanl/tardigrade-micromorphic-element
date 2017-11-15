@@ -26,15 +26,27 @@
   =======================================================*/
   
 #include <vector>
-  
+
+typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> Matrix_RM;
+typedef Eigen::Matrix<double,Eigen::Dynamic,1> Vector;
+typedef Eigen::Matrix<double,8,1> energy_vector;
+typedef Eigen::Matrix<double,3,1> params_vector;
+typedef Eigen::Matrix<int,5,1>    lflags_vector;
+
+typedef Eigen::Map<Matrix_RM>     Matrix_Xd_Map;
+typedef Eigen::Map<Vector>        Vector_Xd_Map;
+typedef Eigen::Map<energy_vector> Vector_8d_Map;
+typedef Eigen::Map<params_vector> Vector_3d_Map;
+typedef Eigen::Map<lflags_vector> Vector_5i_Map;
+
 namespace micro_material{
     
-    void get_stress( const std::vector< double >&, const std::vector< int >&,
+    void get_stress(       Vector_Xd_Map&,               Vector_Xd_Map&,
                      const tensor::Tensor23&,      const tensor::Tensor23&,   const tensor::Tensor33&,
                            tensor::Tensor23&,            tensor::Tensor23&,         tensor::Tensor33&
                    );
     
-    void get_stress( const std::vector< double >&, const std::vector< int >&,
+    void get_stress(       Vector_Xd_Map&,               Vector_Xd_Map&,
                      const tensor::Tensor23&,      const tensor::Tensor23&,   const tensor::Tensor33&,
                            tensor::Tensor23&,            tensor::Tensor23&,         tensor::Tensor33&,
                            tensor::Tensor43&,            tensor::Tensor43&,         tensor::Tensor53&,
@@ -47,8 +59,8 @@ namespace micro_material{
                           const tensor::Tensor23& macro_E,     const tensor::Tensor23& micro_E,      const tensor::Tensor23& ITEN,
                                 tensor::Tensor23& PK2_stress,        tensor::Tensor23& SIGMA_stress,       tensor::Tensor33& M_stress);
     
-    void generate_A_stiffness(const std::vector< double > &, tensor::Tensor43&);
-    void generate_B_stiffness(const std::vector< double > &, tensor::Tensor43&);
-    void generate_C_stiffness(const std::vector< double > &, tensor::Tensor63&);
-    void generate_D_stiffness(const std::vector< double > &, tensor::Tensor43&);
+    void generate_A_stiffness(Vector_Xd_Map&, tensor::Tensor43&);
+    void generate_B_stiffness(Vector_Xd_Map&, tensor::Tensor43&);
+    void generate_C_stiffness(Vector_Xd_Map&, tensor::Tensor63&);
+    void generate_D_stiffness(Vector_Xd_Map&, tensor::Tensor43&);
 }

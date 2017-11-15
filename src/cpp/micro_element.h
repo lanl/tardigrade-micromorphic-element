@@ -148,7 +148,7 @@ namespace micro_element
             //Constructors
             Hex8();
             Hex8(std::vector< double >);
-            Hex8(std::vector< double >, std::vector< double >, std::vector< double >, Vector_Xd_Map _fparams, Vector_Xd_Map _iparams);
+            Hex8(std::vector< double >, std::vector< double >, std::vector< double >, std::vector<double> _fparams = {}, std::vector<double> _iparams = {});
             
             //!Constructor for Abaqus implementation
             Hex8(Matrix_Xd_Map, Matrix_Xd_Map, Matrix_Xd_Map, Vector_Xd_Map, Vector_8d_Map, Vector_Xd_Map, Vector_Xd_Map, Vector_Xd_Map,
@@ -400,6 +400,7 @@ namespace micro_element
             //!=
             
             std::vector< std::vector< double > > parse_incoming_vectors(int,const std::vector< double > &);
+            std::vector< std::vector< double > > parse_incoming_vectors(int,const Matrix_Xd_Map &);
     };
     
     //!==

@@ -177,11 +177,9 @@ int test_constructors(std::ofstream &results){
     //!Test the empty constructor
     micro_element::Hex8 A = micro_element::Hex8();
     
-    test_results[0] = A.RHS.size()    == 96;
-    test_results[1] = A.AMATRX.size() == 96;
-    for(int i=0; i<A.AMATRX.size(); i++){
-        test_results[1] *= A.AMATRX[i].size() == 96;
-    }
+    test_results[0]  = A.RHS.rows()    == 96;
+    test_results[1]  = A.AMATRX.rows() == 96;
+    test_results[1] *= A.AMATRX.cols() == 96;
     
     //!|=> Test 2
     //!Test the constructor with the reference node locations
@@ -1122,7 +1120,7 @@ std::vector< double > parse_Fint(std::vector< double > U_in){
     test_element.add_internal_nodal_forces();                                                    //Add the internal nodal forces to the RHS vector
     
     std::vector< double > out(96,0.);
-    for(int i=0; i<96; i++){out[i] = test_element.RHS[i];}
+    for(int i=0; i<96; i++){out[i] = test_element.RHS(i);}
     
     //print_vector("out",out);
     
@@ -1189,7 +1187,7 @@ std::vector< double > parse_Mint(std::vector< double > U_in){
     test_element.add_internal_moments();                                                    //Add the internal nodal forces to the RHS vector
     
     std::vector< double > out(96,0.);
-    for(int i=0; i<96; i++){out[i] = test_element.RHS[i];}
+    for(int i=0; i<96; i++){out[i] = test_element.RHS(i);}
     
     //print_vector("out",out);
     
@@ -1254,7 +1252,7 @@ std::vector< double > parse_RHS(std::vector< double > U_in){
     test_element.integrate_element();                                                            //Integrate the element
     
     std::vector< double > out(96,0.);
-    for(int i=0; i<96; i++){out[i] = test_element.RHS[i];}
+    for(int i=0; i<96; i++){out[i] = test_element.RHS(i);}
     
     //print_vector("out",out);
     
@@ -1947,7 +1945,7 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     //!Compare the expected results to the element results
     test_results[0] = true;
     for(int i=0; i<96; i++){
-        test_results[0] *= 1e-9>fabs(element.RHS[i]-RHS[i]);
+        test_results[0] *= 1e-9>fabs(element.RHS(i)-RHS[i]);
     }
     
     //!Compare the tangents
@@ -1962,7 +1960,7 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     test_results[1]=true;
     for(int i=95; i>=0; i--){
         for(int j=95; j>=0; j--){
-            test_results[1] *= double_compare(gradient[i][j],element.AMATRX[j][i],1e-5,1e-5);
+            test_results[1] *= double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5);
             //std::cout << "(" << i << ", " << j << ")\n";
             //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
             if(!test_results[1]){break;}
@@ -2116,7 +2114,7 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     test_results[1]=true;
     for(int i=0; i<96; i++){
         for(int j=0; j<96; j++){
-            test_results[1] *= double_compare(gradient[i][j],element.AMATRX[j][i],1e-5,1e-5);
+            test_results[1] *= double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5);
             //std::cout << "(" << i << ", " << j << ")\n";
             //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
             if(!test_results[1]){break;}
@@ -2127,7 +2125,7 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     //!Compare the expected results to the element results
     test_results[0] = true;
     for(int i=0; i<96; i++){
-        test_results[0] *= 1e-9>fabs(element.RHS[i]-RHS[i]);
+        test_results[0] *= 1e-9>fabs(element.RHS(i)-RHS[i]);
     }
     
     //Compare all test results
@@ -2274,7 +2272,7 @@ int test_integrate_element(std::ofstream &results){
     //!Compare the expected results to the element results
     test_results[0] = true;
     for(int i=0; i<96; i++){
-        test_results[0] *= 1e-9>fabs(element.RHS[i]-RHS[i]);
+        test_results[0] *= 1e-9>fabs(element.RHS(i)-RHS[i]);
     }
     
     //!Compare the tangents
@@ -2287,7 +2285,7 @@ int test_integrate_element(std::ofstream &results){
     test_results[1]=true;
     for(int i=0; i<96; i++){
         for(int j=0; j<96; j++){
-            test_results[1] *= double_compare(gradient[i][j],element.AMATRX[j][i],1e-5,1e-5);
+            test_results[1] *= double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5);
             //std::cout << "(" << i << ", " << j << ")\n";
             //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
             if(!test_results[1]){break;}

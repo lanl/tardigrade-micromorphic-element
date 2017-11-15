@@ -224,12 +224,13 @@ extern "C" void UEL(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                         }
                     }
                     
-void compute_hex8(Matrix_Xd_Map &RHS, Matrix_Xd_Map &AMATRX, Vector_Xd_Map &SVARS_vec,
-                  Vector_8d_Map &ENERGY, Vector_3d_Map &PROPS, Matrix_Xd_Map &COORDS, Vector_Xd_Map &U, 
-                  Vector_Xd_Map &DU, Vector_Xd_Map &V, Vector_Xd_Map &A, double TIME[2], double DTIME, 
-                  int KSTEP,int KINC,int JELEM, Vector_3d_Map &PARAMS, Matrix_Xd_Map &JDLTYP, 
-                  Vector_Xd_Map &ADLMAG, double *PREDEF, int NPREDF, Vector_5i_Map &LFLAGS, 
-                  Matrix_Xd_Map &DDLMAG, double PNEWDT, Vector_Xd_Map &JPROPS_vec, double PERIOD):
+void compute_hex8(Matrix_Xd_Map &RHS,    Matrix_Xd_Map &AMATRX, Vector_Xd_Map &SVARS,  Vector_8d_Map &ENERGY,
+                  Vector_3d_Map &PROPS,  Matrix_Xd_Map &COORDS, Vector_Xd_Map &U,      Vector_Xd_Map &DU,
+                  Vector_Xd_Map &V,      Vector_Xd_Map &A,      double TIME[2],        double DTIME, 
+                  int KSTEP,             int KINC,              int JELEM,             Vector_3d_Map &PARAMS,
+                  Matrix_Xd_Map &JDLTYP, Vector_Xd_Map &ADLMAG, double *PREDEF,        int NPREDF,
+                  Vector_5i_Map &LFLAGS, Matrix_Xd_Map &DDLMAG, double PNEWDT,         Vector_Xd_Map &JPROPS,
+                  double PERIOD):
     /*!====================
     |   compute_hex8   |
     ====================
@@ -238,15 +239,6 @@ void compute_hex8(Matrix_Xd_Map &RHS, Matrix_Xd_Map &AMATRX, Vector_Xd_Map &SVAR
     micromorphic element.
     
     */
-    
-    //!Reform the incoming coordinates to a form which the element can read
-                        
-    std::vector<double> flat_coords;
-    for(int i=0; i<NNODE; i++){
-        for(int j=0; j<dimension; j++){
-            flat_coords[j+i*8] = COORDS_mat(i,j);
-        }
-    }
     
     //!Create the element
     micro_element::hex8 element(COORDS,RHS,AMATRX,SVARS,ENERGY,PROPS,U,DU,V,A,TIME,DTIME,KSTEP,KINC,JELEM,

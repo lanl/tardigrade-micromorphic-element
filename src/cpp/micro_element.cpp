@@ -138,7 +138,7 @@ namespace micro_element
     }
     
     Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU,
-               Vector_Xd_Map _fparams, Vector_Xd_Map _iparams){
+               std::vector<double> _fparams, std::vector<double> _iparams){
         /*!====================
         |        Hex8       |
         =====================
@@ -248,16 +248,19 @@ namespace micro_element
         }
         
         //Set the material parameters
-        fparams = _fparams;
-        iparams = _iparams;
+        fparams.resize(_fparams.size,1);
+        iparams.resize(_iparams.size,1);
+        for(int i=0; i<_fparams.size; i++){fparams(i) = _fparams(i);}
+        for(int i=0; i<_iparams.size; i++){iparams(i) = _iparams(i);}
     }
     
-    Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU,
-               Vector_Xd_Map _fparams, Vector_Xd_Map _iparams){
-    Hex8::Hex8(Matrix_Xd_Map, Matrix_Xd_Map, Matrix_Xd_Map, Vector_Xd_Map, Vector_8d_Map, Vector_Xd_Map, Vector_Xd_Map, Vector_Xd_Map,
-                 Vector_Xd_Map, Vector_Xd_Map, double[2],     double,        int,           int,           int,           Vector_3d_Map,
-                 Matrix_Xd_Map, Vector_Xd_Map, double*,       int,           Vector_5i_Map, Matrix_Xd_Map, double,        Vector_Xd_Map, 
-                 double){
+    Hex8::Hex8(Matrix_Xd_Map &_RHS,   Matrix_Xd_Map &_AMATRX, Vector_Xd_Map &SVARS,  Vector_8d_Map &ENERGY,
+               Vector_3d_Map &PROPS,  Matrix_Xd_Map &COORDS,  Vector_Xd_Map &U,      Vector_Xd_Map &DU,
+               Vector_Xd_Map &V,      Vector_Xd_Map &A,       double TIME[2],        double DTIME, 
+               int KSTEP,             int KINC,               int JELEM,             Vector_3d_Map &PARAMS,
+               Matrix_Xd_Map &JDLTYP, Vector_Xd_Map &ADLMAG,  double *PREDEF,        int NPREDF,
+               Vector_5i_Map &LFLAGS, Matrix_Xd_Map &DDLMAG,  double PNEWDT,         Vector_Xd_Map &JPROPS,
+               double PERIOD){
         /*!====================
         |        Hex8       |
         =====================
@@ -282,35 +285,38 @@ namespace micro_element
                
                 where the comma indicates the ``upper layer'' of the
                 hexehedral element.
-               
-            U:  The vector of changes of the degree of freedom 
-                vector. It is organized such that the degrees of 
-                freedom are in the order of the nodes. Each node's 
-                dof is organized:
-                
-                u1, u2, u3, phi11, phi22, phi33, phi23, phi13, phi12, phi32, phi31, phi21
             
-            dU: The change in the degree of freedom vector over the 
-                last increment. The organization is the same as for 
-                U.
-                
-            fparams: Parameters for the constitutive model which are 
-                     floating point numbers.
-                     
-            iparams: Parameters for the constitutive model which are 
-                     integer numbers.
+            RHS:    A Eigen::Map which contains a pointer to the RHS array
+            AMATRX: A Eigen::Map which contains a pointer to the AMATRX array
+            SVARS:  A Eigen::Map which contains a pointer to the SVARS array
+            ENERGY: A Eigen::Map which contians a pointer to the ENERGY array
+            PROPS:  A Eigen::Map which contains a pointer to the PROPS array
+            COORDS: A Eigen::Map which contains a pointer to the COORDS array
+            U:      A Eigen::Map which contains a pointer to the U array
+            DU:     A Eigen::Map which contains a pointer to the DU array
+            V:      A Eigen::Map which contains a pointer to the V array
+            A:      A Eigen::Map which contains a pointer to the A array
+            TIME:   The current step and total time
+            DTIME:  The change in time
+            KSTEP:  The step count
+            KINC:   The increment count
+            JELEM:  The user-defined element number
+            PARAMS: Integration parameters
+            JDLTYP: A Eigen::Map which contains a pointer to the JDLTYP array
+            ADLMAG: A Eigen::Map which contains a pointer to the ADLMAG array
+            PREDEF: The pointer to the pre-defined field array
+            NPREDF: The number of pre-defined fields
+            LFLAGS: A Eigen::Map which contains a pointer to the LFLAGS array
+            DDLMAG: A Eigen::Map which containts a pointer to the DDLMAG array
+            PNEWDT: The new time-step ratio compared to the current DTIME
+            JPROPS: A Eigen::Map which contains a pointer to the JPROPS array
+            PERIOD: Time period of the current step.
         */
         
-        //Resize the RHS and AMATRX containers
-        RHS    = Eigen::Map<Eigen::MatrixXd::Zero(96,1)>; //Allocate the required memory for the right hand side vector
+        //Assign the RHS and AMATRX arrays
+        RHS = _RHS;
         //Allocate the required memory for the AMATRX
-        AMATRX = Eigen::Map<Eigen::MatrixXd::Zero(96,96)>;
-        
-        //Resize the phi vector
-        node_phis.resize(reference_coords.size());
-        for(int n=0; n<reference_coords.size(); n++){
-            node_phis[n] = tensor::Tensor23({3,3});
-        }
+        AMATRX = _AMATRX;
         
         //Resize the stress measure vectors
         PK2.resize(number_gauss_points);
@@ -338,9 +344,9 @@ namespace micro_element
         //Break the rcs, U, and, dU vectors into a vector of vectors
         //where each subvector are the values associated with a given 
         //node.
-        reference_coords   = parse_incoming_vectors(1,rcs);
+        reference_coords   = parse_incoming_vectors(1,COORDS);
         dof_at_nodes       = parse_incoming_vectors(2,U);
-        Delta_dof_at_nodes = parse_incoming_vectors(2,dU);
+        Delta_dof_at_nodes = parse_incoming_vectors(2,DU);
         
         //Assign the current value of the nodal coordinates
         for(int n=0; n<reference_coords.size(); n++){
@@ -367,8 +373,8 @@ namespace micro_element
         }
         
         //Set the material parameters
-        fparams = _fparams;
-        iparams = _iparams;
+        fparams = PROPS;
+        iparams = JPROPS;
     }
     
     
@@ -888,7 +894,7 @@ namespace micro_element
             for(int j=0; j<3; j++){
                 for(int I=0; I<3; I++){
                     for(int J=0; J<3; J++){
-                        RHS[j+n*12] += -dNdXs[n][I]*PK2[gpt_num](I,J)*F(j,J)*Jhatdet*weights[gpt_num];
+                        RHS(j+n*12) += -dNdXs[n][I]*PK2[gpt_num](I,J)*F(j,J)*Jhatdet*weights[gpt_num];
                     }
                 }
             }
@@ -951,15 +957,15 @@ namespace micro_element
                 }
             }
             
-            RHS[initial_index+n*12+0] += mu_int(0,0);
-            RHS[initial_index+n*12+1] += mu_int(1,1);
-            RHS[initial_index+n*12+2] += mu_int(2,2);
-            RHS[initial_index+n*12+3] += mu_int(1,2);
-            RHS[initial_index+n*12+4] += mu_int(0,2);
-            RHS[initial_index+n*12+5] += mu_int(0,1);
-            RHS[initial_index+n*12+6] += mu_int(2,1);
-            RHS[initial_index+n*12+7] += mu_int(2,0);
-            RHS[initial_index+n*12+8] += mu_int(1,0);
+            RHS(initial_index+n*12+0) += mu_int(0,0);
+            RHS(initial_index+n*12+1) += mu_int(1,1);
+            RHS(initial_index+n*12+2) += mu_int(2,2);
+            RHS(initial_index+n*12+3) += mu_int(1,2);
+            RHS(initial_index+n*12+4) += mu_int(0,2);
+            RHS(initial_index+n*12+5) += mu_int(0,1);
+            RHS(initial_index+n*12+6) += mu_int(2,1);
+            RHS(initial_index+n*12+7) += mu_int(2,0);
+            RHS(initial_index+n*12+8) += mu_int(1,0);
         }
     }
     
@@ -1391,7 +1397,7 @@ namespace micro_element
                         
                         for(int K=0; K<96; K++){
                             
-                            AMATRX[j+n*12][K] -= dNdXs[n][I]*(dPK2dU(I,J,K)*F(j,J) + PK2[gpt_num](I,J)*dFdU(j,J,K))*weights[gpt_num]*Jhatdet;
+                            AMATRX(j+n*12,K) -= dNdXs[n][I]*(dPK2dU(I,J,K)*F(j,J) + PK2[gpt_num](I,J)*dFdU(j,J,K))*weights[gpt_num]*Jhatdet;
                             
                         }
                     }
@@ -1446,7 +1452,7 @@ namespace micro_element
                         for(int I=0; I<3; I++){
                             for(int J=0; J<3; J++){
                                 
-                                AMATRX[3+n*12+value_map[i][j]][L] -= ( Ns[n]*(dFdU(i,I,L)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*F(j,J)
+                                AMATRX(3+n*12+value_map[i][j],L) -= ( Ns[n]*(dFdU(i,I,L)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*F(j,J)
                                                                                   +F(i,I)*(    dSIGMAdU(I,J,L) -     dPK2dU(I,J,L))*F(j,J)
                                                                                   +F(i,I)*(SIGMA[gpt_num](I,J) - PK2[gpt_num](I,J))*dFdU(j,J,L)))*weights[gpt_num]*Jhatdet;
                                 
@@ -1460,7 +1466,7 @@ namespace micro_element
                                     T += dFdU(j,J,L)*chi(i,I)*M[gpt_num](K,J,I) + F(j,J)*dchidU(i,I,L)*M[gpt_num](K,J,I) + F(j,J)*chi(i,I)*dMdU(K,J,I,L);
                                 }
                             }
-                            AMATRX[3+n*12+value_map[i][j]][L] -= dNdXs[n][K]*T*weights[gpt_num]*Jhatdet;
+                            AMATRX(3+n*12+value_map[i][j],L) -= dNdXs[n][K]*T*weights[gpt_num]*Jhatdet;
                         }
                         
                     }
@@ -2202,8 +2208,48 @@ namespace micro_element
         return parsed_vector;
     }
     
+    std::vector< std::vector< double > > Hex8::parse_incoming_vectors(int mode, const Matrix_Xd_Map &incoming){
+        /*!================================
+        |    parse_incoming_vectors    |
+        ================================
+        
+        Takes incoming Eigen::Map objects and maps them to 
+        vectors.
+        
+        */
+        
+        //!Variable defintions
+        std::vector< double >::const_iterator first;        //! The iterator which identifies the start of a subvector
+        std::vector< double >::const_iterator last;         //! The iterator which identifies the end of a subvector
+        std::vector< std::vector< double > > parsed_vector; //! The parsed vector which is returned
+        parsed_vector.resize(reference_coords.size());
+        int factor;                                         //! The number of dof associated with a given mode
+        
+        if(mode==1){//Parse an incoming coordinate Eigen::Map
+            factor = 3;
+        }
+        else if(mode==2){//Parse an incoming dof Eigen::Map
+            factor = 12;
+        }
+        else{//Unrecognized mode
+            std::cout << "\nError: The mode value of " << mode << " is not recognized.\n";
+            assert(1==0);
+        }
+        
+        //Extract the subvectors
+        for(int n=0; n<reference_coords.size(); n++){
+            parsed_vector[n] = std::vector<double>(factor,0.);
             
-            
+            if(mode==1){
+                for(int i=0; i<factor; i++){parsed_vector[n][i] = incoming(i,n);}
+            }
+            else if(mode==2){
+                for(int i=0; i<factor; i++){parsed_vector[n][i] = incoming(i+n*factor);}
+            }
+        }
+        
+        return parsed_vector;
+    }
     
     //!==
     //!|
