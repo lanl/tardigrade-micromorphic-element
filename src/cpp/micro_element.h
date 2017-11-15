@@ -16,6 +16,19 @@
   
 #include <iostream>
 #include <vector>
+
+//!Type definitions for maps between pointers and eigen maps
+typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> Matrix_RM;
+typedef Eigen::Matrix<double,Eigen::Dynamic,1> Vector;
+typedef Eigen::Matrix<double,8,1> energy_vector;
+typedef Eigen::Matrix<double,3,1> params_vector;
+typedef Eigen::Matrix<int,5,1>    lflags_vector;
+
+typedef Eigen::Map<Matrix_RM>     Matrix_Xd_Map;
+typedef Eigen::Map<Vector>        Vector_Xd_Map;
+typedef Eigen::Map<energy_vector> Vector_8d_Map;
+typedef Eigen::Map<params_vector> Vector_3d_Map;
+typedef Eigen::Map<lflags_vector> Vector_5i_Map;
   
 namespace micro_element
 {
@@ -85,15 +98,38 @@ namespace micro_element
             //!| Residual and Element Stiffness
             //!=
             
-            std::vector< double > RHS;                     //!The, ``right hand side,'' of the linearized equation (i.e. the residual vector)
-            std::vector< std::vector< double > > AMATRX;   //!The negative of the element stiffness matrix (i.e. -dRHSddof)
+            //std::vector< double > RHS;                     //!The, ``right hand side,'' of the linearized equation (i.e. the residual vector)
+            s//td::vector< std::vector< double > > AMATRX;   //!The negative of the element stiffness matrix (i.e. -dRHSddof)
+            Matrix_Xd_Map RHS;                              //!The, ``right hand side,'' of the linearized equation (i.e. the residual vector)
+            Matrix_Xd_Map AMATRX;                           //!The negative of the element stiffness matrix (i.e. -dRHSddof)
             
             //!=
             //!| Constitutive model parameters
             //!=
             
-            std::vector< int > iparams;
-            std::vector< double > fparams;
+            //std::vector< int > iparams;
+            //std::vector< double > fparams;
+            Vector_Xd_Map fparams;
+            Vector_Xd_Map iparams;
+            //Vector_Xd_Map PROPS;
+            //Vector_Xd_Map JPROPS;
+            
+            //!=
+            //!| State variables
+            //!=
+            
+            Vector_Xd_Map SVARS;
+            
+            //!=
+            //!| Incoming values from Abaqus
+            //!=
+            
+            Vector_8d_Map ENERGY;
+            Vector_3d_Map PARAMS;
+            Matrix_Xd_Map JDLTYP; //May not be totally general.
+            Vector_Xd_Map ADLMAG;
+            Vector_5i_Map LFLAGS;
+            Matrix_Xd_Map DDLMAG; //May not be totally general.
             
             //!=
             //!| Stresses
@@ -112,7 +148,13 @@ namespace micro_element
             //Constructors
             Hex8();
             Hex8(std::vector< double >);
-            Hex8(std::vector< double >, std::vector< double >, std::vector< double >, std::vector< double > _fparams = {}, std::vector< int > _iparams = {});
+            Hex8(std::vector< double >, std::vector< double >, std::vector< double >, Vector_Xd_Map _fparams, Vector_Xd_Map _iparams);
+            
+            //!Constructor for Abaqus implementation
+            Hex8(Matrix_Xd_Map, Matrix_Xd_Map, Matrix_Xd_Map, Vector_Xd_Map, Vector_8d_Map, Vector_Xd_Map, Vector_Xd_Map, Vector_Xd_Map,
+                 Vector_Xd_Map, Vector_Xd_Map, double[2],     double,        int,           int,           int,           Vector_3d_Map,
+                 Matrix_Xd_Map, Vector_Xd_Map, double*,       int,           Vector_5i_Map, Matrix_Xd_Map, double,        Vector_Xd_Map, 
+                 double);
             
             //!==
             //!|

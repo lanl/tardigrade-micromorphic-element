@@ -138,7 +138,7 @@ namespace micro_element
     }
     
     Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU,
-               std::vector< double > _fparams, std::vector< int > _iparams){
+               Vector_Xd_Map _fparams, Vector_Xd_Map _iparams){
         /*!====================
         |        Hex8       |
         =====================
@@ -183,12 +183,9 @@ namespace micro_element
         */
         
         //Resize the RHS and AMATRX containers
-        RHS.resize(96,0.); //Allocate the required memory for the right hand side vector
+        RHS    = Eigen::Map<Eigen::MatrixXd::Zero(96,1)>; //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
-        AMATRX.resize(96);
-        for(int i=0; i<96; i++){
-            AMATRX[i].resize(96,0.);
-        }
+        AMATRX = Eigen::Map<Eigen::MatrixXd::Zero(96,96)>;
         
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
@@ -254,6 +251,128 @@ namespace micro_element
         fparams = _fparams;
         iparams = _iparams;
     }
+    
+    Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU,
+               Vector_Xd_Map _fparams, Vector_Xd_Map _iparams){
+    Hex8::Hex8(Matrix_Xd_Map, Matrix_Xd_Map, Matrix_Xd_Map, Vector_Xd_Map, Vector_8d_Map, Vector_Xd_Map, Vector_Xd_Map, Vector_Xd_Map,
+                 Vector_Xd_Map, Vector_Xd_Map, double[2],     double,        int,           int,           int,           Vector_3d_Map,
+                 Matrix_Xd_Map, Vector_Xd_Map, double*,       int,           Vector_5i_Map, Matrix_Xd_Map, double,        Vector_Xd_Map, 
+                 double){
+        /*!====================
+        |        Hex8       |
+        =====================
+        
+        The constructor for a hexehedral element when 
+        used for an Abaqus UMAT
+        
+        Input:
+            rcs: A vector doubles which are the coordinates of 
+                 the nodes.
+                
+                 The nodes are ordered in a counter clockwise 
+                 manner i.e.
+                
+                4,8      3,7
+                 o--------o
+                 |        |
+                 |        |
+                 |        |
+                 o--------o
+                1,5      2,6
+               
+                where the comma indicates the ``upper layer'' of the
+                hexehedral element.
+               
+            U:  The vector of changes of the degree of freedom 
+                vector. It is organized such that the degrees of 
+                freedom are in the order of the nodes. Each node's 
+                dof is organized:
+                
+                u1, u2, u3, phi11, phi22, phi33, phi23, phi13, phi12, phi32, phi31, phi21
+            
+            dU: The change in the degree of freedom vector over the 
+                last increment. The organization is the same as for 
+                U.
+                
+            fparams: Parameters for the constitutive model which are 
+                     floating point numbers.
+                     
+            iparams: Parameters for the constitutive model which are 
+                     integer numbers.
+        */
+        
+        //Resize the RHS and AMATRX containers
+        RHS    = Eigen::Map<Eigen::MatrixXd::Zero(96,1)>; //Allocate the required memory for the right hand side vector
+        //Allocate the required memory for the AMATRX
+        AMATRX = Eigen::Map<Eigen::MatrixXd::Zero(96,96)>;
+        
+        //Resize the phi vector
+        node_phis.resize(reference_coords.size());
+        for(int n=0; n<reference_coords.size(); n++){
+            node_phis[n] = tensor::Tensor23({3,3});
+        }
+        
+        //Resize the stress measure vectors
+        PK2.resize(number_gauss_points);
+        SIGMA.resize(number_gauss_points);
+        M.resize(number_gauss_points);
+        
+        //Initialize stress measures to zero
+        for(int i=0; i<number_gauss_points; i++){
+            PK2[i]   = tensor::Tensor23({3,3});
+            SIGMA[i] = tensor::Tensor23({3,3});
+            M[i]     = tensor::Tensor33({3,3,3});
+        }
+        
+        //Resize the private vector attributes
+        Ns.resize(local_coords.size());
+        dNdxis.resize(local_coords.size());
+        dNdxs.resize(local_coords.size());
+        dNdXs.resize(local_coords.size());
+        
+        //Set the dimension of the gradient vectors to 3
+        for(int n=0; n<8; n++){dNdxis[n].resize(3);}
+        for(int n=0; n<8; n++){dNdxs[n].resize(3);}
+        for(int n=0; n<8; n++){dNdXs[n].resize(3);}
+        
+        //Break the rcs, U, and, dU vectors into a vector of vectors
+        //where each subvector are the values associated with a given 
+        //node.
+        reference_coords   = parse_incoming_vectors(1,rcs);
+        dof_at_nodes       = parse_incoming_vectors(2,U);
+        Delta_dof_at_nodes = parse_incoming_vectors(2,dU);
+        
+        //Assign the current value of the nodal coordinates
+        for(int n=0; n<reference_coords.size(); n++){
+            current_coords[n].resize(3);
+            for(int i=0; i<3; i++){
+                current_coords[n][i] = reference_coords[n][i]+dof_at_nodes[n][i];
+            }
+        }
+        
+        //Assign the values of phi at the nodes
+        for(int n=0; n<reference_coords.size(); n++){
+            //!NOTE: Assumes dof vector is set up as phi_11, phi_22, phi_33,
+            //!                                      phi_23, phi_13, phi_12,
+            //!                                      phi_32, phi_31, phi_21
+            node_phis[n](0,0) = dof_at_nodes[n][ 3];
+            node_phis[n](1,1) = dof_at_nodes[n][ 4];
+            node_phis[n](2,2) = dof_at_nodes[n][ 5];
+            node_phis[n](1,2) = dof_at_nodes[n][ 6];
+            node_phis[n](0,2) = dof_at_nodes[n][ 7];
+            node_phis[n](0,1) = dof_at_nodes[n][ 8];
+            node_phis[n](2,1) = dof_at_nodes[n][ 9];
+            node_phis[n](2,0) = dof_at_nodes[n][10];
+            node_phis[n](1,0) = dof_at_nodes[n][11];
+        }
+        
+        //Set the material parameters
+        fparams = _fparams;
+        iparams = _iparams;
+    }
+    
+    
+    
     
     //!==
     //!|

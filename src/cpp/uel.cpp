@@ -1,4 +1,5 @@
 #include<Eigen/Dense>
+#include <micro_element.h>
 
 extern "C" void UEL(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                     int NDOFEL,int NRHS,int NSVARS,double *PROPS,int NPROPS,
@@ -187,48 +188,48 @@ extern "C" void UEL(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                         
                         //!Form Eigen::Map representations of the incoming vectors
                         
-                        typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> Matrix_RM;
-                        typedef Eigen::Matrix<double,Eigen::Dynamic,1> eig_vec;
-                        typedef Eigen::Matrix<double,8,1> energy_matrix;
-                        typedef Eigen::Matrix<double,3,1> params_matrix;
+                        Matrix_Xd_Map RHS_mat(RHS,NDOFEL,NRHS);
+                        Matrix_Xd_Map AMATRX_mat(AMATRX,NDOFEL,NDOFEL);
+                        Vector_Xd_Map SVARS_vec(SVARS,NSVARS,1);
+                        Vector_8d_Map ENERGY_vec(ENERGY,8,1);
+                        Vector_Xd_Map PROPS_vec(PROPS,NPROPS,1);
+                        Vector_Xd_Map JPROPS_vec(JPROPS,NJPROPS,1);
                         
-                        Eigen::Map<Matrix_RM> RHS_mat(RHS,NDOFEL,NRHS);
-                        Eigen::Map<Matrix_RM> AMATRX_mat(AMATRX,NDOFEL,NDOFEL);
-                        Eigen::Map<eig_vec> SVARS_vec(SVARS,NSVARS,1);
-                        Eigen::Map<energy_matrix>  ENERGY_vec(ENERGY,8,1);
-                        Eigen::Map<eig_vec> PROPS_vec(PROPS,NPROPS,1);
-                        Eigen::Map<eig_vec> JPROPS_vec(JPROPS,NJPROPS,1);
-                        Eigen::Map<eig_vec> U_vec(U,NDOFEL,1);
-                        Eigen::Map<eig_vec> DU_vec(DU,NDOFEL,1);
-                        Eigen::Map<eig_vec> V_vec(V,NDOFEL,1);
-                        Eigen::Map<eig_vec> A_vec(A,NDOFEL,1);
-                        Eigen::Map<params_matrix> Params_vec(PARAMS,3,1);
+                        Matrix_Xd_Map COORDS_mat(COORDS,NNODE,MCRD);
+                        Vector_Xd_Map U_vec(U,NDOFEL,1);
+                        Vector_Xd_Map DU_vec(DU,NDOFEL,1);
+                        Vector_Xd_Map V_vec(V,NDOFEL,1);
+                        Vector_Xd_Map A_vec(A,NDOFEL,1);
+                        Vector_3d_Map PARAMS_vec(PARAMS,3,1);
+                        
+                        Matrix_Xd_Map JDLTYP_mat(JDLTYP,MDLOAD,1); //May not be totally general.
+                        Vector_Xd_Map ADLMAG_vec(ADLMAG,MDLOAD,1);
+                        
+                        Vector_5i_Map LFLAGS_vec(LFLAGS,5,1);
+                        
+                        Matrix_Xd_Map DDLMAG_mat(DDLMAG,MDLOAD,1); //May not be totally general.
+                        
+                        Vector_Xd_Map JPROPS_vec(JPROPS,NJPROP,1);
                         
                         //!Parse the incoming element to the correct user subroutine
                         if(JTYPE==1){
-                            compute_hex8(RHS_vec,AMATRX_vec,SVARS_vec,ENERGY_vec,NDOFEL,NRHS,NSVARS,
-                                         PROPS,NPROPS,COORDS,MCRD,NNODE,U_vec,DU_vec,V_vec,A_vec,
-                                         TIME,DTIME,KSTEP,KINC,JELEM,PARAMS_vec,NDLOAD,
-                                         JDLTYP,ADLMAG,PREDEF,NPREDEF,LFLAGS,MLVARX,
-                                         DDLMAG,MDLOAD,PNEWDT,JPROPS,NJPROP,PERIOD);
+                            compute_hex8(RHS_mat,AMATRX_mat,SVARS_vec,ENERGY_vec,
+                                         PROPS_vec,COORDS_mat,U_vec,DU_vec,V_vec,A_vec,
+                                         TIME,DTIME,KSTEP,KINC,JELEM,PARAMS_vec,
+                                         JDLTYP_mat,ADLMAG_vec,PREDEF,NPREDEF,LFLAGS,
+                                         DDLMAG,PNEWDT,JPROPS_vec,PERIOD);
                         }
                         else{
                             std::cout << "\nError: Element type not recognized";
                         }
-                        
-                        
-                        
                     }
                     
-void compute_hex8(std::vector<double> &RHS,std::vector<std::vector<double>> &AMATRX,
-                  std::vector<double> &SVARS,std::array<double,8> &ENERGY,
-                  int NRHS,std::vector<double> &PROPS,double *COORDS,
-                  int MCRD,int NNODE,std::vector<double> &U,std::vector<double> &DU,
-                  double &V,double &A,int JTYPE,double TIME[2],double DTIME,
-                  int KSTEP,int KINC,int JELEM,std::array<double,3> &PARAMS,int NDLOAD,
-                  int *JDLTYP,double *ADLMAG,double *PREDEF,int NPREDF,
-                  int *LFLAGS,int MLVARX,double *DDLMAG,int MDLOAD,
-                  double PNEWDT,int *JPROPS,int NJPROP,double PERIOD):
+void compute_hex8(Matrix_Xd_Map &RHS, Matrix_Xd_Map &AMATRX, Vector_Xd_Map &SVARS_vec,
+                  Vector_8d_Map &ENERGY, Vector_3d_Map &PROPS, Matrix_Xd_Map &COORDS, Vector_Xd_Map &U, 
+                  Vector_Xd_Map &DU, Vector_Xd_Map &V, Vector_Xd_Map &A, double TIME[2], double DTIME, 
+                  int KSTEP,int KINC,int JELEM, Vector_3d_Map &PARAMS, Matrix_Xd_Map &JDLTYP, 
+                  Vector_Xd_Map &ADLMAG, double *PREDEF, int NPREDF, Vector_5i_Map &LFLAGS, 
+                  Matrix_Xd_Map &DDLMAG, double PNEWDT, Vector_Xd_Map &JPROPS_vec, double PERIOD):
     /*!====================
     |   compute_hex8   |
     ====================
@@ -239,8 +240,6 @@ void compute_hex8(std::vector<double> &RHS,std::vector<std::vector<double>> &AMA
     */
     
     //!Reform the incoming coordinates to a form which the element can read
-    Eigen::Map<Matrix_RM> COORDS_mat(COORDS,NNODE,3);
-    int dimension = 3;
                         
     std::vector<double> flat_coords;
     for(int i=0; i<NNODE; i++){
@@ -250,4 +249,7 @@ void compute_hex8(std::vector<double> &RHS,std::vector<std::vector<double>> &AMA
     }
     
     //!Create the element
-    micro_element::hex8 element(flat_coords,U,DU,PROPS,JPROPS);
+    micro_element::hex8 element(COORDS,RHS,AMATRX,SVARS,ENERGY,PROPS,U,DU,V,A,TIME,DTIME,KSTEP,KINC,JELEM,
+                                PARAMS,JDLTYP,ADLMAG,PREDEF,NPREDF,LFLAGS,DDLMAG,PNEWDT,JPROPS,PERIOD);
+    
+    //!Compute the required values
