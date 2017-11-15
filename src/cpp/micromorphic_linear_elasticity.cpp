@@ -35,7 +35,7 @@
   
 namespace micro_material{
     
-    void get_stress(      Vector_Xd_Map& &fparams,       Vector_Xd_Map &iparams,                                                    //Material parameters
+    void get_stress(      Vector_Xd_Map  &fparams,       Vector_Xd_Map &iparams,                                                    //Material parameters
                     const tensor::Tensor23&   C_in,      const tensor::Tensor23&   Psi_in,   const tensor::Tensor33& Gamma_in,      //Deformation measures
                           tensor::Tensor23& PK2_stress,  tensor::Tensor23& SIGMA_stress,     tensor::Tensor33& M_stress){           //Stress measures
                             
@@ -101,7 +101,7 @@ namespace micro_material{
                          PK2_stress,  SIGMA_stress, M_stress);
     }
     
-    void get_stress(const std::vector< double > &fparams,  const std::vector< int > &iparams,                                         //Material parameters
+    void get_stress(      Vector_Xd_Map  &fparams,               Vector_Xd_Map &iparams,                                              //Material parameters
                     const tensor::Tensor23& C_in,          const tensor::Tensor23& Psi_in,      const tensor::Tensor33& Gamma_in,     //Deformation measures
                           tensor::Tensor23& PK2_stress,          tensor::Tensor23& SIGMA_stress,      tensor::Tensor33& M_stress,     //Stress measures
                           tensor::Tensor43& dPK2dC,              tensor::Tensor43& dPK2dPsi,          tensor::Tensor53& dPK2dGamma,   //Tangents of PK2 stress

@@ -152,7 +152,8 @@ void test_stiffness_tensors(std::ofstream &results){
     bool test_results[test_num] = {false,false,false,false};
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    double fpointer[18];
+    Vector_Xd_Map fparams(fpointer,18,1);
     
     for(int i=0; i<18; i++){
         fparams[i] = 0.1*(i+1);
@@ -448,14 +449,19 @@ std::vector<double> dPK2dC_parser(std::vector<double> C_in){
     C(2,2) = C_in[8];
     
     //!Set the floating point parameters
-    std::vector< double > fparams(18,0.);
+    //!Initialize the floating point parameters
+    double fpointer[18];
+    Vector_Xd_Map fparams(fpointer,18,1);
     
     for(int i=0; i<18; i++){
         fparams[i] = i+1;
     }
     
+    double *ipointer;
+    Vector_Xd_Map iparams(ipointer,1,1);
+    
     //!Compute and assign the stresses to the result measures
-    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    micro_material::get_stress(fparams, iparams, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
     
     parsed_stress[0] = PK2_result(0,0);
     parsed_stress[1] = PK2_result(0,1);
@@ -513,14 +519,18 @@ std::vector<double> dSIGMAdC_parser(std::vector<double> C_in){
     C(2,2) = C_in[8];
     
     //!Set the floating point parameters
-    std::vector< double > fparams(18,0.);
+    double fpointer[18];
+    Vector_Xd_Map fparams(fpointer,18,1);
     
     for(int i=0; i<18; i++){
         fparams[i] = i+1;
     }
     
+    double *ipointer;
+    Vector_Xd_Map iparams(ipointer,1,1);
+    
     //!Compute and assign the stresses to the result measures
-    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    micro_material::get_stress(fparams, iparams, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
     
     parsed_stress[0] = SIGMA_result(0,0);
     parsed_stress[1] = SIGMA_result(0,1);
@@ -577,14 +587,18 @@ std::vector<double> dPK2dPsi_parser(std::vector<double> Psi_in){
     Psi(2,2) = Psi_in[8];
     
     //!Set the floating point parameters
-    std::vector< double > fparams(18,0.);
+    double fpointer[18];
+    Vector_Xd_Map fparams(fpointer,18,1);
     
     for(int i=0; i<18; i++){
         fparams[i] = i+1;
     }
     
+    double *ipointer;
+    Vector_Xd_Map iparams(ipointer,1,1);
+    
     //!Compute and assign the stresses to the result measures
-    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    micro_material::get_stress(fparams, iparams, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
     
     parsed_stress[0] = PK2_result(0,0);
     parsed_stress[1] = PK2_result(0,1);
@@ -641,14 +655,18 @@ std::vector<double> dSIGMAdPsi_parser(std::vector<double> Psi_in){
     Psi(2,2) = Psi_in[8];
     
     //!Set the floating point parameters
-    std::vector< double > fparams(18,0.);
+    double fpointer[18];
+    Vector_Xd_Map fparams(fpointer,18,1);
     
     for(int i=0; i<18; i++){
         fparams[i] = i+1;
     }
     
+    double *ipointer;
+    Vector_Xd_Map iparams(ipointer,1,1);
+    
     //!Compute and assign the stresses to the result measures
-    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    micro_material::get_stress(fparams, iparams, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
     
     parsed_stress[0] = SIGMA_result(0,0);
     parsed_stress[1] = SIGMA_result(0,1);
@@ -705,14 +723,18 @@ std::vector<double> dPK2dGamma_parser(std::vector<double> Gamma_in){
     }
     
     //!Set the floating point parameters
-    std::vector< double > fparams(18,0.);
+    double fpointer[18];
+    Vector_Xd_Map fparams(fpointer,18,1);
     
     for(int i=0; i<18; i++){
         fparams[i] = i+1;
     }
     
+    double *ipointer;
+    Vector_Xd_Map iparams(ipointer,1,1);
+    
     //!Compute and assign the stresses to the result measures
-    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    micro_material::get_stress(fparams, iparams, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
     
     parsed_stress[0] = PK2_result(0,0);
     parsed_stress[1] = PK2_result(0,1);
@@ -769,14 +791,18 @@ std::vector<double> dSIGMAdGamma_parser(std::vector<double> Gamma_in){
     }
     
     //!Set the floating point parameters
-    std::vector< double > fparams(18,0.);
+    double fpointer[18];
+    Vector_Xd_Map fparams(fpointer,18,1);
     
     for(int i=0; i<18; i++){
         fparams[i] = i+1;
     }
     
+    double *ipointer;
+    Vector_Xd_Map iparams(ipointer,1,1);
+    
     //!Compute and assign the stresses to the result measures
-    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    micro_material::get_stress(fparams, iparams, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
     
     parsed_stress[0] = SIGMA_result(0,0);
     parsed_stress[1] = SIGMA_result(0,1);
@@ -814,11 +840,15 @@ void test_get_stress(std::ofstream &results){
     tensor::Tensor23 ITEN = tensor::eye();
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    double fpointer[18];
+    Vector_Xd_Map fparams(fpointer,18,1);
     
     for(int i=0; i<18; i++){
         fparams[i] = i+1;
     }
+    
+    double *ipointer;
+    Vector_Xd_Map iparams(ipointer,1,1);
     
     //!Populate derived deformation measures
     tensor::Tensor23 C({3,3});          //!The right Cauchy-Green deformation tensor
@@ -909,7 +939,7 @@ void test_get_stress(std::ofstream &results){
     tensor::Tensor33 M_result({3,3,3});
     
     //!Compute and assign the stresses to the result measures
-    micro_material::get_stress(fparams, {}, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
+    micro_material::get_stress(fparams, iparams, C, Psi, Gamma, PK2_result, SIGMA_result, M_result);
     
     test_results[0] = PK2_answer.data.isApprox(PK2_result.data);
     test_results[1] = SIGMA_answer.data.isApprox(SIGMA_result.data);
@@ -931,7 +961,7 @@ void test_get_stress(std::ofstream &results){
     tensor::Tensor53 dMdPsi = tensor::Tensor53({3,3,3,3,3});
     tensor::Tensor63 dMdGamma = tensor::Tensor63({3,3,3,3,3,3});
     
-    micro_material::get_stress( fparams,         {},            C, Psi, Gamma, PK2_result, SIGMA_result, M_result,
+    micro_material::get_stress( fparams,    iparams,            C, Psi, Gamma, PK2_result, SIGMA_result, M_result,
                                  dPK2dC,   dPK2dPsi,   dPK2dGamma,
                                dSIGMAdC, dSIGMAdPsi, dSIGMAdGamma,
                                    dMdC,     dMdPsi,     dMdGamma);
