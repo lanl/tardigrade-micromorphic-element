@@ -29,24 +29,26 @@
 
 typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> Matrix_RM;
 typedef Eigen::Matrix<double,Eigen::Dynamic,1> Vector;
+typedef Eigen::Matrix<int,Eigen::Dynamic,1>    Vectori;
 typedef Eigen::Matrix<double,8,1> energy_vector;
 typedef Eigen::Matrix<double,3,1> params_vector;
 typedef Eigen::Matrix<int,5,1>    lflags_vector;
 
 typedef Eigen::Map<Matrix_RM>     Matrix_Xd_Map;
 typedef Eigen::Map<Vector>        Vector_Xd_Map;
+typedef Eigen::Map<Vectori>       Vector_Xi_Map;
 typedef Eigen::Map<energy_vector> Vector_8d_Map;
 typedef Eigen::Map<params_vector> Vector_3d_Map;
 typedef Eigen::Map<lflags_vector> Vector_5i_Map;
 
 namespace micro_material{
     
-    void get_stress(                 Vector&,                      Vector&,
+    void get_stress(                 Vector&,                     Vectori&,
                      const tensor::Tensor23&,      const tensor::Tensor23&,   const tensor::Tensor33&,
                            tensor::Tensor23&,            tensor::Tensor23&,         tensor::Tensor33&
                    );
     
-    void get_stress(                 Vector&,                      Vector&,
+    void get_stress(                 Vector&,                     Vectori&,
                      const tensor::Tensor23&,      const tensor::Tensor23&,   const tensor::Tensor33&,
                            tensor::Tensor23&,            tensor::Tensor23&,         tensor::Tensor33&,
                            tensor::Tensor43&,            tensor::Tensor43&,         tensor::Tensor53&,

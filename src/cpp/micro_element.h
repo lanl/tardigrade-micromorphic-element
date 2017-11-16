@@ -20,6 +20,7 @@
 //!Type definitions for maps between pointers and eigen maps
 typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> Matrix_RM;
 typedef Eigen::Matrix<double,Eigen::Dynamic,1> Vector;
+typedef Eigen::Matrix<int,Eigen::Dynamic,1>    Vectori;
 typedef Eigen::Matrix<double,8,1> energy_vector;
 typedef Eigen::Matrix<double,3,1> params_vector;
 typedef Eigen::Matrix<int,5,1>    lflags_vector;
@@ -113,8 +114,8 @@ namespace micro_element
             
             //std::vector< int > iparams;
             //std::vector< double > fparams;
-            Vector fparams;
-            Vector iparams;
+            Vector  fparams;
+            Vectori iparams;
             //Vector_Xd_Map PROPS;
             //Vector_Xd_Map JPROPS;
             
@@ -152,7 +153,7 @@ namespace micro_element
             //Constructors
             Hex8();
             Hex8(std::vector< double >);
-            Hex8(std::vector< double >, std::vector< double >, std::vector< double >, std::vector<double> _fparams = {}, std::vector<double> _iparams = {});
+            Hex8(std::vector< double >, std::vector< double >, std::vector< double >, std::vector<double> _fparams = {}, std::vector<int> _iparams = {});
             
             //!Constructor for Abaqus implementation
             Hex8(double *_RHS,          double *_AMATRX,    Vector &_SVARS, energy_vector &ENERGY,
@@ -160,7 +161,7 @@ namespace micro_element
                  Vector &V,             Vector_Xd_Map &A,   double TIME[2], double DTIME, 
                  int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
                  Matrix_RM &JDLTYP,     Vector &ADLMAG,     double *PREDEF, int NPREDF,
-                 lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vector &JPROPS,
+                 lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
                  double PERIOD);
                  
             //!==

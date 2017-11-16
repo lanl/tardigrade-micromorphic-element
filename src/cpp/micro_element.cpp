@@ -140,7 +140,7 @@ namespace micro_element
     }
     
     Hex8::Hex8(std::vector< double > rcs, std::vector< double > U, std::vector< double > dU,
-               std::vector<double> _fparams, std::vector<double> _iparams){
+               std::vector<double> _fparams, std::vector<int> _iparams){
         /*!====================
         |        Hex8       |
         =====================
@@ -265,7 +265,7 @@ namespace micro_element
                Vector &V,             Vector_Xd_Map &A,   double TIME[2], double DTIME, 
                int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
                Matrix_RM &JDLTYP,     Vector &ADLMAG,     double *PREDEF, int NPREDF,
-               lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vector &JPROPS,
+               lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
                double PERIOD){
         /*!====================
         |        Hex8       |
