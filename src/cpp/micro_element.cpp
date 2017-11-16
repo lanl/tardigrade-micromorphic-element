@@ -32,13 +32,9 @@ namespace micro_element
     
     Hex8::Hex8(){
         //Resize the RHS and AMATRX containers
-        RHS_PTR    = new double[96];
-        for(int i=0; i<96; i++){RHS_PTR[i] = 0.;}
-        AMATRX_PTR = new double[96*96];
-        for(int i=0; i<(96*96); i++){AMATRX_PTR[i] = 0.;}
-        RHS    = Matrix_Xd_Map(RHS_PTR,96,1); //Allocate the required memory for the right hand side vector
+        RHS    = Eigen::MatrixXd::Zero(96,1);//Matrix_Xd_Map(RHS_PTR,96,1); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
-        AMATRX = Matrix_Xd_Map(AMATRX_PTR,96,96);
+        AMATRX = Eigen::MatrixXd::Zero(96,96);//Matrix_Xd_Map(AMATRX_PTR,96,96);
         
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
@@ -98,13 +94,9 @@ namespace micro_element
         */
         
         //Resize the RHS and AMATRX containers
-        RHS_PTR    = new double[96];
-        for(int i=0; i<96; i++){RHS_PTR[i] = 0.;}
-        AMATRX_PTR = new double[96*96];
-        for(int i=0; i<(96*96); i++){AMATRX_PTR[i] = 0.;}
-        RHS    = Matrix_Xd_Map(RHS_PTR,96,1); //Allocate the required memory for the right hand side vector
+        RHS    = Eigen::MatrixXd::Zero(96,1); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
-        AMATRX = Matrix_Xd_Map(AMATRX_PTR,96,96);
+        AMATRX = Eigen::MatrixXd::Zero(96,96);
         
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
@@ -185,13 +177,9 @@ namespace micro_element
         */
         
         //Resize the RHS and AMATRX containers
-        RHS_PTR    = new double[96];
-        for(int i=0; i<96; i++){RHS_PTR[i] = 0.;}
-        AMATRX_PTR = new double[96*96];
-        for(int i=0; i<(96*96); i++){AMATRX_PTR[i] = 0.;}
-        RHS    = Matrix_Xd_Map(RHS_PTR,96,1); //Allocate the required memory for the right hand side vector
+        RHS    = Eigen::MatrixXd::Zero(96,1); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
-        AMATRX = Matrix_Xd_Map(AMATRX_PTR,96,96);
+        AMATRX = Eigen::MatrixXd::Zero(96,96);
         
         //Resize the phi vector
         node_phis.resize(reference_coords.size());

@@ -102,8 +102,8 @@ namespace micro_element
             //std::vector< double > RHS;                     //!The, ``right hand side,'' of the linearized equation (i.e. the residual vector)
             //std::vector< std::vector< double > > AMATRX;   //!The negative of the element stiffness matrix (i.e. -dRHSddof)
             
-            double *RHS_PTR = NULL;                         //!Pointer to RHS in memory. Used only for certain constructors
-            double *AMATRX_PTR = NULL;                      //!Pointer to AMATRX in memory. Used only for certain constructors
+            //double *RHS_PTR = NULL;                         //!Pointer to RHS in memory. Used only for certain constructors
+            //double *AMATRX_PTR = NULL;                      //!Pointer to AMATRX in memory. Used only for certain constructors
                         
             Matrix_RM RHS;                                  //!The, ``right hand side,'' of the linearized equation (i.e. the residual vector)
             Matrix_RM AMATRX;                               //!The negative of the element stiffness matrix (i.e. -dRHSddof)
@@ -170,11 +170,11 @@ namespace micro_element
             //!|
             //!==
             
-            ~Hex8(){
-                //!Free allocated memory if required
-                if(   RHS_PTR!=NULL){delete RHS_PTR;}
-                if(AMATRX_PTR!=NULL){delete AMATRX_PTR;}
-            }
+            //~Hex8(){
+            //    //!Free allocated memory if required
+            //    if(   RHS_PTR!=NULL){std::cout << "hi one "; delete [] RHS_PTR;    std::cout << "bye one!\n";}
+            //    if(AMATRX_PTR!=NULL){std::cout << "hi two "; delete [] AMATRX_PTR; std::cout << "bye two!\n";}
+            //}
             
             //!==
             //!|
