@@ -8,6 +8,7 @@
 *.snm
 *.toc
 *.bbl
+config.py
 src/python/tests/unittests/*.txt
 doc/TheoryManual/*.out
 doc/TheoryManual/*.log
