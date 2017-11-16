@@ -1185,7 +1185,7 @@ void FEAModel::assemble_RHS_and_jacobian_matrix(){
         for(int n=0; n<8; n++){
             internal_node_number = mapped_elements[e].nodes[n];
             for(int i=0; i<input.node_dof; i++){
-                RHS[internal_nodes_dof[internal_node_number][i]] += current_element.RHS[i+n*input.node_dof];
+                RHS[internal_nodes_dof[internal_node_number][i]] += current_element.RHS(i+n*input.node_dof);
             }
         }
         
