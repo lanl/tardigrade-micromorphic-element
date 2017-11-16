@@ -36,7 +36,7 @@ for location in manual_locations:
 makefiles = []
 for dirpath,_,filenames in os.walk("."):
     for f in filenames:
-        if(f.lower() == "makefile"):
+        if("makefile" in f.lower()):
             makefiles.append( os.path.abspath(os.path.join(dirpath,f)))
 
 #Replace the keystring with the location of Eigen
