@@ -158,7 +158,7 @@ namespace micro_element
             //!Constructor for Abaqus implementation
             Hex8(double *_RHS,          double *_AMATRX,    Vector &_SVARS, energy_vector &ENERGY,
                  Vector &PROPS,         Matrix_RM &COORDS,  Vector &U,      Vector &DU,
-                 Vector &V,             Vector_Xd_Map &A,   double TIME[2], double DTIME, 
+                 Vector &V,             Vector &A,          double TIME[2], double DTIME, 
                  int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
                  Matrix_RM &JDLTYP,     Vector &ADLMAG,     double *PREDEF, int NPREDF,
                  lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
@@ -296,7 +296,7 @@ namespace micro_element
             //!=
             
             void update_gauss_point(bool set_tangents = false);
-            void integrate_element(bool set_tangents = false);
+            void integrate_element(bool set_tangents = false, bool ignore_RHS = false);
             
             //!=
             //!| Test functions

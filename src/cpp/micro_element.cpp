@@ -250,7 +250,7 @@ namespace micro_element
     
     Hex8::Hex8(double *_RHS,          double *_AMATRX,    Vector &_SVARS, energy_vector &ENERGY,
                Vector &PROPS,         Matrix_RM &COORDS,  Vector &U,      Vector &DU,
-               Vector &V,             Vector_Xd_Map &A,   double TIME[2], double DTIME, 
+               Vector &V,             Vector &A,          double TIME[2], double DTIME, 
                int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
                Matrix_RM &JDLTYP,     Vector &ADLMAG,     double *PREDEF, int NPREDF,
                lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
@@ -1562,7 +1562,7 @@ namespace micro_element
         return;
     }
     
-    void Hex8::integrate_element(bool set_tangents){
+    void Hex8::integrate_element(bool set_tangents, bool ignore_RHS){
         /*!===========================
         |    integrate_element    |
         ===========================
@@ -1574,8 +1574,10 @@ namespace micro_element
         for(int i=0; i<number_gauss_points; i++){
             gpt_num = i;                      //Update the gauss point number
             update_gauss_point(set_tangents); //Update all of the gauss points
-            add_all_forces();                 //Update the RHS vector from all of the forces
-            add_all_moments();                //Update the RHS vector from all of the stresses
+            if(!ignore_RHS){
+                add_all_forces();                 //Update the RHS vector from all of the forces
+                add_all_moments();                //Update the RHS vector from all of the stresses
+            }
             if(set_tangents){                 //Update AMATRX from the forces and stresses
                 set_force_tangent();
                 set_moment_tangent();
