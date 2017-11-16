@@ -32,12 +32,13 @@ namespace micro_element
     
     Hex8::Hex8(){
         //Resize the RHS and AMATRX containers
-        RHS.resize(96,0.); //Allocate the required memory for the right hand side vector
+        RHS_PTR    = new double[96];
+        for(int i=0; i<96; i++){RHS_PTR[i] = 0.;}
+        AMATRX_PTR = new double[96*96];
+        for(int i=0; i<(96*96); i++){AMATRX_PTR[i] = 0.;}
+        RHS    = Matrix_Xd_Map(RHS_PTR,96,1); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
-        AMATRX.resize(96);
-        for(int i=0; i<96; i++){
-            AMATRX[i].resize(96,0.);
-        }
+        AMATRX = Matrix_Xd_Map(AMATRX_PTR,96,96);
         
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
@@ -97,12 +98,13 @@ namespace micro_element
         */
         
         //Resize the RHS and AMATRX containers
-        RHS.resize(96,0.); //Allocate the required memory for the right hand side vector
+        RHS_PTR    = new double[96];
+        for(int i=0; i<96; i++){RHS_PTR[i] = 0.;}
+        AMATRX_PTR = new double[96*96];
+        for(int i=0; i<(96*96); i++){AMATRX_PTR[i] = 0.;}
+        RHS    = Matrix_Xd_Map(RHS_PTR,96,1); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
-        AMATRX.resize(96);
-        for(int i=0; i<96; i++){
-            AMATRX[i].resize(96,0.);
-        }
+        AMATRX = Matrix_Xd_Map(AMATRX_PTR,96,96);
         
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
@@ -183,9 +185,13 @@ namespace micro_element
         */
         
         //Resize the RHS and AMATRX containers
-        RHS    = Eigen::Map<Eigen::MatrixXd::Zero(96,1)>; //Allocate the required memory for the right hand side vector
+        RHS_PTR    = new double[96];
+        for(int i=0; i<96; i++){RHS_PTR[i] = 0.;}
+        AMATRX_PTR = new double[96*96];
+        for(int i=0; i<(96*96); i++){AMATRX_PTR[i] = 0.;}
+        RHS    = Matrix_Xd_Map(RHS_PTR,96,1); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
-        AMATRX = Eigen::Map<Eigen::MatrixXd::Zero(96,96)>;
+        AMATRX = Matrix_Xd_Map(AMATRX_PTR,96,96);
         
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
@@ -248,18 +254,18 @@ namespace micro_element
         }
         
         //Set the material parameters
-        fparams.resize(_fparams.size,1);
-        iparams.resize(_iparams.size,1);
-        for(int i=0; i<_fparams.size; i++){fparams(i) = _fparams(i);}
-        for(int i=0; i<_iparams.size; i++){iparams(i) = _iparams(i);}
+        fparams.resize(_fparams.size(),1);
+        iparams.resize(_iparams.size(),1);
+        for(int i=0; i<_fparams.size(); i++){fparams(i) = _fparams[i];}
+        for(int i=0; i<_iparams.size(); i++){iparams(i) = _iparams[i];}
     }
     
-    Hex8::Hex8(Matrix_Xd_Map &_RHS,   Matrix_Xd_Map &_AMATRX, Vector_Xd_Map &SVARS,  Vector_8d_Map &ENERGY,
-               Vector_3d_Map &PROPS,  Matrix_Xd_Map &COORDS,  Vector_Xd_Map &U,      Vector_Xd_Map &DU,
-               Vector_Xd_Map &V,      Vector_Xd_Map &A,       double TIME[2],        double DTIME, 
-               int KSTEP,             int KINC,               int JELEM,             Vector_3d_Map &PARAMS,
-               Matrix_Xd_Map &JDLTYP, Vector_Xd_Map &ADLMAG,  double *PREDEF,        int NPREDF,
-               Vector_5i_Map &LFLAGS, Matrix_Xd_Map &DDLMAG,  double PNEWDT,         Vector_Xd_Map &JPROPS,
+    Hex8::Hex8(double *_RHS,          double *_AMATRX,    Vector &_SVARS, energy_vector &ENERGY,
+               Vector &PROPS,         Matrix_RM &COORDS,  Vector &U,      Vector &DU,
+               Vector &V,             Vector_Xd_Map &A,   double TIME[2], double DTIME, 
+               int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
+               Matrix_RM &JDLTYP,     Vector &ADLMAG,     double *PREDEF, int NPREDF,
+               lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vector &JPROPS,
                double PERIOD){
         /*!====================
         |        Hex8       |
@@ -286,9 +292,9 @@ namespace micro_element
                 where the comma indicates the ``upper layer'' of the
                 hexehedral element.
             
-            RHS:    A Eigen::Map which contains a pointer to the RHS array
-            AMATRX: A Eigen::Map which contains a pointer to the AMATRX array
-            SVARS:  A Eigen::Map which contains a pointer to the SVARS array
+            RHS:    A pointer to the RHS array
+            AMATRX: A pointer to the AMATRX array
+            SVARS:  A pointer to the SVARS array
             ENERGY: A Eigen::Map which contians a pointer to the ENERGY array
             PROPS:  A Eigen::Map which contains a pointer to the PROPS array
             COORDS: A Eigen::Map which contains a pointer to the COORDS array
@@ -314,9 +320,9 @@ namespace micro_element
         */
         
         //Assign the RHS and AMATRX arrays
-        RHS = _RHS;
+        RHS = Matrix_Xd_Map(_RHS,96,1);
         //Allocate the required memory for the AMATRX
-        AMATRX = _AMATRX;
+        AMATRX = Matrix_Xd_Map(_AMATRX,96,96);
         
         //Resize the stress measure vectors
         PK2.resize(number_gauss_points);
@@ -845,10 +851,12 @@ namespace micro_element
         */
         
         if(set_tangents){
-            micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num],
-                                         dPK2dC,  dPK2dPsi,  dPK2dGamma,
-                                       dSIGMAdC,dSIGMAdPsi,dSIGMAdGamma,
-                                           dMdC,    dMdPsi,    dMdGamma);
+            micro_material::get_stress(     fparams,       iparams,
+                                                  C,           Psi,        Gamma,
+                                       PK2[gpt_num],SIGMA[gpt_num],   M[gpt_num],
+                                             dPK2dC,      dPK2dPsi,   dPK2dGamma,
+                                           dSIGMAdC,    dSIGMAdPsi, dSIGMAdGamma,
+                                               dMdC,        dMdPsi,     dMdGamma);
                                            
             stress_tangent_flag = true; //Alert the element that the stress tangents have been set
         
@@ -2208,12 +2216,12 @@ namespace micro_element
         return parsed_vector;
     }
     
-    std::vector< std::vector< double > > Hex8::parse_incoming_vectors(int mode, const Matrix_Xd_Map &incoming){
+    std::vector< std::vector< double > > Hex8::parse_incoming_vectors(int mode, const Matrix_RM &incoming){
         /*!================================
         |    parse_incoming_vectors    |
         ================================
         
-        Takes incoming Eigen::Map objects and maps them to 
+        Takes incoming Eigen::Matrix objects and maps them to 
         vectors.
         
         */

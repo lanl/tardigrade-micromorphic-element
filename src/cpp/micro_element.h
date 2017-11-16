@@ -99,9 +99,13 @@ namespace micro_element
             //!=
             
             //std::vector< double > RHS;                     //!The, ``right hand side,'' of the linearized equation (i.e. the residual vector)
-            s//td::vector< std::vector< double > > AMATRX;   //!The negative of the element stiffness matrix (i.e. -dRHSddof)
-            Matrix_Xd_Map RHS;                              //!The, ``right hand side,'' of the linearized equation (i.e. the residual vector)
-            Matrix_Xd_Map AMATRX;                           //!The negative of the element stiffness matrix (i.e. -dRHSddof)
+            //std::vector< std::vector< double > > AMATRX;   //!The negative of the element stiffness matrix (i.e. -dRHSddof)
+            
+            double *RHS_PTR = NULL;                         //!Pointer to RHS in memory. Used only for certain constructors
+            double *AMATRX_PTR = NULL;                      //!Pointer to AMATRX in memory. Used only for certain constructors
+                        
+            Matrix_RM RHS;                                  //!The, ``right hand side,'' of the linearized equation (i.e. the residual vector)
+            Matrix_RM AMATRX;                               //!The negative of the element stiffness matrix (i.e. -dRHSddof)
             
             //!=
             //!| Constitutive model parameters
@@ -109,8 +113,8 @@ namespace micro_element
             
             //std::vector< int > iparams;
             //std::vector< double > fparams;
-            Vector_Xd_Map fparams;
-            Vector_Xd_Map iparams;
+            Vector fparams;
+            Vector iparams;
             //Vector_Xd_Map PROPS;
             //Vector_Xd_Map JPROPS;
             
@@ -118,18 +122,18 @@ namespace micro_element
             //!| State variables
             //!=
             
-            Vector_Xd_Map SVARS;
+            Vector SVARS;
             
             //!=
             //!| Incoming values from Abaqus
             //!=
             
-            Vector_8d_Map ENERGY;
-            Vector_3d_Map PARAMS;
-            Matrix_Xd_Map JDLTYP; //May not be totally general.
-            Vector_Xd_Map ADLMAG;
-            Vector_5i_Map LFLAGS;
-            Matrix_Xd_Map DDLMAG; //May not be totally general.
+            energy_vector ENERGY;
+            params_vector PARAMS;
+            Vector JDLTYP;          //May not be totally general.
+            Vector ADLMAG;
+            lflags_vector LFLAGS;
+            Matrix_RM DDLMAG;       //May not be totally general.
             
             //!=
             //!| Stresses
@@ -151,10 +155,25 @@ namespace micro_element
             Hex8(std::vector< double >, std::vector< double >, std::vector< double >, std::vector<double> _fparams = {}, std::vector<double> _iparams = {});
             
             //!Constructor for Abaqus implementation
-            Hex8(Matrix_Xd_Map, Matrix_Xd_Map, Matrix_Xd_Map, Vector_Xd_Map, Vector_8d_Map, Vector_Xd_Map, Vector_Xd_Map, Vector_Xd_Map,
-                 Vector_Xd_Map, Vector_Xd_Map, double[2],     double,        int,           int,           int,           Vector_3d_Map,
-                 Matrix_Xd_Map, Vector_Xd_Map, double*,       int,           Vector_5i_Map, Matrix_Xd_Map, double,        Vector_Xd_Map, 
-                 double);
+            Hex8(double *_RHS,          double *_AMATRX,    Vector &_SVARS, energy_vector &ENERGY,
+                 Vector &PROPS,         Matrix_RM &COORDS,  Vector &U,      Vector &DU,
+                 Vector &V,             Vector_Xd_Map &A,   double TIME[2], double DTIME, 
+                 int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
+                 Matrix_RM &JDLTYP,     Vector &ADLMAG,     double *PREDEF, int NPREDF,
+                 lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vector &JPROPS,
+                 double PERIOD);
+                 
+            //!==
+            //!|
+            //!| Destructors
+            //!|
+            //!==
+            
+            ~Hex8(){
+                //!Free allocated memory if required
+                if(   RHS_PTR!=NULL){delete RHS_PTR;}
+                if(AMATRX_PTR!=NULL){delete AMATRX_PTR;}
+            }
             
             //!==
             //!|
@@ -400,7 +419,7 @@ namespace micro_element
             //!=
             
             std::vector< std::vector< double > > parse_incoming_vectors(int,const std::vector< double > &);
-            std::vector< std::vector< double > > parse_incoming_vectors(int,const Matrix_Xd_Map &);
+            std::vector< std::vector< double > > parse_incoming_vectors(int,const Matrix_RM&);
     };
     
     //!==
