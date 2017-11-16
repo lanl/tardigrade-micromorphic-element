@@ -252,7 +252,7 @@ namespace micro_element
                Vector &PROPS,         Matrix_RM &COORDS,  Vector &U,      Vector &DU,
                Vector &V,             Vector &A,          double TIME[2], double DTIME, 
                int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
-               Matrix_RM &JDLTYP,     Vector &ADLMAG,     double *PREDEF, int NPREDF,
+               Matrixi_RM &JDLTYP,    Vector &ADLMAG,     double *PREDEF, int NPREDF,
                lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
                double PERIOD){
         /*!====================

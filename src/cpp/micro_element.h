@@ -19,6 +19,7 @@
 
 //!Type definitions for maps between pointers and eigen maps
 typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> Matrix_RM;
+typedef Eigen::Matrix<int,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> Matrixi_RM;
 typedef Eigen::Matrix<double,Eigen::Dynamic,1> Vector;
 typedef Eigen::Matrix<int,Eigen::Dynamic,1>    Vectori;
 typedef Eigen::Matrix<double,8,1> energy_vector;
@@ -26,6 +27,7 @@ typedef Eigen::Matrix<double,3,1> params_vector;
 typedef Eigen::Matrix<int,5,1>    lflags_vector;
 
 typedef Eigen::Map<Matrix_RM>     Matrix_Xd_Map;
+typedef Eigen::Map<Matrixi_RM>    Matrix_Xi_Map;
 typedef Eigen::Map<Vector>        Vector_Xd_Map;
 typedef Eigen::Map<energy_vector> Vector_8d_Map;
 typedef Eigen::Map<params_vector> Vector_3d_Map;
@@ -131,7 +133,7 @@ namespace micro_element
             
             energy_vector ENERGY;
             params_vector PARAMS;
-            Vector JDLTYP;          //May not be totally general.
+            Matrix_RM JDLTYP;          //May not be totally general.
             Vector ADLMAG;
             lflags_vector LFLAGS;
             Matrix_RM DDLMAG;       //May not be totally general.
@@ -160,7 +162,7 @@ namespace micro_element
                  Vector &PROPS,         Matrix_RM &COORDS,  Vector &U,      Vector &DU,
                  Vector &V,             Vector &A,          double TIME[2], double DTIME, 
                  int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
-                 Matrix_RM &JDLTYP,     Vector &ADLMAG,     double *PREDEF, int NPREDF,
+                 Matrixi_RM &JDLTYP,    Vector &ADLMAG,     double *PREDEF, int NPREDF,
                  lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
                  double PERIOD);
                  
