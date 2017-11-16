@@ -138,7 +138,7 @@ extern "C" void UEL(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                           |                           = -dF^N/du^M or -dG^N/du^M) only.                              |
                           |             LFLAGS(3) = 3 Define the current damping matrix (AMATRX = C^{NM}             |
                           |                           = -dF^N/ddotu^M or -dG^N/ddotu^M) only.                        |
-                          |             LFLAGS(3) = 4 Definen the current mass matrix (AMATRX = -dF^N/dddotu^M) only |
+                          |             LFLAGS(3) = 4 Define the current mass matrix (AMATRX = -dF^N/dddotu^M) only  |
                           |             LFLAGS(3) = 5 Define the current residual or load vector (RHS = F^N) only.   |
                           |             LFLAGS(3) = 6 Define the current mass matrix and the residual vector for     |
                           |                           the initial acceleration calculation (or the calculation of    |
@@ -188,49 +188,49 @@ extern "C" void UEL(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                         
                         //!Form Eigen::Map representations of the incoming vectors
                         
-                        Matrix_Xd_Map RHS_mat(RHS,NDOFEL,NRHS);
-                        Matrix_Xd_Map AMATRX_mat(AMATRX,NDOFEL,NDOFEL);
-                        Vector_Xd_Map SVARS_vec(SVARS,NSVARS,1);
-                        Vector_8d_Map ENERGY_vec(ENERGY,8,1);
-                        Vector_Xd_Map PROPS_vec(PROPS,NPROPS,1);
-                        Vector_Xd_Map JPROPS_vec(JPROPS,NJPROPS,1);
+                        Vector SVARS_vec     = Vector_Xd_Map(SVARS,NSVARS,1);
+                        Vector ENERGY_vec    = Vector_8d_Map(ENERGY,8,1);
                         
-                        Matrix_Xd_Map COORDS_mat(COORDS,NNODE,MCRD);
-                        Vector_Xd_Map U_vec(U,NDOFEL,1);
-                        Vector_Xd_Map DU_vec(DU,NDOFEL,1);
-                        Vector_Xd_Map V_vec(V,NDOFEL,1);
-                        Vector_Xd_Map A_vec(A,NDOFEL,1);
-                        Vector_3d_Map PARAMS_vec(PARAMS,3,1);
+                        Vector PROPS_vec     = Vector_Xd_Map(PROPS,NPROPS,1);
+                        Vector JPROPS_vec    = Vector_Xi_Map(JPROPS,NJPROPS,1);
                         
-                        Matrix_Xd_Map JDLTYP_mat(JDLTYP,MDLOAD,1); //May not be totally general.
-                        Vector_Xd_Map ADLMAG_vec(ADLMAG,MDLOAD,1);
+                        Matrix_RM COORDS_mat = Matrix_Xd_Map(COORDS,NNODE,MCRD);
+                        Vector U_vec         = Vector_Xd_Map(U,NDOFEL,1);
+                        Vector DU_vec        = Vector_Xd_Map(DU,NDOFEL,1);
+                        Vector V_vec         = Vector_Xd_Map(V,NDOFEL,1);
+                        Vector A_vec         = Vector_Xd_Map(A,NDOFEL,1);
                         
-                        Vector_5i_Map LFLAGS_vec(LFLAGS,5,1);
+                        params_vector PARAMS_vec = Vector_3d_Map(PARAMS,3,1);
                         
-                        Matrix_Xd_Map DDLMAG_mat(DDLMAG,MDLOAD,1); //May not be totally general.
+                        Matrix_RM JDLTYP_mat = Matrix_Xd_Map(JDLTYP,MDLOAD,1); //May not be totally general.
+                        Vector    ADLMAG_vec = Vector_Xd_Map(ADLMAG,MDLOAD,1);
                         
-                        Vector_Xd_Map JPROPS_vec(JPROPS,NJPROP,1);
+                        Vectori LFLAGS_vec   = Vector_5i_Map(LFLAGS,5,1);
+                        
+                        Matrix_RM DDLMAG_mat = Matrix_Xd_Map(DDLMAG,MDLOAD,1); //May not be totally general.
                         
                         //!Parse the incoming element to the correct user subroutine
                         if(JTYPE==1){
-                            compute_hex8(RHS_mat,AMATRX_mat,SVARS_vec,ENERGY_vec,
-                                         PROPS_vec,COORDS_mat,U_vec,DU_vec,V_vec,A_vec,
-                                         TIME,DTIME,KSTEP,KINC,JELEM,PARAMS_vec,
-                                         JDLTYP_mat,ADLMAG_vec,PREDEF,NPREDEF,LFLAGS,
-                                         DDLMAG,PNEWDT,JPROPS_vec,PERIOD);
+                            compute_hex8(RHS,        AMATRX,     SVARS_vec, ENERGY_vec,
+                                         PROPS_vec,  COORDS_mat, U_vec,     DU_vec,
+                                         V_vec,      A_vec,      TIME,      DTIME,
+                                         KSTEP,      KINC,       JELEM,     PARAMS_vec,
+                                         JDLTYP_mat, ADLMAG_vec, PREDEF,    NPREDEF,
+                                         LFLAGS,     DDLMAG,     PNEWDT,    JPROPS_vec,
+                                         PERIOD,     NDOFEL,     NRHS);
                         }
                         else{
                             std::cout << "\nError: Element type not recognized";
                         }
                     }
                     
-void compute_hex8(Matrix_Xd_Map &RHS,    Matrix_Xd_Map &AMATRX, Vector_Xd_Map &SVARS,  Vector_8d_Map &ENERGY,
-                  Vector_3d_Map &PROPS,  Matrix_Xd_Map &COORDS, Vector_Xd_Map &U,      Vector_Xd_Map &DU,
-                  Vector_Xd_Map &V,      Vector_Xd_Map &A,      double TIME[2],        double DTIME, 
-                  int KSTEP,             int KINC,              int JELEM,             Vector_3d_Map &PARAMS,
-                  Matrix_Xd_Map &JDLTYP, Vector_Xd_Map &ADLMAG, double *PREDEF,        int NPREDF,
-                  Vector_5i_Map &LFLAGS, Matrix_Xd_Map &DDLMAG, double PNEWDT,         Vector_Xd_Map &JPROPS,
-                  double PERIOD):
+void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  energy_vector &ENERGY,
+                 Vector &PROPS,         Matrix_RM &COORDS,  Vector &U,      Vector &DU,
+                 Vector &V,             Vector_Xd_Map &A,   double TIME[2], double DTIME, 
+                 int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
+                 Matrix_RM &JDLTYP,     Vector &ADLMAG,     double *PREDEF, int NPREDF,
+                 lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
+                 double PERIOD,         int NDOFEL,         int NRHS):
     /*!====================
     |   compute_hex8   |
     ====================
@@ -241,7 +241,46 @@ void compute_hex8(Matrix_Xd_Map &RHS,    Matrix_Xd_Map &AMATRX, Vector_Xd_Map &S
     */
     
     //!Create the element
-    micro_element::hex8 element(COORDS,RHS,AMATRX,SVARS,ENERGY,PROPS,U,DU,V,A,TIME,DTIME,KSTEP,KINC,JELEM,
-                                PARAMS,JDLTYP,ADLMAG,PREDEF,NPREDF,LFLAGS,DDLMAG,PNEWDT,JPROPS,PERIOD);
+    micro_element::hex8 element(RHS,    AMATRX, SVARS,  ENERGY, PROPS,  COORDS, U,      DU,
+                                V,      A,      TIME,   DTIME,  KSTEP,  KINC,   JELEM,  PARAMS,
+                                JDLTYP, ADLMAG, PREDEF, NPREDF, LFLAGS, DDLMAG, PNEWDT, JPROPS,
+                                PERIOD, NDOFEL, NRHS);
     
-    //!Compute the required values
+    /*!=
+       |    Compute the required values
+       =
+    
+    Currently, this only works for LFLAGS[3] rather than other quantities.
+    It is not necessarily intended to extend this to the remainder of the 
+    controls since they are more for linear analyses. It may be that this 
+    will prove to be useful in the future but the core of this modeling 
+    approach is to represent underlying heterogeneity at the macro scale.
+    
+    */
+    
+    if(     LFLAGS(3)==1){ //!Update the RHS and the tangent
+        element.integrate_element(set_tangents=true, ignore_RHS=false);
+        Matrix_Xd_Map(RHS,NDOFEL,NRHS)      = element.RHS;
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
+    }
+    else if(LFLAGS(3)==2){ //!Update the tangent only
+        element.integrate_element(set_tangents=true, ignore_RHS=true);
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
+    }
+    else if(LFLAGS(3)==3){ //!Update the damping matrix only (not implemented)
+        std::cout << "\n# Damping matrix not implemented\n";
+    }
+    else if(LFLAGS(3)==4){ //!Update the mass matrix only (not implemented)
+        std::cout << "\n# Mass matrix not implemented\n";
+    }
+    else if(LFLAGS(3)==5){ //!Update the residual only
+        element.integrate_element(set_tangents=false, ignore_RHS=false);
+        Matrix_Xd_Map(RHS,NDOFEL,NRHS) = element.RHS;
+    }
+    else if(LFLAGS(3)==6){ //!Update the mass matrix and the residual vector only
+        element.integrate_element(set_tangents=false, ignore_RHS=false);
+        Matrix_Xd_Map(RHS,NDOFEL,NRHS)      = element.RHS;
+        std::cout << "\n# Mass matrix not implemented\n";
+    }
+    
+    return;
