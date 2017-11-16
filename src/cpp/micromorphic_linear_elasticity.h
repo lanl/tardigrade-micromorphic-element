@@ -41,12 +41,12 @@ typedef Eigen::Map<lflags_vector> Vector_5i_Map;
 
 namespace micro_material{
     
-    void get_stress(       Vector_Xd_Map&,               Vector_Xd_Map&,
+    void get_stress(                 Vector&,                      Vector&,
                      const tensor::Tensor23&,      const tensor::Tensor23&,   const tensor::Tensor33&,
                            tensor::Tensor23&,            tensor::Tensor23&,         tensor::Tensor33&
                    );
     
-    void get_stress(       Vector_Xd_Map&,               Vector_Xd_Map&,
+    void get_stress(                 Vector&,                      Vector&,
                      const tensor::Tensor23&,      const tensor::Tensor23&,   const tensor::Tensor33&,
                            tensor::Tensor23&,            tensor::Tensor23&,         tensor::Tensor33&,
                            tensor::Tensor43&,            tensor::Tensor43&,         tensor::Tensor53&,
@@ -59,8 +59,8 @@ namespace micro_material{
                           const tensor::Tensor23& macro_E,     const tensor::Tensor23& micro_E,      const tensor::Tensor23& ITEN,
                                 tensor::Tensor23& PK2_stress,        tensor::Tensor23& SIGMA_stress,       tensor::Tensor33& M_stress);
     
-    void generate_A_stiffness(Vector_Xd_Map&, tensor::Tensor43&);
-    void generate_B_stiffness(Vector_Xd_Map&, tensor::Tensor43&);
-    void generate_C_stiffness(Vector_Xd_Map&, tensor::Tensor63&);
-    void generate_D_stiffness(Vector_Xd_Map&, tensor::Tensor43&);
+    void generate_A_stiffness(Vector&, tensor::Tensor43&);
+    void generate_B_stiffness(Vector&, tensor::Tensor43&);
+    void generate_C_stiffness(Vector&, tensor::Tensor63&);
+    void generate_D_stiffness(Vector&, tensor::Tensor43&);
 }
