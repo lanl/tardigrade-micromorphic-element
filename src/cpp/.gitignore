@@ -3,6 +3,7 @@
 !*.*
 *.exe
 *.o
+*.so*
 run_tests.py
 results.txt
 results.tex
