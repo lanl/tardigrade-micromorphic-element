@@ -1,6 +1,9 @@
 **
 ** Hex8 Micromorphic Finite Element
 **
+** Nathan Miller (nathanm@lanl.gov)
+** November, 16, 2017
+**
 **------------------------------------------------------------
 **
 ** A micromorphic finite element. The default parameters are 
@@ -16,3 +19,9 @@
 *USER ELEMENT, NODES=8, TYPE=U1, PROPERTIES=18, COORDINATES=3,
 UNSYMM, VARIABLES=672
 1,2,3,101,102,103,104,105,106,107,108,109
+
+*UEL PROPERTY, ELSET=U1_SET
+*PROPERTIES
+1000., 8e9, 11e9, 2e9, 1.538e9, -1e9, -1.39e9, -2.11e9
+0.,    0.,  0.,   0.,  0.,       0.,   0.769e6, 0.
+0., 0., 0.
