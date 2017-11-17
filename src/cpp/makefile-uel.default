@@ -5,7 +5,7 @@ CC=COMPILER_COMMAND
 STD=-std=gnu++11
 
 #Compiler flags
-CFLAGS=-I. -O3
+CFLAGS=-I. -O3 -fPIC
 
 #Include Eigen Library
 EIGEN = -I EIGEN_LOCATION
@@ -13,12 +13,12 @@ EIGEN = -I EIGEN_LOCATION
 #Debugging flag
 DBG = -ggdb
 
-all: uel.so.1
+all: standardU.so
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 
-uel.so.1: tensor.o micro_material.o micro_element.o uel.o
-	$(CC) -shared -Wl,-soname,-uel.so -o $@ tensor.o micro_material.o micro_element.o uel.o
+standardU.so: uel.o micro_element.o micro_material.o tensor.o
+	$(CC) -shared -o $@ uel.o micro_element.o micro_material.o tensor.o
 
 uel.o: micro_element.h tensor.h
 	$(CC) $(STD) -o $@ -c uel.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
