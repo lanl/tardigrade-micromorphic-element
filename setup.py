@@ -43,28 +43,24 @@ for dirpath,_,filenames in os.walk("."):
 for file in makefiles:
     output_file = file.replace(".default","")
     f = open(output_file,"w")
-
-    with open(file,"r+") as df:
-        default = df.readlines()
-        for line in default:
-            line = line.replace("EIGEN_LOCATION",eigen_location)
-            line = line.replace("COMPILER_COMMAND",compiler_command)
-            #sys.stdout.write(line)
-            f.write(line)
-        df.close()
+    df = open(file,"r+")
+    default = df.readlines()
+    for line in default:
+        line = line.replace("EIGEN_LOCATION",eigen_location)
+        line = line.replace("COMPILER_COMMAND",compiler_command)
+        f.write(line)
+    df.close()
     f.close()
 
 output_file = "./src/cpp/run_tests.py"
 f = open(output_file,"w")
-
-with open("./src/cpp/run_tests.py.default","r+") as df:
-    default = df.readlines()
-    for line in default:
-        line = line.replace("MAKE_COMMAND",make_command)
-        #sys.stdout.write(line)
-        f.write(line)
-    f.close()
-    df.close()
+df = open("./src/cpp/run_tests.py.default","r+")
+default = df.readlines()
+for line in default:
+    line = line.replace("MAKE_COMMAND",make_command)
+    f.write(line)
+f.close()
+df.close()
     
 #os.system("python run_tests.py")
 #os.system("python documentation_generator.py")
