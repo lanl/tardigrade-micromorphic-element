@@ -13,9 +13,12 @@ EIGEN = -I EIGEN_LOCATION
 #Debugging flag
 DBG = -ggdb
 
-all: uel.o
+all: uel.so.1
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
+
+uel.so.1: tensor.o micro_material.o micro_element.o uel.o
+	$(CC) -shared -Wl,-soname,-uel.so -o $@ tensor.o micro_material.o micro_element.o uel.o
 
 uel.o: micro_element.h tensor.h
 	$(CC) $(STD) -o $@ -c uel.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
