@@ -59,7 +59,7 @@ f = open(output_file,"w")
 
 with open("./src/cpp/run_tests.py.default","r+") as df:
     default = df.readlines()
-    for line in fileinput.input("./src/cpp/run_tests.py.default", inplace=True):
+    for line in default:
         line = line.replace("MAKE_COMMAND",make_command)
         #sys.stdout.write(line)
         f.write(line)
