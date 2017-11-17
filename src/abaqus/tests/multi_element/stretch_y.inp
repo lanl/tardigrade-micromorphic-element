@@ -40,9 +40,9 @@
      25,          -1.,           1.,           0.
      26,          -1.,           0.,           0.
      27,          -1.,          -1.,           0.
-*INCLUDE, INPUT=../../hex8.inp
+*INCLUDE, INPUT=../../hex8_linear_elasticity.inp
 
-*Element, type=U1
+*ELEMENT, TYPE=U1
 1, 10, 11, 14, 13,  1,  2,  5,  4
 2, 11, 12, 15, 14,  2,  3,  6,  5
 3, 13, 14, 17, 16,  4,  5,  8,  7
@@ -57,9 +57,6 @@
  1,  8,  1
 *ELSET, ELSET=U1_SET, GENERATE
  1,  8,  1
-** Section: user_material
-*Solid Section, elset=Set-1, material=user_material
-,
 *End Part
 **  
 **
@@ -119,11 +116,14 @@ Set-5, 2, 2
 *Boundary
 Set-3, 3, 3
 ** Name: fix_micro_x Type: Microdisplacement
-Set-4, 101, 109
+Set-4, 12, 20
+** 101, 109
 ** Name: fix_micro_y Type: Microdisplacement
-Set-5, 101, 109
+Set-5, 12, 20
+** 101, 109
 ** Name: fix_micro_z Type: Microdisplacement
-Set-3, 101, 109
+Set-3, 12, 20
+** 101, 109
 ** 
 ** OUTPUT REQUESTS
 ** 
@@ -134,8 +134,6 @@ Set-3, 101, 109
 *Output, field
 *Node Output
 U, 
-*Element Output, directions=YES
-EVOL, IVOL, S
 ** 
 ** FIELD OUTPUT: F-Output-1
 ** 
