@@ -42,7 +42,7 @@ for dirpath,_,filenames in os.walk("."):
 #Replace the keystring with the location of Eigen
 for file in makefiles:
     output_file = file.replace(".default","")
-    f = open(output_file,"w")
+    f = open(output_file,"w+")
     df = open(file,"r+")
     default = df.readlines()
     for line in default:
@@ -53,7 +53,7 @@ for file in makefiles:
     f.close()
 
 output_file = "./src/cpp/run_tests.py"
-f = open(output_file,"w")
+f = open(output_file,"w+")
 df = open("./src/cpp/run_tests.py.default","r+")
 default = df.readlines()
 for line in default:
