@@ -265,11 +265,11 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     if(     LFLAGS(3)==1){ //!Update the RHS and the tangent
         element.integrate_element(true, false);
         Matrix_Xd_Map(RHS,NDOFEL,NRHS)      = element.RHS;
-        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = -element.AMATRX;
     }
     else if(LFLAGS(3)==2){ //!Update the tangent only
         element.integrate_element(true, true);
-        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = -element.AMATRX;
     }
     else if(LFLAGS(3)==3){ //!Update the damping matrix only (not implemented)
         std::cout << "\n# Damping matrix not implemented\n";
