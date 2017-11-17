@@ -43,20 +43,28 @@ for dirpath,_,filenames in os.walk("."):
 for file in makefiles:
     output_file = file.replace(".default","")
     f = open(output_file,"w")
-    for line in fileinput.input(file, inplace = True):
-        line = line.replace("EIGEN_LOCATION",eigen_location)
-        line = line.replace("COMPILER_COMMAND",compiler_command)
-        #sys.stdout.write(line)
-        f.write(line)
+
+    with open(file,"r+") as df:
+        default = df.readlines()
+        for line in default:
+            line = line.replace("EIGEN_LOCATION",eigen_location)
+            line = line.replace("COMPILER_COMMAND",compiler_command)
+            #sys.stdout.write(line)
+            f.write(line)
+        df.close()
     f.close()
 
 output_file = "./src/cpp/run_tests.py"
 f = open(output_file,"w")
-for line in fileinput.input("./src/cpp/run_tests.py.default", inplace=True):
-    line = line.replace("MAKE_COMMAND",make_command)
-    #sys.stdout.write(line)
-    f.write(line)
-f.close()
+
+with open("./src/cpp/run_tests.py.default","r+") as df:
+    default = df.readlines()
+    for line in fileinput.input("./src/cpp/run_tests.py.default", inplace=True):
+        line = line.replace("MAKE_COMMAND",make_command)
+        #sys.stdout.write(line)
+        f.write(line)
+    f.close()
+    df.close()
     
 #os.system("python run_tests.py")
 #os.system("python documentation_generator.py")
