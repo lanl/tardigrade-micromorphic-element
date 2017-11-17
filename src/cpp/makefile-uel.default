@@ -13,11 +13,11 @@ EIGEN = -I EIGEN_LOCATION
 #Debugging flag
 DBG = -ggdb
 
-all: standardU.so
+all: libstandardU.so
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 
-standardU.so: uel.o micro_element.o micro_material.o tensor.o
+libstandardU.so: uel.o micro_element.o micro_material.o tensor.o
 	$(CC) -shared -o $@ uel.o micro_element.o micro_material.o tensor.o
 
 uel.o: micro_element.h tensor.h
