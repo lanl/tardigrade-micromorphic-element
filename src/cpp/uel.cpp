@@ -5,7 +5,7 @@
 #include <micromorphic_linear_elasticity.h>
 #include <uel.h>
 
-extern "C" void UEL(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
+extern "C" void uel_(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                     int NDOFEL,int NRHS,int NSVARS,double *PROPS,int NPROPS,
                     double *COORDS,int MCRD,int NNODE,double *U,double *DU,
                     double *V,double *A,int JTYPE,double TIME[2],double DTIME,

@@ -131,15 +131,15 @@ Set-3, 12, 20
 ** 
 ** FIELD OUTPUT: F-Output-2
 ** 
-*Output, field
-*Node Output
-U, 
+***Output, field
+***Node Output
+**U, 
 ** 
 ** FIELD OUTPUT: F-Output-1
 ** 
-*Output, field, variable=PRESELECT
+***Output, field, variable=PRESELECT
 ** 
 ** HISTORY OUTPUT: H-Output-1
 ** 
-*Output, history, variable=PRESELECT
+***Output, history, variable=PRESELECT
 *End Step
