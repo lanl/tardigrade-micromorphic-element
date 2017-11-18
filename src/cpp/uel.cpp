@@ -146,47 +146,47 @@ extern "C" void UEL(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                           |             LFLAGS(3) = 5 Define the current residual or load vector (RHS = F^N) only.   |
                           |             LFLAGS(3) = 6 Define the current mass matrix and the residual vector for     |
                           |                           the initial acceleration calculation (or the calculation of    |
-                          |                           accelerations after impact).
-                          |             LFLAGS(3) = 100 Define peturbation quantities for output.
-                          |             LFLAGS(4) = 0 The step is a general step
-                          |             LFLAGS(4) = 1 The step is a linear perturbation step
-                          |             LFLAGS(5) = 0 The current approximations to u^M, etc. were based on Newton
-                          |                           corrections.
-                          |             LFLAGS(5) = 1 The current approximations were found by extrapolation from
-                          |                           the previous increment.
-                          |TIME(1):     Current value of step time
-                          |TIME(2):     Current value of total time
-                          |DTIME:       Time increment
-                          |PERIOD:      Time period of the current step
-                          |NDOFEL:      Number of degrees of freedom in the element
-                          |MLVARX:      Dimensioning parameter used when several displacement or 
-                          |             right-hand-side vectors are used.
-                          |NRHS:        Number of load vetors. NRHS is 1 in most nonlinear problems:
-                          |             it is 2 for the modified Riks static procedure, and it is 
-                          |             greater than 1 in some linear analysis procedures and during 
-                          |             substructure generation.
-                          |NSVARS:      User-defined number of solution-dependent state variables 
-                          |             associated with the element.
-                          |NPROPS:      User-defined number of real property values associated with 
-                          |             the element.
-                          |NJPROP:      User-defined number of integer property values assocated with 
-                          |             the element.
-                          |MCRD:        MCRD is defined as the maximum of the user-defined maximum 
-                          |             number of coordinates needed at any node point and the 
-                          |             value of the largest active degree of freedom of the user
-                          |             element that is less than or equal to 3.
-                          |NNODE:       User-defined number of nodes on the element
-                          |JTYPE:       Integer defining the element type. This is the user-defined
-                          |             integer value n in element type Un.
-                          |KSTEP:       Current step number.
-                          |KINC:        Current increment number.
-                          |JELEM:       User-assigned element number.
-                          |NDLOAD:      Identification number of the distributed load or flux
-                          |             currently active on this element.
-                          |MDLOAD:      Total number of distributed loads and/or flues defined 
-                          |             on this element.
-                          |NPREDF:      Number of predefined field variables, including temperature.
-                          ===========================================================================================
+                          |                           accelerations after impact).                                   |
+                          |             LFLAGS(3) = 100 Define peturbation quantities for output.                    |
+                          |             LFLAGS(4) = 0 The step is a general step                                     |
+                          |             LFLAGS(4) = 1 The step is a linear perturbation step                         |
+                          |             LFLAGS(5) = 0 The current approximations to u^M, etc. were based on Newton   |
+                          |                           corrections.                                                   |
+                          |             LFLAGS(5) = 1 The current approximations were found by extrapolation from    |
+                          |                           the previous increment.                                        |
+                          |TIME(1):     Current value of step time                                                   |
+                          |TIME(2):     Current value of total time                                                  |
+                          |DTIME:       Time increment                                                               |
+                          |PERIOD:      Time period of the current step                                              |
+                          |NDOFEL:      Number of degrees of freedom in the element                                  |
+                          |MLVARX:      Dimensioning parameter used when several displacement or                     |
+                          |             right-hand-side vectors are used.                                            |
+                          |NRHS:        Number of load vetors. NRHS is 1 in most nonlinear problems:                 |
+                          |             it is 2 for the modified Riks static procedure, and it is                    |
+                          |             greater than 1 in some linear analysis procedures and during                 |
+                          |             substructure generation.                                                     |
+                          |NSVARS:      User-defined number of solution-dependent state variables                    |
+                          |             associated with the element.                                                 |
+                          |NPROPS:      User-defined number of real property values associated with                  |
+                          |             the element.                                                                 |
+                          |NJPROP:      User-defined number of integer property values assocated with                |
+                          |             the element.                                                                 |
+                          |MCRD:        MCRD is defined as the maximum of the user-defined maximum                   |
+                          |             number of coordinates needed at any node point and the                       |
+                          |             value of the largest active degree of freedom of the user                    |
+                          |             element that is less than or equal to 3.                                     |
+                          |NNODE:       User-defined number of nodes on the element                                  |
+                          |JTYPE:       Integer defining the element type. This is the user-defined                  |
+                          |             integer value n in element type Un.                                          |
+                          |KSTEP:       Current step number.                                                         |
+                          |KINC:        Current increment number.                                                    |
+                          |JELEM:       User-assigned element number.                                                |
+                          |NDLOAD:      Identification number of the distributed load or flux                        |
+                          |             currently active on this element.                                            |
+                          |MDLOAD:      Total number of distributed loads and/or flues defined                       |
+                          |             on this element.                                                             |
+                          |NPREDF:      Number of predefined field variables, including temperature.                 |
+                          ============================================================================================
                           
                         */
                         
