@@ -15,6 +15,7 @@
   =======================================================*/
   
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <tensor.h>
 #include <micro_element.h>
@@ -311,7 +312,13 @@ namespace micro_element
         RHS = Matrix_Xd_Map(_RHS,96,1);
         //Allocate the required memory for the AMATRX
         AMATRX = Matrix_Xd_Map(_AMATRX,96,96);
-        
+
+        //Resize the phi vector
+        node_phis.resize(reference_coords.size());
+        for(int n=0; n<reference_coords.size(); n++){
+            node_phis[n] = tensor::Tensor23({3,3});
+        }
+
         //Resize the stress measure vectors
         PK2.resize(number_gauss_points);
         SIGMA.resize(number_gauss_points);
@@ -2233,19 +2240,19 @@ namespace micro_element
             std::cout << "\nError: The mode value of " << mode << " is not recognized.\n";
             assert(1==0);
         }
-        
+
         //Extract the subvectors
         for(int n=0; n<reference_coords.size(); n++){
             parsed_vector[n] = std::vector<double>(factor,0.);
-            
+
             if(mode==1){
-                for(int i=0; i<factor; i++){parsed_vector[n][i] = incoming(i,n);}
+                for(int i=0; i<factor; i++){parsed_vector[n][i] = incoming(n,i);}
             }
             else if(mode==2){
                 for(int i=0; i<factor; i++){parsed_vector[n][i] = incoming(i+n*factor);}
             }
         }
-        
+
         return parsed_vector;
     }
     
