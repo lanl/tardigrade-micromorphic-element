@@ -1,3 +1,5 @@
+#include<iostream>
+#include<fstream>
 #include<vector>
 #include<Eigen/Dense>
 #include <tensor.h>
@@ -5,14 +7,15 @@
 #include <micromorphic_linear_elasticity.h>
 #include <uel.h>
 
-extern "C" void uel_(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
-                    int NDOFEL,int NRHS,int NSVARS,double *PROPS,int NPROPS,
-                    double *COORDS,int MCRD,int NNODE,double *U,double *DU,
-                    double *V,double *A,int JTYPE,double TIME[2],double DTIME,
-                    int KSTEP,int KINC,int JELEM,double *PARAMS,int NDLOAD,
-                    int *JDLTYP,double *ADLMAG,double *PREDEF,int NPREDF,
-                    int *LFLAGS,int MLVARX,double *DDLMAG,int MDLOAD,
-                    double PNEWDT,int *JPROPS,int NJPROP,double PERIOD){
+extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENERGY,
+                    int &NDOFEL,    int &NRHS,      int &NSVARS,    double *PROPS, 
+                    int &NPROPS,    double *COORDS, int &MCRD,      int &NNODE,
+                    double *U,      double *DU,     double *V,      double *A,
+                    int &JTYPE,     double TIME[2], double &DTIME,  int &KSTEP,
+                    int &KINC,      int &JELEM,     double *PARAMS, int &NDLOAD,
+                    int *JDLTYP,    double *ADLMAG, double *PREDEF, int &NPREDF,
+                    int *LFLAGS,    int &MLVARX,    double *DDLMAG, int &MDLOAD,
+                    double &PNEWDT, int *JPROPS,    int &NJPROP,    double &PERIOD){
                         
                         /*!===========================================================================================
                           |                                           UEL                                            |
@@ -192,14 +195,30 @@ extern "C" void uel_(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                         
                         //!Form Eigen::Map representations of the incoming vectors
                         
+                        std::ofstream myfile;
+                        myfile.open ("/data/home/students/nami2227/Code/micromorphic_uel/src/abaqus/tests/multi_element/debug.txt");
+                        myfile << "Debug file from micromorphic user element\n";
+
                         Vector SVARS_vec            = Vector_Xd_Map(SVARS,NSVARS,1);
+                        //std::cout << "SVARS_vec:\n" << SVARS_vec << "\n";
                         energy_vector ENERGY_vec    = Vector_8d_Map(ENERGY,8,1);
-                        
+                        myfile << "ENERGY_vec:\n" << ENERGY_vec << "\n";                        
+
                         Vector  PROPS_vec     = Vector_Xd_Map(PROPS,NPROPS,1);
+
+                        myfile << "PROPS_vec:\n" << PROPS_vec << "\n";
+
                         Vectori JPROPS_vec    = Vector_Xi_Map(JPROPS,NJPROP,1);
                         
+                        myfile << "JPROPS_vec:\n" << JPROPS_vec << "\n";
+
                         Matrix_RM COORDS_mat = Matrix_Xd_Map(COORDS,NNODE,MCRD);
+                        myfile << "COORDS_mat:\n" << COORDS_mat << "\n";
+
                         Vector U_vec         = Vector_Xd_Map(U,NDOFEL,1);
+
+                        //std::cout << "U_vec:\n" << U_vec << "\n";
+
                         Vector DU_vec        = Vector_Xd_Map(DU,NDOFEL,1);
                         Vector V_vec         = Vector_Xd_Map(V,NDOFEL,1);
                         Vector A_vec         = Vector_Xd_Map(A,NDOFEL,1);
@@ -213,6 +232,9 @@ extern "C" void uel_(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                         
                         Matrix_RM DDLMAG_mat = Matrix_Xd_Map(DDLMAG,MDLOAD,1); //May not be totally general.
                         
+                        myfile << "through mapping\n";
+                        myfile << "JTYPE: " << JTYPE << "\n";
+
                         //!Parse the incoming element to the correct user subroutine
                         if(JTYPE==1){
                             compute_hex8(RHS,        AMATRX,     SVARS_vec, ENERGY_vec,
@@ -221,11 +243,12 @@ extern "C" void uel_(double *RHS,double *AMATRX,double *SVARS,double *ENERGY,
                                          KSTEP,      KINC,       JELEM,     PARAMS_vec,
                                          JDLTYP_mat, ADLMAG_vec, PREDEF,    NPREDF,
                                          LFLAGS_vec, DDLMAG_mat, PNEWDT,    JPROPS_vec,
-                                         PERIOD,     NDOFEL,     NRHS);
+                                         PERIOD,     NDOFEL,     NRHS,      myfile);
                         }
                         else{
                             std::cout << "\nError: Element type not recognized";
                         }
+                        return;
 }
 
 void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  energy_vector &ENERGY,
@@ -234,7 +257,7 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
                  int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
                  Matrixi_RM &JDLTYP,    Vector &ADLMAG,     double *PREDEF, int NPREDF,
                  lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
-                 double PERIOD,         int NDOFEL,         int NRHS){
+                 double PERIOD,         int NDOFEL,         int NRHS,       std::ofstream &myfile){
     /*!====================
     |   compute_hex8   |
     ====================
@@ -245,11 +268,16 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     */
     
     //!Create the element
+
+    myfile << "in compute_hex8\n";
+
     micro_element::Hex8 element(RHS,    AMATRX, SVARS,  ENERGY, PROPS,  COORDS, U,      DU,
                                 V,      A,      TIME,   DTIME,  KSTEP,  KINC,   JELEM,  PARAMS,
                                 JDLTYP, ADLMAG, PREDEF, NPREDF, LFLAGS, DDLMAG, PNEWDT, JPROPS,
                                 PERIOD);
     
+    myfile << "Element initialized\n";
+
     /*!=
        |    Compute the required values
        =
@@ -261,6 +289,8 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     approach is to represent underlying heterogeneity at the macro scale.
     
     */
+
+    myfile << "LFLAGS(2): " << LFLAGS(2) << "\n";
     
     if(     LFLAGS(3)==1){ //!Update the RHS and the tangent
         element.integrate_element(true, false);
@@ -286,6 +316,9 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
         Matrix_Xd_Map(RHS,NDOFEL,NRHS)      = element.RHS;
         std::cout << "\n# Mass matrix not implemented\n";
     }
+
+    myfile.close();
+    assert(1==0);
     
     return;
 }
