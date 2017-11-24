@@ -905,9 +905,11 @@ std::vector< double > parse_PK2(std::vector< double > U_in){
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -965,9 +967,11 @@ std::vector< double > parse_SIGMA(std::vector< double > U_in){
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -1025,9 +1029,11 @@ std::vector< double > parse_M(std::vector< double > U_in){
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -1105,9 +1111,11 @@ std::vector< double > parse_Fint(std::vector< double > U_in){
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -1172,9 +1180,11 @@ std::vector< double > parse_Mint(std::vector< double > U_in){
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -1240,9 +1250,11 @@ std::vector< double > parse_RHS(std::vector< double > U_in){
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1}; //!The reference coordinates.
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -1511,9 +1523,11 @@ int test_deformation_measures(std::ofstream &results){
     bool test_results[test_num] = {false,false,false,false,false,false};
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -1706,9 +1720,11 @@ int test_stress_tangents(std::ofstream &results){
     bool test_results[test_num] = {false,false,false};
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -1869,9 +1885,153 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     bool test_results[test_num] = {false,false};
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
+        fparams[i] = 0.1*(i+1);
+    }
+    
+    //!Form the required vectors for element formation
+    std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
+    std::vector< double > Unode;
+    std::vector< double > Xnode;
+    std::vector< double > U;
+    std::vector< double > dU;
+    Xnode.resize(3);
+    Unode.resize(96);
+    U.resize(96);
+    dU.resize(96);
+    int inc = 0;
+    for(int n=0; n<8; n++){
+        Xnode[0] = reference_coords[0+n*3]; //Get the position of the current node
+        Xnode[1] = reference_coords[1+n*3];
+        Xnode[2] = reference_coords[2+n*3];
+        
+        Unode = test_deformation(Xnode);    //Update the deformation
+        
+        for(int i=0; i<12; i++){
+            U[inc]  = Unode[i];   //Assign the deformation
+            dU[inc] = 0.1*Unode[i];  //Assign the change in deformation (1/10 of the deformation)
+            inc++;
+        }
+    }
+    
+    //!Form the hexehedral test element.
+    micro_element::Hex8 element = micro_element::Hex8(reference_coords,U,dU,fparams);
+    
+    //!Set the gauss point
+    element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
+    element.update_gauss_point(true); //!Update the values for the gauss point
+/*    //!Compute the shape function values
+    element.update_shape_function_values();
+    
+    //!Set the fundamental deformation measures
+    element.set_fundamental_measures();
+    
+    //!Set the deformation measures
+    element.set_deformation_measures();
+    
+    //!Set the deformation tangents
+    element.set_fundamental_tangents();
+    element.set_deformation_tangents();
+    
+    //!Set the stresses at the gauss point
+    element.set_stresses(true);
+    
+    //!Set the stress tangents
+    element.set_stress_tangents();*/
+    
+    //!Set the residual vector due to the given gauss point
+    element.add_internal_nodal_forces();
+    
+    //!Compute the expected residual vector
+    std::vector< double > RHS(96,0.);
+    
+    //!Compute the internal forces
+    for(int n=0; n<8; n++){
+        for(int j=0; j<3; j++){
+            for(int I=0; I<3; I++){
+                for(int J=0; J<3; J++){
+                    RHS[j+12*n] += -element.get_dNdx(0,n)[I]*element.PK2[0](I,J)*element.get_F()(j,J)*element.get_Jhatdet(0)*element.weights[0];
+                }
+            }
+        }
+    }
+    
+    //!Compare the expected results to the element results
+    test_results[0] = true;
+    for(int i=0; i<96; i++){
+        test_results[0] *= 1e-9>fabs(element.RHS(i)-RHS[i]);
+    }
+    
+    //!Compare the tangents
+    
+    element.add_dFintdU();
+    
+    std::vector< std::vector< double > > gradient = compute_gradient_Fint(U);
+    
+    //print_vector_of_vectors("gradient",gradient);
+    //print_vector_of_vectors("AMATRX",element.AMATRX);
+    
+    test_results[1]=true;
+    for(int i=95; i>=0; i--){
+        for(int j=95; j>=0; j--){
+            test_results[1] *= double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5);
+            //std::cout << "(" << i << ", " << j << ")\n";
+            //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
+            if(!test_results[1]){break;}
+        }
+        if(!test_results[1]){break;}
+    }
+    
+    
+    
+    
+    
+    //Compare all test results
+    bool tot_result = true;
+    for(int i = 0; i<test_num; i++){
+        //std::cout << "\nSub-test " << i+1 << " result: " << test_results[i] << "\n";
+        if(!test_results[i]){
+            tot_result = false;
+        }
+    }
+    
+    if(tot_result){
+        results << "test_balance_of_linear_momentum & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_balance_of_linear_momentum & False\\\\\n\\hline\n";
+    }
+    
+    return 1;
+}
+
+int test_mass_matrix(std::ofstream &results){
+    /*!==========================
+    |    test_mass_matrix    |
+    ==========================
+    
+    Run tests on the formation of the mass 
+    matrix.
+    
+    */
+    
+    //Seed the random number generator
+    srand (1);
+    
+    //!Initialize test results
+    int  test_num        = 2;
+    bool test_results[test_num] = {false,false};
+    
+    //!Initialize the floating point parameters
+    std::vector< double > fparams(19,0.);
+    
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -2009,9 +2169,11 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     bool test_results[test_num] = {false,false};
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -2165,9 +2327,11 @@ int test_integrate_element(std::ofstream &results){
     bool test_results[test_num] = {false,false};
     
     //!Initialize the floating point parameters
-    std::vector< double > fparams(18,0.);
+    std::vector< double > fparams(19,0.);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
