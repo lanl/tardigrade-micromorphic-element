@@ -53,7 +53,7 @@ namespace micro_material{
         and Gamma, the higher order deformation tensor.
         
         Order of fparams:
-            fparams = {lambda, mu, eta, tau, kappa, nu, sigma, tau1, ... tau11}
+            fparams = {rho, lambda, mu, eta, tau, kappa, nu, sigma, tau1, ... tau11}
         
         */
         
@@ -77,8 +77,8 @@ namespace micro_material{
         tensor::Tensor43 D_stiffness({3,3,3,3});
         
         //!Error handling on fparams
-        if(fparams.size()<18){
-            std::cout << "Error: 18 parameters required in fparams.\n"
+        if(fparams.size()!=19){
+            std::cout << "Error: 19 parameters required in fparams.\n"
                       << "       " << fparams.size() << " parameters provided.\n";
             assert(1==0);
         }
@@ -371,8 +371,8 @@ namespace micro_material{
         */
         
         tensor::Tensor23 I = tensor::eye();      //!Second order identity tensor
-        double lambda = fparams[0];              //!lambda micromorphic material parameter
-        double mu     = fparams[1];              //!mu micromorphic material parameter
+        double lambda = fparams[1];              //!lambda micromorphic material parameter
+        double mu     = fparams[2];              //!mu micromorphic material parameter
         
         for(int K=0; K<3; K++){
             for(int L=0; L<3; L++){
@@ -398,11 +398,11 @@ namespace micro_material{
         */
         
         tensor::Tensor23 I = tensor::eye();      //!Second order identity tensor
-        double eta   = fparams[2];               //!eta micromorphic material parameter
-        double tau   = fparams[3];               //!tau micromorphic material parameter
-        double kappa = fparams[4];               //!kappa micromorphic material parameter
-        double nu    = fparams[5];               //!nu micromorphic material parameter
-        double sigma = fparams[6];               //!sigma micromorphic material parameter
+        double eta   = fparams[3];               //!eta micromorphic material parameter
+        double tau   = fparams[4];               //!tau micromorphic material parameter
+        double kappa = fparams[5];               //!kappa micromorphic material parameter
+        double nu    = fparams[6];               //!nu micromorphic material parameter
+        double sigma = fparams[7];               //!sigma micromorphic material parameter
         
         for(int K=0; K<3; K++){
             for(int L=0; L<3; L++){
@@ -429,17 +429,17 @@ namespace micro_material{
         */
         
         tensor::Tensor23 I = tensor::eye();          //!Second order identity tensor
-        double tau1  = fparams[ 7];                  //!tau1  micromorphic material parameter
-        double tau2  = fparams[ 8];                  //!tau2  micromorphic material parameter
-        double tau3  = fparams[ 9];                  //!tau3  micromorphic material parameter
-        double tau4  = fparams[10];                  //!tau4  micromorphic material parameter
-        double tau5  = fparams[11];                  //!tau5  micromorphic material parameter
-        double tau6  = fparams[12];                  //!tau6  micromorphic material parameter
-        double tau7  = fparams[13];                  //!tau7  micromorphic material parameter
-        double tau8  = fparams[14];                  //!tau8  micromorphic material parameter
-        double tau9  = fparams[15];                  //!tau9  micromorphic material parameter
-        double tau10 = fparams[16];                  //!tau10 micromorphic material parameter
-        double tau11 = fparams[17];                  //!tau11 micromorphic material parameter
+        double tau1  = fparams[ 8];                  //!tau1  micromorphic material parameter
+        double tau2  = fparams[ 9];                  //!tau2  micromorphic material parameter
+        double tau3  = fparams[10];                  //!tau3  micromorphic material parameter
+        double tau4  = fparams[11];                  //!tau4  micromorphic material parameter
+        double tau5  = fparams[12];                  //!tau5  micromorphic material parameter
+        double tau6  = fparams[13];                  //!tau6  micromorphic material parameter
+        double tau7  = fparams[14];                  //!tau7  micromorphic material parameter
+        double tau8  = fparams[15];                  //!tau8  micromorphic material parameter
+        double tau9  = fparams[16];                  //!tau9  micromorphic material parameter
+        double tau10 = fparams[17];                  //!tau10 micromorphic material parameter
+        double tau11 = fparams[18];                  //!tau11 micromorphic material parameter
         
         for(int K=0; K<3; K++){
             for(int L=0; L<3; L++){
@@ -475,8 +475,8 @@ namespace micro_material{
         */
         
         tensor::Tensor23 I = tensor::eye();      //!Second order identity tensor
-        double tau   = fparams[3];               //!tau micromorphic material parameter
-        double sigma = fparams[6];               //!sigma micromorphic material parameter
+        double tau   = fparams[4];               //!tau micromorphic material parameter
+        double sigma = fparams[7];               //!sigma micromorphic material parameter
         
         for(int K=0; K<3; K++){
             for(int L=0; L<3; L++){

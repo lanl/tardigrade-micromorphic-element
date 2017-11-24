@@ -152,10 +152,12 @@ void test_stiffness_tensors(std::ofstream &results){
     bool test_results[test_num] = {false,false,false,false};
     
     //!Initialize the floating point parameters
-    double fpointer[18];
-    Vector fparams = Vector_Xd_Map(fpointer,18,1);
+    double fpointer[19];
+    Vector fparams = Vector_Xd_Map(fpointer,19,1);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = 0.1*(i+1);
     }
     
@@ -181,24 +183,25 @@ void test_stiffness_tensors(std::ofstream &results){
     micro_material::generate_D_stiffness(fparams,D_result);
     
     //!Extract the values of fparams
-    double lambda = fparams[ 0];             //!lambda micromorphic material parameter
-    double mu     = fparams[ 1];             //!mu micromorphic material parameter
-    double eta    = fparams[ 2];             //!eta micromorphic material parameter
-    double tau    = fparams[ 3];             //!tau micromorphic material parameter
-    double kappa  = fparams[ 4];             //!kappa micromorphic material parameter
-    double nu     = fparams[ 5];             //!nu micromorphic material parameter
-    double sigma  = fparams[ 6];             //!sigma micromorphic material parameter
-    double tau1   = fparams[ 7];             //!tau1  micromorphic material parameter
-    double tau2   = fparams[ 8];             //!tau2  micromorphic material parameter
-    double tau3   = fparams[ 9];             //!tau3  micromorphic material parameter
-    double tau4   = fparams[10];             //!tau4  micromorphic material parameter
-    double tau5   = fparams[11];             //!tau5  micromorphic material parameter
-    double tau6   = fparams[12];             //!tau6  micromorphic material parameter
-    double tau7   = fparams[13];             //!tau7  micromorphic material parameter
-    double tau8   = fparams[14];             //!tau8  micromorphic material parameter
-    double tau9   = fparams[15];             //!tau9  micromorphic material parameter
-    double tau10  = fparams[16];             //!tau10 micromorphic material parameter
-    double tau11  = fparams[17];             //!tau11 micromorphic material parameter
+    double rho    = fparams[ 0];             //!The density
+    double lambda = fparams[ 1];             //!lambda micromorphic material parameter
+    double mu     = fparams[ 2];             //!mu micromorphic material parameter
+    double eta    = fparams[ 3];             //!eta micromorphic material parameter
+    double tau    = fparams[ 4];             //!tau micromorphic material parameter
+    double kappa  = fparams[ 5];             //!kappa micromorphic material parameter
+    double nu     = fparams[ 6];             //!nu micromorphic material parameter
+    double sigma  = fparams[ 7];             //!sigma micromorphic material parameter
+    double tau1   = fparams[ 8];             //!tau1  micromorphic material parameter
+    double tau2   = fparams[ 9];             //!tau2  micromorphic material parameter
+    double tau3   = fparams[10];             //!tau3  micromorphic material parameter
+    double tau4   = fparams[11];             //!tau4  micromorphic material parameter
+    double tau5   = fparams[12];             //!tau5  micromorphic material parameter
+    double tau6   = fparams[13];             //!tau6  micromorphic material parameter
+    double tau7   = fparams[14];             //!tau7  micromorphic material parameter
+    double tau8   = fparams[15];             //!tau8  micromorphic material parameter
+    double tau9   = fparams[16];             //!tau9  micromorphic material parameter
+    double tau10  = fparams[17];             //!tau10 micromorphic material parameter
+    double tau11  = fparams[18];             //!tau11 micromorphic material parameter
     
     //!Compute the expected value of the A stiffness tensor
     for(int K=0; K<3; K++){
@@ -450,10 +453,12 @@ std::vector<double> dPK2dC_parser(std::vector<double> C_in){
     
     //!Set the floating point parameters
     //!Initialize the floating point parameters
-    double fpointer[18];
-    Vector fparams = Vector_Xd_Map(fpointer,18,1);
+    double fpointer[19];
+    Vector fparams = Vector_Xd_Map(fpointer,19,1);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = i+1;
     }
     
@@ -519,10 +524,12 @@ std::vector<double> dSIGMAdC_parser(std::vector<double> C_in){
     C(2,2) = C_in[8];
     
     //!Set the floating point parameters
-    double fpointer[18];
-    Vector fparams = Vector_Xd_Map(fpointer,18,1);
+    double fpointer[19];
+    Vector fparams = Vector_Xd_Map(fpointer,19,1);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = i+1;
     }
     
@@ -587,10 +594,12 @@ std::vector<double> dPK2dPsi_parser(std::vector<double> Psi_in){
     Psi(2,2) = Psi_in[8];
     
     //!Set the floating point parameters
-    double fpointer[18];
-    Vector fparams = Vector_Xd_Map(fpointer,18,1);
+    double fpointer[19];
+    Vector fparams = Vector_Xd_Map(fpointer,19,1);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = i+1;
     }
     
@@ -655,10 +664,12 @@ std::vector<double> dSIGMAdPsi_parser(std::vector<double> Psi_in){
     Psi(2,2) = Psi_in[8];
     
     //!Set the floating point parameters
-    double fpointer[18];
-    Vector fparams = Vector_Xd_Map(fpointer,18,1);
+    double fpointer[19];
+    Vector fparams = Vector_Xd_Map(fpointer,19,1);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = i+1;
     }
     
@@ -723,10 +734,12 @@ std::vector<double> dPK2dGamma_parser(std::vector<double> Gamma_in){
     }
     
     //!Set the floating point parameters
-    double fpointer[18];
-    Vector fparams = Vector_Xd_Map(fpointer,18,1);
+    double fpointer[19];
+    Vector fparams = Vector_Xd_Map(fpointer,19,1);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = i+1;
     }
     
@@ -791,10 +804,12 @@ std::vector<double> dSIGMAdGamma_parser(std::vector<double> Gamma_in){
     }
     
     //!Set the floating point parameters
-    double fpointer[18];
-    Vector fparams = Vector_Xd_Map(fpointer,18,1);
+    double fpointer[19];
+    Vector fparams = Vector_Xd_Map(fpointer,19,1);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = i+1;
     }
     
@@ -840,10 +855,12 @@ void test_get_stress(std::ofstream &results){
     tensor::Tensor23 ITEN = tensor::eye();
     
     //!Initialize the floating point parameters
-    double fpointer[18];
-    Vector fparams = Vector_Xd_Map(fpointer,18,1);
+    double fpointer[19];
+    Vector fparams = Vector_Xd_Map(fpointer,19,1);
     
-    for(int i=0; i<18; i++){
+    fparams[0] = 1000.;
+    
+    for(int i=1; i<19; i++){
         fparams[i] = i+1;
     }
     
