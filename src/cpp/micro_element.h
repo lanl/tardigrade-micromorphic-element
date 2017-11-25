@@ -32,6 +32,8 @@ typedef Eigen::Map<Vector>        Vector_Xd_Map;
 typedef Eigen::Map<energy_vector> Vector_8d_Map;
 typedef Eigen::Map<params_vector> Vector_3d_Map;
 typedef Eigen::Map<lflags_vector> Vector_5i_Map;
+
+typedef Eigen::Matrix<double,8,8> Matrix_8d;
   
 namespace micro_element
 {
@@ -109,6 +111,12 @@ namespace micro_element
                         
             Matrix_RM RHS;                                  //!The, ``right hand side,'' of the linearized equation (i.e. the residual vector)
             Matrix_RM AMATRX;                               //!The negative of the element stiffness matrix (i.e. -dRHSddof)
+            
+            //!=
+            //!| Mini-Mass Matrix
+            //!=
+            
+            Matrix_8d mini_mass;
             
             //!=
             //!| Constitutive model parameters
@@ -196,7 +204,7 @@ namespace micro_element
             //!| Shape Functions
             //!=
             
-            void update_shape_function_values();
+            void update_shape_function_values(bool compute_mass = false);
             
             void set_shape_functions();
             void set_shape_function(int);
@@ -208,6 +216,9 @@ namespace micro_element
             
             void set_global_gradient_shape_functions(bool);
             void set_global_gradient_shape_function(bool, int);
+            
+            void update_mini_mass();
+            void set_mass_matrix();
             
             //!=
             //!| Fundamental Deformation Measures
@@ -297,8 +308,8 @@ namespace micro_element
             //!| Element Integration 
             //!=
             
-            void update_gauss_point(bool set_tangents = false);
-            void integrate_element(bool set_tangents = false, bool ignore_RHS = false);
+            void update_gauss_point(bool set_tangents = false, bool compute_mass = false);
+            void integrate_element(bool set_tangents = false, bool ignore_RHS = false, bool compute_mass = false);
             
             //!=
             //!| Test functions

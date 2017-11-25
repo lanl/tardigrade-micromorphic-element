@@ -37,6 +37,9 @@ namespace micro_element
         //Allocate the required memory for the AMATRX
         AMATRX = Eigen::MatrixXd::Zero(96,96);//Matrix_Xd_Map(AMATRX_PTR,96,96);
         
+        //Initialize the mini_mass matrix
+        mini_mass = Matrix_8d::Zero(8,8);
+        
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
         for(int n=0; n<reference_coords.size(); n++){
@@ -98,6 +101,9 @@ namespace micro_element
         RHS    = Eigen::MatrixXd::Zero(96,1); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
         AMATRX = Eigen::MatrixXd::Zero(96,96);
+        
+        //Initialize the mini_mass matrix
+        mini_mass = Matrix_8d::Zero(8,8);
         
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
@@ -181,6 +187,9 @@ namespace micro_element
         RHS    = Eigen::MatrixXd::Zero(96,1); //Allocate the required memory for the right hand side vector
         //Allocate the required memory for the AMATRX
         AMATRX = Eigen::MatrixXd::Zero(96,96);
+        
+        //Initialize the mini_mass matrix
+        mini_mass = Matrix_8d::Zero(8,8);
         
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
@@ -312,6 +321,9 @@ namespace micro_element
         RHS = Matrix_Xd_Map(_RHS,96,1);
         //Allocate the required memory for the AMATRX
         AMATRX = Matrix_Xd_Map(_AMATRX,96,96);
+        
+        //Initialize the mini_mass matrix
+        mini_mass = Matrix_8d::Zero(8,8);
 
         //Resize the phi vector
         node_phis.resize(reference_coords.size());
@@ -409,7 +421,7 @@ namespace micro_element
     //!| Shape Functions
     //!=
     
-    void Hex8::update_shape_function_values(){
+    void Hex8::update_shape_function_values(bool compute_mass){
         /*!======================================
         |    update_shape_function_values    |
         ======================================
@@ -424,7 +436,9 @@ namespace micro_element
         set_local_gradient_shape_functions();   //!Set dNdxi for each node at the current gauss point in private attributes
         set_global_gradient_shape_functions(0); //!Set dNdX for each node at the current gauss point in private attributes
         set_global_gradient_shape_functions(1); //!Set dNdx for each node at the current gauss point in private attributes
-        
+        if(compute_mass){
+            update_mini_mass();
+        }
         
     }
     
@@ -607,6 +621,51 @@ namespace micro_element
             set_global_gradient_shape_function(mode, n);
         }
         return;
+    }
+    
+    void Hex8::update_mini_mass(){
+        /*!==========================
+        |    update_mini_mass    |
+        ==========================
+        
+        Update the condensed mass matrix. 
+        It should be noted that because the 
+        density is assumed to be constant 
+        over the element, the mini mass 
+        matrix will be populated by the 
+        density times Jdethat. This may not 
+        always be the case if future 
+        enhancements are performed.
+        
+        */
+        
+        for(int i=0; i<number_gauss_points; i++){
+            for(int j=0; j<number_gauss_points; j++){
+                mini_mass(i,j) += Ns[i]*Ns[j]*fparams(0)*Jhatdet*weights[gpt_num];
+            }
+        }
+        
+    }
+    
+    void Hex8::set_mass_matrix(){
+        /*!=========================
+        |    set_mass_matrix    |
+        =========================
+        
+        Set the correct values in AMATRX to the 
+        expected values of the mass matrix. This 
+        is the approach used in Abaqus and may not 
+        be totally general.
+        
+        */
+        
+        for(int i=0; i<number_gauss_points; i++){
+            for(int j=0; j<number_gauss_points; j++){
+                for(int k=0; k<12; k++){
+                    AMATRX(k+12*i,k+12*j) = mini_mass(i,j);
+                }
+            }
+        }
     }
     
     //!=
@@ -1531,7 +1590,7 @@ namespace micro_element
     //!| Element Integration 
     //!=
     
-    void Hex8::update_gauss_point(bool set_tangents){
+    void Hex8::update_gauss_point(bool set_tangents, bool compute_mass){
         /*!============================
         |    update_gauss_point    |
         ============================
@@ -1545,7 +1604,7 @@ namespace micro_element
         reset_tangents();
         
         //!Compute the shape function values
-        update_shape_function_values();
+        update_shape_function_values(compute_mass);
     
         //!Set the fundamental deformation measures
         set_fundamental_measures();
@@ -1569,7 +1628,7 @@ namespace micro_element
         return;
     }
     
-    void Hex8::integrate_element(bool set_tangents, bool ignore_RHS){
+    void Hex8::integrate_element(bool set_tangents, bool ignore_RHS, bool compute_mass){
         /*!===========================
         |    integrate_element    |
         ===========================
@@ -1579,16 +1638,24 @@ namespace micro_element
         */
         
         for(int i=0; i<number_gauss_points; i++){
-            gpt_num = i;                      //Update the gauss point number
-            update_gauss_point(set_tangents); //Update all of the gauss points
+            gpt_num = i;                                   //Update the gauss point number
+            update_gauss_point(set_tangents,compute_mass); //Update all of the gauss points
             if(!ignore_RHS){
-                add_all_forces();                 //Update the RHS vector from all of the forces
-                add_all_moments();                //Update the RHS vector from all of the stresses
+                add_all_forces();                          //Update the RHS vector from all of the forces
+                add_all_moments();                         //Update the RHS vector from all of the stresses
             }
-            if(set_tangents){                 //Update AMATRX from the forces and stresses
+            if(set_tangents){                              //Update AMATRX from the forces and stresses
                 set_force_tangent();
                 set_moment_tangent();
             }
+        }
+        
+        if(compute_mass){
+            if(set_tangents){
+                std::cout << "Error: Tangent and mass matrix cannot be simultaneously requested\n";
+                assert(1==0);
+            }
+            set_mass_matrix();
         }
         
         return;

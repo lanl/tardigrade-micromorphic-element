@@ -2065,7 +2065,7 @@ int test_mass_matrix(std::ofstream &results){
     
     //!Set the gauss point
     element.set_gpt_num(0); //Use the first gauss point since the gradients should be constant
-    element.update_gauss_point(true); //!Update the values for the gauss point
+    element.update_gauss_point(true,true); //!Update the values for the gauss point
 /*    //!Compute the shape function values
     element.update_shape_function_values();
     
@@ -2085,51 +2085,53 @@ int test_mass_matrix(std::ofstream &results){
     //!Set the stress tangents
     element.set_stress_tangents();*/
     
-    //!Set the residual vector due to the given gauss point
-    element.add_internal_nodal_forces();
     
-    //!Compute the expected residual vector
-    std::vector< double > RHS(96,0.);
+    //!Compute the expected mini mass matrix for a gauss point
+    Eigen::Matrix<double,8,8> mini_mass  = Eigen::Matrix<double,8,8>::Zero(8,8);
     
     //!Compute the internal forces
+    for(int m=0; m<8; m++){
+        for(int n=0; n<8; n++){
+            mini_mass(m,n) += element.get_N(m)*element.get_N(n)*fparams[0]*element.get_Jhatdet(0)*element.weights[0];
+        }
+    }
+    
+    test_results[0] = true;
+    for(int m=0; m<8; m++){
+        for(int n=0; n<8; n++){
+            test_results[0]*= 1e-9>fabs(mini_mass(m,n)-element.mini_mass(m,n));
+        }
+    }
+    
+    //!Compute the total mass matrix
+    Eigen::Matrix<double, 96, 96> mass_matrix = Eigen::Matrix<double,96,96>::Zero(96,96);
+    Eigen::Matrix<double, 12, 96> N_matrix    = Eigen::Matrix<double,12,96>::Zero(12,96);
+    
     for(int n=0; n<8; n++){
-        for(int j=0; j<3; j++){
-            for(int I=0; I<3; I++){
-                for(int J=0; J<3; J++){
-                    RHS[j+12*n] += -element.get_dNdx(0,n)[I]*element.PK2[0](I,J)*element.get_F()(j,J)*element.get_Jhatdet(0)*element.weights[0];
-                }
+        element.set_gpt_num(n);
+        element.update_gauss_point(false,true);
+        for(int i=0; i<8; i++){
+            for(int j=0; j<12; j++){
+                N_matrix(j,j+12*i) = element.get_N(i);
             }
         }
+        
+        mass_matrix += N_matrix.transpose()*N_matrix*fparams[0]*element.get_Jhatdet(0)*element.weights[0];
     }
     
-    //!Compare the expected results to the element results
-    test_results[0] = true;
-    for(int i=0; i<96; i++){
-        test_results[0] *= 1e-9>fabs(element.RHS(i)-RHS[i]);
-    }
+    micro_element::Hex8 element2 = micro_element::Hex8(reference_coords,U,dU,fparams);
+    element2.integrate_element(false,true,true);
     
-    //!Compare the tangents
     
-    element.add_dFintdU();
+    //std::cout << "mass_matrix:\n" << mass_matrix << "\n";
+    //std::cout << "AMATRX:\n" << element2.AMATRX  << "\n";
     
-    std::vector< std::vector< double > > gradient = compute_gradient_Fint(U);
-    
-    //print_vector_of_vectors("gradient",gradient);
-    //print_vector_of_vectors("AMATRX",element.AMATRX);
-    
-    test_results[1]=true;
-    for(int i=95; i>=0; i--){
-        for(int j=95; j>=0; j--){
-            test_results[1] *= double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5);
-            //std::cout << "(" << i << ", " << j << ")\n";
-            //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
-            if(!test_results[1]){break;}
+    test_results[1] = true;
+    for(int m=0; m<96; m++){
+        for(int n=0; n<96; n++){
+            test_results[1] *= 1e-9>fabs(element2.AMATRX(m,n)-mass_matrix(m,n));
         }
-        if(!test_results[1]){break;}
     }
-    
-    
-    
     
     
     //Compare all test results
@@ -2142,10 +2144,10 @@ int test_mass_matrix(std::ofstream &results){
     }
     
     if(tot_result){
-        results << "test_balance_of_linear_momentum & True\\\\\n\\hline\n";
+        results << "test_mass_matrix & True\\\\\n\\hline\n";
     }
     else{
-        results << "test_balance_of_linear_momentum & False\\\\\n\\hline\n";
+        results << "test_mass_matrix & False\\\\\n\\hline\n";
     }
     
     return 1;
@@ -2493,6 +2495,7 @@ int main(){
     //!Run the test functions
     test_constructors(results);
     test_shape_functions(results);
+    test_mass_matrix(results);
     test_fundamental_measures(results);
     test_deformation_measures(results);
     test_stress_tangents(results);
