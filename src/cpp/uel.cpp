@@ -305,16 +305,17 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
         std::cout << "\n# Damping matrix not implemented\n";
     }
     else if(LFLAGS(2)==4){ //!Update the mass matrix only (not implemented)
-        std::cout << "\n# Mass matrix not implemented\n";
+        element.integrate_element(false, true, true);
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
     }
     else if(LFLAGS(2)==5){ //!Update the residual only
         element.integrate_element(false, false);
         Matrix_Xd_Map(RHS,NDOFEL,NRHS) = element.RHS;
     }
     else if(LFLAGS(2)==6){ //!Update the mass matrix and the residual vector only
-        element.integrate_element(false, false);
+        element.integrate_element(false, false, true);
         Matrix_Xd_Map(RHS,NDOFEL,NRHS)      = element.RHS;
-        std::cout << "\n# Mass matrix not implemented\n";
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
     }
 
     myfile.close();
