@@ -99,7 +99,7 @@
 *Step, name=load, nlgeom=NO
 Apply deformation to model
 *Static
-1., 1., 1e-05, 1.
+0.1, 1.0, 1e-05, 1.
 ** 
 ** BOUNDARY CONDITIONS
 ** 
