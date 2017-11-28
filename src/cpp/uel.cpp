@@ -195,25 +195,25 @@ extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENER
                         
                         //!Form Eigen::Map representations of the incoming vectors
                         
-                        std::ofstream myfile;
-                        myfile.open ("/data/home/students/nami2227/Code/micromorphic_uel/src/abaqus/tests/multi_element/debug.txt");
-                        myfile << "Debug file from micromorphic user element\n";
+                        //std::ofstream myfile;
+                        //myfile.open ("/data/home/students/nami2227/Code/micromorphic_uel/src/abaqus/tests/multi_element/debug.txt");
+                        //myfile << "Debug file from micromorphic user element\n";
 
                         Vector SVARS_vec            = Vector_Xd_Map(SVARS,NSVARS,1);
                         //std::cout << "SVARS_vec:\n" << SVARS_vec << "\n";
                         energy_vector ENERGY_vec    = Vector_8d_Map(ENERGY,8,1);
-                        myfile << "ENERGY_vec:\n" << ENERGY_vec << "\n";                        
+                        //myfile << "ENERGY_vec:\n" << ENERGY_vec << "\n";                        
 
                         Vector  PROPS_vec     = Vector_Xd_Map(PROPS,NPROPS,1);
 
-                        myfile << "PROPS_vec:\n" << PROPS_vec << "\n";
+                        //myfile << "PROPS_vec:\n" << PROPS_vec << "\n";
 
                         Vectori JPROPS_vec    = Vector_Xi_Map(JPROPS,NJPROP,1);
                         
-                        myfile << "JPROPS_vec:\n" << JPROPS_vec << "\n";
+                        //myfile << "JPROPS_vec:\n" << JPROPS_vec << "\n";
 
                         Matrix_RM COORDS_mat = Matrix_Xd_Map(COORDS,NNODE,MCRD);
-                        myfile << "COORDS_mat:\n" << COORDS_mat << "\n";
+                        //myfile << "COORDS_mat:\n" << COORDS_mat << "\n";
 
                         Vector U_vec         = Vector_Xd_Map(U,NDOFEL,1);
 
@@ -232,8 +232,8 @@ extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENER
                         
                         Matrix_RM DDLMAG_mat = Matrix_Xd_Map(DDLMAG,MDLOAD,1); //May not be totally general.
                         
-                        myfile << "through mapping\n";
-                        myfile << "JTYPE: " << JTYPE << "\n";
+                        //myfile << "through mapping\n";
+                        //myfile << "JTYPE: " << JTYPE << "\n";
 
                         //!Parse the incoming element to the correct user subroutine
                         if(JTYPE==1){
@@ -243,7 +243,7 @@ extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENER
                                          KSTEP,      KINC,       JELEM,     PARAMS_vec,
                                          JDLTYP_mat, ADLMAG_vec, PREDEF,    NPREDF,
                                          LFLAGS_vec, DDLMAG_mat, PNEWDT,    JPROPS_vec,
-                                         PERIOD,     NDOFEL,     NRHS,      myfile);
+                                         PERIOD,     NDOFEL,     NRHS);//,      myfile);
                         }
                         else{
                             std::cout << "\nError: Element type not recognized";
@@ -257,7 +257,7 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
                  int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
                  Matrixi_RM &JDLTYP,    Vector &ADLMAG,     double *PREDEF, int NPREDF,
                  lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
-                 double PERIOD,         int NDOFEL,         int NRHS,       std::ofstream &myfile){
+                 double PERIOD,         int NDOFEL,         int NRHS){//,       std::ofstream &myfile){
     /*!====================
     |   compute_hex8   |
     ====================
@@ -269,14 +269,14 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     
     //!Create the element
 
-    myfile << "in compute_hex8\n";
+    //myfile << "in compute_hex8\n";
 
     micro_element::Hex8 element(RHS,    AMATRX, SVARS,  ENERGY, PROPS,  COORDS, U,      DU,
                                 V,      A,      TIME,   DTIME,  KSTEP,  KINC,   JELEM,  PARAMS,
                                 JDLTYP, ADLMAG, PREDEF, NPREDF, LFLAGS, DDLMAG, PNEWDT, JPROPS,
                                 PERIOD);
     
-    myfile << "Element initialized\n";
+    //myfile << "Element initialized\n";
 
     /*!=
        |    Compute the required values
@@ -290,7 +290,7 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     
     */
 
-    myfile << "LFLAGS(2): " << LFLAGS(2) << "\n";
+    //myfile << "LFLAGS(2): " << LFLAGS(2) << "\n";
     
     if(     LFLAGS(2)==1){ //!Update the RHS and the tangent
         element.integrate_element(true, false);
@@ -304,7 +304,7 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     else if(LFLAGS(2)==3){ //!Update the damping matrix only (not implemented)
         std::cout << "\n# Damping matrix not implemented\n";
     }
-    else if(LFLAGS(2)==4){ //!Update the mass matrix only (not implemented)
+    else if(LFLAGS(2)==4){ //!Update the mass matrix only
         element.integrate_element(false, true, true);
         Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
     }
@@ -318,8 +318,7 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
         Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
     }
 
-    myfile.close();
-    assert(1==0);
+    //myfile.close();
     
     return;
 }
