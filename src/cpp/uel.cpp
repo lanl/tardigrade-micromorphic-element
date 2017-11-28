@@ -294,7 +294,7 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     
     if(     LFLAGS(2)==1){ //!Update the RHS and the tangent
         element.integrate_element(true, false);
-        Matrix_Xd_Map(RHS,NDOFEL,NRHS)      = element.RHS;
+        Matrix_Xd_Map(RHS,NDOFEL,NRHS)      =  element.RHS;
         Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = -element.AMATRX;
     }
     else if(LFLAGS(2)==2){ //!Update the tangent only
@@ -306,7 +306,7 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     }
     else if(LFLAGS(2)==4){ //!Update the mass matrix only
         element.integrate_element(false, true, true);
-        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = -element.AMATRX;
     }
     else if(LFLAGS(2)==5){ //!Update the residual only
         element.integrate_element(false, false);
@@ -314,8 +314,8 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     }
     else if(LFLAGS(2)==6){ //!Update the mass matrix and the residual vector only
         element.integrate_element(false, false, true);
-        Matrix_Xd_Map(RHS,NDOFEL,NRHS)      = element.RHS;
-        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = element.AMATRX;
+        Matrix_Xd_Map(RHS,NDOFEL,NRHS)      =  element.RHS;
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = -element.AMATRX;
     }
 
     //myfile.close();
