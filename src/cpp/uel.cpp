@@ -198,9 +198,11 @@ extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENER
                         //std::ofstream myfile;
                         //myfile.open ("/data/home/students/nami2227/Code/micromorphic_uel/src/abaqus/tests/multi_element/debug.txt");
                         //myfile << "Debug file from micromorphic user element\n";
+                        //myfile << "NSVARS: " << NSVARS << "\n";
+                        //myfile.close();
 
                         Vector SVARS_vec            = Vector_Xd_Map(SVARS,NSVARS,1);
-                        //std::cout << "SVARS_vec:\n" << SVARS_vec << "\n";
+                        //myfile << "SVARS_vec:\n" << SVARS_vec << "\n";
                         energy_vector ENERGY_vec    = Vector_8d_Map(ENERGY,8,1);
                         //myfile << "ENERGY_vec:\n" << ENERGY_vec << "\n";                        
 
@@ -233,6 +235,7 @@ extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENER
                         Matrix_RM DDLMAG_mat = Matrix_Xd_Map(DDLMAG,MDLOAD,1); //May not be totally general.
                         
                         //myfile << "through mapping\n";
+                        //myfile.close();
                         //myfile << "JTYPE: " << JTYPE << "\n";
 
                         //!Parse the incoming element to the correct user subroutine
@@ -243,7 +246,7 @@ extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENER
                                          KSTEP,      KINC,       JELEM,     PARAMS_vec,
                                          JDLTYP_mat, ADLMAG_vec, PREDEF,    NPREDF,
                                          LFLAGS_vec, DDLMAG_mat, PNEWDT,    JPROPS_vec,
-                                         PERIOD,     NDOFEL,     NRHS);//,      myfile);
+                                         PERIOD,     NDOFEL,     NRHS,      SVARS);//,      myfile);
                         }
                         else{
                             std::cout << "\nError: Element type not recognized";
@@ -257,7 +260,7 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
                  int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
                  Matrixi_RM &JDLTYP,    Vector &ADLMAG,     double *PREDEF, int NPREDF,
                  lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
-                 double PERIOD,         int NDOFEL,         int NRHS){//,       std::ofstream &myfile){
+                 double PERIOD,         int NDOFEL,         int NRHS,       double *SVARS_ptr){//,       std::ofstream &myfile){
     /*!====================
     |   compute_hex8   |
     ====================
@@ -293,13 +296,15 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     //myfile << "LFLAGS(2): " << LFLAGS(2) << "\n";
     
     if(     LFLAGS(2)==1){ //!Update the RHS and the tangent
-        element.integrate_element(true, false);
-        Matrix_Xd_Map(RHS,NDOFEL,NRHS)      =  element.RHS;
-        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = -element.AMATRX;
+        element.integrate_element(true, false, false, true);
+        Matrix_Xd_Map(RHS,NDOFEL,NRHS)          =  element.RHS;
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL)     = -element.AMATRX;
+        Vector_Xd_Map(SVARS_ptr,SVARS.rows(),1) =  element.SVARS;
     }
     else if(LFLAGS(2)==2){ //!Update the tangent only
-        element.integrate_element(true, true);
-        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = -element.AMATRX;
+        element.integrate_element(true, true, false, true);
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL)     = -element.AMATRX;
+        Vector_Xd_Map(SVARS_ptr,SVARS.rows(),1) =  element.SVARS;
     }
     else if(LFLAGS(2)==3){ //!Update the damping matrix only (not implemented)
         std::cout << "\n# Damping matrix not implemented\n";
@@ -310,12 +315,14 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
     }
     else if(LFLAGS(2)==5){ //!Update the residual only
         element.integrate_element(false, false);
-        Matrix_Xd_Map(RHS,NDOFEL,NRHS) = element.RHS;
+        Matrix_Xd_Map(RHS,NDOFEL,NRHS)          = element.RHS;
+        Vector_Xd_Map(SVARS_ptr,SVARS.rows(),1) = element.SVARS;
     }
     else if(LFLAGS(2)==6){ //!Update the mass matrix and the residual vector only
         element.integrate_element(false, false, true);
-        Matrix_Xd_Map(RHS,NDOFEL,NRHS)      =  element.RHS;
-        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL) = -element.AMATRX;
+        Matrix_Xd_Map(RHS,NDOFEL,NRHS)          =  element.RHS;
+        Matrix_Xd_Map(AMATRX,NDOFEL,NDOFEL)     = -element.AMATRX;
+        Vector_Xd_Map(SVARS_ptr,SVARS.rows(),1) =  element.SVARS;
     }
 
     //myfile.close();

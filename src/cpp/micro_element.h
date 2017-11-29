@@ -242,7 +242,7 @@ namespace micro_element
             //!| Constitutive Model Interface
             //!=
             
-            void set_stresses(bool set_tangents = false);
+            void set_stresses(bool set_tangents = false, bool output_stress = false);
             
             //!=
             //!| Residuals
@@ -308,8 +308,8 @@ namespace micro_element
             //!| Element Integration 
             //!=
             
-            void update_gauss_point(bool set_tangents = false, bool compute_mass = false);
-            void integrate_element(bool set_tangents = false, bool ignore_RHS = false, bool compute_mass = false);
+            void update_gauss_point(bool set_tangents = false, bool compute_mass = false, bool output_stress = false);
+            void integrate_element(bool set_tangents = false, bool ignore_RHS = false, bool compute_mass = false, bool output_stress = false);
             
             //!=
             //!| Test functions

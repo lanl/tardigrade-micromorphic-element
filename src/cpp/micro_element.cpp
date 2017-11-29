@@ -385,6 +385,9 @@ namespace micro_element
             node_phis[n](1,0) = dof_at_nodes[n][11];
         }
         
+        //Set the state variables
+        SVARS   = _SVARS;
+
         //Set the material parameters
         fparams = PROPS;
         iparams = JPROPS;
@@ -893,7 +896,7 @@ namespace micro_element
     //!| Constitutive Model Interface
     //!=
     
-    void Hex8::set_stresses(bool set_tangents){
+    void Hex8::set_stresses(bool set_tangents, bool output_stress){
         /*!========================
         |     set_stresses     |
         ========================
@@ -917,6 +920,58 @@ namespace micro_element
         }
         else{
             micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
+        }
+
+        if(output_stress){
+
+            //Output the PK2 stress
+            SVARS(0+42*gpt_num) = PK2[gpt_num](0,0);
+            SVARS(1+42*gpt_num) = PK2[gpt_num](1,1);
+            SVARS(2+42*gpt_num) = PK2[gpt_num](2,2);
+            SVARS(3+42*gpt_num) = PK2[gpt_num](1,2);
+            SVARS(4+42*gpt_num) = PK2[gpt_num](0,2);
+            SVARS(5+42*gpt_num) = PK2[gpt_num](0,1);
+            SVARS(6+42*gpt_num) = PK2[gpt_num](2,1);
+            SVARS(7+42*gpt_num) = PK2[gpt_num](2,0);
+            SVARS(8+42*gpt_num) = PK2[gpt_num](1,0);
+
+            //Output the symmetric stress
+            SVARS[ 9+42*gpt_num] = SIGMA[gpt_num](0,0);
+            SVARS[10+42*gpt_num] = SIGMA[gpt_num](1,1);
+            SVARS[11+42*gpt_num] = SIGMA[gpt_num](2,2);
+            SVARS[12+42*gpt_num] = SIGMA[gpt_num](1,2);
+            SVARS[13+42*gpt_num] = SIGMA[gpt_num](0,2);
+            SVARS[14+42*gpt_num] = SIGMA[gpt_num](0,1);
+
+            //Output the higher order couple stress
+            SVARS[15+42*gpt_num] = M[gpt_num](0,0,0);
+            SVARS[16+42*gpt_num] = M[gpt_num](1,1,0);
+            SVARS[17+42*gpt_num] = M[gpt_num](2,2,0);
+            SVARS[18+42*gpt_num] = M[gpt_num](1,2,0);
+            SVARS[19+42*gpt_num] = M[gpt_num](0,2,0);
+            SVARS[20+42*gpt_num] = M[gpt_num](0,1,0);
+            SVARS[21+42*gpt_num] = M[gpt_num](2,1,0);
+            SVARS[22+42*gpt_num] = M[gpt_num](2,0,0);
+            SVARS[23+42*gpt_num] = M[gpt_num](1,0,0);
+            SVARS[24+42*gpt_num] = M[gpt_num](0,0,1);
+            SVARS[25+42*gpt_num] = M[gpt_num](1,1,1);
+            SVARS[26+42*gpt_num] = M[gpt_num](2,2,1);
+            SVARS[27+42*gpt_num] = M[gpt_num](1,2,1);
+            SVARS[28+42*gpt_num] = M[gpt_num](0,2,1);
+            SVARS[29+42*gpt_num] = M[gpt_num](0,1,1);
+            SVARS[30+42*gpt_num] = M[gpt_num](2,1,1);
+            SVARS[31+42*gpt_num] = M[gpt_num](2,0,1);
+            SVARS[32+42*gpt_num] = M[gpt_num](1,0,1);
+            SVARS[33+42*gpt_num] = M[gpt_num](0,0,2);
+            SVARS[34+42*gpt_num] = M[gpt_num](1,1,2);
+            SVARS[35+42*gpt_num] = M[gpt_num](2,2,2);
+            SVARS[36+42*gpt_num] = M[gpt_num](1,2,2);
+            SVARS[37+42*gpt_num] = M[gpt_num](0,2,2);
+            SVARS[38+42*gpt_num] = M[gpt_num](0,1,2);
+            SVARS[39+42*gpt_num] = M[gpt_num](2,1,2);
+            SVARS[40+42*gpt_num] = M[gpt_num](2,0,2);
+            SVARS[41+42*gpt_num] = M[gpt_num](1,0,2);
+
         }
         
         return;
@@ -1590,7 +1645,7 @@ namespace micro_element
     //!| Element Integration 
     //!=
     
-    void Hex8::update_gauss_point(bool set_tangents, bool compute_mass){
+    void Hex8::update_gauss_point(bool set_tangents, bool compute_mass, bool output_stress){
         /*!============================
         |    update_gauss_point    |
         ============================
@@ -1618,17 +1673,17 @@ namespace micro_element
         if(set_tangents){
             set_fundamental_tangents();
             set_deformation_tangents();
-            set_stresses(set_tangents);
+            set_stresses(set_tangents,output_stress);
             set_stress_tangents();
         }
         else{
-            set_stresses();
+            set_stresses(set_tangents,output_stress);
         }
         
         return;
     }
     
-    void Hex8::integrate_element(bool set_tangents, bool ignore_RHS, bool compute_mass){
+    void Hex8::integrate_element(bool set_tangents, bool ignore_RHS, bool compute_mass, bool output_stress){
         /*!===========================
         |    integrate_element    |
         ===========================
@@ -1638,8 +1693,8 @@ namespace micro_element
         */
         
         for(int i=0; i<number_gauss_points; i++){
-            gpt_num = i;                                   //Update the gauss point number
-            update_gauss_point(set_tangents,compute_mass); //Update all of the gauss points
+            gpt_num = i;                                                 //Update the gauss point number
+            update_gauss_point(set_tangents,compute_mass,output_stress); //Update all of the gauss points
             if(!ignore_RHS){
                 add_all_forces();                          //Update the RHS vector from all of the forces
                 add_all_moments();                         //Update the RHS vector from all of the stresses
