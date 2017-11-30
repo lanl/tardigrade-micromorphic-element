@@ -145,7 +145,15 @@ namespace micro_element
             Vector ADLMAG;
             lflags_vector LFLAGS;
             Matrix_RM DDLMAG;       //May not be totally general.
-            
+
+            //!=
+            //!| Output Variables
+            //!=
+            std::string output_name;
+            int step_num;
+            int inc_num;
+            int el_num;            
+
             //!=
             //!| Stresses
             //!=
@@ -166,13 +174,13 @@ namespace micro_element
             Hex8(std::vector< double >, std::vector< double >, std::vector< double >, std::vector<double> _fparams = {}, std::vector<int> _iparams = {});
             
             //!Constructor for Abaqus implementation
-            Hex8(double *_RHS,          double *_AMATRX,    Vector &_SVARS, energy_vector &ENERGY,
-                 Vector &PROPS,         Matrix_RM &COORDS,  Vector &U,      Vector &DU,
-                 Vector &V,             Vector &A,          double TIME[2], double DTIME, 
-                 int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
-                 Matrixi_RM &JDLTYP,    Vector &ADLMAG,     double *PREDEF, int NPREDF,
-                 lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
-                 double PERIOD);
+            Hex8(double *_RHS,          double *_AMATRX,        Vector &_SVARS, energy_vector &ENERGY,
+                 Vector &PROPS,         Matrix_RM &COORDS,      Vector &U,      Vector &DU,
+                 Vector &V,             Vector &A,              double TIME[2], double DTIME, 
+                 int KSTEP,             int KINC,               int JELEM,      params_vector &PARAMS,
+                 Matrixi_RM &JDLTYP,    Vector &ADLMAG,         double *PREDEF, int NPREDF,
+                 lflags_vector &LFLAGS, Matrix_RM &DDLMAG,      double PNEWDT,  Vectori &JPROPS,
+                 double PERIOD,         std::string output_fn);
                  
             //!==
             //!|
@@ -242,7 +250,7 @@ namespace micro_element
             //!| Constitutive Model Interface
             //!=
             
-            void set_stresses(bool set_tangents = false, bool output_stress = false);
+            void set_stresses(bool set_tangents = false);
             
             //!=
             //!| Residuals
@@ -308,9 +316,15 @@ namespace micro_element
             //!| Element Integration 
             //!=
             
-            void update_gauss_point(bool set_tangents = false, bool compute_mass = false, bool output_stress = false);
+            void update_gauss_point(bool set_tangents = false, bool compute_mass = false);
             void integrate_element(bool set_tangents = false, bool ignore_RHS = false, bool compute_mass = false, bool output_stress = false);
             
+            //!=
+            //!| Element Output
+            //!=
+
+            void write_output();
+
             //!=
             //!| Test functions
             //!=
