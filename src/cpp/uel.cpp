@@ -6,6 +6,7 @@
 #include <micro_element.h>
 #include <micromorphic_linear_elasticity.h>
 #include <uel.h>
+#include <aba_for_c.h>
 
 extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENERGY,
                     int &NDOFEL,    int &NRHS,      int &NSVARS,    double *PROPS, 
@@ -195,8 +196,13 @@ extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENER
                         
                         //!Form Eigen::Map representations of the incoming vectors
                         
+
+                        std::string output_fn = "/data/home/students/nami2227/Code/micromorphic_uel/src/abaqus/tests/multi_element/stretch_y/stretch_y"; //!TODO: Make this not hardcoded
+
                         //std::ofstream myfile;
                         //myfile.open ("/data/home/students/nami2227/Code/micromorphic_uel/src/abaqus/tests/multi_element/debug.txt");
+                        //myfile << FOR_NAME(getoutdir) << "\n";
+                        //myfile.close();
                         //myfile << "Debug file from micromorphic user element\n";
                         //myfile << "NSVARS: " << NSVARS << "\n";
                         //myfile.close();
@@ -246,7 +252,8 @@ extern "C" void uel_(double *RHS,   double *AMATRX, double *SVARS,  double *ENER
                                          KSTEP,      KINC,       JELEM,     PARAMS_vec,
                                          JDLTYP_mat, ADLMAG_vec, PREDEF,    NPREDF,
                                          LFLAGS_vec, DDLMAG_mat, PNEWDT,    JPROPS_vec,
-                                         PERIOD,     NDOFEL,     NRHS,      SVARS);//,      myfile);
+                                         PERIOD,     NDOFEL,     NRHS,      SVARS,
+                                         output_fn);//,      myfile);
                         }
                         else{
                             std::cout << "\nError: Element type not recognized";
@@ -260,7 +267,8 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
                  int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
                  Matrixi_RM &JDLTYP,    Vector &ADLMAG,     double *PREDEF, int NPREDF,
                  lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
-                 double PERIOD,         int NDOFEL,         int NRHS,       double *SVARS_ptr){//,       std::ofstream &myfile){
+                 double PERIOD,         int NDOFEL,         int NRHS,       double *SVARS_ptr,
+                 std::string output_fn){//,       std::ofstream &myfile){
     /*!====================
     |   compute_hex8   |
     ====================
@@ -274,10 +282,10 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
 
     //myfile << "in compute_hex8\n";
 
-    micro_element::Hex8 element(RHS,    AMATRX, SVARS,  ENERGY, PROPS,  COORDS, U,      DU,
-                                V,      A,      TIME,   DTIME,  KSTEP,  KINC,   JELEM,  PARAMS,
-                                JDLTYP, ADLMAG, PREDEF, NPREDF, LFLAGS, DDLMAG, PNEWDT, JPROPS,
-                                PERIOD);
+    micro_element::Hex8 element(RHS,    AMATRX,   SVARS,  ENERGY, PROPS,  COORDS, U,      DU,
+                                V,      A,        TIME,   DTIME,  KSTEP,  KINC,   JELEM,  PARAMS,
+                                JDLTYP, ADLMAG,   PREDEF, NPREDF, LFLAGS, DDLMAG, PNEWDT, JPROPS,
+                                PERIOD, output_fn);
     
     //myfile << "Element initialized\n";
 
