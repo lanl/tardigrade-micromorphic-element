@@ -24,4 +24,5 @@ void compute_hex8(double *RHS,          double *AMATRX,     Vector &SVARS,  ener
                  int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
                  Matrixi_RM &JDLTYP,    Vector &ADLMAG,     double *PREDEF, int NPREDF,
                  lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
-                 double PERIOD,         int NDOFEL,         int NRHS,       std::ofstream&);
+                 double PERIOD,         int NDOFEL,         int NRHS,       double *SVARS_ptr,
+                 std::string output_fn);//,       std::ofstream&);

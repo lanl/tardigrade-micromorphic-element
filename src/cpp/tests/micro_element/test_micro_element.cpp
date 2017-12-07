@@ -1472,8 +1472,8 @@ int test_fundamental_measures(std::ofstream &results){
         for(int J=0; J<3; J++){
             for(int K=0; K<3; K++){
                 for(int L=0; L<96; L++){
-                    test_results[5] *= 1e-9>fabs(gradient[L][9*K+3*I+J] - dgrad_chidU_result(I,J,K,L));
-                    //std::cout << "answer: " << gradient[L][9*K+3*I+J] << "\nresult: " << dgrad_chidU_result(I,J,K,L) << "\n";
+                    test_results[5] *= 1e-8>fabs(gradient[L][9*K+3*I+J] - dgrad_chidU_result(I,J,K,L));
+                    //std::cout << "answer: " << gradient[L][9*K+3*I+J] << "\nresult: " << dgrad_chidU_result(I,J,K,L) << "\ndiff: " << fabs(gradient[L][9*K+3*I+J] - dgrad_chidU_result(I,J,K,L)) << "\n";
                     if(!test_results[5]){break;}
                 }
                 if(!test_results[5]){break;}

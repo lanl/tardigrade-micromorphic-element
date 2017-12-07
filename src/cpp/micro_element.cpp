@@ -258,13 +258,13 @@ namespace micro_element
         for(int i=0; i<_iparams.size(); i++){iparams(i) = _iparams[i];}
     }
     
-    Hex8::Hex8(double *_RHS,          double *_AMATRX,    Vector &_SVARS, energy_vector &ENERGY,
-               Vector &PROPS,         Matrix_RM &COORDS,  Vector &U,      Vector &DU,
-               Vector &V,             Vector &A,          double TIME[2], double DTIME, 
-               int KSTEP,             int KINC,           int JELEM,      params_vector &PARAMS,
-               Matrixi_RM &JDLTYP,    Vector &ADLMAG,     double *PREDEF, int NPREDF,
-               lflags_vector &LFLAGS, Matrix_RM &DDLMAG,  double PNEWDT,  Vectori &JPROPS,
-               double PERIOD){
+    Hex8::Hex8(double *_RHS,          double *_AMATRX,      Vector &_SVARS, energy_vector &ENERGY,
+               Vector &PROPS,         Matrix_RM &COORDS,    Vector &U,      Vector &DU,
+               Vector &V,             Vector &A,            double TIME[2], double DTIME, 
+               int KSTEP,             int KINC,             int JELEM,      params_vector &PARAMS,
+               Matrixi_RM &JDLTYP,    Vector &ADLMAG,       double *PREDEF, int NPREDF,
+               lflags_vector &LFLAGS, Matrix_RM &DDLMAG,    double PNEWDT,  Vectori &JPROPS,
+               double PERIOD,         std::string output_fn){
         /*!====================
         |        Hex8       |
         =====================
@@ -385,9 +385,18 @@ namespace micro_element
             node_phis[n](1,0) = dof_at_nodes[n][11];
         }
         
+        //Set the state variables
+        SVARS   = _SVARS;
+
         //Set the material parameters
         fparams = PROPS;
         iparams = JPROPS;
+
+        //Set the output filename
+        output_name = output_fn;
+        step_num    = KSTEP;
+        inc_num     = KINC;
+        el_num      = JELEM;
     }
     
     
@@ -918,7 +927,7 @@ namespace micro_element
         else{
             micro_material::get_stress(fparams,iparams,C,Psi,Gamma,PK2[gpt_num],SIGMA[gpt_num],M[gpt_num]);
         }
-        
+
         return;
     }
     
@@ -1622,13 +1631,13 @@ namespace micro_element
             set_stress_tangents();
         }
         else{
-            set_stresses();
+            set_stresses(set_tangents);
         }
         
         return;
     }
     
-    void Hex8::integrate_element(bool set_tangents, bool ignore_RHS, bool compute_mass){
+    void Hex8::integrate_element(bool set_tangents, bool ignore_RHS, bool compute_mass, bool output_stress){
         /*!===========================
         |    integrate_element    |
         ===========================
@@ -1649,6 +1658,8 @@ namespace micro_element
                 set_moment_tangent();
             }
         }
+
+        if(output_stress){write_output();}
         
         if(compute_mass){
             if(set_tangents){
@@ -1657,10 +1668,59 @@ namespace micro_element
             }
             set_mass_matrix();
         }
-        
+
         return;
     }
     
+    //!=
+    //!| Output functions
+    //!=
+
+    void Hex8::write_output(){
+        /*!======================
+        |    write_output    |
+        ======================
+
+        Write the data to the output file. This 
+        may be used as an error reporting method 
+        in the future.
+
+        */
+        
+
+        std::ofstream f;
+        f.open(output_name + '_' + std::to_string(el_num) + "_" + std::to_string(step_num) + "_" + std::to_string(inc_num));
+
+        for(int i=0; i<8; i++){
+            //Output the PK2 stress
+            f << "PK2\n";
+            f << PK2[i](0,0) << ", " << PK2[i](1,1) << ", " << PK2[i](2,2) << ", " <<
+                 PK2[i](1,2) << ", " << PK2[i](0,2) << ", " << PK2[i](0,1) << ", " <<
+                 PK2[i](2,1) << ", " << PK2[i](2,0) << ", " << PK2[i](1,0) << "\n";
+
+            //Output the symmetric stress
+            f << "SIGMA\n";
+            f << SIGMA[i](0,0) << ", " << SIGMA[i](1,1) << ", " << SIGMA[i](2,2) << ", " <<
+                 SIGMA[i](1,2) << ", " << SIGMA[i](0,2) << ", " << SIGMA[i](0,1) << "\n";
+
+            //Output the higher order couple stress
+            f << "M\n";
+            f << M[i](0,0,0) << ", " << M[i](1,1,0) << ", " << M[i](2,2,0) << ", " <<
+                 M[i](1,2,0) << ", " << M[i](0,2,0) << ", " << M[i](0,1,0) << ", " <<
+                 M[i](2,1,0) << ", " << M[i](2,0,0) << ", " << M[i](1,0,0) << "\n" <<
+                 M[i](0,0,1) << ", " << M[i](1,1,1) << ", " << M[i](2,2,1) << ", " <<
+                 M[i](1,2,1) << ", " << M[i](0,2,1) << ", " << M[i](0,1,1) << ", " <<
+                 M[i](2,1,1) << ", " << M[i](2,0,1) << ", " << M[i](1,0,1) << "\n" <<
+                 M[i](0,0,2) << ", " << M[i](1,1,2) << ", " << M[i](2,2,2) << ", " <<
+                 M[i](1,2,2) << ", " << M[i](0,2,2) << ", " << M[i](0,1,2) << ", " <<
+                 M[i](2,1,2) << ", " << M[i](2,0,2) << ", " << M[i](1,0,2) << "\n";
+
+        }
+        f.close();
+
+
+    }
+
     //!=
     //!| Test functions
     //!=

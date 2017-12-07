@@ -10,6 +10,9 @@ CFLAGS=-I. -O3 -fPIC
 #Include Eigen Library
 EIGEN = -I EIGEN_LOCATION
 
+#Include the Abaqus header files
+ABAQUS = -I /usr/local/abaqus-6.14-5/6.14-5/code/include/
+
 #Debugging flag
 DBG = -ggdb
 
@@ -21,7 +24,7 @@ usub.o: uel.o micro_element.o micro_material.o tensor.o
 	ld -r -o $@ uel.o micro_element.o micro_material.o tensor.o
 
 uel.o: uel.h uel.cpp micro_element.h tensor.h
-	$(CC) $(STD) -o $@ -c uel.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+	$(CC) $(STD) -o $@ -c uel.cpp $(CFLAGS) $(EIGEN) $(ABAQUS) $(ERRORFLG) $(DBG)
 
 micro_element.o: micro_element.h tensor.h micro_element.cpp micromorphic_linear_elasticity.h
 	$(CC) $(STD) -o $@ -c micro_element.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)

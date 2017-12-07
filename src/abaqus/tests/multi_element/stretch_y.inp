@@ -91,6 +91,8 @@
   1,  25,   3
 *Elset, elset=Set-6, instance=Part-1-1, generate
  1,  7,  2
+*Nset, nset=All_nodes, instance=Part-1-1, generate
+ 1, 27,  1
 *End Assembly
 ** ----------------------------------------------------------------
 ** 
@@ -99,7 +101,7 @@
 *Step, name=load, nlgeom=NO
 Apply deformation to model
 *Static
-1., 1., 1e-05, 1.
+0.1, 1.0, 1e-05, 0.1
 ** 
 ** BOUNDARY CONDITIONS
 ** 
@@ -116,13 +118,14 @@ Set-5, 2, 2
 *Boundary
 Set-3, 3, 3
 ** Name: fix_micro_x Type: Microdisplacement
-Set-4, 12, 20
+** Set-4, 12, 12
 ** 101, 109
 ** Name: fix_micro_y Type: Microdisplacement
-Set-5, 12, 20
+Set-5, 13, 13
 ** 101, 109
 ** Name: fix_micro_z Type: Microdisplacement
-Set-3, 12, 20
+** Set-3, 14, 14
+All_nodes, 15, 20
 ** 101, 109
 ** 
 ** OUTPUT REQUESTS
@@ -131,9 +134,11 @@ Set-3, 12, 20
 ** 
 ** FIELD OUTPUT: F-Output-2
 ** 
-***Output, field
-***Node Output
-**U, 
+*Output, field
+*Node Output
+U,NT,
+*Element Output
+SDV,
 ** 
 ** FIELD OUTPUT: F-Output-1
 ** 
