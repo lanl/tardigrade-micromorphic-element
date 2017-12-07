@@ -50,18 +50,22 @@ dir = "../../../../../abaqus/tests/multi_element/stretch_y/"
 response = process_output.ProcessMicroMorphic(dir)
 
 disp   = np.linspace(0.,0.1,len(response.elements[1].steps[1].increments.keys())+1)
-PK2    = [[0]+[response.elements[1].steps[1].increments[v]['PK2'][w] for v in range(1,len(response.elements[1].steps[1].increments.keys())+1)] for w in range(9)]
-SIGMA  = [[0]+[response.elements[1].steps[1].increments[v]['SIGMA'][w] for v in range(1,len(response.elements[1].steps[1].increments.keys())+1)] for w in range(6)]
-labels = ['11','22','33','23','13','12','32','31','21']
 
-plt.figure()
-[plt.plot(disp,b,'-', label=c) for b,c in zip(PK2,labels)]
-[plt.plot(disp,b,'--',label=c) for b,c in zip(SIGMA,labels)]
+for el_num in response.elements.keys():
+    PK2    = [[0]+[response.elements[el_num].steps[1].increments[v]['PK2'][w] for v in range(1,len(response.elements[1].steps[1].increments.keys())+1)] for w in range(9)]
+    SIGMA  = [[0]+[response.elements[el_num].steps[1].increments[v]['SIGMA'][w] for v in range(1,len(response.elements[1].steps[1].increments.keys())+1)] for w in range(6)]
+    labels = ['11','22','33','23','13','12','32','31','21']
 
-plt.xlabel(r"Deflection")
-plt.ylabel(r"PK2/SIGMA")
-plt.legend()
-plt.savefig('PK2_stretch_y.pdf')
+    plt.figure()
+    [plt.plot(disp,b,'-', label=c) for b,c in zip(PK2,labels)]
+    [plt.plot(disp,b,'--',label=c) for b,c in zip(SIGMA,labels)]
+
+    plt.xlabel(r"Deflection")
+    plt.ylabel(r"PK2/SIGMA")
+    plt.xlim([ 0.,0.15])
+    plt.ylim([-0.2e9,1e9])
+    plt.legend()
+    plt.savefig('PK2_stretch_y_{0}.pdf'.format(el_num))
 
 PC,AV = zip(*[extract_values(response.elements[1].steps[1].increments[v]['PK2'],is_symm=False) for v in range(1,len(response.elements[1].steps[1].increments.keys())+1)])
 
