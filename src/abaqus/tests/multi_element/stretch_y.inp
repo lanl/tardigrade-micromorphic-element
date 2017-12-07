@@ -118,13 +118,14 @@ Set-5, 2, 2
 *Boundary
 Set-3, 3, 3
 ** Name: fix_micro_x Type: Microdisplacement
-Set-4, 12, 20
+** Set-4, 12, 12
 ** 101, 109
 ** Name: fix_micro_y Type: Microdisplacement
-Set-5, 12, 20
+Set-5, 13, 13
 ** 101, 109
 ** Name: fix_micro_z Type: Microdisplacement
-Set-3, 12, 20
+** Set-3, 14, 14
+All_nodes, 15, 20
 ** 101, 109
 ** 
 ** OUTPUT REQUESTS
