@@ -99,17 +99,25 @@ class TestHarness(object):
     def generate_report(self):
         """Generate the LaTeX report"""
         #Run test processing
-        os.system(r"python "+os.path.join(".","doc","Report","tests","process_tests.py"))
-        #Change directories
-        os.chdir(os.path.join(".","doc","Report"))
-        #Run pdflatex
-        os.system(r"pdflatex Micromorphic_Element_Report.tex")
-        #Run bibtex
-        os.system(r"bibtex Micromorphic_Element_Report")
-        #Run pdflatex
-        os.system(r"pdflatex Micromorphic_Element_Report.tex")
-        os.system(r"pdflatex Micromorphic_Element_Report.tex")
-        os.chidr(self.owd)
+        os.chdir(os.path.join(".","doc","Report","tests"))
+        proc = subprocess.Popen([self.python,"process_tests.py"])
+        proc.wait()
+        (stdout, stderr) = proc.communicate()
+
+        if proc.returncode != 0:
+            print(stderr)
+            raise IOError
+
+#        #Change directories
+#        os.chdir(os.path.join(".","doc","Report"))
+#        #Run pdflatex
+#        os.system(r"pdflatex Micromorphic_Element_Report.tex")
+#        #Run bibtex
+#        os.system(r"bibtex Micromorphic_Element_Report")
+#        #Run pdflatex
+#        os.system(r"pdflatex Micromorphic_Element_Report.tex")
+#        os.system(r"pdflatex Micromorphic_Element_Report.tex")
+        os.chdir(self.owd)
     
     def _flatten_list(self,l):
         """Flatten list of lists"""
