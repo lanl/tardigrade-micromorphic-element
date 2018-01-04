@@ -96,11 +96,27 @@ def process_results_file():
         print_err(str)
         return None
     
+def run_command(command_list):
+    """
+    ===================
+    |   run_command   |
+    ===================
+
+    Run a command using the subprocees.Proc
+    framework.
+
+    """
+
+    proc = subprocess.Popen(command_list)
+    proc.wait()
+    (stdout,stderr) = proc.communicate()
+    
+    if proc.returncode != 0:
+        print(stderr)
+        raise IOError
     
 #Main code execution block
-if(__name__=="__main__"):
-
-    sys.stdout = open(results_filename,'w')                   #Reroute the stdout to a file
+def main_code_block():
 
     print_header()
 
@@ -120,16 +136,20 @@ if(__name__=="__main__"):
         if(dir!='regression_tests'):
             print_test_header(dir)                            #Print the header
             os.chdir(os.path.join('tests',dir))               #Move to the directory
-            exe_name = 'test_' + dir + ".exe"                 #The resulting executable is assumed 
+            if(os.name=='nt'):
+                exe_name = 'test_' + dir + ".exe"             #The resulting executable is assumed 
                                                               #to have the name test_directory.exe
+                                                              #on Windows and test_directory otherwise
+            else:
+                exe_name = r'./test_' + dir
             try:
-                subprocess.call(make_command)                 #Call make in the current directory
+                run_command([make_command])                   #Call make in the current directory
             except:
                 str = "Error: Problem encountered during compilation."
                 print_error(str)
         
             try:
-                subprocess.call(exe_name)                     #Call the resulting executable
+                run_command([exe_name])                       #Call the resulting executable
             except:
                 str = "Error: Problem encountered during execution."
                 print_error(str)
@@ -175,4 +195,11 @@ if(__name__=="__main__"):
     print str
     print_char(len(str))
     
+#Main code execution block
+if(__name__=="__main__"):
+
+    sys.stdout = open(results_filename,'w')                   #Reroute the stdout to a file
+
+    main_code_block()
+
     sys.stdout = original_stdout
