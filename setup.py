@@ -23,6 +23,9 @@ compiler_command = config.Configuration().compiler
 #Define the make command
 make_command     = config.Configuration().make
 
+#Define the python command
+python_command   = config.Configuration().python
+
 #Form the source path
 source_path      = os.path.join(documentation_directory,bibliography_file)
 
@@ -61,6 +64,18 @@ for line in default:
     f.write(line)
 f.close()
 df.close()
+
+output_file = "run_tests.py"
+f = open(output_file,"w+")
+df = open("run_tests.py.default","r+")
+default = df.readlines()
+for line in default:
+    line = line.replace("MAKE_COMMAND",make_command)
+    line = line.replace("PYTHON_COMMAND",python_command)
+    f.write(line)
+f.close()
+df.close()
+
 
 #os.system("python run_tests.py")
 #os.system("python documentation_generator.py")
