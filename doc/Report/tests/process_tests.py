@@ -54,7 +54,7 @@ class LatexParser(object):
         """Copy the required LaTeX files from the test directory to the LaTeX directory"""
         
         #copy the unit tests
-        unittest_path  = os.path.join(self.test_dir,self.unittest_dir)
+        unittest_path  = os.path.join(self.test_dir)
                 
         for test_name in self.unittests:
             #Identify the file sources
