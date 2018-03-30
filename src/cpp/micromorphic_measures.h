@@ -27,11 +27,11 @@ typedef Eigen::Matrix<double, 3,9> Matrix_3x9;
 namespace micromorphic_measures
 {
 
-    void get_deformation_gradient(const double &_grad_u[3][3], Matrix_3x3 &F);
+    void get_deformation_gradient(const double (&_grad_u)[3][3], Matrix_3x3 &F);
 
-    void assemble_chi(const double &_phi[9], Matrix_3x3 &chi);
+    void assemble_chi(const double (&_phi)[9], Matrix_3x3 &chi);
 
-    void assemble_gradchi(const double &_grad_phi[9][3], Matrix_3x9 &grad_chi);
+    void assemble_grad_chi(const double (&_grad_phi)[9][3], Matrix_3x9 &grad_chi);
 
     void get_right_cauchy_green(const Matrix_3x3 &F, Matrix_3x3 &RCG);
 
@@ -41,6 +41,6 @@ namespace micromorphic_measures
 
     void get_almansi_strain(const Matrix_3x3 &F, Matrix_3x3 &e);
 
-    void get_small_strain(const double &_grad_u[3][3], Matrix_3x3 &epsilon);
+    void get_small_strain(const double (&_grad_u)[3][3], Matrix_3x3 &epsilon);
 
 }

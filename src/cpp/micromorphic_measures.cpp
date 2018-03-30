@@ -20,7 +20,7 @@ namespace micromorphic_measures
 
 {
 
-    void get_deformation_gradient(const double &_grad_u[3][3], Matrix_3x3 &F){
+    void get_deformation_gradient(const double (&_grad_u)[3][3], Matrix_3x3 &F){
 
         /*!==================================
            |    get_deformation_gradient    |
@@ -36,9 +36,9 @@ namespace micromorphic_measures
 
         */
 
-        for (int i=0, i<3, i++){
+        for (int i=0; i<3; i++){
 
-            for (int j=0, j<3, j++){
+            for (int j=0; j<3; j++){
 
                 F(i,j) = -_grad_u[i][j];
 
@@ -46,14 +46,14 @@ namespace micromorphic_measures
 
         }
 
-        for (int i=0, i<3, i++){F(i,i) += 1;}
+        for (int i=0; i<3; i++){F(i,i) += 1;}
 
-        F = F.inverse();
+        F = F.inverse().eval();
 
         return;
     }
 
-    void assemble_chi(const double &_phi[9], Matrix_3x3 &chi){
+    void assemble_chi(const double (&_phi)[9], Matrix_3x3 &chi){
 
         /*!======================
            |    assemble_chi    |
@@ -82,7 +82,7 @@ namespace micromorphic_measures
 
     }
 
-    void assemble_grad_chi(const double &_grad_phi[9][3], Matrix_3x9 &grad_chi){
+    void assemble_grad_chi(const double (&_grad_phi)[9][3], Matrix_3x9 &grad_chi){
 
         /*!==========================
           |    assemble_grad_chi    |
@@ -202,12 +202,12 @@ namespace micromorphic_measures
 
         */
 
-        e = -(F*F.transpose()).inverse()
+        e = -(F*F.transpose()).inverse();
         for (int i=0; i<3; i++){e(i,i) += 1.;}
         return;
     }
 
-    void get_small_strain(const double &_grad_u[3][3], Matrix_3x3 &epsilon){
+    void get_small_strain(const double (&_grad_u)[3][3], Matrix_3x3 &epsilon){
          /*!=========================
            |    get_small_strain    |
            ==========================
