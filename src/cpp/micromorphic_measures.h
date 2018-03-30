@@ -14,6 +14,33 @@
    ===========================================================================
    */
    
-   #include <Eigen/Dense>
-   
-   
+#include <Eigen/Dense>
+
+//!Type definitions of common vector and matrix sizes.
+typedef Eigen::Matrix<double, 6,1> Vector_6;
+typedef Eigen::Matrix<double, 9,1> Vector_9;
+typedef Eigen::Matrix<double,27,1> Vector_27;
+typedef Eigen::Matrix<double, 3,3> Matrix_3x3;
+typedef Eigen::Matrix<double, 3,9> Matrix_3x9;
+
+
+namespace micromorphic_measures
+{
+
+    void get_deformation_gradient(const double &_grad_u[3][3], Matrix_3x3 &F);
+
+    void assemble_chi(const double &_phi[9], Matrix_3x3 &chi);
+
+    void assemble_gradchi(const double &_grad_phi[9][3], Matrix_3x9 &grad_chi);
+
+    void get_right_cauchy_green(const Matrix_3x3 &F, Matrix_3x3 &RCG);
+
+    void get_left_cauchy_green(const Matrix_3x3 &F, Matrix_3x3 &LCG);
+
+    void get_lagrange_strain(const Matrix_3x3 &F, Matrix_3x3 &E);
+
+    void get_almansi_strain(const Matrix_3x3 &F, Matrix_3x3 &e);
+
+    void get_small_strain(const double &_grad_u[3][3], Matrix_3x3 &epsilon);
+
+}
