@@ -295,6 +295,68 @@ namespace micromorphic_measures
 
         gamma = F.transpose()*grad_chi;
 
+        return;
+    }
+
+    void voigt_3x3_symm_tensor(const Matrix_3x3 &A, Vector_6 &v){
+        /*!==============================
+           |    voigt_3x3_symm_tensor   |
+           ==============================
+
+           Create the voigt notation of a symmetric second order tensor.
+
+        */
+
+        v(0) = A(0,0);
+        v(1) = A(1,1);
+        v(2) = A(2,2);
+        v(3) = A(1,2);
+        v(4) = A(0,2);
+        v(5) = A(0,1);
+
+        return;
+    }
+
+    void voigt_3x3_tensor(const Matrix_3x3 &A, Vector_9 &v){
+        /*!=========================
+           |    voigt_3x3_tensor   |
+           =========================
+
+           Create the voigt notation of a general second order tensor.
+
+        */
+
+        v(0) = A(0,0);
+        v(1) = A(1,1);
+        v(2) = A(2,2);
+        v(3) = A(1,2);
+        v(4) = A(0,2);
+        v(5) = A(0,1);
+        v(6) = A(2,1);
+        v(7) = A(2,0);
+        v(8) = A(1,0);
+
+        return;
+    }
+
+    void voigt_3x9_tensor(const Matrix_3x9 &A, Vector_27 &v){
+        /*!==========================
+           |    voigt_3x9_tensor    |
+           ==========================
+
+           Create the voigt notation of a general third order tensor
+           which has the second two indices are in voigt notation already.
+
+        */
+
+        for (int i=0; i<3; i++){
+
+            for (int j=0; j<9; j++){
+                v(i*9 + j) = A(i,j); 
+            }
+
+        }
+        return;
     }
 
 }

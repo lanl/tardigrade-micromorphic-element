@@ -46,4 +46,10 @@ namespace micromorphic_measures
     void get_psi(const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_3x3 &psi);
 
     void get_gamma(const Matrix_3x3 &F, const Matrix_3x9 &grad_chi, Matrix_3x9 &gamma);
+
+    void voigt_3x3_symm_tensor(const Matrix_3x3 &A, Vector_6 &v);
+
+    void voigt_3x3_tensor(const Matrix_3x3 &A, Vector_9 &v);
+
+    void voigt_3x9_tensor(const Matrix_3x9 &A, Vector_27 &v);
 }

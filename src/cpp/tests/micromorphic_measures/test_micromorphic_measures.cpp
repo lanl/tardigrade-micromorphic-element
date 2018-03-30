@@ -491,9 +491,124 @@ int test_get_gamma(std::ofstream &results){
     }
 
     return 1;
-
 }
 
+int test_voigt_3x3_symm_tensor(std::ofstream &results){
+    /*====================================
+      |    test_voigt_3x3_symm_tensor    |
+      ====================================
+
+      Test the mapping of a symmetric tensor to voigt
+      notation.
+
+    */
+
+    Matrix_3x3 A; //The tensor to map
+    A << 1, 2, 3, 4, 5, 6, 7, 8, 9; //Populate the tensor
+
+    Vector_6 v;  //The expected result
+    Vector_6 _v; //The function result
+
+    v(0) = A(0,0);
+    v(1) = A(1,1);
+    v(2) = A(2,2);
+    v(3) = A(1,2);
+    v(4) = A(0,2);
+    v(5) = A(0,1);
+
+    micromorphic_measures::voigt_3x3_symm_tensor(A,_v);
+
+    bool tot_result = v.isApprox(_v);
+
+    if (tot_result){
+        results << "test_voigt_3x3_symm_tensor & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_voigt_3x3_symm_tensor & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_voigt_3x3_tensor(std::ofstream &results){
+    /*===============================
+      |    test_voigt_3x3_tensor    |
+      ===============================
+
+      Test the mapping of a general tensor to voigt
+      notation.
+
+    */
+
+    Matrix_3x3 A; //The tensor to map
+    A << 1, 2, 3, 4, 5, 6, 7, 8, 9; //Populate the tensor
+
+    Vector_9 v;  //The expected result
+    Vector_9 _v; //The function result
+
+    v(0) = A(0,0);
+    v(1) = A(1,1);
+    v(2) = A(2,2);
+    v(3) = A(1,2);
+    v(4) = A(0,2);
+    v(5) = A(0,1);
+    v(6) = A(2,1);
+    v(7) = A(2,0);
+    v(8) = A(1,0);
+
+    micromorphic_measures::voigt_3x3_tensor(A,_v);
+
+    bool tot_result = v.isApprox(_v);
+
+    if (tot_result){
+        results << "test_voigt_3x3_tensor & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_voigt_3x3_tensor & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_voigt_3x9_tensor(std::ofstream &results){
+    /*===============================
+      |    test_voigt_3x9_tensor    |
+      ===============================
+
+      Test the computation of the voigt notation 
+      for a third order tensor.
+
+    */
+
+    Matrix_3x9 A; //The tensor to map
+    Vector_27 v;  //The expected result
+    Vector_27 _v; //The function result
+    int a = 1;
+    for (int i=0; i<3; i++){
+
+        for (int j=0; j<9; j++){
+
+            A(i,j) = a;
+            v(i*9+j) = a;
+            a++;
+
+        }
+
+    }
+
+    micromorphic_measures::voigt_3x9_tensor(A,_v);
+
+    bool tot_result = v.isApprox(_v);
+
+    if (tot_result){
+        results << "test_voigt_3x9_tensor & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_voigt_3x9_tensor & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
 
 int main(){
     /*!==========================
@@ -520,6 +635,9 @@ int main(){
     test_get_small_strain(results);
     test_get_psi(results);
     test_get_gamma(results);
+    test_voigt_3x3_symm_tensor(results);
+    test_voigt_3x3_tensor(results);
+    test_voigt_3x9_tensor(results);
 
     //Close the results file
     results.close();
