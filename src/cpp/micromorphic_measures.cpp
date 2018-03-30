@@ -186,8 +186,9 @@ namespace micromorphic_measures
 
         */
 
-        E = F.transpose()*F;
-        for (int i=0; i<3; i++){E(i,i) -= 1.;}
+        E = 0.5*F.transpose()*F;
+        for (int i=0; i<3; i++){E(i,i) -= 0.5;}
+
         return;
     }
 
@@ -202,8 +203,8 @@ namespace micromorphic_measures
 
         */
 
-        e = -(F*F.transpose()).inverse();
-        for (int i=0; i<3; i++){e(i,i) += 1.;}
+        e = -0.5*(F*F.transpose()).inverse();
+        for (int i=0; i<3; i++){e(i,i) += 0.5;}
         return;
     }
 

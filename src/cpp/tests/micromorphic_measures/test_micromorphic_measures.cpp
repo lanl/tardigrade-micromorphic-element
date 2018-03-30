@@ -233,11 +233,7 @@ int test_assemble_grad_chi(std::ofstream &results){
 
     }
 
-    std::cout << grad_chi << "\n";
-
     micromorphic_measures::assemble_grad_chi(grad_chi_data_array, _grad_chi);
-
-    std::cout << _grad_chi << "\n";
 
     bool tot_result = grad_chi.isApprox(_grad_chi);
 
@@ -251,6 +247,179 @@ int test_assemble_grad_chi(std::ofstream &results){
     return 1;
 
 }
+
+int test_get_right_cauchy_green(std::ofstream &results){
+    /*=====================================
+      |    test_get_right_cauchy_green    |
+      =====================================
+
+      Test the computation of the right cauchy green 
+      deformation tensor.
+
+    */
+
+    Matrix_3x3 RCG;  //The expected result
+    Matrix_3x3 _RCG; //The result from the function
+
+    Matrix_3x3 F;    //The deformation gradient
+    define_deformation_gradient(F); //Set the value of the deformation gradient.
+
+    RCG = F.transpose()*F;
+
+    micromorphic_measures::get_right_cauchy_green(F,_RCG);
+
+    bool tot_result = RCG.isApprox(_RCG);
+
+    if(tot_result){
+        results << "test_get_right_cauchy_green & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_get_right_cauchy_green & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+
+}
+
+
+int test_get_left_cauchy_green(std::ofstream &results){
+    /*====================================
+      |    test_get_left_cauchy_green    |
+      ====================================
+
+      Test the computation of the left cauchy green 
+      deformation tensor.
+
+    */
+
+    Matrix_3x3 LCG;  //The expected result
+    Matrix_3x3 _LCG; //The result from the function
+
+    Matrix_3x3 F;    //The deformation gradient
+    define_deformation_gradient(F); //Set the value of the deformation gradient.
+
+    LCG = F*F.transpose();
+
+    micromorphic_measures::get_left_cauchy_green(F,_LCG);
+
+    bool tot_result = LCG.isApprox(_LCG);
+
+    if(tot_result){
+        results << "test_get_left_cauchy_green & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_get_left_cauchy_green & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+
+}
+
+int test_get_lagrange_strain(std::ofstream &results){
+    /*==================================
+      |    test_get_lagrange_strain    |
+      ==================================
+
+      Test the computation of the lagrange strain.
+
+    */
+
+    Matrix_3x3 E;  //The expected result
+    Matrix_3x3 _E; //The result from the function
+
+    Matrix_3x3 F;  //The deformation gradient
+    define_deformation_gradient(F); //Set the value of the deformation gradient
+
+    E = 0.5*(F.transpose()*F - Matrix_3x3::Identity());
+
+    micromorphic_measures::get_lagrange_strain(F,_E);
+
+    bool tot_result = E.isApprox(_E);
+
+    if(tot_result){
+        results << "test_get_lagrange_strain & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_get_lagrange_strain & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_get_almansi_strain(std::ofstream &results){
+    /*=================================
+      |    test_get_almansi_strain    |
+      =================================
+
+      Test the computation of the almansi strain.
+
+    */
+
+    Matrix_3x3 e;  //The expected result
+    Matrix_3x3 _e; //The result from the function
+
+    Matrix_3x3 F;  //The deformation gradient
+    define_deformation_gradient(F); //Set the value of the deformation gradient
+
+    e = 0.5*(Matrix_3x3::Identity() - (F*F.transpose()).inverse());
+
+    micromorphic_measures::get_almansi_strain(F,_e);
+
+    bool tot_result = e.isApprox(_e);
+
+    if(tot_result){
+        results << "test_get_almansi_strain & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_get_almansi_strain & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_get_small_strain(std::ofstream &results){
+    /*===============================
+      |    test_get_small_strain    |
+      ===============================
+
+      Test the computation of the small strain.
+
+    */
+
+    Matrix_3x3 epsilon;  //The expected result
+    Matrix_3x3 _epsilon; //The result from the function
+
+    Matrix_3x3 grad_u;   //The gradient of the displacement
+    define_grad_u(grad_u); //Define the gradient of the displacement
+
+    epsilon = 0.5*(grad_u + grad_u.transpose());
+
+    double _grad_u[3][3]; //Convert grad_u to the form expected by the function
+
+    for (int i=0; i<3; i++){
+
+        for (int j=0; j<3; j++){
+
+            _grad_u[i][j] = grad_u(i,j);
+
+        }
+
+    }
+
+    micromorphic_measures::get_small_strain(_grad_u,_epsilon);
+
+    bool tot_result = epsilon.isApprox(_epsilon);
+
+    if(tot_result){
+        results << "test_get_small_strain & True\\\\\n\\hline\n";
+    }
+    else{
+        results << "test_get_small_strain & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
 
 
 int main(){
@@ -271,6 +440,12 @@ int main(){
     test_get_deformation_gradient(results);
     test_assemble_chi(results);
     test_assemble_grad_chi(results);
+    test_get_right_cauchy_green(results);
+    test_get_left_cauchy_green(results);
+    test_get_lagrange_strain(results);
+    test_get_almansi_strain(results);
+    test_get_small_strain(results);
+
     //Close the results file
     results.close();
 }
