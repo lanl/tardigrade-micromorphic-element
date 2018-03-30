@@ -49,8 +49,8 @@ void define_grad_u(Matrix_3x3 &grad_u){
 
     */
 
-    grad_u << 0.15480864,  0.13522113,  0.0733369 ,  0.79322349,  0.60078268,
-              0.2122184 ,  0.63337643,  0.58395161,  0.73819047;
+    grad_u << 0.69646919,  0.28613933,  0.22685145,  0.55131477,  0.71946897,
+              0.42310646,  0.9807642 ,  0.68482974,  0.4809319;
 
     return;
 }
@@ -64,8 +64,8 @@ void define_phi(Matrix_3x3 &phi){
 
     */
 
-    phi << 1.46936859,  0.68982187,  0.92971606,  0.9115437,   1.88698712,
-           0.39515349,  0.58646274,  0.02618205,  1.17606765;
+    phi << 0.39211752,  0.34317802,  0.72904971,  0.43857224,  0.0596779,
+           0.39804426,  0.73799541,  0.18249173,  0.17545176;
 }
 
 void define_grad_phi(Matrix_3x9 &grad_phi){
@@ -77,12 +77,13 @@ void define_grad_phi(Matrix_3x9 &grad_phi){
 
     */
 
-    grad_phi << 0.8274043 ,  0.04433397,  0.34972967,  0.29893972,  0.17079998,
-                0.38241741,  0.89486147,  0.13279419,  0.76468025,  0.35246753,
-                0.4439072 ,  0.52308268,  0.26171291,  0.37274651,  0.0256093 ,
-                0.25421545,  0.4359456 ,  0.25310249,  0.5580645 ,  0.13002151,
-                0.45326493,  0.39281123,  0.79286811,  0.85304581,  0.30481386,
-                0.70470667,  0.35019238;
+    grad_phi << -1.81005245, -1.29847083, -0.48170751, -0.75470999, -0.4763441 ,
+                -1.11329654, -0.95632783, -0.9133694 , -1.99856773, -1.49033497,
+                -0.53589066, -0.44965118, -0.24378446, -0.18042363, -0.91358478,
+                -0.70051865, -1.09881086, -1.45762653, -3.00984646, -0.42927004,
+                -0.25701678, -0.61784346, -0.60307115, -1.35759442, -1.25541793,
+                -2.06541739, -1.12273603;
+
 }
 
 void define_deformation_gradient(Matrix_3x3 &F){
@@ -151,10 +152,10 @@ int test_get_deformation_gradient(std::ofstream &results){
     //Compare the results
     bool tot_result = F.isApprox(_F);
 
-    if(tot_result){
+    if (tot_result){
         results << "test_get_deformation_gradient & True\\\\\n\\hline\n";
     }
-    else{
+    else {
         results << "test_get_deformation_gradient & False\\\\\n\\hline\n";
     }
 
@@ -187,10 +188,10 @@ int test_assemble_chi(std::ofstream &results){
 
     bool tot_result = chi.isApprox(_chi);
 
-    if(tot_result){
+    if (tot_result){
         results << "test_assemble_chi & True\\\\\n\\hline\n";
     }
-    else{
+    else {
         results << "test_assemble_chi & False\\\\\n\\hline\n";
     }
 
@@ -211,15 +212,18 @@ int test_assemble_grad_chi(std::ofstream &results){
     Matrix_3x9 grad_chi;  //The expected result
     Matrix_3x9 _grad_chi; //The result from the function
 
+    Matrix_3x3 F;         //The deformation gradient
+    define_deformation_gradient(F); //Populate the deformation gradient
+
     define_grad_phi(grad_chi); //The gradient of phi=grad_chi
 
     Eigen::Matrix<double,9,3> grad_chi_data; //The incoming data
-    grad_chi_data << 0.8274043 ,  0.38241741,  0.17079998,  0.25310249,  0.4439072 ,
-                     0.26171291,  0.70470667,  0.30481386,  0.45326493,  0.4359456 ,
-                     0.25421545,  0.52308268,  0.13279419,  0.89486147,  0.34972967,
-                     0.76468025,  0.04433397,  0.29893972,  0.35019238,  0.13002151,
-                     0.39281123,  0.5580645 ,  0.85304581,  0.79286811,  0.35246753,
-                     0.0256093 ,  0.37274651;
+    grad_chi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
 
     double grad_chi_data_array[9][3]; //The format expected by the function
 
@@ -233,14 +237,14 @@ int test_assemble_grad_chi(std::ofstream &results){
 
     }
 
-    micromorphic_measures::assemble_grad_chi(grad_chi_data_array, _grad_chi);
+    micromorphic_measures::assemble_grad_chi(grad_chi_data_array, F, _grad_chi);
 
-    bool tot_result = grad_chi.isApprox(_grad_chi);
+    bool tot_result = grad_chi.isApprox(_grad_chi,1e-7);
 
-    if(tot_result){
+    if (tot_result){
         results << "test_assemble_chi & True\\\\\n\\hline\n";
     }
-    else{
+    else {
         results << "test_assemble_chi & False\\\\\n\\hline\n";
     }
 
@@ -270,10 +274,10 @@ int test_get_right_cauchy_green(std::ofstream &results){
 
     bool tot_result = RCG.isApprox(_RCG);
 
-    if(tot_result){
+    if (tot_result){
         results << "test_get_right_cauchy_green & True\\\\\n\\hline\n";
     }
-    else{
+    else {
         results << "test_get_right_cauchy_green & False\\\\\n\\hline\n";
     }
 
@@ -304,10 +308,10 @@ int test_get_left_cauchy_green(std::ofstream &results){
 
     bool tot_result = LCG.isApprox(_LCG);
 
-    if(tot_result){
+    if (tot_result){
         results << "test_get_left_cauchy_green & True\\\\\n\\hline\n";
     }
-    else{
+    else {
         results << "test_get_left_cauchy_green & False\\\\\n\\hline\n";
     }
 
@@ -336,10 +340,10 @@ int test_get_lagrange_strain(std::ofstream &results){
 
     bool tot_result = E.isApprox(_E);
 
-    if(tot_result){
+    if (tot_result){
         results << "test_get_lagrange_strain & True\\\\\n\\hline\n";
     }
-    else{
+    else {
         results << "test_get_lagrange_strain & False\\\\\n\\hline\n";
     }
 
@@ -367,10 +371,10 @@ int test_get_almansi_strain(std::ofstream &results){
 
     bool tot_result = e.isApprox(_e);
 
-    if(tot_result){
+    if (tot_result){
         results << "test_get_almansi_strain & True\\\\\n\\hline\n";
     }
-    else{
+    else {
         results << "test_get_almansi_strain & False\\\\\n\\hline\n";
     }
 
@@ -410,10 +414,10 @@ int test_get_small_strain(std::ofstream &results){
 
     bool tot_result = epsilon.isApprox(_epsilon);
 
-    if(tot_result){
+    if (tot_result){
         results << "test_get_small_strain & True\\\\\n\\hline\n";
     }
-    else{
+    else {
         results << "test_get_small_strain & False\\\\\n\\hline\n";
     }
 
