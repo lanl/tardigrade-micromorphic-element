@@ -1,24 +1,31 @@
 #Compiler option
 CC=COMPILER_COMMAND
+
 #Standard option
 STD=-std=gnu++11
+
 #Compiler flags
 CFLAGS=-I. -I../..
+
+#Include Eigen Library
+EIGEN = -I EIGEN_LOCATION
+
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
+
 #Debugging flag
 DBG = -ggdb
 
 all: test_micromorphic_measures
 
-micromorphic_measures: test_micromorphic_measures.o micromorphic_measures.o
-	$(CC) $(STD) -o $@ test_micromorphic_measures.o micromorphic_measures.o $(CFLAGS) $(ERRORFLG) $(DBG)
+test_micromorphic_measures: test_micromorphic_measures.o micromorphic_measures.o
+	$(CC) $(STD) -o $@ test_micromorphic_measures.o micromorphic_measures.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
-test_newton_krylov.o: test_micromorphic_measures.cpp
-	$(CC) $(STD) -o $@ -c test_micromorphic_measures.cpp $(CFLAGS) $(ERRORFLG) $(DBG)
+test_micromorphic_measures.o: test_micromorphic_measures.cpp ../../micromorphic_measures.h
+	$(CC) $(STD) -o $@ -c test_micromorphic_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
-newton_krylov.o: ../../micromorphic_measures.h ../../micromorphic_measures.cpp
-	$(CC) $(STD) -o $@ -c ../../micromorphic_measures.cpp $(CFLAGS) $(ERRORFLG) $(DBG)
+micromorphic_measures.o: ../../micromorphic_measures.h ../../micromorphic_measures.cpp
+	$(CC) $(STD) -o $@ -c ../../micromorphic_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 clean:
 	rm *o test_micromorphic_measures
