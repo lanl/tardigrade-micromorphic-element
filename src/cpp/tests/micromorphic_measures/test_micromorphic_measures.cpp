@@ -424,6 +424,75 @@ int test_get_small_strain(std::ofstream &results){
     return 1;
 }
 
+int test_get_psi(std::ofstream &results){
+    /*======================
+      |    test_get_psi    |
+      ======================
+
+      Test the computation of psi.
+
+    */
+
+    Matrix_3x3 psi;  //The expected result
+    Matrix_3x3 _psi; //The result from the function
+
+    Matrix_3x3 chi; //The micro-deformation tensor
+    Matrix_3x3 F;   //The deformation gradient
+
+    define_deformation_gradient(F); //Populate the deformation gradient
+    define_chi(chi);                //Populate chi
+
+    psi = F.transpose()*chi;
+
+    micromorphic_measures::get_psi(F,chi,_psi);
+
+    bool tot_result = psi.isApprox(_psi);
+
+    if (tot_result){
+        results << "test_get_psi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_get_psi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+
+}
+
+int test_get_gamma(std::ofstream &results){
+    /*========================
+      |    test_get_gamma    |
+      ========================
+
+      Test the computation of gamma.
+
+    */
+
+    Matrix_3x9 Gamma;  //The expected result
+    Matrix_3x9 _Gamma; //The result from the function
+
+    Matrix_3x9 grad_chi; //The gradient of chi
+    Matrix_3x3 F;        //The deformation gradient
+
+    define_deformation_gradient(F); //Populate the deformation gradient
+    define_grad_phi(grad_chi);      //Populate the gradient of chi (grad_phi = grad_chi)
+
+    Gamma = F.transpose()*grad_chi;
+
+    micromorphic_measures::get_gamma(F,grad_chi,_Gamma);
+
+    bool tot_result = Gamma.isApprox(_Gamma);
+
+    if (tot_result){
+        results << "test_get_gamma & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_get_gamma & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+
+}
 
 
 int main(){
@@ -449,6 +518,8 @@ int main(){
     test_get_lagrange_strain(results);
     test_get_almansi_strain(results);
     test_get_small_strain(results);
+    test_get_psi(results);
+    test_get_gamma(results);
 
     //Close the results file
     results.close();

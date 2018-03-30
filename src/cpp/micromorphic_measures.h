@@ -43,4 +43,7 @@ namespace micromorphic_measures
 
     void get_small_strain(const double (&_grad_u)[3][3], Matrix_3x3 &epsilon);
 
+    void get_psi(const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_3x3 &psi);
+
+    void get_gamma(const Matrix_3x3 &F, const Matrix_3x9 &grad_chi, Matrix_3x9 &gamma);
 }

@@ -273,6 +273,7 @@ namespace micromorphic_measures
 
         psi = F.transpose()*chi;
 
+        return;
     }
 
     void get_gamma(const Matrix_3x3 &F, const Matrix_3x9 &grad_chi, Matrix_3x9 &gamma){
