@@ -82,18 +82,18 @@ namespace micromorphic_measures
 
     }
 
-    void assemble_grad_chi(const double (&_grad_phi)[9][3], Matrix_3x9 &grad_chi){
+    void assemble_grad_chi(const double (&_grad_phi)[9][3], const Matrix_3x3 &F, Matrix_3x9 &grad_chi){
 
         /*!==========================
           |    assemble_grad_chi    |
           ===========================
 
           Assemble the gradient of chi w.r.t. the 
-          current coordinates.
+          reference coordinates.
 
           _grad_phi is assumed to be organized
 
-          _grad_phi[I][k] = phi_ij,k
+          _grad_phi[I][k] = phi_iI,k
 
           where I is a ``super'' index which has the form
 
@@ -105,37 +105,66 @@ namespace micromorphic_measures
               0  1  2
           k = 1, 2, 3
 
+          We will map _phi_iI,k back to the reference 
+          coordinates via
+
+          _phi_iI,J = _phi_iI,k F_kJ
+
+          and then assemble it into the required matrix form.
+
+
         */
 
-        grad_chi(0,0) = _grad_phi[0][0]; //111
-        grad_chi(0,1) = _grad_phi[5][1]; //122
-        grad_chi(0,2) = _grad_phi[4][2]; //133
-        grad_chi(0,3) = _grad_phi[5][2]; //123
-        grad_chi(0,4) = _grad_phi[0][2]; //113
-        grad_chi(0,5) = _grad_phi[0][1]; //112
-        grad_chi(0,6) = _grad_phi[4][1]; //132
-        grad_chi(0,7) = _grad_phi[4][0]; //131
-        grad_chi(0,8) = _grad_phi[5][0]; //121
-        
-        grad_chi(1,0) = _grad_phi[8][0]; //211
-        grad_chi(1,1) = _grad_phi[1][1]; //222
-        grad_chi(1,2) = _grad_phi[3][2]; //233
-        grad_chi(1,3) = _grad_phi[1][2]; //223
-        grad_chi(1,4) = _grad_phi[8][2]; //213
-        grad_chi(1,5) = _grad_phi[8][1]; //212
-        grad_chi(1,6) = _grad_phi[3][1]; //232
-        grad_chi(1,7) = _grad_phi[3][0]; //231
-        grad_chi(1,8) = _grad_phi[1][0]; //221
 
-        grad_chi(2,0) = _grad_phi[7][0]; //311
-        grad_chi(2,1) = _grad_phi[6][1]; //322
-        grad_chi(2,2) = _grad_phi[2][2]; //333
-        grad_chi(2,3) = _grad_phi[6][2]; //323
-        grad_chi(2,4) = _grad_phi[7][2]; //313
-        grad_chi(2,5) = _grad_phi[7][1]; //312
-        grad_chi(2,6) = _grad_phi[2][1]; //332
-        grad_chi(2,7) = _grad_phi[2][0]; //331
-        grad_chi(2,8) = _grad_phi[6][0]; //321
+        //We map the gradient from the current configuration to 
+        //the reference configuration.
+        double _grad_phi_map[9][3];
+
+        for (int I=0; I<9; I++){
+
+            for (int J=0; J<3; J++){
+
+                _grad_phi_map[I][J] = 0.;
+
+                for (int k=0; k<3; k++){
+
+                    _grad_phi_map[I][J] += _grad_phi[I][k]*F(k,J);
+
+                }
+
+            }
+
+        }
+
+        grad_chi(0,0) = _grad_phi_map[0][0]; //111
+        grad_chi(0,1) = _grad_phi_map[5][1]; //122
+        grad_chi(0,2) = _grad_phi_map[4][2]; //133
+        grad_chi(0,3) = _grad_phi_map[5][2]; //123
+        grad_chi(0,4) = _grad_phi_map[0][2]; //113
+        grad_chi(0,5) = _grad_phi_map[0][1]; //112
+        grad_chi(0,6) = _grad_phi_map[4][1]; //132
+        grad_chi(0,7) = _grad_phi_map[4][0]; //131
+        grad_chi(0,8) = _grad_phi_map[5][0]; //121
+        
+        grad_chi(1,0) = _grad_phi_map[8][0]; //211
+        grad_chi(1,1) = _grad_phi_map[1][1]; //222
+        grad_chi(1,2) = _grad_phi_map[3][2]; //233
+        grad_chi(1,3) = _grad_phi_map[1][2]; //223
+        grad_chi(1,4) = _grad_phi_map[8][2]; //213
+        grad_chi(1,5) = _grad_phi_map[8][1]; //212
+        grad_chi(1,6) = _grad_phi_map[3][1]; //232
+        grad_chi(1,7) = _grad_phi_map[3][0]; //231
+        grad_chi(1,8) = _grad_phi_map[1][0]; //221
+
+        grad_chi(2,0) = _grad_phi_map[7][0]; //311
+        grad_chi(2,1) = _grad_phi_map[6][1]; //322
+        grad_chi(2,2) = _grad_phi_map[2][2]; //333
+        grad_chi(2,3) = _grad_phi_map[6][2]; //323
+        grad_chi(2,4) = _grad_phi_map[7][2]; //313
+        grad_chi(2,5) = _grad_phi_map[7][1]; //312
+        grad_chi(2,6) = _grad_phi_map[2][1]; //332
+        grad_chi(2,7) = _grad_phi_map[2][0]; //331
+        grad_chi(2,8) = _grad_phi_map[6][0]; //321
 
         return;
 
@@ -229,6 +258,42 @@ namespace micromorphic_measures
          }
              
          return;
+    }
+
+    void get_psi(const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_3x3 &psi){
+        /*!=================
+           |    get_psi    |
+           =================
+
+           Compute the mixed deformation measure psi.
+
+           psi_IJ = F_iI chi_iJ
+
+        */
+
+        psi = F.transpose()*chi;
+
+    }
+
+    void get_gamma(const Matrix_3x3 &F, const Matrix_3x9 &grad_chi, Matrix_3x9 &gamma){
+        /*!===================
+           |    get_gamma    |
+           ===================
+
+           Compute the value of the mixed deformation measure gamma.
+
+           gamma_IJK = F_iI chi_iJ,K
+
+           The form provided here is gamma_IJ
+
+           where
+                0   1   2   3   4   5   6   7   8
+           J = 11, 22, 33, 23, 13, 12, 32, 31, 21
+
+        */
+
+        gamma = F.transpose()*grad_chi;
+
     }
 
 }
