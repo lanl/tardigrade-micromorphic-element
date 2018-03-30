@@ -276,6 +276,22 @@ namespace micromorphic_measures
         return;
     }
 
+    void get_micro_strain(const Matrix_3x3 &psi, Matrix_3x3 &E_micro){
+        /*==========================
+          |    get_micro_strain    |
+          ==========================
+
+          Compute the micromorphic strain.
+
+          E_micro_IJ = psi_IJ - eye_IJ
+
+        */
+
+        E_micro = psi - Matrix_3x3::Identity();
+
+        return;
+    }
+
     void get_gamma(const Matrix_3x3 &F, const Matrix_3x9 &grad_chi, Matrix_3x9 &gamma){
         /*!===================
            |    get_gamma    |

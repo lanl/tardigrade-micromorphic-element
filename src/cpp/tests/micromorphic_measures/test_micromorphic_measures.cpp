@@ -610,6 +610,40 @@ int test_voigt_3x9_tensor(std::ofstream &results){
     return 1;
 }
 
+int test_get_micro_strain(std::ofstream &results){
+    /*===============================
+      |    test_get_micro_strain    |
+      ===============================
+
+      Test the computation of the micromorphic strain.
+
+    */
+
+    Matrix_3x3 E_micro;  //The expected result
+    Matrix_3x3 _E_micro; //The function result
+
+    Matrix_3x3 chi; //The micro-deformation tensor
+    Matrix_3x3 F;   //The deformation gradient
+
+    define_deformation_gradient(F); //Populate the deformation gradient
+    define_chi(chi);                //Populate chi
+
+    E_micro = F.transpose()*chi - Matrix_3x3::Identity();
+
+    micromorphic_measures::get_micro_strain(F.transpose()*chi,_E_micro);
+
+    bool tot_result = E_micro.isApprox(_E_micro);
+
+    if (tot_result){
+        results << "test_get_micro_strain & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_get_micro_strain & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -638,6 +672,7 @@ int main(){
     test_voigt_3x3_symm_tensor(results);
     test_voigt_3x3_tensor(results);
     test_voigt_3x9_tensor(results);
+    test_get_micro_strain(results);
 
     //Close the results file
     results.close();
