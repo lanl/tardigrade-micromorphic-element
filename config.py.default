@@ -27,6 +27,12 @@ class Configuration(object):
         #Uncomment for Nathan Miller's laptop
         #self.make = "mingw32-make"
 
+        ### Define the python command
+        self.python = "python"
+
+        #Uncomment for nami2227@soils.colorado.edu location
+        #self.python = "/usr/local/anaconda/bin/python"
+
     def __repr__(self):
         output_string    = "\n######################################\n"+\
                            "###     Configuration Settings     ###\n"+\

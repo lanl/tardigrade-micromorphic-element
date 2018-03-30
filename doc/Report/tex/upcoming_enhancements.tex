@@ -2,5 +2,7 @@
 
 \begin{enumerate}
 \item Discover and remedy bug in fea\_solver.py that is preventing convergence. Suspicions are that the tangent has been implemented incorrectly.
-\item Determine whether to convert python code to C++ code. This code could be used directly with Abaqus rather than needing to port to Fortran.
+\item Convert tensor representation in C++ code to vector-matrix representation to speed up the code.
+\item Add in dynamic loading to the element.
+\item Add in distributed loading.
 \end{enumerate}

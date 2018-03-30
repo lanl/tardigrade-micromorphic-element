@@ -245,8 +245,9 @@ InputParser::InputParser(){
 }
             
 InputParser::InputParser(std::string _filename){
-    filename    = _filename;
-    keyword_fxn = &InputParser::default_function;
+    filename     = _filename;
+    path_to_file = filename.substr(0,filename.find_last_of("/\\"));
+    keyword_fxn  = &InputParser::default_function;
     nodes.resize(0);
     elements.resize(0);
     fprops.resize(0);
@@ -1350,8 +1351,41 @@ void FEAModel::compare_manufactured_solution(){
     }
     
     std::cout << "\nMaximum error: " << max_error << "\n";
-        
-    
+
+    //!Output the description file
+    std::ofstream fn;
+    std::cout << input.path_to_file << "/description.tex\n";
+    fn.open(input.path_to_file+"/description.tex");
+    fn << input.latex_string;
+    fn.close();
+
+    //!Output the results file
+    fn.open(input.path_to_file+"/results.tex");
+    if(result){
+        fn << "True\n";
+    }
+    else{
+        fn << "False\n";
+    }
+    fn << "\nManufactured Solution:\n";
+    for(int i=0; i<mms_u.size(); i++){
+        fn << mms_u[i] << "\n";
+    }
+    fn << "\n";
+
+    fn << "\nFEA Solution:\n";
+    for(int i=0; i<u.size(); i++){
+        fn  << u[i] << "\n";
+    }
+    fn << "\n";
+
+    fn << "\nDifference:\n";
+    for(int i=0; i<u.size(); i++){
+        fn << mms_u[i] - u[i] << "\n";
+    }
+    fn << "\n";
+    fn.close();
+
 }
 
 int main( int argc, char *argv[] ){

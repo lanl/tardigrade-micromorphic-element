@@ -1,6 +1,7 @@
 import os
 import sys
 import glob
+import subprocess
 
 class TestHarness(object):
     """Class which defines the test harness"""
@@ -10,6 +11,11 @@ class TestHarness(object):
         self.orig_stdout = sys.stdout
         
         self.filename = "results.txt"
+
+        self.make     = "MAKE_COMMAND"
+
+        self.python   = "PYTHON_COMMAND"
+
         if(os.path.isfile(self.filename)):
             os.remove(self.filename)
         self.f = open(self.filename,"w")
@@ -17,16 +23,18 @@ class TestHarness(object):
         self.owd   = os.getcwd()
         
         #Identify module locations
-        self.module_location = os.path.join(".","src","python")
-        self.fformat = os.path.join(".","*.py")
+        self.unit_test_location = os.path.join(".","src","cpp","tests")
+        self.fformat = os.path.join("makefile")
         
         #Add the module locations to the system path for now
-        sys.path.append(os.path.abspath(self.module_location))
+        sys.path.append(os.path.abspath(self.unit_test_location))
         
         #Identify regression tests
         self.regression_tests = [os.path.join("tests","regression_tests","const_u","const_u.inp"),\
                                  os.path.join("tests","regression_tests","linear_u","linear_u.inp")]
     
+
+
     def run_function_tests(self):
         """Run the tests associated with verifying the lower-level functions"""
         
@@ -42,14 +50,16 @@ class TestHarness(object):
               "| functions.                         |\n"+\
               "======================================\n"
         
-        #Run the unit tests for modules located in the module location
-        os.chdir(os.path.join(self.owd,self.module_location))
-        files = glob.glob(self.fformat)
+        os.chdir(os.path.join(self.owd,"src","cpp"))
+        proc = subprocess.Popen([self.python,"run_tests.py","-v"])
+        proc.wait()
+        (stdout, stderr) = proc.communicate()
         
-        #Run unit tests on modules
-        for f in files:
-            print "\nTesting: {0}\n".format(f)
-            os.system("python {0} -v".format(f))
+        if proc.returncode != 0:
+            print(stderr)
+            raise IOError
+
+        os.chdir(os.owd)
 
         print "======================================\n"+\
               "|                                    |\n"+\
@@ -61,11 +71,17 @@ class TestHarness(object):
               "| against the code as a whole.       |\n"+\
               "======================================\n"
         
-        import fea_driver
         for f in self.regression_tests:
             try:
                 sys.stdout = self.orig_stdout                           #Change the output to the screen instead of the results file
-                fea_driver.run_finite_element_model(os.path.abspath(f)) #Run the finite element model indicated
+                proc = subprocess.Popen(["driver ",f])                  #Run the finite element model indicated
+                proc.wait()
+                (stdout, stderr) = proc.communicate()
+
+                if proc.returncode != 0:
+                    print(stderr)
+                    raise IOError
+
             except:
                 print "!!! Error in execution !!!\nError: {0}".format(sys.exc_info()[0]) #Raise exception
                 sys.stdout = self.f                                                      #Set the standard out back to the results file
@@ -83,17 +99,25 @@ class TestHarness(object):
     def generate_report(self):
         """Generate the LaTeX report"""
         #Run test processing
-        os.system(r"python "+os.path.join(".","doc","Report","tests","process_tests.py"))
-        #Change directories
-        os.chdir(os.path.join(".","doc","Report"))
-        #Run pdflatex
-        os.system(r"pdflatex Micromorphic_Element_Report.tex")
-        #Run bibtex
-        os.system(r"bibtex Micromorphic_Element_Report")
-        #Run pdflatex
-        os.system(r"pdflatex Micromorphic_Element_Report.tex")
-        os.system(r"pdflatex Micromorphic_Element_Report.tex")
-        os.chidr(self.owd)
+        os.chdir(os.path.join(".","doc","Report","tests"))
+        proc = subprocess.Popen([self.python,"process_tests.py"])
+        proc.wait()
+        (stdout, stderr) = proc.communicate()
+
+        if proc.returncode != 0:
+            print(stderr)
+            raise IOError
+
+#        #Change directories
+#        os.chdir(os.path.join(".","doc","Report"))
+#        #Run pdflatex
+#        os.system(r"pdflatex Micromorphic_Element_Report.tex")
+#        #Run bibtex
+#        os.system(r"bibtex Micromorphic_Element_Report")
+#        #Run pdflatex
+#        os.system(r"pdflatex Micromorphic_Element_Report.tex")
+#        os.system(r"pdflatex Micromorphic_Element_Report.tex")
+        os.chdir(self.owd)
     
     def _flatten_list(self,l):
         """Flatten list of lists"""

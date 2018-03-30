@@ -32,7 +32,7 @@ class LatexParser(object):
     report_location = os.path.join("..","..")                              #The location of the report
     unittest_dir    = r"unittests"                                         #The location of the unittest LaTeX dir
     regression_dir  = r"regression_tests"                                  #The location of the regression LaTeX dir
-    test_dir        = os.path.join("..","..","..","src","python","tests")  #The location of the test files
+    test_dir        = os.path.join("..","..","..","src","cpp","tests")     #The location of the test files
     
     unittest_file        = open(os.path.join("..","tex","unittest_results.tex"),"w+")        #The LaTeX results of the unit tests
     regression_test_file = open(os.path.join("..","tex","regression_test_results.tex"),"w+") #The LaTeX results of the regression tests
@@ -54,7 +54,7 @@ class LatexParser(object):
         """Copy the required LaTeX files from the test directory to the LaTeX directory"""
         
         #copy the unit tests
-        unittest_path  = os.path.join(self.test_dir,self.unittest_dir)
+        unittest_path  = os.path.join(self.test_dir)
                 
         for test_name in self.unittests:
             #Identify the file sources
