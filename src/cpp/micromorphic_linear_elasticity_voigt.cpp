@@ -25,7 +25,7 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <micromorphic_measures.h>
+#include <deformation_measures.h>
 
 //Sparse matrix type definitions
 typedef Eigen::SparseMatrix<double, 9, 6> Sparse_Matrix_9x6;
@@ -387,12 +387,12 @@ namespace micro_material{
         
         //Compute the middle terms
         Matrix_3x3 Temp1;
-        micromorphic_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
+        deformation_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
         PK2 += Temp1*(Cinv*Psi).transpose();
         
         //Compute the end terms
         Matrix_3x9 Temp2;
-        micromorphic_measures::undo_voigt_3x9_tensor(C_voigt*Gamma_voigt,Temp2);
+        deformation_measures::undo_voigt_3x9_tensor(C_voigt*Gamma_voigt,Temp2);
         PK2 += Temp2*(Cinv*Gamma).transpose()
         
         return;
@@ -415,12 +415,12 @@ namespace micro_material{
         
         //Compute the middle terms
         Matrix_3x3 Temp1;
-        micromorphic_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
+        deformation_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
         Matrix_3x3 A = Temp1*(Cinv*Psi).transpose();
         
         //Compute the end terms
         Matrix_3x9 Temp2;
-        micromorphic_measures::undo_voigt_3x9_tensor(C_voigt*Gamma_voigt,Temp2);
+        deformation_measures::undo_voigt_3x9_tensor(C_voigt*Gamma_voigt,Temp2);
         A += Temp2*(Cinv*Gamma).transpose();
         SIGMA += (A + A.transpose())
         
