@@ -1,6 +1,6 @@
 /*!===========================================================================
    |                                                                         |
-   |                         micromorphic_measures.h                         |
+   |                         deformation_measures.h                          |
    |                                                                         |
    ===========================================================================
    | The header file for a wrapper that converts variables and their         |
@@ -24,7 +24,7 @@ typedef Eigen::Matrix<double, 3,3> Matrix_3x3;
 typedef Eigen::Matrix<double, 3,9> Matrix_3x9;
 
 
-namespace micromorphic_measures
+namespace deformation_measures
 {
 
     void get_deformation_gradient(const double (&_grad_u)[3][3], Matrix_3x3 &F);

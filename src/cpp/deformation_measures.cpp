@@ -1,6 +1,6 @@
 /*!===========================================================================
    |                                                                         |
-   |                        micromorphic_measures.cpp                        |
+   |                        deformation_measures.cpp                         |
    |                                                                         |
    ===========================================================================
    | The source file for a wrapper that converts variables and their         |
@@ -14,9 +14,9 @@
    ===========================================================================
    */
 
-#include<micromorphic_measures.h>
+#include<deformation_measures.h>
 
-namespace micromorphic_measures
+namespace deformation_measures
 
 {
 

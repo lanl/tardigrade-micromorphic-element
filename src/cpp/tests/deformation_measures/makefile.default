@@ -1,0 +1,31 @@
+#Compiler option
+CC=COMPILER_COMMAND
+
+#Standard option
+STD=-std=gnu++11
+
+#Compiler flags
+CFLAGS=-I. -I../..
+
+#Include Eigen Library
+EIGEN = -I EIGEN_LOCATION
+
+#Terminate after N errors
+ERRORFLG=-fmax-errors=5
+
+#Debugging flag
+DBG = -ggdb
+
+all: test_deformation_measures
+
+test_deformation_measures: test_deformation_measures.o deformation_measures.o
+	$(CC) $(STD) -o $@ test_deformation_measures.o deformation_measures.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+test_deformation_measures.o: test_deformation_measures.cpp ../../deformation_measures.h
+	$(CC) $(STD) -o $@ -c test_deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+deformation_measures.o: ../../deformation_measures.h ../../deformation_measures.cpp
+	$(CC) $(STD) -o $@ -c ../../deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+clean:
+	rm *o test_deformation_measures

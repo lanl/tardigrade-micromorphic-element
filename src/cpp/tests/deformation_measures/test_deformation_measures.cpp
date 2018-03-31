@@ -1,10 +1,10 @@
 /*!============================================================================
    |                                                                          |
-   |                      test_micromorphic_measures.cpp                      |
+   |                      test_deformation_measures.cpp                       |
    |                                                                          |
    ----------------------------------------------------------------------------
-   | The unit test file for micromorphic_measures.h/cpp. This file tests the  |
-   | classes and functions defined in micromorphic_measures.h/cpp.            |
+   | The unit test file for deformation_measures.h/cpp. This file tests the   |
+   | classes and functions defined in deformation_measures.h/cpp.             |
    |                                                                          |
    | Generated files:                                                         |
    |    results.tex:  A LaTeX file which contains the results as they will be |
@@ -17,7 +17,7 @@
 
 #include<iostream>
 #include<fstream>
-#include<micromorphic_measures.h>
+#include<deformation_measures.h>
 
 void voigt_3x3(const Matrix_3x3 &A, Vector_9 &v){
     /*!===================
@@ -125,7 +125,7 @@ int test_get_deformation_gradient(std::ofstream &results){
        =======================================
 
        Test the get_deformation_gradient function in 
-       micromorphic_measures.h/cpp
+       deformation_measures.h/cpp
 
     */
 
@@ -147,7 +147,7 @@ int test_get_deformation_gradient(std::ofstream &results){
     }
 
     //Execute the function
-    micromorphic_measures::get_deformation_gradient(_grad_u,_F);
+    deformation_measures::get_deformation_gradient(_grad_u,_F);
 
     //Compare the results
     bool tot_result = F.isApprox(_F);
@@ -184,7 +184,7 @@ int test_assemble_chi(std::ofstream &results){
 
     define_chi(chi); //Set the reference value of chi
 
-    micromorphic_measures::assemble_chi(v,_chi);
+    deformation_measures::assemble_chi(v,_chi);
 
     bool tot_result = chi.isApprox(_chi);
 
@@ -237,7 +237,7 @@ int test_assemble_grad_chi(std::ofstream &results){
 
     }
 
-    micromorphic_measures::assemble_grad_chi(grad_chi_data_array, F, _grad_chi);
+    deformation_measures::assemble_grad_chi(grad_chi_data_array, F, _grad_chi);
 
     bool tot_result = grad_chi.isApprox(_grad_chi,1e-7);
 
@@ -270,7 +270,7 @@ int test_get_right_cauchy_green(std::ofstream &results){
 
     RCG = F.transpose()*F;
 
-    micromorphic_measures::get_right_cauchy_green(F,_RCG);
+    deformation_measures::get_right_cauchy_green(F,_RCG);
 
     bool tot_result = RCG.isApprox(_RCG);
 
@@ -304,7 +304,7 @@ int test_get_left_cauchy_green(std::ofstream &results){
 
     LCG = F*F.transpose();
 
-    micromorphic_measures::get_left_cauchy_green(F,_LCG);
+    deformation_measures::get_left_cauchy_green(F,_LCG);
 
     bool tot_result = LCG.isApprox(_LCG);
 
@@ -336,7 +336,7 @@ int test_get_lagrange_strain(std::ofstream &results){
 
     E = 0.5*(F.transpose()*F - Matrix_3x3::Identity());
 
-    micromorphic_measures::get_lagrange_strain(F,_E);
+    deformation_measures::get_lagrange_strain(F,_E);
 
     bool tot_result = E.isApprox(_E);
 
@@ -367,7 +367,7 @@ int test_get_almansi_strain(std::ofstream &results){
 
     e = 0.5*(Matrix_3x3::Identity() - (F*F.transpose()).inverse());
 
-    micromorphic_measures::get_almansi_strain(F,_e);
+    deformation_measures::get_almansi_strain(F,_e);
 
     bool tot_result = e.isApprox(_e);
 
@@ -410,7 +410,7 @@ int test_get_small_strain(std::ofstream &results){
 
     }
 
-    micromorphic_measures::get_small_strain(_grad_u,_epsilon);
+    deformation_measures::get_small_strain(_grad_u,_epsilon);
 
     bool tot_result = epsilon.isApprox(_epsilon);
 
@@ -444,7 +444,7 @@ int test_get_psi(std::ofstream &results){
 
     psi = F.transpose()*chi;
 
-    micromorphic_measures::get_psi(F,chi,_psi);
+    deformation_measures::get_psi(F,chi,_psi);
 
     bool tot_result = psi.isApprox(_psi);
 
@@ -479,7 +479,7 @@ int test_get_gamma(std::ofstream &results){
 
     Gamma = F.transpose()*grad_chi;
 
-    micromorphic_measures::get_gamma(F,grad_chi,_Gamma);
+    deformation_measures::get_gamma(F,grad_chi,_Gamma);
 
     bool tot_result = Gamma.isApprox(_Gamma);
 
@@ -516,7 +516,7 @@ int test_voigt_3x3_symm_tensor(std::ofstream &results){
     v(4) = A(0,2);
     v(5) = A(0,1);
 
-    micromorphic_measures::voigt_3x3_symm_tensor(A,_v);
+    deformation_measures::voigt_3x3_symm_tensor(A,_v);
 
     bool tot_result = v.isApprox(_v);
 
@@ -556,7 +556,7 @@ int test_voigt_3x3_tensor(std::ofstream &results){
     v(7) = A(2,0);
     v(8) = A(1,0);
 
-    micromorphic_measures::voigt_3x3_tensor(A,_v);
+    deformation_measures::voigt_3x3_tensor(A,_v);
 
     bool tot_result = v.isApprox(_v);
 
@@ -586,9 +586,9 @@ int test_undo_voigt_3x3_tensor(std::ofstream &results){
 
     Vector_9 v;  //The matrix in voigt form
 
-    micromorphic_measures::voigt_3x3_tensor(A,v);
+    deformation_measures::voigt_3x3_tensor(A,v);
 
-    micromorphic_measures::undo_voigt_3x3_tensor(v,_A);
+    deformation_measures::undo_voigt_3x3_tensor(v,_A);
     
     bool tot_result = A.isApprox(_A);
 
@@ -628,7 +628,7 @@ int test_voigt_3x9_tensor(std::ofstream &results){
 
     }
 
-    micromorphic_measures::voigt_3x9_tensor(A,_v);
+    deformation_measures::voigt_3x9_tensor(A,_v);
 
     bool tot_result = v.isApprox(_v);
 
@@ -647,7 +647,7 @@ int test_get_micro_strain(std::ofstream &results){
        |    test_get_micro_strain    |
        ===============================
 
-       Test the computation of the micromorphic strain.
+       Test the computation of the deformation strain.
 
     */
 
@@ -662,7 +662,7 @@ int test_get_micro_strain(std::ofstream &results){
 
     E_micro = F.transpose()*chi - Matrix_3x3::Identity();
 
-    micromorphic_measures::get_micro_strain(F.transpose()*chi,_E_micro);
+    deformation_measures::get_micro_strain(F.transpose()*chi,_E_micro);
 
     bool tot_result = E_micro.isApprox(_E_micro);
 
@@ -690,8 +690,8 @@ int test_undo_voigt_3x9_tensor(std::ofstream &results){
     Matrix_3x9 _A; //The function result
     Vector_27 v;  //The expected result
 
-    micromorphic_measures::voigt_3x9_tensor(A,v);
-    micromorphic_measures::undo_voigt_3x9_tensor(v,_A);
+    deformation_measures::voigt_3x9_tensor(A,v);
+    deformation_measures::undo_voigt_3x9_tensor(v,_A);
     
     bool tot_result = A.isApprox(_A);
 
@@ -721,7 +721,7 @@ int test_perform_positive_cyclic_permutation(std::ofstream &results){
     A  << 0, 10, 20, 19, 18, 9, 11, 2, 1, 3, 13, 23, 22, 21, 12, 14, 5, 4, 6, 16, 26, 25, 24, 15, 17, 8, 7;
     _A << 0, 4, 8, 5, 2, 1, 7, 6, 3, 9, 13, 17, 14, 11, 10, 16, 15, 12, 18, 22, 26, 23, 20, 19, 25, 24, 21;
     
-    micromorphic_measures::perform_positive_cyclic_permutation(_A);
+    deformation_measures::perform_positive_cyclic_permutation(_A);
     
     bool tot_result = A.isApprox(_A);
     
