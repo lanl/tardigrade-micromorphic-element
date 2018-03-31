@@ -20,11 +20,11 @@
 #include<micromorphic_measures.h>
 
 void voigt_3x3(const Matrix_3x3 &A, Vector_9 &v){
-    /*===================
-      |    voigt_3x3    |
-      ===================
+    /*!===================
+       |    voigt_3x3    |
+       ===================
 
-      Put the 3x3 matrix in voigt notation.
+       Put the 3x3 matrix in voigt notation.
 
     */
 
@@ -41,11 +41,11 @@ void voigt_3x3(const Matrix_3x3 &A, Vector_9 &v){
 }
 
 void define_grad_u(Matrix_3x3 &grad_u){
-    /*=======================
-      |    define_grad_u    |
-      =======================
+    /*!=======================
+       |    define_grad_u    |
+       =======================
 
-      Define the gradient of u to be used
+       Define the gradient of u to be used
 
     */
 
@@ -56,11 +56,11 @@ void define_grad_u(Matrix_3x3 &grad_u){
 }
 
 void define_phi(Matrix_3x3 &phi){
-    /*====================
-      |    define_phi    |
-      ====================
+    /*!====================
+       |    define_phi    |
+       ====================
 
-      Define the values of phi to be used.
+       Define the values of phi to be used.
 
     */
 
@@ -69,11 +69,11 @@ void define_phi(Matrix_3x3 &phi){
 }
 
 void define_grad_phi(Matrix_3x9 &grad_phi){
-    /*=========================
-      |    define_grad_phi    |
-      =========================
+    /*!=========================
+       |    define_grad_phi    |
+       =========================
 
-      Define the gradient of phi to be used.
+       Define the gradient of phi to be used.
 
     */
 
@@ -87,11 +87,11 @@ void define_grad_phi(Matrix_3x9 &grad_phi){
 }
 
 void define_deformation_gradient(Matrix_3x3 &F){
-    /*=====================================
-      |    define_deformation_gradient    |
-      =====================================
+    /*!=====================================
+       |    define_deformation_gradient    |
+       =====================================
 
-      Define the deformation gradient to be used.
+       Define the deformation gradient to be used.
 
     */
 
@@ -120,12 +120,12 @@ void define_chi(Matrix_3x3 &chi){
 }
 
 int test_get_deformation_gradient(std::ofstream &results){
-    /*=======================================
-      |    test_get_deformation_gradient    |
-      =======================================
+    /*!=======================================
+       |    test_get_deformation_gradient    |
+       =======================================
 
-      Test the get_deformation_gradient function in 
-      micromorphic_measures.h/cpp
+       Test the get_deformation_gradient function in 
+       micromorphic_measures.h/cpp
 
     */
 
@@ -163,12 +163,12 @@ int test_get_deformation_gradient(std::ofstream &results){
 }
 
 int test_assemble_chi(std::ofstream &results){
-    /*===========================
-      |    test_assemble_chi    |
-      ===========================
+    /*!===========================
+       |    test_assemble_chi    |
+       ===========================
 
-      Test the assembly of the micro-deformation 
-      tensor chi.
+       Test the assembly of the micro-deformation 
+       tensor chi.
 
     */
 
@@ -200,12 +200,12 @@ int test_assemble_chi(std::ofstream &results){
 }
 
 int test_assemble_grad_chi(std::ofstream &results){
-    /*================================
-      |    test_assemble_grad_chi    |
-      ================================
+    /*!================================
+       |    test_assemble_grad_chi    |
+       ================================
 
-      Test the assembly of the gradient of the micro-deformation 
-      tensor chi.
+       Test the assembly of the gradient of the micro-deformation 
+       tensor chi.
 
     */
 
@@ -253,12 +253,12 @@ int test_assemble_grad_chi(std::ofstream &results){
 }
 
 int test_get_right_cauchy_green(std::ofstream &results){
-    /*=====================================
-      |    test_get_right_cauchy_green    |
-      =====================================
+    /*!=====================================
+       |    test_get_right_cauchy_green    |
+       =====================================
 
-      Test the computation of the right cauchy green 
-      deformation tensor.
+       Test the computation of the right cauchy green 
+       deformation tensor.
 
     */
 
@@ -287,12 +287,12 @@ int test_get_right_cauchy_green(std::ofstream &results){
 
 
 int test_get_left_cauchy_green(std::ofstream &results){
-    /*====================================
-      |    test_get_left_cauchy_green    |
-      ====================================
+    /*!====================================
+       |    test_get_left_cauchy_green    |
+       ====================================
 
-      Test the computation of the left cauchy green 
-      deformation tensor.
+       Test the computation of the left cauchy green 
+       deformation tensor.
 
     */
 
@@ -320,11 +320,11 @@ int test_get_left_cauchy_green(std::ofstream &results){
 }
 
 int test_get_lagrange_strain(std::ofstream &results){
-    /*==================================
-      |    test_get_lagrange_strain    |
-      ==================================
+    /*!==================================
+       |    test_get_lagrange_strain    |
+       ==================================
 
-      Test the computation of the lagrange strain.
+       Test the computation of the lagrange strain.
 
     */
 
@@ -351,11 +351,11 @@ int test_get_lagrange_strain(std::ofstream &results){
 }
 
 int test_get_almansi_strain(std::ofstream &results){
-    /*=================================
-      |    test_get_almansi_strain    |
-      =================================
+    /*!=================================
+       |    test_get_almansi_strain    |
+       =================================
 
-      Test the computation of the almansi strain.
+       Test the computation of the almansi strain.
 
     */
 
@@ -382,11 +382,11 @@ int test_get_almansi_strain(std::ofstream &results){
 }
 
 int test_get_small_strain(std::ofstream &results){
-    /*===============================
-      |    test_get_small_strain    |
-      ===============================
+    /*!===============================
+       |    test_get_small_strain    |
+       ===============================
 
-      Test the computation of the small strain.
+       Test the computation of the small strain.
 
     */
 
@@ -425,11 +425,11 @@ int test_get_small_strain(std::ofstream &results){
 }
 
 int test_get_psi(std::ofstream &results){
-    /*======================
-      |    test_get_psi    |
-      ======================
+    /*!======================
+       |    test_get_psi    |
+       ======================
 
-      Test the computation of psi.
+       Test the computation of psi.
 
     */
 
@@ -460,11 +460,11 @@ int test_get_psi(std::ofstream &results){
 }
 
 int test_get_gamma(std::ofstream &results){
-    /*========================
-      |    test_get_gamma    |
-      ========================
+    /*!========================
+       |    test_get_gamma    |
+       ========================
 
-      Test the computation of gamma.
+       Test the computation of gamma.
 
     */
 
@@ -494,12 +494,12 @@ int test_get_gamma(std::ofstream &results){
 }
 
 int test_voigt_3x3_symm_tensor(std::ofstream &results){
-    /*====================================
-      |    test_voigt_3x3_symm_tensor    |
-      ====================================
+    /*!====================================
+       |    test_voigt_3x3_symm_tensor    |
+       ====================================
 
-      Test the mapping of a symmetric tensor to voigt
-      notation.
+       Test the mapping of a symmetric tensor to voigt
+       notation.
 
     */
 
@@ -531,12 +531,12 @@ int test_voigt_3x3_symm_tensor(std::ofstream &results){
 }
 
 int test_voigt_3x3_tensor(std::ofstream &results){
-    /*===============================
-      |    test_voigt_3x3_tensor    |
-      ===============================
+    /*!===============================
+       |    test_voigt_3x3_tensor    |
+       ===============================
 
-      Test the mapping of a general tensor to voigt
-      notation.
+       Test the mapping of a general tensor to voigt
+       notation.
 
     */
 
@@ -570,13 +570,45 @@ int test_voigt_3x3_tensor(std::ofstream &results){
     return 1;
 }
 
-int test_voigt_3x9_tensor(std::ofstream &results){
-    /*===============================
-      |    test_voigt_3x9_tensor    |
-      ===============================
+int test_undo_voigt_3x3_tensor(std::ofstream &results){
+    /*!====================================
+       |    test_undo_voigt_3x3_tensor    |
+       ====================================
 
-      Test the computation of the voigt notation 
-      for a third order tensor.
+       Test the mapping of a general 3x3 tensor in voigt 
+       notation back to the matrix form.
+
+    */
+
+    Matrix_3x3 A;  //The expected result
+    Matrix_3x3 _A; //The function result
+    A << 1, 2, 3, 4, 5, 6, 7, 8, 9; //Populate the tensor
+
+    Vector_9 v;  //The matrix in voigt form
+
+    micromorphic_measures::voigt_3x3_tensor(A,v);
+
+    micromorphic_measures::undo_voigt_3x3_tensor(v,_A);
+    
+    bool tot_result = A.isApprox(_A);
+
+    if (tot_result){
+        results << "test_undo_voigt_3x3_tensor & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_undo_voigt_3x3_tensor & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_voigt_3x9_tensor(std::ofstream &results){
+    /*!===============================
+       |    test_voigt_3x9_tensor    |
+       ===============================
+
+       Test the computation of the voigt notation 
+       for a third order tensor.
 
     */
 
@@ -611,11 +643,11 @@ int test_voigt_3x9_tensor(std::ofstream &results){
 }
 
 int test_get_micro_strain(std::ofstream &results){
-    /*===============================
-      |    test_get_micro_strain    |
-      ===============================
+    /*!===============================
+       |    test_get_micro_strain    |
+       ===============================
 
-      Test the computation of the micromorphic strain.
+       Test the computation of the micromorphic strain.
 
     */
 
@@ -641,6 +673,65 @@ int test_get_micro_strain(std::ofstream &results){
         results << "test_get_micro_strain & False\\\\\n\\hline\n";
     }
 
+    return 1;
+}
+
+int test_undo_voigt_3x9_tensor(std::ofstream &results){
+    /*!====================================
+       |    test_undo_voigt_3x9_tensor    |
+       ====================================
+
+       Test undoing the computation of the voigt notation 
+       for a third order tensor.
+
+    */
+
+    Matrix_3x9 A;  //The expected result
+    Matrix_3x9 _A; //The function result
+    Vector_27 v;  //The expected result
+
+    micromorphic_measures::voigt_3x9_tensor(A,v);
+    micromorphic_measures::undo_voigt_3x9_tensor(v,_A);
+    
+    bool tot_result = A.isApprox(_A);
+
+    if (tot_result){
+        results << "test_undo_voigt_3x9_tensor & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_undo_voigt_3x9_tensor & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_perform_positive_cyclic_permutation(std::ofstream &results){
+    /*!==================================================
+       |    test_perform_positive_cyclic_permutation    |
+       ==================================================
+    
+        Test performing a positive cyclic permutation on a 3x9 (third order)
+        tensor.
+    
+    */
+    
+    Matrix_3x9 A;  //The expected result
+    Matrix_3x9 _A; //The function result
+    
+    A  << 0, 10, 20, 19, 18, 9, 11, 2, 1, 3, 13, 23, 22, 21, 12, 14, 5, 4, 6, 16, 26, 25, 24, 15, 17, 8, 7;
+    _A << 0, 4, 8, 5, 2, 1, 7, 6, 3, 9, 13, 17, 14, 11, 10, 16, 15, 12, 18, 22, 26, 23, 20, 19, 25, 24, 21;
+    
+    micromorphic_measures::perform_positive_cyclic_permutation(_A);
+    
+    bool tot_result = A.isApprox(_A);
+    
+    if (tot_result){
+        results << "test_perform_positive_cyclic_permutation & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_perform_positive_cyclic_permutation & False\\\\\n\\hline\n";
+    }
+    
     return 1;
 }
 
@@ -673,6 +764,9 @@ int main(){
     test_voigt_3x3_tensor(results);
     test_voigt_3x9_tensor(results);
     test_get_micro_strain(results);
+    test_undo_voigt_3x3_tensor(results);
+    test_undo_voigt_3x9_tensor(results);
+    test_perform_positive_cyclic_permutation(results);
 
     //Close the results file
     results.close();

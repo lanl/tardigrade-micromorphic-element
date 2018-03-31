@@ -354,6 +354,26 @@ namespace micromorphic_measures
 
         return;
     }
+    
+    void undo_voigt_3x3_tensor(const Vector_9 &v, Matrix_3x3 &A){
+        /*!===============================
+           |    undo_voigt_3x3_tensor    |
+           ===============================
+        
+           Undo the voigt notation on a vector of length 9.
+        
+        */
+        
+        A(0,0) = v(0);
+        A(1,1) = v(1);
+        A(2,2) = v(2);
+        A(1,2) = v(3);
+        A(0,2) = v(4);
+        A(0,1) = v(5);
+        A(2,1) = v(6);
+        A(2,0) = v(7);
+        A(1,0) = v(8);
+    }
 
     void voigt_3x9_tensor(const Matrix_3x9 &A, Vector_27 &v){
         /*!==========================
@@ -373,6 +393,80 @@ namespace micromorphic_measures
 
         }
         return;
+    }
+    
+    void undo_voigt_3x9_tensor(const Vector_27 &v, Matrix_3x9 &A){
+        /*!===============================
+           |    undo_voigt_3x9_tensor    |
+           ===============================
+
+           Undo the voigt notation of a general third order tensor
+           which has the second two indices are in voigt notation already.
+
+        */
+
+        for (int i=0; i<3; i++){
+
+            for (int j=0; j<9; j++){
+                A(i,j) = v(i*9 + j);
+            }
+
+        }
+        return;
+    }
+    
+    void perform_positive_cyclic_permutation(Matrix_3x9 &A){
+        /*!====================================
+           |    perform_cyclic_permutation    |
+           ====================================
+          
+           Perform positive cyclic permutation on a 3x9 tensor i.e.
+           
+           A_ijk -> A_jki
+        
+           where initially
+               0  1  2
+           i = 1, 2, 3
+           
+                0   1   2   3   4   5   6   7   8
+           I = 11, 22, 33, 23, 13, 12, 32, 31, 21
+        
+        */
+        
+        Matrix_3x9 swap;
+        
+        swap(0,0) = A(0,0); //111 -> 111
+        swap(1,8) = A(0,1); //122 -> 221
+        swap(2,7) = A(0,2); //133 -> 331
+        swap(1,7) = A(0,3); //123 -> 231
+        swap(0,7) = A(0,4); //113 -> 131
+        swap(0,8) = A(0,5); //112 -> 121
+        swap(2,8) = A(0,6); //132 -> 321
+        swap(2,0) = A(0,7); //131 -> 311
+        swap(1,0) = A(0,8); //121 -> 211
+        
+        swap(0,5) = A(1,0); //211 -> 112
+        swap(1,1) = A(1,1); //222 -> 222
+        swap(2,6) = A(1,2); //233 -> 332
+        swap(1,6) = A(1,3); //223 -> 232
+        swap(0,6) = A(1,4); //213 -> 132
+        swap(0,1) = A(1,5); //212 -> 122
+        swap(2,1) = A(1,6); //232 -> 322
+        swap(2,5) = A(1,7); //231 -> 312
+        swap(1,5) = A(1,8); //221 -> 212
+        
+        swap(0,4) = A(2,0); //311 -> 113
+        swap(1,3) = A(2,1); //322 -> 223
+        swap(2,2) = A(2,2); //333 -> 333
+        swap(1,2) = A(2,3); //323 -> 233
+        swap(0,2) = A(2,4); //313 -> 133
+        swap(0,3) = A(2,5); //312 -> 123
+        swap(2,3) = A(2,6); //332 -> 323
+        swap(2,4) = A(2,7); //331 -> 313
+        swap(1,4) = A(2,8); //321 -> 213
+        
+        A = swap;
+        
     }
 
 }

@@ -54,4 +54,10 @@ namespace micromorphic_measures
     void voigt_3x9_tensor(const Matrix_3x9 &A, Vector_27 &v);
 
     void get_micro_strain(const Matrix_3x3 &psi, Matrix_3x3 &E_micro);
+    
+    void undo_voigt_3x3_tensor(const Vector_9 &v, Matrix_3x3 &A);
+    
+    void undo_voigt_3x9_tensor(const Vector_27 &v, Matrix_3x9 &A);
+    
+    void perform_positive_cyclic_permutation(Matrix_3x9 &A);
 }
