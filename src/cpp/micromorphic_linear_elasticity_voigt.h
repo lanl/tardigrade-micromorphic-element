@@ -36,7 +36,9 @@ typedef Eigen::Triplet<double> T;
 
 namespace micro_material{
 
-    void get_stress(double (&params)[18]);
+    void get_stress(const double t,      const double dt,       const double (&params)[18], 
+                    const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
+                    std::vector<double> &SDVS, Vector_9 &PK2);
 
     void compute_A_voigt(const double &lambda,const double &mu, SpMat &A);
 
@@ -50,4 +52,11 @@ namespace micro_material{
                          const double &tau10, const double &tau11, SpMat &C);
 
     void compute_D_voigt(const double &sigma, const double &tau, SpMat &D);
+
+    void compute_PK2_stress(const Vector_9 &E_voigt,      const Vector_9 &E_micro_voigt,
+                            const Vector_27 &Gamma_voigt, const Matrix_3x3 &Cinv,
+                            const Matrix_3x3 &Psi,        const Matrix_3x9 &Gamma,
+                            const SpMat &A,               const SpMat &B,
+                            const SpMat &C,               const SpMat &D,
+                            Vector_9 &PK2);
 }

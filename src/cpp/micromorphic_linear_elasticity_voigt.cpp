@@ -21,7 +21,8 @@
   | Eigen: Open source matrix library available at            |
   |        eigen.tuxfamily.org.                               |
   =============================================================*/
-  
+
+#include <iostream>  
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -30,7 +31,9 @@
 
 namespace micro_material{
 
-    void get_stress(double (&params)[18]){
+    void get_stress(const double t,      const double dt,       const double (&params)[18],
+                    const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
+                    std::vector<double> &SDVS,    Vector_9 &PK2){
     
         //Extract the parameters
         double lambda  = params[ 0];
@@ -65,7 +68,41 @@ namespace micro_material{
                         tau7,tau8,tau9,tau10,tau11,C);
         compute_D_voigt(sigma,tau,D);
 
+        //Compute the deformation measures
+        Matrix_3x3 RCG; //The right cauchy green deformation tensor
+        deformation_measures::get_right_cauchy_green(F,RCG);
+        Matrix_3x3 RCGinv = RCG.inverse(); //The inverse of the right cauchy green deformation tensor
+        Matrix_3x3 Psi; //The second order micromorphic deformation measure
+        deformation_measures::get_psi(F,chi,Psi);
+        Matrix_3x9 Gamma; //The higher order micromorphic deformation measure
+        deformation_measures::get_gamma(F,grad_chi,Gamma);
+
+        //Compute the strain measures
+        Matrix_3x3 E;
+        Matrix_3x3 E_micro;
+        deformation_measures::get_lagrange_strain(F,E);
+        deformation_measures::get_micro_strain(Psi,E_micro);
+        
+        std::cout << "F:\n" << F << "\n";
+        std::cout << "chi:\n" << chi << "\n";
+        std::cout << "grad chi:\n" << grad_chi << "\n";
+        std::cout << "Psi:\n" << Psi << "\n";
+        std::cout << "Gamma:\n" << Gamma << "\n";
+        std::cout << "E:\n" << E << "\n";
+        std::cout << "E_micro:\n" << E_micro << "\n";
+
+        //Put the strain measures in voigt notation
+        Vector_9  E_voigt;
+        Vector_9  E_micro_voigt;
+        Vector_27 Gamma_voigt;
+
+        deformation_measures::voigt_3x3_tensor(E,       E_voigt);
+        deformation_measures::voigt_3x3_tensor(E_micro, E_micro_voigt);
+        deformation_measures::voigt_3x9_tensor(Gamma,   Gamma_voigt);
+
         //Compute the stress measures
+        compute_PK2_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma,
+                           A,       B,             C,           D,      PK2);
 
         return;
     }
@@ -386,36 +423,37 @@ namespace micro_material{
         return;
     }
     
-//    void compute_PK2_stress(const Vector_9 &E_voigt,    const Vector_9 &E_micro_voigt, const Vector_27 &Gamma_voigt,
-//                            const Matrix_3x3 &Cinv,     const Matrix_3x3 &Psi,         const Matrix_3x9 &Gamma,
-//                            const SpMat &A, const SpMat &B,    const SpMat &C,
-//                            const SpMat &D, Vector_9 &PK2){
-//        /*!============================
-//           |    compute_PK2_stress    |
-//           ============================
-//           
-//           Compute the second piola kirchoff stress.
-//           
-//        */
-//        
-//        PK2 = A*E_voigt;        //Compute the first terms
+    void compute_PK2_stress(const Vector_9 &E_voigt,    const Vector_9 &E_micro_voigt, const Vector_27 &Gamma_voigt,
+                            const Matrix_3x3 &RCGinv,   const Matrix_3x3 &Psi,         const Matrix_3x9 &Gamma,
+                            const SpMat &A, const SpMat &B,    const SpMat &C,
+                            const SpMat &D, Vector_9 &PK2){
+        /*!============================
+        |    compute_PK2_stress    |
+        ============================
+           
+        Compute the second piola kirchoff stress.
+           
+        */
+        
+        PK2 = A*E_voigt;        //Compute the first terms
 //        PK2 += B*E_micro_voigt;
 //        
 //        //Compute the middle terms
 //        Matrix_3x3 Temp1;
 //        deformation_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
-//        PK2 += Temp1*(Cinv*Psi).transpose();
+//        PK2 += Temp1*(RCGinv*Psi).transpose();
 //        
 //        //Compute the end terms
 //        Matrix_3x9 Temp2;
 //        deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,Temp2);
-//        PK2 += Temp2*(Cinv*Gamma).transpose();
+//        PK2 += Temp2*(RCGinv*Gamma).transpose();
 //        
-//        return;
-//    }
+        std::cout << "PK2:\n" << PK2 << "\n";
+        return;
+    }
 //    
 //    void compute_symmetric_stress(const Vector_9 &E_voigt,    const Vector_9 &E_micro_voigt, const Vector_27 &Gamma_voigt,
-//                            const Matrix_3x3 &Cinv,     const Matrix_3x3 &Psi,         const Matrix_3x9 &Gamma,
+//                            const Matrix_3x3 &RCGinv,     const Matrix_3x3 &Psi,         const Matrix_3x9 &Gamma,
 //                            const SpMat &A, const SpMat &B,    const SpMat &C,
 //                            const SpMat &D, Vector_9 &SIGMA){
 //        /*!============================
@@ -432,12 +470,12 @@ namespace micro_material{
 //        //Compute the middle terms
 //        Matrix_3x3 Temp1;
 //        deformation_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
-//        Matrix_3x3 symmetric_part = Temp1*(Cinv*Psi).transpose();
+//        Matrix_3x3 symmetric_part = Temp1*(RCGinv*Psi).transpose();
 //        
 //        //Compute the end terms
 //        Matrix_3x9 Temp2;
 //        deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,Temp2);
-//        symmetric_part += Temp2*(Cinv*Gamma).transpose();
+//        symmetric_part += Temp2*(RCGinv*Gamma).transpose();
 //        
 //        SIGMA += (symmetric_part + symmetric_part.transpose());
 //        

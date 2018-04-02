@@ -87,6 +87,37 @@ void define_grad_phi(Matrix_3x9 &grad_phi){
 
 }
 
+void define_parameters(double (&params)[18]){
+    /*!========================
+    |    define_parameters    |
+    ===========================
+
+    Define the parameters to be used in the 
+    test functions.
+
+    */
+
+    params[ 0] = 0.191519450379;
+    params[ 1] = 0.62210877104;
+    params[ 2] = 0.437727739007;
+    params[ 3] = 0.785358583714;
+    params[ 4] = 0.779975808119;
+    params[ 5] = 0.272592605283;
+    params[ 6] = 0.276464255143;
+    params[ 7] = 0.801872177535;
+    params[ 8] = 0.958139353684;
+    params[ 9] = 0.875932634742;
+    params[10] = 0.357817269958;
+    params[11] = 0.500995125523;
+    params[12] = 0.683462935172;
+    params[13] = 0.712702026983;
+    params[14] = 0.37025075479;
+    params[15] = 0.561196186066;
+    params[16] = 0.503083165308;
+    params[17] = 0.0137684495907;
+    return;
+}
+
 void define_deformation_gradient(Matrix_3x3 &F){
     /*!=====================================
        |    define_deformation_gradient    |
@@ -555,6 +586,49 @@ int test_compute_D_voigt(std::ofstream &results){
     return 1;
 }
 
+int test_compute_PK2_stress(std::ofstream &results){
+    /*!=================================
+    |    test_compute_PK2_stress    |
+    =================================
+
+    Test the computation of the PK2 stress 
+    tensor in voigt form.
+
+    */
+
+    Vector_9  PK2; //The expected result
+    Vector_9 _PK2; //The result of the function
+
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The deformation gradient
+    Matrix_3x3 chi;           //The micro-dof
+    Matrix_3x9 grad_chi;      //The gradient of the micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    define_grad_phi(grad_chi);  //Note: grad_chi = grad_phi
+
+//    define_PK2(PK2);
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, _PK2);
+
+    //std::cout << PK2;
+
+    bool tot_result = PK2.isApprox(_PK2);
+
+    if (tot_result){
+        results << "test_compute_PK2_voigt & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_PK2_voigt & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -574,6 +648,7 @@ int main(){
     test_compute_B_voigt(results);
     test_compute_C_voigt(results);
     test_compute_D_voigt(results);
+    test_compute_PK2_stress(results);
 
     //Close the results file
     results.close();
