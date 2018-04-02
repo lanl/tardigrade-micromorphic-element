@@ -1,0 +1,5 @@
+*.exe
+*.o
+results.tex
+temp.py
+makefile
