@@ -28,36 +28,37 @@
 #include <deformation_measures.h>
 
 //Sparse matrix type definitions
-typedef Eigen::SparseMatrix<double, 9, 6> Sparse_Matrix_9x6;
-typedef Eigen::SparseMatrix<double, 9, 9> Sparse_Matrix_9x9;
-typedef Eigen::SparseMatrix<double,27,27> Sparse_Matrix_27x27
+typedef Eigen::SparseMatrix<double> SpMat;
 typedef Eigen::Triplet<double> T;
 
 namespace micro_material{
 
-    void get_stress(double &params[18])
+    void get_stress(double (&params)[18]){
     
         //Extract the parameters
-        lambda  = params[ 0];
-        mu      = params[ 1];
-        eta     = params[ 2];
-        tau     = params[ 3];
-        kappa   = params[ 4];
-        nu      = params[ 5];
-        sigma   = params[ 6];
-        tau1    = params[ 7];
-        tau2    = params[ 8];
-        tau3    = params[ 9];
-        tau4    = params[10];
-        tau5    = params[11];
-        tau6    = params[12];
-        tau7    = params[13];
-        tau8    = params[14];
-        tau9    = params[15];
-        tau10   = params[16];
-        tau11   = params[17];
+        double lambda  = params[ 0];
+        double mu      = params[ 1];
+        double eta     = params[ 2];
+        double tau     = params[ 3];
+        double kappa   = params[ 4];
+        double nu      = params[ 5];
+        double sigma   = params[ 6];
+        double tau1    = params[ 7];
+        double tau2    = params[ 8];
+        double tau3    = params[ 9];
+        double tau4    = params[10];
+        double tau5    = params[11];
+        double tau6    = params[12];
+        double tau7    = params[13];
+        double tau8    = params[14];
+        double tau9    = params[15];
+        double tau10   = params[16];
+        double tau11   = params[17];
 
-    void compute_A_voigt(const double &lambda,const double &mu, Sparse_Matrix_9x9 &A) {
+        return;
+    }
+
+    void compute_A_voigt(const double &lambda,const double &mu, SpMat &A) {
         /*!=========================
            |    compute_A_voigt    |
            =========================
@@ -66,7 +67,7 @@ namespace micro_material{
         */
         
         std::vector<T> tripletList;
-        tripletList.reserve(estimation_of_entries);
+        tripletList.reserve(21);
     
         tripletList.push_back(0,0,lambda + 2*mu);
         tripletList.push_back(0,1,lambda);
@@ -94,7 +95,7 @@ namespace micro_material{
         return;
     }
     
-    void compute_B_voigt(double &eta, double &kappa, double &nu, double &sigma, double &tau, Sparse_Matrix_9x9 &B) {
+    void compute_B_voigt(double &eta, double &kappa, double &nu, double &sigma, double &tau, SpMat &B) {
         /*!=========================
            |    compute_B_voigt    |
            =========================
@@ -103,7 +104,7 @@ namespace micro_material{
         */
         
         std::vector<T> tripletList;
-        tripletList.reserve(estimation_of_entries);
+        tripletList.reserve(21);
         
         tripletList.push_back(0,0,eta + kappa + nu - 2*sigma - tau);
         tripletList.push_back(0,1,eta - tau);
@@ -132,7 +133,7 @@ namespace micro_material{
     }
     
     void compute_C_voigt(double &tau1, double &tau2,  double &tau3,  double &tau4, double &tau5, double &tau6, double &tau7, double &tau8,
-                         double &tau9, double &tau10, double &tau11, Sparse_Matrix_27x27 &C) {
+                         double &tau9, double &tau10, double &tau11, SpMat &C) {
         /*!=========================
            |    compute_C_voigt    |
            =========================
@@ -142,7 +143,7 @@ namespace micro_material{
         
         */
         std::vector<T> tripletList;
-        tripletList.reserve(estimation_of_entries);
+        tripletList.reserve(183);
         
         tripletList.push_back(0,0,2*tau1 + tau10 + tau11 + 2*tau2 + tau3 + tau4 + 2*tau5 + tau6 + tau7 + 2*tau8 + tau9);
         tripletList.push_back(0,1,tau1 + tau4 + tau5);
@@ -332,7 +333,7 @@ namespace micro_material{
         return;
     }
     
-    void compute_D_voigt(double &sigma, double &tau, Sparse_Matrix_9x6 &D){
+    void compute_D_voigt(double &sigma, double &tau, SpMat &D){
         /*!=========================
            |    compute_D_voigt    |
            =========================
@@ -342,7 +343,7 @@ namespace micro_material{
         
         */
         std::vector<T> tripletList;
-        tripletList.reserve(estimation_of_entries);
+        tripletList.reserve(21);
         
         tripletList.push_back(0,0,2*sigma + tau);
         tripletList.push_back(0,1,tau);
