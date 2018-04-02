@@ -18,13 +18,13 @@ DBG = -ggdb
 
 all: test_micromorphic_linear_elasticity_voigt
 
-test_micromorphic_linear_elasticity_voigt: test_micromorphic_linear_elasticity_voigt.o micromorphic_linear_elasticity_voigt.o
-	$(CC) $(STD) -o $@ test_micromorphic_linear_elasticity_voigt.o micromorphic_linear_elasticity_voigt.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+test_micromorphic_linear_elasticity_voigt: test_micromorphic_linear_elasticity_voigt.o micromorphic_linear_elasticity_voigt.o deformation_measures.o
+	$(CC) $(STD) -o $@ test_micromorphic_linear_elasticity_voigt.o micromorphic_linear_elasticity_voigt.o deformation_measures.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
-test_micromorphic_linear_elasticity_voigt.o: test_micromorphic_linear_elasticity_voigt.cpp ../../micromorphic_linear_elasticity_voigt.h
+test_micromorphic_linear_elasticity_voigt.o: test_micromorphic_linear_elasticity_voigt.cpp ../../micromorphic_linear_elasticity_voigt.h ../../deformation_measures.h
 	$(CC) $(STD) -o $@ -c test_micromorphic_linear_elasticity_voigt.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
-micromorphic_linear_elasticity_voigt.o: ../../micromorphic_linear_elasticity_voigt.h ../../micromorphic_linear_elasticity_voigt.cpp
+micromorphic_linear_elasticity_voigt.o: ../../micromorphic_linear_elasticity_voigt.h ../../micromorphic_linear_elasticity_voigt.cpp ../../deformation_measures.h
 	$(CC) $(STD) -o $@ -c ../../micromorphic_linear_elasticity_voigt.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 deformation_measures.o: ../../deformation_measures.h ../../deformation_measures.cpp
