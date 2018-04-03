@@ -705,31 +705,61 @@ int test_undo_voigt_3x9_tensor(std::ofstream &results){
     return 1;
 }
 
-int test_perform_positive_cyclic_permutation(std::ofstream &results){
-    /*!==================================================
-       |    test_perform_positive_cyclic_permutation    |
-       ==================================================
+int test_perform_left_positive_cyclic_permutation(std::ofstream &results){
+    /*!=======================================================
+       |    test_perform_left_positive_cyclic_permutation    |
+       =======================================================
     
-        Test performing a positive cyclic permutation on a 3x9 (third order)
+        Test performing a left positive cyclic permutation on a 3x9 (third order)
         tensor.
     
     */
     
-    Matrix_3x9 A;  //The expected result
-    Matrix_3x9 _A; //The function result
+    Vector_27 A;  //The expected result
+    Vector_27 _A; //The function result
     
     A  << 0, 10, 20, 19, 18, 9, 11, 2, 1, 3, 13, 23, 22, 21, 12, 14, 5, 4, 6, 16, 26, 25, 24, 15, 17, 8, 7;
     _A << 0, 4, 8, 5, 2, 1, 7, 6, 3, 9, 13, 17, 14, 11, 10, 16, 15, 12, 18, 22, 26, 23, 20, 19, 25, 24, 21;
     
-    deformation_measures::perform_positive_cyclic_permutation(_A);
+    deformation_measures::perform_left_positive_cyclic_permutation(_A);
     
     bool tot_result = A.isApprox(_A);
     
     if (tot_result){
-        results << "test_perform_positive_cyclic_permutation & True\\\\\n\\hline\n";
+        results << "test_perform_left_positive_cyclic_permutation & True\\\\\n\\hline\n";
     }
     else {
-        results << "test_perform_positive_cyclic_permutation & False\\\\\n\\hline\n";
+        results << "test_perform_left_positive_cyclic_permutation & False\\\\\n\\hline\n";
+    }
+    
+    return 1;
+}
+
+int test_perform_right_positive_cyclic_permutation(std::ofstream &results){
+    /*!========================================================
+       |    test_perform_right_positive_cyclic_permutation    |
+       ========================================================
+    
+        Test performing a right positive cyclic permutation on a 3x9 (third order)
+        tensor.
+    
+    */
+    
+    Vector_27 A;  //The expected result
+    Vector_27 _A; //The function result
+    
+    A  << 0, 12, 24, 15, 6, 3, 21, 18, 9, 1, 13, 25, 16, 7, 4, 22, 19, 10, 2, 14, 26, 17, 8, 5, 23, 20, 11;
+    _A << 0, 4, 8, 5, 2, 1, 7, 6, 3, 9, 13, 17, 14, 11, 10, 16, 15, 12, 18, 22, 26, 23, 20, 19, 25, 24, 21;
+    
+    deformation_measures::perform_right_positive_cyclic_permutation(_A);
+    
+    bool tot_result = A.isApprox(_A);
+    
+    if (tot_result){
+        results << "test_perform_right_positive_cyclic_permutation & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_perform_right_positive_cyclic_permutation & False\\\\\n\\hline\n";
     }
     
     return 1;
@@ -766,7 +796,8 @@ int main(){
     test_get_micro_strain(results);
     test_undo_voigt_3x3_tensor(results);
     test_undo_voigt_3x9_tensor(results);
-    test_perform_positive_cyclic_permutation(results);
+    test_perform_left_positive_cyclic_permutation(results);
+    test_perform_right_positive_cyclic_permutation(results);
 
     //Close the results file
     results.close();
