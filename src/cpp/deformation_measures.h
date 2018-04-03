@@ -59,5 +59,7 @@ namespace deformation_measures
     
     void undo_voigt_3x9_tensor(const Vector_27 &v, Matrix_3x9 &A);
     
-    void perform_positive_cyclic_permutation(Matrix_3x9 &A);
+    void perform_left_positive_cyclic_permutation(Vector_27 &A);
+    
+    void perform_right_positive_cyclic_permutation(Vector_27 &A);
 }

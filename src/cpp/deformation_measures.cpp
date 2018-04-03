@@ -415,58 +415,94 @@ namespace deformation_measures
         return;
     }
     
-    void perform_positive_cyclic_permutation(Matrix_3x9 &A){
-        /*!====================================
-           |    perform_cyclic_permutation    |
-           ====================================
+    void perform_left_positive_cyclic_permutation(Vector_27 &A){
+        /*!==========================================
+           |    perform_left_cyclic_permutation    |
+           ==========================================
           
-           Perform positive cyclic permutation on a 3x9 tensor i.e.
+           Perform a left positive cyclic permutation on a third order tensor in vector form i.e.
            
            A_ijk -> A_jki
         
-           where initially
-               0  1  2
-           i = 1, 2, 3
-           
-                0   1   2   3   4   5   6   7   8
-           I = 11, 22, 33, 23, 13, 12, 32, 31, 21
-        
         */
         
-        Matrix_3x9 swap;
+        Vector_27 swap;
         
-        swap(0,0) = A(0,0); //111 -> 111
-        swap(1,8) = A(0,1); //122 -> 221
-        swap(2,7) = A(0,2); //133 -> 331
-        swap(1,7) = A(0,3); //123 -> 231
-        swap(0,7) = A(0,4); //113 -> 131
-        swap(0,8) = A(0,5); //112 -> 121
-        swap(2,8) = A(0,6); //132 -> 321
-        swap(2,0) = A(0,7); //131 -> 311
-        swap(1,0) = A(0,8); //121 -> 211
-        
-        swap(0,5) = A(1,0); //211 -> 112
-        swap(1,1) = A(1,1); //222 -> 222
-        swap(2,6) = A(1,2); //233 -> 332
-        swap(1,6) = A(1,3); //223 -> 232
-        swap(0,6) = A(1,4); //213 -> 132
-        swap(0,1) = A(1,5); //212 -> 122
-        swap(2,1) = A(1,6); //232 -> 322
-        swap(2,5) = A(1,7); //231 -> 312
-        swap(1,5) = A(1,8); //221 -> 212
-        
-        swap(0,4) = A(2,0); //311 -> 113
-        swap(1,3) = A(2,1); //322 -> 223
-        swap(2,2) = A(2,2); //333 -> 333
-        swap(1,2) = A(2,3); //323 -> 233
-        swap(0,2) = A(2,4); //313 -> 133
-        swap(0,3) = A(2,5); //312 -> 123
-        swap(2,3) = A(2,6); //332 -> 323
-        swap(2,4) = A(2,7); //331 -> 313
-        swap(1,4) = A(2,8); //321 -> 213
+        swap[0] = A[0];
+        swap[1] = A[14];
+        swap[2] = A[22];
+        swap[3] = A[23];
+        swap[4] = A[18];
+        swap[5] = A[9];
+        swap[6] = A[13];
+        swap[7] = A[4];
+        swap[8] = A[5];
+        swap[9] = A[8];
+        swap[10] = A[10];
+        swap[11] = A[21];
+        swap[12] = A[19];
+        swap[13] = A[26];
+        swap[14] = A[17];
+        swap[15] = A[12];
+        swap[16] = A[3];
+        swap[17] = A[1];
+        swap[18] = A[7];
+        swap[19] = A[15];
+        swap[20] = A[20];
+        swap[21] = A[24];
+        swap[22] = A[25];
+        swap[23] = A[16];
+        swap[24] = A[11];
+        swap[25] = A[2];
+        swap[26] = A[6];
         
         A = swap;
         
     }
 
+    void perform_right_positive_cyclic_permutation(Vector_27 &A){
+        /*!==========================================
+           |    perform_right_cyclic_permutation    |
+           ==========================================
+          
+           Perform a right positive cyclic permutation on a third order tensor in vector form i.e.
+           
+           A_ijk -> A_kij
+        
+        */
+        
+        Vector_27 swap;
+        
+        swap[0] = A[0];
+        swap[1] = A[17];
+        swap[2] = A[25];
+        swap[3] = A[16];
+        swap[4] = A[7];
+        swap[5] = A[8];
+        swap[6] = A[26];
+        swap[7] = A[18];
+        swap[8] = A[9];
+        swap[9] = A[5];
+        swap[10] = A[10];
+        swap[11] = A[24];
+        swap[12] = A[15];
+        swap[13] = A[6];
+        swap[14] = A[1];
+        swap[15] = A[19];
+        swap[16] = A[23];
+        swap[17] = A[14];
+        swap[18] = A[4];
+        swap[19] = A[12];
+        swap[20] = A[20];
+        swap[21] = A[11];
+        swap[22] = A[2];
+        swap[23] = A[3];
+        swap[24] = A[21];
+        swap[25] = A[22];
+        swap[26] = A[13];
+        
+        A = swap;
+        
+    }
+    
 }
