@@ -173,18 +173,18 @@ void define_A(SpMat &A){
     tripletList.push_back(T(2,0,0.191519450378892));
     tripletList.push_back(T(2,1,0.191519450378892));
     tripletList.push_back(T(2,2,1.43573699245856));
-    tripletList.push_back(T(3,3,1.24421754207966));
-    tripletList.push_back(T(3,6,1.24421754207966));
-    tripletList.push_back(T(4,4,1.24421754207966));
-    tripletList.push_back(T(4,7,1.24421754207966));
-    tripletList.push_back(T(5,5,1.24421754207966));
-    tripletList.push_back(T(5,8,1.24421754207966));
-    tripletList.push_back(T(6,3,1.24421754207966));
-    tripletList.push_back(T(6,6,1.24421754207966));
-    tripletList.push_back(T(7,4,1.24421754207966));
-    tripletList.push_back(T(7,7,1.24421754207966));
-    tripletList.push_back(T(8,5,1.24421754207966));
-    tripletList.push_back(T(8,8,1.24421754207966));
+    tripletList.push_back(T(3,3,0.622108771039832));
+    tripletList.push_back(T(3,6,0.622108771039832));
+    tripletList.push_back(T(4,4,0.622108771039832));
+    tripletList.push_back(T(4,7,0.622108771039832));
+    tripletList.push_back(T(5,5,0.622108771039832));
+    tripletList.push_back(T(5,8,0.622108771039832));
+    tripletList.push_back(T(6,3,0.622108771039832));
+    tripletList.push_back(T(6,6,0.622108771039832));
+    tripletList.push_back(T(7,4,0.622108771039832));
+    tripletList.push_back(T(7,7,0.622108771039832));
+    tripletList.push_back(T(8,5,0.622108771039832));
+    tripletList.push_back(T(8,8,0.622108771039832));
 
     A.setFromTriplets(tripletList.begin(), tripletList.end());
 }
@@ -450,21 +450,69 @@ void define_D(SpMat &D){
     tripletList.push_back(T(2,0,0.785358583713769));
     tripletList.push_back(T(2,1,0.785358583713769));
     tripletList.push_back(T(2,2,1.33828709399996));
-    tripletList.push_back(T(3,3,0.552928510286193));
-    tripletList.push_back(T(3,6,0.552928510286193));
-    tripletList.push_back(T(4,4,0.552928510286193));
-    tripletList.push_back(T(4,7,0.552928510286193));
-    tripletList.push_back(T(5,5,0.552928510286193));
-    tripletList.push_back(T(5,8,0.552928510286193));
-    tripletList.push_back(T(6,3,0.552928510286193));
-    tripletList.push_back(T(6,6,0.552928510286193));
-    tripletList.push_back(T(7,4,0.552928510286193));
-    tripletList.push_back(T(7,7,0.552928510286193));
-    tripletList.push_back(T(8,5,0.552928510286193));
-    tripletList.push_back(T(8,8,0.552928510286193));
+    tripletList.push_back(T(3,3,0.276464255143097));
+    tripletList.push_back(T(3,6,0.276464255143097));
+    tripletList.push_back(T(4,4,0.276464255143097));
+    tripletList.push_back(T(4,7,0.276464255143097));
+    tripletList.push_back(T(5,5,0.276464255143097));
+    tripletList.push_back(T(5,8,0.276464255143097));
+    tripletList.push_back(T(6,3,0.276464255143097));
+    tripletList.push_back(T(6,6,0.276464255143097));
+    tripletList.push_back(T(7,4,0.276464255143097));
+    tripletList.push_back(T(7,7,0.276464255143097));
+    tripletList.push_back(T(8,5,0.276464255143097));
+    tripletList.push_back(T(8,8,0.276464255143097));
 
     D.setFromTriplets(tripletList.begin(), tripletList.end());
     return;
+}
+
+void define_PK2(Vector_9 &PK2){
+    /*!==================
+    |    define_PK2    |
+    ====================
+    
+    Define the expected value of the PK2 stress.
+    
+    */
+    
+    PK2 << 59.03427247, 160.14321551, 105.82494785, 214.53178439,
+           237.37311424, 249.55639324, 110.81529   ,  25.70187797,
+           17.88329254;
+}
+
+void define_SIGMA(Vector_9 &SIGMA){
+    /*!======================
+    |    define_SIGMA    |
+    ======================
+    
+    Define the expected value of the symmetric stress.
+    
+    */
+    
+    SIGMA << 119.79705742647155, 323.7978637411792, 216.13272323537976,
+             326.0970440545271, 263.5407883419666, 267.61699074207695,
+             326.0970440545271, 263.5407883419666, 267.61699074207695;
+}
+
+void define_M(Vector_27 &M){
+    /*!==================
+    |    define_M    |
+    ==================
+    
+    Define the expected value of the higher-order stress.
+    
+    */
+    
+    M << 81.31981706487286, 31.798586060251207, 27.355416705438905,
+         4.4605220584734795, 15.239752824275838, 22.917719613671604,
+         4.761661534444574, 13.617364734132286, 20.631211107480663,
+         25.446753288061686, 41.98935229144166, 17.27436660090204,
+         12.970633348345526, 4.29549454562416, 21.185457632363434,
+         10.684683278867416, 4.658645978608793, 26.552528036554328,
+         18.65235152889546, 16.02598269360608, 29.787283731069458,
+         11.17944236411268, 18.36235422268097, 4.559452481399969,
+         14.133232412473218, 23.03915084858808, 4.849232622884019;
 }
 
 int test_compute_A_voigt(std::ofstream &results){
@@ -606,24 +654,113 @@ int test_compute_PK2_stress(std::ofstream &results){
     Matrix_3x3 chi;           //The micro-dof
     Matrix_3x9 grad_chi;      //The gradient of the micro-dof
     std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9  SIGMA;          //The symmetric stress
+    Vector_27 M;              //The higher order stress  
 
     define_parameters(params);
     define_deformation_gradient(F);
     define_chi(chi);
     define_grad_phi(grad_chi);  //Note: grad_chi = grad_phi
 
-//    define_PK2(PK2);
-    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, _PK2);
-
-    //std::cout << PK2;
-
-    bool tot_result = PK2.isApprox(_PK2);
+    define_PK2(PK2);
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, _PK2, SIGMA, M);
+    
+    bool tot_result = PK2.isApprox(_PK2,1e-6);
 
     if (tot_result){
-        results << "test_compute_PK2_voigt & True\\\\\n\\hline\n";
+        results << "test_compute_PK2_stress_voigt & True\\\\\n\\hline\n";
     }
     else {
-        results << "test_compute_PK2_voigt & False\\\\\n\\hline\n";
+        results << "test_compute_PK2_stress_voigt & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_symmetric_stress(std::ofstream &results){
+    /*!=======================================
+    |    test_compute_symmetric_stress    |
+    =======================================
+
+    Test the computation of the symmetric stress 
+    tensor in voigt form.
+
+    */
+
+    Vector_9  SIGMA; //The expected result
+    Vector_9 _SIGMA; //The result of the function
+
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The deformation gradient
+    Matrix_3x3 chi;           //The micro-dof
+    Matrix_3x9 grad_chi;      //The gradient of the micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_27 M;              //The higher order stress  
+
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    define_grad_phi(grad_chi);  //Note: grad_chi = grad_phi
+
+    define_SIGMA(SIGMA);
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, _SIGMA, M);
+    
+    bool tot_result = SIGMA.isApprox(_SIGMA,1e-6);
+
+    if (tot_result){
+        results << "test_compute_symmetric_stress_voigt & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_symmetric_stress_voigt & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_higher_order_stress(std::ofstream &results){
+    /*!==========================================
+    |    test_compute_higher_order_stress    |
+    ==========================================
+
+    Test the computation of the higher-order stress 
+    tensor in voigt form.
+
+    */
+
+    Vector_27  M; //The expected result
+    Vector_27 _M; //The result of the function
+
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The deformation gradient
+    Matrix_3x3 chi;           //The micro-dof
+    Matrix_3x9 grad_chi;      //The gradient of the micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric
+
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    define_grad_phi(grad_chi);  //Note: grad_chi = grad_phi
+
+    define_M(M);
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, _M);
+    
+    std::cout << "M:\n" << M << "\n";
+    std::cout << "_M:\n" << _M << "\n";
+    
+    bool tot_result = M.isApprox(_M,1e-6);
+
+    if (tot_result){
+        results << "test_compute_higher_order_stress_voigt & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_higher_order_stress_voigt & False\\\\\n\\hline\n";
     }
 
     return 1;
@@ -649,6 +786,8 @@ int main(){
     test_compute_C_voigt(results);
     test_compute_D_voigt(results);
     test_compute_PK2_stress(results);
+    test_compute_symmetric_stress(results);
+    test_compute_higher_order_stress(results);
 
     //Close the results file
     results.close();

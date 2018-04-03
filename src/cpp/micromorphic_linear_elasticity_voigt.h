@@ -38,7 +38,7 @@ namespace micro_material{
 
     void get_stress(const double t,      const double dt,       const double (&params)[18], 
                     const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
-                    std::vector<double> &SDVS, Vector_9 &PK2);
+                    std::vector<double> &SDVS, Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M);
 
     void compute_A_voigt(const double &lambda,const double &mu, SpMat &A);
 
@@ -59,4 +59,13 @@ namespace micro_material{
                             const SpMat &A,               const SpMat &B,
                             const SpMat &C,               const SpMat &D,
                             Vector_9 &PK2);
+                            
+    void compute_symmetric_stress(const Vector_9 &E_voigt,      const Vector_9 &E_micro_voigt,
+                                  const Vector_27 &Gamma_voigt, const Matrix_3x3 &Cinv,
+                                  const Matrix_3x3 &Psi,        const Matrix_3x9 &Gamma,
+                                  const SpMat &A,               const SpMat &B,
+                                  const SpMat &C,               const SpMat &D,
+                                  Vector_9 &SIGMA);
+                                  
+    void compute_higher_order_stress(const Vector_27 &Gamma_voigt, const SpMat &C, Vector_27 &M);
 }

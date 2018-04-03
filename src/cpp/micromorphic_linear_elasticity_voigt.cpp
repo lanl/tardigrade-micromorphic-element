@@ -33,7 +33,7 @@ namespace micro_material{
 
     void get_stress(const double t,      const double dt,       const double (&params)[18],
                     const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
-                    std::vector<double> &SDVS,    Vector_9 &PK2){
+                    std::vector<double> &SDVS,    Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M){
     
         //Extract the parameters
         double lambda  = params[ 0];
@@ -83,13 +83,13 @@ namespace micro_material{
         deformation_measures::get_lagrange_strain(F,E);
         deformation_measures::get_micro_strain(Psi,E_micro);
         
-        std::cout << "F:\n" << F << "\n";
-        std::cout << "chi:\n" << chi << "\n";
-        std::cout << "grad chi:\n" << grad_chi << "\n";
-        std::cout << "Psi:\n" << Psi << "\n";
-        std::cout << "Gamma:\n" << Gamma << "\n";
-        std::cout << "E:\n" << E << "\n";
-        std::cout << "E_micro:\n" << E_micro << "\n";
+        //std::cout << "F:\n" << F << "\n";
+        //std::cout << "chi:\n" << chi << "\n";
+        //std::cout << "grad chi:\n" << grad_chi << "\n";
+        //std::cout << "Psi:\n" << Psi << "\n";
+        //std::cout << "Gamma:\n" << Gamma << "\n";
+        //std::cout << "E:\n" << E << "\n";
+        //std::cout << "E_micro:\n" << E_micro << "\n";
 
         //Put the strain measures in voigt notation
         Vector_9  E_voigt;
@@ -103,6 +103,11 @@ namespace micro_material{
         //Compute the stress measures
         compute_PK2_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma,
                            A,       B,             C,           D,      PK2);
+                           
+        compute_symmetric_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma,
+                           A,       B,             C,           D,      SIGMA);
+                           
+        compute_higher_order_stress(Gamma_voigt, C, M);
 
         return;
     }
@@ -127,18 +132,18 @@ namespace micro_material{
         tripletList.push_back(T(2,0,lambda));
         tripletList.push_back(T(2,1,lambda));
         tripletList.push_back(T(2,2,lambda + 2*mu));
-        tripletList.push_back(T(3,3,2*mu));
-        tripletList.push_back(T(3,6,2*mu));
-        tripletList.push_back(T(4,4,2*mu));
-        tripletList.push_back(T(4,7,2*mu));
-        tripletList.push_back(T(5,5,2*mu));
-        tripletList.push_back(T(5,8,2*mu));
-        tripletList.push_back(T(6,3,2*mu));
-        tripletList.push_back(T(6,6,2*mu));
-        tripletList.push_back(T(7,4,2*mu));
-        tripletList.push_back(T(7,7,2*mu));
-        tripletList.push_back(T(8,5,2*mu));
-        tripletList.push_back(T(8,8,2*mu)); 
+        tripletList.push_back(T(3,3,mu));
+        tripletList.push_back(T(3,6,mu));
+        tripletList.push_back(T(4,4,mu));
+        tripletList.push_back(T(4,7,mu));
+        tripletList.push_back(T(5,5,mu));
+        tripletList.push_back(T(5,8,mu));
+        tripletList.push_back(T(6,3,mu));
+        tripletList.push_back(T(6,6,mu));
+        tripletList.push_back(T(7,4,mu));
+        tripletList.push_back(T(7,7,mu));
+        tripletList.push_back(T(8,5,mu));
+        tripletList.push_back(T(8,8,mu));
     
         A.setFromTriplets(tripletList.begin(), tripletList.end());
         return;
@@ -379,7 +384,7 @@ namespace micro_material{
         tripletList.push_back(T(26,13,tau8));
         tripletList.push_back(T(26,16,tau10));
         tripletList.push_back(T(26,23,tau9));
-        tripletList.push_back(T(26,26,tau7));        
+        tripletList.push_back(T(26,26,tau7));
         
         C.setFromTriplets(tripletList.begin(), tripletList.end());
         return;
@@ -406,18 +411,18 @@ namespace micro_material{
         tripletList.push_back(T(2,0,tau));
         tripletList.push_back(T(2,1,tau));
         tripletList.push_back(T(2,2,2*sigma + tau));
-        tripletList.push_back(T(3,3,2*sigma));
-        tripletList.push_back(T(3,6,2*sigma));
-        tripletList.push_back(T(4,4,2*sigma));
-        tripletList.push_back(T(4,7,2*sigma));
-        tripletList.push_back(T(5,5,2*sigma));
-        tripletList.push_back(T(5,8,2*sigma));
-        tripletList.push_back(T(6,3,2*sigma));
-        tripletList.push_back(T(6,6,2*sigma));
-        tripletList.push_back(T(7,4,2*sigma));
-        tripletList.push_back(T(7,7,2*sigma));
-        tripletList.push_back(T(8,5,2*sigma));
-        tripletList.push_back(T(8,8,2*sigma));        
+        tripletList.push_back(T(3,3,sigma));
+        tripletList.push_back(T(3,6,sigma));
+        tripletList.push_back(T(4,4,sigma));
+        tripletList.push_back(T(4,7,sigma));
+        tripletList.push_back(T(5,5,sigma));
+        tripletList.push_back(T(5,8,sigma));
+        tripletList.push_back(T(6,3,sigma));
+        tripletList.push_back(T(6,6,sigma));
+        tripletList.push_back(T(7,4,sigma));
+        tripletList.push_back(T(7,7,sigma));
+        tripletList.push_back(T(8,5,sigma));
+        tripletList.push_back(T(8,8,sigma));       
         
         D.setFromTriplets(tripletList.begin(), tripletList.end());
         return;
@@ -436,65 +441,71 @@ namespace micro_material{
         */
         
         PK2 = A*E_voigt;        //Compute the first terms
-//        PK2 += B*E_micro_voigt;
-//        
-//        //Compute the middle terms
-//        Matrix_3x3 Temp1;
-//        deformation_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
-//        PK2 += Temp1*(RCGinv*Psi).transpose();
-//        
-//        //Compute the end terms
-//        Matrix_3x9 Temp2;
-//        deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,Temp2);
-//        PK2 += Temp2*(RCGinv*Gamma).transpose();
-//        
-        std::cout << "PK2:\n" << PK2 << "\n";
+        PK2 += D*E_micro_voigt;
+        
+        //Compute the middle terms
+        Matrix_3x3 Temp1;
+        deformation_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
+        Vector_9 term3_4_voigt;
+        deformation_measures::voigt_3x3_tensor(Temp1*(RCGinv*Psi).transpose(),term3_4_voigt);
+        
+        PK2 += term3_4_voigt;
+        
+        //Compute the end terms
+        Matrix_3x9 Temp2;
+        deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,Temp2);
+        Vector_9 term5_voigt;
+        deformation_measures::voigt_3x3_tensor(Temp2*(RCGinv*Gamma).transpose(),term5_voigt);
+        PK2 += term5_voigt;
         return;
     }
-//    
-//    void compute_symmetric_stress(const Vector_9 &E_voigt,    const Vector_9 &E_micro_voigt, const Vector_27 &Gamma_voigt,
-//                            const Matrix_3x3 &RCGinv,     const Matrix_3x3 &Psi,         const Matrix_3x9 &Gamma,
-//                            const SpMat &A, const SpMat &B,    const SpMat &C,
-//                            const SpMat &D, Vector_9 &SIGMA){
-//        /*!============================
-//           |    compute_symmetric_stress    |
-//           ============================
-//           
-//           Compute the symmetric stress.
-//           
-//        */
-//        
-//        SIGMA = A*E_voigt;        //Compute the first terms
-//        SIGMA += B*E_micro_voigt;
-//        
-//        //Compute the middle terms
-//        Matrix_3x3 Temp1;
-//        deformation_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
-//        Matrix_3x3 symmetric_part = Temp1*(RCGinv*Psi).transpose();
-//        
-//        //Compute the end terms
-//        Matrix_3x9 Temp2;
-//        deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,Temp2);
-//        symmetric_part += Temp2*(RCGinv*Gamma).transpose();
-//        
-//        SIGMA += (symmetric_part + symmetric_part.transpose());
-//        
-//        return;
-//    }
-//    
-//    void compute_higher_order_stress(const Vector_27 &Gamma_voigt, const SpMat &C, Vector_27 &M){
-//        /*!=====================================
-//           |    compute_higher_order_stress    |
-//           =====================================
-//          
-//           Compute the higher order stress.
-//          
-//        */
-//        
-//        M = C*Gamma_voigt; //Compute the stress (requires positive permutation
-//        Matrix_3x9 swap;                                     //Declare swap space
-//        deformation_measures::undo_voigt_3x9_tensor(M,swap); //Populate the swap space
-//        deformation_measures::perform_positive_cyclic_permutation(swap); //Perform the permutation
-//        deformation_measures::voigt_3x9_tensor(swap,M); //Put the tensor back in voigt notation
-//    }
+    
+    void compute_symmetric_stress(const Vector_9 &E_voigt,    const Vector_9 &E_micro_voigt, const Vector_27 &Gamma_voigt,
+                            const Matrix_3x3 &RCGinv,     const Matrix_3x3 &Psi,         const Matrix_3x9 &Gamma,
+                            const SpMat &A, const SpMat &B,    const SpMat &C,
+                            const SpMat &D, Vector_9 &SIGMA){
+        /*!=====================================
+           |    compute_symmetric_stress    |
+           ==================================
+           
+           Compute the symmetric stress.
+           
+        */
+        
+        SIGMA = A*E_voigt;        //Compute the first terms
+        SIGMA += D*E_micro_voigt;
+        
+        //Compute the middle terms
+        Matrix_3x3 Temp1;
+        deformation_measures::undo_voigt_3x3_tensor(B*E_micro_voigt+D*E_voigt,Temp1);
+        Matrix_3x3 symmetric_part = Temp1*(RCGinv*Psi).transpose();
+        
+        //Compute the end terms
+        Matrix_3x9 Temp2;
+        deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,Temp2);
+        symmetric_part += Temp2*(RCGinv*Gamma).transpose();
+        Vector_9 vector_symm_part;
+        deformation_measures::voigt_3x3_tensor((symmetric_part + symmetric_part.transpose()),vector_symm_part);
+        
+        SIGMA += vector_symm_part;
+        
+        return;
+    }
+    
+    void compute_higher_order_stress(const Vector_27 &Gamma_voigt, const SpMat &C, Vector_27 &M){
+        /*!=====================================
+        |    compute_higher_order_stress    |
+        =====================================
+          
+        Compute the higher order stress.
+          
+        */
+        
+        M = C*Gamma_voigt; //Compute the stress (requires positive permutation)
+        std::cout << "M unmixed:\n" << M << "\n";
+        Matrix_3x9 swap;                                     //Declare swap space
+        deformation_measures::undo_voigt_3x9_tensor(M,swap); //Populate the swap space
+        deformation_measures::perform_positive_cyclic_permutation(swap); //Perform the permutation
+        deformation_measures::voigt_3x9_tensor(swap,M); //Put the tensor back in voigt notation
+    }
 }
