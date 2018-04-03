@@ -503,9 +503,7 @@ namespace micro_material{
         
         M = C*Gamma_voigt; //Compute the stress (requires positive permutation)
         std::cout << "M unmixed:\n" << M << "\n";
-        Matrix_3x9 swap;                                     //Declare swap space
-        deformation_measures::undo_voigt_3x9_tensor(M,swap); //Populate the swap space
-        deformation_measures::perform_positive_cyclic_permutation(swap); //Perform the permutation
-        deformation_measures::voigt_3x9_tensor(swap,M); //Put the tensor back in voigt notation
+        deformation_measures::perform_right_positive_cyclic_permutation(M); //Perform the permutation
+        std::cout << "M mixed:\n" << M << "\n";
     }
 }
