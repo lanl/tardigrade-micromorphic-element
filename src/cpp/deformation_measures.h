@@ -20,12 +20,14 @@
 #include <Eigen/Dense>
 
 //!Type definitions of common vector and matrix sizes.
-typedef Eigen::Matrix<double, 6,1> Vector_6;
-typedef Eigen::Matrix<double, 9,1> Vector_9;
-typedef Eigen::Matrix<double,27,1> Vector_27;
-typedef Eigen::Matrix<double, 3,3> Matrix_3x3;
-typedef Eigen::Matrix<double, 3,9> Matrix_3x9;
-
+typedef Eigen::Matrix<double, 6, 1> Vector_6;
+typedef Eigen::Matrix<double, 9, 1> Vector_9;
+typedef Eigen::Matrix<double,27, 1> Vector_27;
+typedef Eigen::Matrix<double, 3, 3> Matrix_3x3;
+typedef Eigen::Matrix<double, 3, 9> Matrix_3x9;
+typedef Eigen::Matrix<double, 9, 9> Matrix_9x9;
+typedef Eigen::Matrix<double, 9,27> Matrix_9x27;
+typedef Eigen::Matrix<double,27,27> Matrix_27x27;
 
 namespace deformation_measures
 {

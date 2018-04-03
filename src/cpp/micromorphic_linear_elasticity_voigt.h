@@ -71,6 +71,18 @@ namespace micro_material{
                                   Vector_9 &SIGMA);
                                   
     void compute_higher_order_stress(const Vector_27 &Gamma_voigt, const SpMat &C, Vector_27 &M);
+
+    void map_stresses_to_current_configuration(const Matrix_3x3 &F, const Matrix_3x3 &chi,
+                                               const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M,
+                                               Vector_9 &cauchy, Vector_9 &s, Vector_27 &m);
+
+    void dcauchydF(const Matrix_3x3 &F, const Vector_9 &cauchy, const Vector_9 &PK2, Matrix_9x9 &dcauchydF);
+
+    void compute_dcauchydF(const Matrix_3x3 &F, const Vector_9 &cauchy, const Vector_9 &PK2, const Matrix_9x9 &dPK2dF, Matrix_9x9 &dcauchydF);
+
+    void compute_dcauchydchi(const Matrix_3x3 &F, const Matrix_9x9 &dPK2dchi, Matrix_9x9 &dcauchydchi);
+
+    void compute_dcauchydgrad_chi(const Matrix_3x3 &F, const Matrix_9x27 &dPK2dgrad_chi, Matrix_9x27 &dcauchydgrad_chi);
 }
 
 #endif

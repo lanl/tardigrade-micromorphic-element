@@ -515,6 +515,58 @@ void define_M(Vector_27 &M){
          14.133232412473218, 23.03915084858808, 4.849232622884019;
 }
 
+void define_cauchy(Vector_9 &cauchy){
+    /*!=======================
+    |    define_cauchy    |
+    =======================
+
+    Define the expected value of the cauchy stress.
+
+    */
+
+    cauchy << -48.84329314813607, -167.47094085138679, -318.99997557253636,
+              -284.3961266524248, -34.71321545072979, -30.136059986911263,
+              -205.35807451733308, -282.42756314420484, -216.4214058205378;
+
+}
+
+void define_s(Vector_9 &s){
+    /*!==================
+    |    define_s    |
+    ==================
+
+    Define the expected value of the symmetric stress in the 
+    current configuration.
+
+    */
+
+    s << -99.10582206835683, -338.1967416137846, -642.1118225175197,
+         -491.7929923630433, -318.2450527392582, -246.8057390623807,
+         -491.7929923630433, -318.24505273925826, -246.80573906238072;
+
+}
+
+void define_m(Vector_27 &m){
+    /*!==================
+    |    define_m    |
+    ==================
+
+    Define the expected value of the higher-order stress in the 
+    current configuration.
+
+    */
+
+    m << -17.153265392410482, -12.480771016951493, -19.147225245448556,
+         -11.26628746512982,  -14.179072065222964, -15.619789973641112,
+         -27.06888669123007,  -21.847082786416394, -9.37069422181913,
+         -7.149691649496841,  -97.42799562868105,  -125.8651897371535,
+         -139.98361743799694, -12.071479260463587, -18.679837246649882,
+         -118.73866356078591, -197.65579976538393, -200.62313337544705,
+         -20.39625460432565,  -109.58264684993866, -145.89097968348062,
+         -132.89656976443473, -21.83692364109874,  -32.86501911273255, 
+         -165.24571159030918, -239.6065692494737,  -201.04091236148963;
+}
+
 int test_compute_A_voigt(std::ofstream &results){
     /*!==============================
     |    test_compute_A_voigt    |
@@ -741,7 +793,7 @@ int test_compute_higher_order_stress(std::ofstream &results){
     Matrix_3x9 grad_chi;      //The gradient of the micro-dof
     std::vector<double> SDVS; //The state variables (unneeded)
     Vector_9 PK2;             //The second piola kirchhoff stress
-    Vector_9 SIGMA;           //The symmetric
+    Vector_9 SIGMA;           //The symmetric stress
 
     define_parameters(params);
     define_deformation_gradient(F);
@@ -750,9 +802,6 @@ int test_compute_higher_order_stress(std::ofstream &results){
 
     define_M(M);
     micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, _M);
-    
-    std::cout << "M:\n" << M << "\n";
-    std::cout << "_M:\n" << _M << "\n";
     
     bool tot_result = M.isApprox(_M,1e-6);
 
@@ -764,6 +813,51 @@ int test_compute_higher_order_stress(std::ofstream &results){
     }
 
     return 1;
+}
+
+int test_map_stresses_to_current_configuration(std::ofstream &results){
+
+    Vector_9   cauchy; //The expected cauchy stress
+    Vector_9  _cauchy; //The result of the function
+    Vector_9   s; //The expected symmetric stress
+    Vector_9  _s; //The result of the function
+    Vector_27  m; //The expected higher order stress
+    Vector_27 _m; //The result of the function
+
+    Vector_9 PK2;   //The second piola kirchhoff stress
+    Vector_9 SIGMA; //The symmetric stress
+    Vector_27 M;    //The higher order stress
+
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    define_deformation_gradient(F);
+    define_chi(chi);
+
+    //Extract the stresses in the reference configuration
+    define_PK2(PK2);
+    define_SIGMA(SIGMA);
+    define_M(M);
+
+    //Extract the stresses in the current configuration
+    define_cauchy(cauchy);
+    define_s(s);
+    define_m(m);
+
+    micro_material::map_stresses_to_current_configuration(F,chi,PK2,SIGMA,M,_cauchy,_s,_m);
+
+    bool tot_result = cauchy.isApprox(_cauchy,1e-6);
+    tot_result *= s.isApprox(_s,1e-6);
+    tot_result *= m.isApprox(_m,1e-6);
+
+    if (tot_result){
+        results << "test_map_stresses_to_current_configuration & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_map_stresses_to_current_configuration & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+
 }
 
 int main(){
@@ -788,6 +882,7 @@ int main(){
     test_compute_PK2_stress(results);
     test_compute_symmetric_stress(results);
     test_compute_higher_order_stress(results);
+    test_map_stresses_to_current_configuration(results);
 
     //Close the results file
     results.close();
