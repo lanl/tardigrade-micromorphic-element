@@ -14,6 +14,9 @@
    ===========================================================================
    */
    
+#ifndef DEFORMATION_MEASURES_H
+#define DEFORMATION_MEASURES_H
+   
 #include <Eigen/Dense>
 
 //!Type definitions of common vector and matrix sizes.
@@ -63,3 +66,5 @@ namespace deformation_measures
     
     void perform_right_positive_cyclic_permutation(Vector_27 &A);
 }
+
+#endif

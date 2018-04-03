@@ -22,6 +22,9 @@
   |        eigen.tuxfamily.org.                               |
   =============================================================*/
   
+#ifndef MICROMORPHIC_LINEAR_ELASTICITY_VOIGT_H
+#define MICROMORPHIC_LINEAR_ELASTICITY_VOIGT_H
+  
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -69,3 +72,5 @@ namespace micro_material{
                                   
     void compute_higher_order_stress(const Vector_27 &Gamma_voigt, const SpMat &C, Vector_27 &M);
 }
+
+#endif
