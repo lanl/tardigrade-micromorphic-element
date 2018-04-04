@@ -17,6 +17,7 @@
 
 #include<iostream>
 #include<fstream>
+#include<finite_difference.h>
 #include<deformation_measures.h>
 #include<micromorphic_linear_elasticity_voigt.h>
 
@@ -567,6 +568,74 @@ void define_m(Vector_27 &m){
          -165.24571159030918, -239.6065692494737,  -201.04091236148963;
 }
 
+void map_eigen_vector_to_std_vector(const Eigen::MatrixXd &EV, std::vector<double> &V){
+    /*!========================================
+    |    map_eigen_vector_to_std_vector    |
+    ========================================
+    
+    Map an eigen vector to a standard vector.
+    
+    */
+    
+    int nrows = EV.rows();
+    int ncols = EV.cols();
+    
+    V.resize(nrows*ncols);
+    
+    int n = 0;
+    for (int i=0; i<nrows; i++){
+        for (int j=0; j<ncols; j++){
+            V[n] = EV(i,j);
+            n++;
+        }
+    }
+    return;
+}
+
+std::vector<double> parse_pk2_stress_F(std::vector<double> Fvec){
+    /*!============================
+    |    parse_pk2_stress_F    |
+    ============================
+    
+    Parse the PK2 stress as a function of the deformation gradient 
+    in vector form.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_9 F_voigt;
+    Matrix_3x3 F;
+    
+    //Define additional required values
+    double t  = 0;
+    double dt = 0;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    double params[18];
+    std::vector<double> SDVS;
+    
+    define_parameters(params);
+    
+    //Create space for the stress measures
+    Vector_9  PK2;
+    Vector_9  SIGMA;
+    Vector_27 M;
+    
+    define_chi(chi);
+    define_grad_phi(grad_chi); //Note: grad_chi == grad_phi
+    
+    for (int i=0; i<9; i++){F_voigt[i] = Fvec[i];}
+    deformation_measures::undo_voigt_3x3_tensor(F_voigt,F);
+    
+    //Compute the stress
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M);
+    
+    std::vector<double> PK2_vec;
+    PK2_vec.resize(9);
+    for (int i=0; i<9; i++){PK2_vec[i] = PK2(i);}
+    return PK2_vec;
+}
+
 int test_compute_A_voigt(std::ofstream &results){
     /*!==============================
     |    test_compute_A_voigt    |
@@ -860,6 +929,82 @@ int test_map_stresses_to_current_configuration(std::ofstream &results){
 
 }
 
+int test_compute_dPK2dF(std::ofstream &results){
+    /*!==========================
+    |    test_compute_dPK2dF    |
+    =============================
+    
+    Test the computation of the derivative of the second 
+    Piola-Kirchoff stress w.r.t. the deformation gradient.
+    
+    */
+    
+    Matrix_9x9 dPK2dF; //The expected result
+    std::vector< std::vector<double> > dPK2dF_vec; //The vector form.
+    Matrix_9x9 _dPK2dF; //The result of the function.
+    
+    Matrix_3x3 F0; //The base point about which to compute the derivative
+    define_deformation_gradient(F0);
+    
+    Vector_9 F0_vec; //The vector form of the deformation gradient
+    deformation_measures::voigt_3x3_tensor(F0,F0_vec);
+    
+    std::vector<double> x0;
+    x0.resize(9);
+    for (int i=0; i<9; i++){x0[i] = F0_vec(i);}
+    
+    //Initialize the finite difference operator
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_pk2_stress_F, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dPK2dF_vec = fd.numeric_gradient();
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dPK2dF_vec.size(); i++){
+        for (int j=0; j<dPK2dF_vec[i].size(); j++){
+            dPK2dF(j,i) = dPK2dF_vec[i][j];
+        }
+    }
+    
+    //Obtain the required values
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The deformation gradient
+    Matrix_3x3 chi;           //The micro-dof
+    Matrix_3x9 grad_chi;      //The gradient of the micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric stress
+    Vector_27 M;              //The higher order stress
+    
+    //Populate the required values
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    define_grad_phi(grad_chi); //Note: grad_phi == grad_chi
+    
+    //Evaluate the function
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
+                    _dPK2dF);
+    
+    bool tot_result = dPK2dF.isApprox(_dPK2dF,1e-6);
+    
+    std::cout << "dPK2dF:\n" << dPK2dF << "\n";
+    std::cout << "_dPK2dF:\n" << _dPK2dF << "\n";
+    std::cout << "tot_result: " << tot_result << "\n";
+    
+    if (tot_result){
+        results << "test_compute_dPK2dF & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dPK2dF & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -883,6 +1028,7 @@ int main(){
     test_compute_symmetric_stress(results);
     test_compute_higher_order_stress(results);
     test_map_stresses_to_current_configuration(results);
+    test_compute_dPK2dF(results);
 
     //Close the results file
     results.close();
