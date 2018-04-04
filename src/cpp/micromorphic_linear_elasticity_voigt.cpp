@@ -111,6 +111,91 @@ namespace micro_material{
 
         return;
     }
+    
+    void get_stress(const double t,      const double dt,       const double (&params)[18],
+                    const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
+                    std::vector<double> &SDVS,    Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M,
+                    Matrix_9x9 &dPK2dF){
+        /*!=================
+        |    get_stress    |
+        ====================
+        
+        Computes the stress measures and their jacobians.
+        
+        */
+        
+        //Extract the parameters
+        double lambda  = params[ 0];
+        double mu      = params[ 1];
+        double eta     = params[ 2];
+        double tau     = params[ 3];
+        double kappa   = params[ 4];
+        double nu      = params[ 5];
+        double sigma   = params[ 6];
+        double tau1    = params[ 7];
+        double tau2    = params[ 8];
+        double tau3    = params[ 9];
+        double tau4    = params[10];
+        double tau5    = params[11];
+        double tau6    = params[12];
+        double tau7    = params[13];
+        double tau8    = params[14];
+        double tau9    = params[15];
+        double tau10   = params[16];
+        double tau11   = params[17];
+
+        //Initialize the stiffness matrices
+        SpMat A( 9, 9);
+        SpMat B( 9, 9);
+        SpMat C(27,27);
+        SpMat D( 9, 9);
+
+        //Populate the stiffness matrices
+        compute_A_voigt(lambda,mu,A);
+        compute_B_voigt(eta,kappa,nu,sigma,tau,B);
+        compute_C_voigt(tau1,tau2,tau3, tau4, tau5,tau6,
+                        tau7,tau8,tau9,tau10,tau11,C);
+        compute_D_voigt(sigma,tau,D);
+
+        //Compute the deformation measures
+        Matrix_3x3 RCG; //The right cauchy green deformation tensor
+        deformation_measures::get_right_cauchy_green(F,RCG);
+        Matrix_3x3 RCGinv = RCG.inverse(); //The inverse of the right cauchy green deformation tensor
+        Matrix_3x3 Psi; //The second order micromorphic deformation measure
+        deformation_measures::get_psi(F,chi,Psi);
+        Matrix_3x9 Gamma; //The higher order micromorphic deformation measure
+        deformation_measures::get_gamma(F,grad_chi,Gamma);
+
+        //Compute the strain measures
+        Matrix_3x3 E;
+        Matrix_3x3 E_micro;
+        deformation_measures::get_lagrange_strain(F,E);
+        deformation_measures::get_micro_strain(Psi,E_micro);
+
+        //Put the strain measures in voigt notation
+        Vector_9  E_voigt;
+        Vector_9  E_micro_voigt;
+        Vector_27 Gamma_voigt;
+
+        deformation_measures::voigt_3x3_tensor(E,       E_voigt);
+        deformation_measures::voigt_3x3_tensor(E_micro, E_micro_voigt);
+        deformation_measures::voigt_3x9_tensor(Gamma,   Gamma_voigt);
+
+        //Compute the stress measures
+        compute_PK2_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma,
+                           A,       B,             C,           D,      PK2);
+                           
+        compute_symmetric_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma,
+                           A,       B,             C,           D,      SIGMA);
+                           
+        compute_higher_order_stress(Gamma_voigt, C, M);
+        
+        //Compute the jacobians
+        compute_dPK2dF(F, RCG, RCGinv, Gamma, Gamma_voigt, E, E_micro, E_voigt, E_micro_voigt,
+                       A,   B,      C,     D, dPK2dF);
+    
+        return;    
+    }
 
     void compute_A_voigt(const double &lambda,const double &mu, SpMat &A) {
         /*!=========================
@@ -441,7 +526,7 @@ namespace micro_material{
         */
         
         PK2 = A*E_voigt;        //Compute the first terms
-        PK2 += D*E_micro_voigt;
+//        PK2 += D*E_micro_voigt;
         
         //Compute the middle terms
         Matrix_3x3 Temp1;
@@ -449,14 +534,14 @@ namespace micro_material{
         Vector_9 term3_4_voigt;
         deformation_measures::voigt_3x3_tensor(Temp1*(RCGinv*Psi).transpose(),term3_4_voigt);
         
-        PK2 += term3_4_voigt;
+//        PK2 += term3_4_voigt;
         
         //Compute the end terms
         Matrix_3x9 Temp2;
         deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,Temp2);
         Vector_9 term5_voigt;
         deformation_measures::voigt_3x3_tensor(Temp2*(RCGinv*Gamma).transpose(),term5_voigt);
-        PK2 += term5_voigt;
+//        PK2 += term5_voigt;
         return;
     }
     
@@ -745,6 +830,144 @@ namespace micro_material{
                                                              //      we don't need to compute anything 
                                                              //      again.
 
+        return;
+    }
+    
+    void compute_dRCGdF(const Matrix_3x3 &F, SpMat &dRCGdF){
+        /*!=====================
+        |    compute_dRCGdF    |
+        ========================
+        
+        Compute the derivative of the right 
+        cauchy green deformation tensor w.r.t. F.
+        
+        */
+        
+        std::vector<T> tripletList;
+        tripletList.reserve(45);
+        
+        //Extract F
+        double F11 = F(0,0);
+        double F12 = F(0,1);
+        double F13 = F(0,2);
+        double F21 = F(1,0);
+        double F22 = F(1,1);
+        double F23 = F(1,2);
+        double F31 = F(2,0);
+        double F32 = F(2,1);
+        double F33 = F(2,2);
+
+        //Assemble dRCGdF
+        tripletList.push_back(T(0,0,2*F11));
+        tripletList.push_back(T(0,7,2*F31));
+        tripletList.push_back(T(0,8,2*F21));
+        tripletList.push_back(T(1,1,2*F22));
+        tripletList.push_back(T(1,5,2*F12));
+        tripletList.push_back(T(1,6,2*F32));
+        tripletList.push_back(T(2,2,2*F33));
+        tripletList.push_back(T(2,3,2*F23));
+        tripletList.push_back(T(2,4,2*F13));
+        tripletList.push_back(T(3,1,F23));
+        tripletList.push_back(T(3,2,F32));
+        tripletList.push_back(T(3,3,F22));
+        tripletList.push_back(T(3,4,F12));
+        tripletList.push_back(T(3,5,F13));
+        tripletList.push_back(T(3,6,F33));
+        tripletList.push_back(T(4,0,F13));
+        tripletList.push_back(T(4,2,F31));
+        tripletList.push_back(T(4,3,F21));
+        tripletList.push_back(T(4,4,F11));
+        tripletList.push_back(T(4,7,F33));
+        tripletList.push_back(T(4,8,F23));
+        tripletList.push_back(T(5,0,F12));
+        tripletList.push_back(T(5,1,F21));
+        tripletList.push_back(T(5,5,F11));
+        tripletList.push_back(T(5,6,F31));
+        tripletList.push_back(T(5,7,F32));
+        tripletList.push_back(T(5,8,F22));
+        tripletList.push_back(T(6,1,F23));
+        tripletList.push_back(T(6,2,F32));
+        tripletList.push_back(T(6,3,F22));
+        tripletList.push_back(T(6,4,F12));
+        tripletList.push_back(T(6,5,F13));
+        tripletList.push_back(T(6,6,F33));
+        tripletList.push_back(T(7,0,F13));
+        tripletList.push_back(T(7,2,F31));
+        tripletList.push_back(T(7,3,F21));
+        tripletList.push_back(T(7,4,F11));
+        tripletList.push_back(T(7,7,F33));
+        tripletList.push_back(T(7,8,F23));
+        tripletList.push_back(T(8,0,F12));
+        tripletList.push_back(T(8,1,F21));
+        tripletList.push_back(T(8,5,F11));
+        tripletList.push_back(T(8,6,F31));
+        tripletList.push_back(T(8,7,F32));
+        tripletList.push_back(T(8,8,F22));      
+        
+        dRCGdF.setFromTriplets(tripletList.begin(), tripletList.end());        
+        
+        return;
+    }
+    
+    void compute_dPK2dF(const Matrix_3x3 &F, const Matrix_3x3 &RCG, const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma,
+                        const Vector_27 &Gamma_voigt,
+                        const Matrix_3x3 &E, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
+                        const SpMat &A,      const SpMat &B,        const SpMat &C,  const SpMat &D, Matrix_9x9 &dPK2dF){
+        /*!=====================
+        |    compute_dPK2dF    |
+        ========================
+        
+        Compute the derivative of the PK2 stress w.r.t. 
+        the deformation gradient.
+        
+        */
+        
+        //Initialize temporary terms
+        Vector_9   V1;
+        Vector_27  V2;
+        Matrix_3x3 T1;
+        Matrix_9x9 T2;
+        Matrix_3x9 T3;
+        
+        //Compute dRCGdF
+        SpMat dRCGdF(9,9);
+        compute_dRCGdF(F,dRCGdF);
+        
+        //Compute dPK2dRCG
+        
+        //Compute term1
+        Matrix_9x9 term1;
+        term1 = 0.5*A;
+
+//        std::cout << "term1:\n" << term1 << "\n";
+        
+        //Compute term2
+        Matrix_9x9 term2;
+        T1 = RCGinv.transpose()*(E_micro+Matrix_3x3::Identity());
+        deformation_measures::dot_2ot_4ot(1,T1,D,term2);
+        term2 *= 0.5;
+        
+//        std::cout << "term2:\n" << term2 << "\n";
+        
+        //Compute term3
+        Matrix_9x9 term3;
+        V1 = (B*E_micro_voigt+D*E_voigt);
+        deformation_measures::undo_voigt_3x3_tensor(V1,T1);
+        deformation_measures::two_sot_to_fot(RCGinv,RCGinv,T2);
+        deformation_measures::dot_2ot_4ot(0,T1*(E_micro+Matrix_3x3::Identity()).transpose(),T2,term3);
+        
+//        std::cout << "term3:\n" << term3 << "\n";
+        
+        //Compute term4
+        Matrix_9x9 term4;
+        deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,T3);
+        deformation_measures::two_sot_to_fot(T3*(RCGinv.transpose()*Gamma).transpose(),RCGinv,term4);
+        
+//        std::cout << "term4:\n" << term4 << "\n";
+        
+        //Assemble the derivative
+        dPK2dF = (term1)*dRCGdF;//+term2+term3+term4)*dRCGdF;
+        
         return;
     }
 }

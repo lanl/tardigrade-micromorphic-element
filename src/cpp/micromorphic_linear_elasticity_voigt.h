@@ -42,6 +42,11 @@ namespace micro_material{
     void get_stress(const double t,      const double dt,       const double (&params)[18], 
                     const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
                     std::vector<double> &SDVS, Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M);
+                    
+    void get_stress(const double t,      const double dt,       const double (&params)[18], 
+                    const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
+                    std::vector<double> &SDVS, Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M,
+                    Matrix_9x9 &dPK2dF);
 
     void compute_A_voigt(const double &lambda,const double &mu, SpMat &A);
 
@@ -83,6 +88,15 @@ namespace micro_material{
     void compute_dcauchydchi(const Matrix_3x3 &F, const Matrix_9x9 &dPK2dchi, Matrix_9x9 &dcauchydchi);
 
     void compute_dcauchydgrad_chi(const Matrix_3x3 &F, const Matrix_9x27 &dPK2dgrad_chi, Matrix_9x27 &dcauchydgrad_chi);
+
+    void compute_dPK2dF(const Matrix_3x3 &F, const Matrix_3x3 &RCG, const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma,
+                        const Vector_27 &Gamma_voigt,
+                        const Matrix_3x3 &E, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
+                        const SpMat &A,      const SpMat &B,        const SpMat &C,  const SpMat &D, Matrix_9x9 &dPK2dF);
+    
+    void compute_dRCGdF(const Matrix_3x3 &F, SpMat &dRCGdF);
+
+        
 }
 
 #endif
