@@ -3966,4 +3966,35 @@ namespace deformation_measures
         }
         return;
     }
+    
+    void two_sot_to_fot(const Matrix_3x3 &A, const Matrix_3x3 &B, Matrix_9x9 &C){
+        /*!=========================
+        |    two_sot_to_fot    |
+        ========================
+        
+        Transform two second order tensors into a fourth order tensor.
+        
+        i.e.
+        
+        C_ijkl = A_ij B_kl
+        
+        */
+        
+        Vector_9 V1;
+        Vector_9 V2;
+        
+        //Convert the second order tensors to voigt notation.
+        voigt_3x3_tensor(A,V1);
+        voigt_3x3_tensor(B,V2);
+        
+        for (int i=0; i<9; i++){
+            
+            for (int j=0; j<9; j++){
+                
+                C(i,j) = V1(i)*V2(j);
+                
+            }
+        }
+        return;
+    }
 }
