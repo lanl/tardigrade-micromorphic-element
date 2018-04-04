@@ -12,6 +12,7 @@
   =======================================================*/
   
 #include <vector>
+#include <math.h>
   
 namespace finite_difference{
   
