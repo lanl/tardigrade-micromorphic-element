@@ -17,6 +17,8 @@
 #ifndef DEFORMATION_MEASURES_H
 #define DEFORMATION_MEASURES_H
    
+#include <iostream>
+#include <cassert>
 #include <Eigen/Dense>
 
 //!Type definitions of common vector and matrix sizes.
@@ -27,6 +29,7 @@ typedef Eigen::Matrix<double, 3, 3> Matrix_3x3;
 typedef Eigen::Matrix<double, 3, 9> Matrix_3x9;
 typedef Eigen::Matrix<double, 9, 9> Matrix_9x9;
 typedef Eigen::Matrix<double, 9,27> Matrix_9x27;
+typedef Eigen::Matrix<double,27, 9> Matrix_27x9;
 typedef Eigen::Matrix<double,27,27> Matrix_27x27;
 
 namespace deformation_measures
@@ -67,6 +70,12 @@ namespace deformation_measures
     void perform_left_positive_cyclic_permutation(Vector_27 &A);
     
     void perform_right_positive_cyclic_permutation(Vector_27 &A);
+    
+    void dot_2ot_4ot(const int &i, const Matrix_3x3 &sot, const Matrix_9x9  &fot, Matrix_9x9  &result);
+    
+    void dot_2ot_5ot(const int &i, const Matrix_3x3 &sot, const Matrix_9x27 &fot, Matrix_9x27 &result);
+    
+    void dot_2ot_5ot(const int &i, const Matrix_3x3 &sot, const Matrix_27x9 &fot, Matrix_27x9 &result);
 }
 
 #endif
