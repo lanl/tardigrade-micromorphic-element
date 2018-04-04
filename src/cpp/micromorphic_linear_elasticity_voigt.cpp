@@ -545,15 +545,16 @@ namespace micro_material{
         return;
     }
 
-    void map_fot_stress_jacobian(const Matrix_3x3 &F, const Matrix_9x9 &dSdF, const double &J, Matrix_9x9 &term){
+    void map_fot_stress_jacobian(const Matrix_3x3 &F, const Matrix_9x9 &dSdfot, const double &J, Matrix_9x9 &term){
         /*!=================================
         |    map_fot_stress_jacobian    |
         =================================
 
-        Map FOT stress jacobian.
+        Map a jacobian of a second order stress 
+        tensor w.r.t. a second order deformation measure.
 
         */
-
+        
         //Extract the deformation gradient
         double F11 = F(0,0);
         double F12 = F(0,1);
@@ -565,172 +566,171 @@ namespace micro_material{
         double F32 = F(2,1);
         double F33 = F(2,2);
 
-        //Extract the jacobian of the PK2 stress
-        double dSdF1111 = dSdF(0,0);
-        double dSdF1112 = dSdF(0,5);
-        double dSdF1113 = dSdF(0,4);
-        double dSdF1121 = dSdF(0,8);
-        double dSdF1122 = dSdF(0,1);
-        double dSdF1123 = dSdF(0,3);
-        double dSdF1131 = dSdF(0,7);
-        double dSdF1132 = dSdF(0,6);
-        double dSdF1133 = dSdF(0,2);
-        double dSdF1211 = dSdF(5,0);
-        double dSdF1212 = dSdF(5,5);
-        double dSdF1213 = dSdF(5,4);
-        double dSdF1221 = dSdF(5,8);
-        double dSdF1222 = dSdF(5,1);
-        double dSdF1223 = dSdF(5,3);
-        double dSdF1231 = dSdF(5,7);
-        double dSdF1232 = dSdF(5,6);
-        double dSdF1233 = dSdF(5,2);
-        double dSdF1311 = dSdF(4,0);
-        double dSdF1312 = dSdF(4,5);
-        double dSdF1313 = dSdF(4,4);
-        double dSdF1321 = dSdF(4,8);
-        double dSdF1322 = dSdF(4,1);
-        double dSdF1323 = dSdF(4,3);
-        double dSdF1331 = dSdF(4,7);
-        double dSdF1332 = dSdF(4,6);
-        double dSdF1333 = dSdF(4,2);
-        double dSdF2111 = dSdF(8,0);
-        double dSdF2112 = dSdF(8,5);
-        double dSdF2113 = dSdF(8,4);
-        double dSdF2121 = dSdF(8,8);
-        double dSdF2122 = dSdF(8,1);
-        double dSdF2123 = dSdF(8,3);
-        double dSdF2131 = dSdF(8,7);
-        double dSdF2132 = dSdF(8,6);
-        double dSdF2133 = dSdF(8,2);
-        double dSdF2211 = dSdF(1,0);
-        double dSdF2212 = dSdF(1,5);
-        double dSdF2213 = dSdF(1,4);
-        double dSdF2221 = dSdF(1,8);
-        double dSdF2222 = dSdF(1,1);
-        double dSdF2223 = dSdF(1,3);
-        double dSdF2231 = dSdF(1,7);
-        double dSdF2232 = dSdF(1,6);
-        double dSdF2233 = dSdF(1,2);
-        double dSdF2311 = dSdF(3,0);
-        double dSdF2312 = dSdF(3,5);
-        double dSdF2313 = dSdF(3,4);
-        double dSdF2321 = dSdF(3,8);
-        double dSdF2322 = dSdF(3,1);
-        double dSdF2323 = dSdF(3,3);
-        double dSdF2331 = dSdF(3,7);
-        double dSdF2332 = dSdF(3,6);
-        double dSdF2333 = dSdF(3,2);
-        double dSdF3111 = dSdF(7,0);
-        double dSdF3112 = dSdF(7,5);
-        double dSdF3113 = dSdF(7,4);
-        double dSdF3121 = dSdF(7,8);
-        double dSdF3122 = dSdF(7,1);
-        double dSdF3123 = dSdF(7,3);
-        double dSdF3131 = dSdF(7,7);
-        double dSdF3132 = dSdF(7,6);
-        double dSdF3133 = dSdF(7,2);
-        double dSdF3211 = dSdF(6,0);
-        double dSdF3212 = dSdF(6,5);
-        double dSdF3213 = dSdF(6,4);
-        double dSdF3221 = dSdF(6,8);
-        double dSdF3222 = dSdF(6,1);
-        double dSdF3223 = dSdF(6,3);
-        double dSdF3231 = dSdF(6,7);
-        double dSdF3232 = dSdF(6,6);
-        double dSdF3233 = dSdF(6,2);
-        double dSdF3311 = dSdF(2,0);
-        double dSdF3312 = dSdF(2,5);
-        double dSdF3313 = dSdF(2,4);
-        double dSdF3321 = dSdF(2,8);
-        double dSdF3322 = dSdF(2,1);
-        double dSdF3323 = dSdF(2,3);
-        double dSdF3331 = dSdF(2,7);
-        double dSdF3332 = dSdF(2,6);
-        double dSdF3333 = dSdF(2,2);
+        //Extract the jacobian
+        double dSdfot1111 = dSdfot(0,0);
+        double dSdfot1112 = dSdfot(0,5);
+        double dSdfot1113 = dSdfot(0,4);
+        double dSdfot1121 = dSdfot(0,8);
+        double dSdfot1122 = dSdfot(0,1);
+        double dSdfot1123 = dSdfot(0,3);
+        double dSdfot1131 = dSdfot(0,7);
+        double dSdfot1132 = dSdfot(0,6);
+        double dSdfot1133 = dSdfot(0,2);
+        double dSdfot1211 = dSdfot(5,0);
+        double dSdfot1212 = dSdfot(5,5);
+        double dSdfot1213 = dSdfot(5,4);
+        double dSdfot1221 = dSdfot(5,8);
+        double dSdfot1222 = dSdfot(5,1);
+        double dSdfot1223 = dSdfot(5,3);
+        double dSdfot1231 = dSdfot(5,7);
+        double dSdfot1232 = dSdfot(5,6);
+        double dSdfot1233 = dSdfot(5,2);
+        double dSdfot1311 = dSdfot(4,0);
+        double dSdfot1312 = dSdfot(4,5);
+        double dSdfot1313 = dSdfot(4,4);
+        double dSdfot1321 = dSdfot(4,8);
+        double dSdfot1322 = dSdfot(4,1);
+        double dSdfot1323 = dSdfot(4,3);
+        double dSdfot1331 = dSdfot(4,7);
+        double dSdfot1332 = dSdfot(4,6);
+        double dSdfot1333 = dSdfot(4,2);
+        double dSdfot2111 = dSdfot(8,0);
+        double dSdfot2112 = dSdfot(8,5);
+        double dSdfot2113 = dSdfot(8,4);
+        double dSdfot2121 = dSdfot(8,8);
+        double dSdfot2122 = dSdfot(8,1);
+        double dSdfot2123 = dSdfot(8,3);
+        double dSdfot2131 = dSdfot(8,7);
+        double dSdfot2132 = dSdfot(8,6);
+        double dSdfot2133 = dSdfot(8,2);
+        double dSdfot2211 = dSdfot(1,0);
+        double dSdfot2212 = dSdfot(1,5);
+        double dSdfot2213 = dSdfot(1,4);
+        double dSdfot2221 = dSdfot(1,8);
+        double dSdfot2222 = dSdfot(1,1);
+        double dSdfot2223 = dSdfot(1,3);
+        double dSdfot2231 = dSdfot(1,7);
+        double dSdfot2232 = dSdfot(1,6);
+        double dSdfot2233 = dSdfot(1,2);
+        double dSdfot2311 = dSdfot(3,0);
+        double dSdfot2312 = dSdfot(3,5);
+        double dSdfot2313 = dSdfot(3,4);
+        double dSdfot2321 = dSdfot(3,8);
+        double dSdfot2322 = dSdfot(3,1);
+        double dSdfot2323 = dSdfot(3,3);
+        double dSdfot2331 = dSdfot(3,7);
+        double dSdfot2332 = dSdfot(3,6);
+        double dSdfot2333 = dSdfot(3,2);
+        double dSdfot3111 = dSdfot(7,0);
+        double dSdfot3112 = dSdfot(7,5);
+        double dSdfot3113 = dSdfot(7,4);
+        double dSdfot3121 = dSdfot(7,8);
+        double dSdfot3122 = dSdfot(7,1);
+        double dSdfot3123 = dSdfot(7,3);
+        double dSdfot3131 = dSdfot(7,7);
+        double dSdfot3132 = dSdfot(7,6);
+        double dSdfot3133 = dSdfot(7,2);
+        double dSdfot3211 = dSdfot(6,0);
+        double dSdfot3212 = dSdfot(6,5);
+        double dSdfot3213 = dSdfot(6,4);
+        double dSdfot3221 = dSdfot(6,8);
+        double dSdfot3222 = dSdfot(6,1);
+        double dSdfot3223 = dSdfot(6,3);
+        double dSdfot3231 = dSdfot(6,7);
+        double dSdfot3232 = dSdfot(6,6);
+        double dSdfot3233 = dSdfot(6,2);
+        double dSdfot3311 = dSdfot(2,0);
+        double dSdfot3312 = dSdfot(2,5);
+        double dSdfot3313 = dSdfot(2,4);
+        double dSdfot3321 = dSdfot(2,8);
+        double dSdfot3322 = dSdfot(2,1);
+        double dSdfot3323 = dSdfot(2,3);
+        double dSdfot3331 = dSdfot(2,7);
+        double dSdfot3332 = dSdfot(2,6);
+        double dSdfot3333 = dSdfot(2,2);
 
-        //Compute term3
-        term(0,0) = F11**2*dSdF1111 + F11*F12*dSdF1211 + F11*F12*dSdF2111 + F11*F13*dSdF1311 + F11*F13*dSdF3111 + F12**2*dSdF2211 + F12*F13*dSdF2311 + F12*F13*dSdF3211 + F13**2*dSdF3311;
-        term(0,1) = F11**2*dSdF1122 + F11*F12*dSdF1222 + F11*F12*dSdF2122 + F11*F13*dSdF1322 + F11*F13*dSdF3122 + F12**2*dSdF2222 + F12*F13*dSdF2322 + F12*F13*dSdF3222 + F13**2*dSdF3322;
-        term(0,2) = F11**2*dSdF1133 + F11*F12*dSdF1233 + F11*F12*dSdF2133 + F11*F13*dSdF1333 + F11*F13*dSdF3133 + F12**2*dSdF2233 + F12*F13*dSdF2333 + F12*F13*dSdF3233 + F13**2*dSdF3333;
-        term(0,3) = F11**2*dSdF1123 + F11*F12*dSdF1223 + F11*F12*dSdF2123 + F11*F13*dSdF1323 + F11*F13*dSdF3123 + F12**2*dSdF2223 + F12*F13*dSdF2323 + F12*F13*dSdF3223 + F13**2*dSdF3323;
-        term(0,4) = F11**2*dSdF1113 + F11*F12*dSdF1213 + F11*F12*dSdF2113 + F11*F13*dSdF1313 + F11*F13*dSdF3113 + F12**2*dSdF2213 + F12*F13*dSdF2313 + F12*F13*dSdF3213 + F13**2*dSdF3313;
-        term(0,5) = F11**2*dSdF1112 + F11*F12*dSdF1212 + F11*F12*dSdF2112 + F11*F13*dSdF1312 + F11*F13*dSdF3112 + F12**2*dSdF2212 + F12*F13*dSdF2312 + F12*F13*dSdF3212 + F13**2*dSdF3312;
-        term(0,6) = F11**2*dSdF1132 + F11*F12*dSdF1232 + F11*F12*dSdF2132 + F11*F13*dSdF1332 + F11*F13*dSdF3132 + F12**2*dSdF2232 + F12*F13*dSdF2332 + F12*F13*dSdF3232 + F13**2*dSdF3332;
-        term(0,7) = F11**2*dSdF1131 + F11*F12*dSdF1231 + F11*F12*dSdF2131 + F11*F13*dSdF1331 + F11*F13*dSdF3131 + F12**2*dSdF2231 + F12*F13*dSdF2331 + F12*F13*dSdF3231 + F13**2*dSdF3331;
-        term(0,8) = F11**2*dSdF1121 + F11*F12*dSdF1221 + F11*F12*dSdF2121 + F11*F13*dSdF1321 + F11*F13*dSdF3121 + F12**2*dSdF2221 + F12*F13*dSdF2321 + F12*F13*dSdF3221 + F13**2*dSdF3321;
-        term(1,0) = F21**2*dSdF1111 + F21*F22*dSdF1211 + F21*F22*dSdF2111 + F21*F23*dSdF1311 + F21*F23*dSdF3111 + F22**2*dSdF2211 + F22*F23*dSdF2311 + F22*F23*dSdF3211 + F23**2*dSdF3311;
-        term(1,1) = F21**2*dSdF1122 + F21*F22*dSdF1222 + F21*F22*dSdF2122 + F21*F23*dSdF1322 + F21*F23*dSdF3122 + F22**2*dSdF2222 + F22*F23*dSdF2322 + F22*F23*dSdF3222 + F23**2*dSdF3322;
-        term(1,2) = F21**2*dSdF1133 + F21*F22*dSdF1233 + F21*F22*dSdF2133 + F21*F23*dSdF1333 + F21*F23*dSdF3133 + F22**2*dSdF2233 + F22*F23*dSdF2333 + F22*F23*dSdF3233 + F23**2*dSdF3333;
-        term(1,3) = F21**2*dSdF1123 + F21*F22*dSdF1223 + F21*F22*dSdF2123 + F21*F23*dSdF1323 + F21*F23*dSdF3123 + F22**2*dSdF2223 + F22*F23*dSdF2323 + F22*F23*dSdF3223 + F23**2*dSdF3323;
-        term(1,4) = F21**2*dSdF1113 + F21*F22*dSdF1213 + F21*F22*dSdF2113 + F21*F23*dSdF1313 + F21*F23*dSdF3113 + F22**2*dSdF2213 + F22*F23*dSdF2313 + F22*F23*dSdF3213 + F23**2*dSdF3313;
-        term(1,5) = F21**2*dSdF1112 + F21*F22*dSdF1212 + F21*F22*dSdF2112 + F21*F23*dSdF1312 + F21*F23*dSdF3112 + F22**2*dSdF2212 + F22*F23*dSdF2312 + F22*F23*dSdF3212 + F23**2*dSdF3312;
-        term(1,6) = F21**2*dSdF1132 + F21*F22*dSdF1232 + F21*F22*dSdF2132 + F21*F23*dSdF1332 + F21*F23*dSdF3132 + F22**2*dSdF2232 + F22*F23*dSdF2332 + F22*F23*dSdF3232 + F23**2*dSdF3332;
-        term(1,7) = F21**2*dSdF1131 + F21*F22*dSdF1231 + F21*F22*dSdF2131 + F21*F23*dSdF1331 + F21*F23*dSdF3131 + F22**2*dSdF2231 + F22*F23*dSdF2331 + F22*F23*dSdF3231 + F23**2*dSdF3331;
-        term(1,8) = F21**2*dSdF1121 + F21*F22*dSdF1221 + F21*F22*dSdF2121 + F21*F23*dSdF1321 + F21*F23*dSdF3121 + F22**2*dSdF2221 + F22*F23*dSdF2321 + F22*F23*dSdF3221 + F23**2*dSdF3321;
-        term(2,0) = F31**2*dSdF1111 + F31*F32*dSdF1211 + F31*F32*dSdF2111 + F31*F33*dSdF1311 + F31*F33*dSdF3111 + F32**2*dSdF2211 + F32*F33*dSdF2311 + F32*F33*dSdF3211 + F33**2*dSdF3311;
-        term(2,1) = F31**2*dSdF1122 + F31*F32*dSdF1222 + F31*F32*dSdF2122 + F31*F33*dSdF1322 + F31*F33*dSdF3122 + F32**2*dSdF2222 + F32*F33*dSdF2322 + F32*F33*dSdF3222 + F33**2*dSdF3322;
-        term(2,2) = F31**2*dSdF1133 + F31*F32*dSdF1233 + F31*F32*dSdF2133 + F31*F33*dSdF1333 + F31*F33*dSdF3133 + F32**2*dSdF2233 + F32*F33*dSdF2333 + F32*F33*dSdF3233 + F33**2*dSdF3333;
-        term(2,3) = F31**2*dSdF1123 + F31*F32*dSdF1223 + F31*F32*dSdF2123 + F31*F33*dSdF1323 + F31*F33*dSdF3123 + F32**2*dSdF2223 + F32*F33*dSdF2323 + F32*F33*dSdF3223 + F33**2*dSdF3323;
-        term(2,4) = F31**2*dSdF1113 + F31*F32*dSdF1213 + F31*F32*dSdF2113 + F31*F33*dSdF1313 + F31*F33*dSdF3113 + F32**2*dSdF2213 + F32*F33*dSdF2313 + F32*F33*dSdF3213 + F33**2*dSdF3313;
-        term(2,5) = F31**2*dSdF1112 + F31*F32*dSdF1212 + F31*F32*dSdF2112 + F31*F33*dSdF1312 + F31*F33*dSdF3112 + F32**2*dSdF2212 + F32*F33*dSdF2312 + F32*F33*dSdF3212 + F33**2*dSdF3312;
-        term(2,6) = F31**2*dSdF1132 + F31*F32*dSdF1232 + F31*F32*dSdF2132 + F31*F33*dSdF1332 + F31*F33*dSdF3132 + F32**2*dSdF2232 + F32*F33*dSdF2332 + F32*F33*dSdF3232 + F33**2*dSdF3332;
-        term(2,7) = F31**2*dSdF1131 + F31*F32*dSdF1231 + F31*F32*dSdF2131 + F31*F33*dSdF1331 + F31*F33*dSdF3131 + F32**2*dSdF2231 + F32*F33*dSdF2331 + F32*F33*dSdF3231 + F33**2*dSdF3331;
-        term(2,8) = F31**2*dSdF1121 + F31*F32*dSdF1221 + F31*F32*dSdF2121 + F31*F33*dSdF1321 + F31*F33*dSdF3121 + F32**2*dSdF2221 + F32*F33*dSdF2321 + F32*F33*dSdF3221 + F33**2*dSdF3321;
-        term(3,0) = F21*F31*dSdF1111 + F21*F32*dSdF1211 + F21*F33*dSdF1311 + F22*F31*dSdF2111 + F22*F32*dSdF2211 + F22*F33*dSdF2311 + F23*F31*dSdF3111 + F23*F32*dSdF3211 + F23*F33*dSdF3311;
-        term(3,1) = F21*F31*dSdF1122 + F21*F32*dSdF1222 + F21*F33*dSdF1322 + F22*F31*dSdF2122 + F22*F32*dSdF2222 + F22*F33*dSdF2322 + F23*F31*dSdF3122 + F23*F32*dSdF3222 + F23*F33*dSdF3322;
-        term(3,2) = F21*F31*dSdF1133 + F21*F32*dSdF1233 + F21*F33*dSdF1333 + F22*F31*dSdF2133 + F22*F32*dSdF2233 + F22*F33*dSdF2333 + F23*F31*dSdF3133 + F23*F32*dSdF3233 + F23*F33*dSdF3333;
-        term(3,3) = F21*F31*dSdF1123 + F21*F32*dSdF1223 + F21*F33*dSdF1323 + F22*F31*dSdF2123 + F22*F32*dSdF2223 + F22*F33*dSdF2323 + F23*F31*dSdF3123 + F23*F32*dSdF3223 + F23*F33*dSdF3323;
-        term(3,4) = F21*F31*dSdF1113 + F21*F32*dSdF1213 + F21*F33*dSdF1313 + F22*F31*dSdF2113 + F22*F32*dSdF2213 + F22*F33*dSdF2313 + F23*F31*dSdF3113 + F23*F32*dSdF3213 + F23*F33*dSdF3313;
-        term(3,5) = F21*F31*dSdF1112 + F21*F32*dSdF1212 + F21*F33*dSdF1312 + F22*F31*dSdF2112 + F22*F32*dSdF2212 + F22*F33*dSdF2312 + F23*F31*dSdF3112 + F23*F32*dSdF3212 + F23*F33*dSdF3312;
-        term(3,6) = F21*F31*dSdF1132 + F21*F32*dSdF1232 + F21*F33*dSdF1332 + F22*F31*dSdF2132 + F22*F32*dSdF2232 + F22*F33*dSdF2332 + F23*F31*dSdF3132 + F23*F32*dSdF3232 + F23*F33*dSdF3332;
-        term(3,7) = F21*F31*dSdF1131 + F21*F32*dSdF1231 + F21*F33*dSdF1331 + F22*F31*dSdF2131 + F22*F32*dSdF2231 + F22*F33*dSdF2331 + F23*F31*dSdF3131 + F23*F32*dSdF3231 + F23*F33*dSdF3331;
-        term(3,8) = F21*F31*dSdF1121 + F21*F32*dSdF1221 + F21*F33*dSdF1321 + F22*F31*dSdF2121 + F22*F32*dSdF2221 + F22*F33*dSdF2321 + F23*F31*dSdF3121 + F23*F32*dSdF3221 + F23*F33*dSdF3321;
-        term(4,0) = F11*F31*dSdF1111 + F11*F32*dSdF1211 + F11*F33*dSdF1311 + F12*F31*dSdF2111 + F12*F32*dSdF2211 + F12*F33*dSdF2311 + F13*F31*dSdF3111 + F13*F32*dSdF3211 + F13*F33*dSdF3311;
-        term(4,1) = F11*F31*dSdF1122 + F11*F32*dSdF1222 + F11*F33*dSdF1322 + F12*F31*dSdF2122 + F12*F32*dSdF2222 + F12*F33*dSdF2322 + F13*F31*dSdF3122 + F13*F32*dSdF3222 + F13*F33*dSdF3322;
-        term(4,2) = F11*F31*dSdF1133 + F11*F32*dSdF1233 + F11*F33*dSdF1333 + F12*F31*dSdF2133 + F12*F32*dSdF2233 + F12*F33*dSdF2333 + F13*F31*dSdF3133 + F13*F32*dSdF3233 + F13*F33*dSdF3333;
-        term(4,3) = F11*F31*dSdF1123 + F11*F32*dSdF1223 + F11*F33*dSdF1323 + F12*F31*dSdF2123 + F12*F32*dSdF2223 + F12*F33*dSdF2323 + F13*F31*dSdF3123 + F13*F32*dSdF3223 + F13*F33*dSdF3323;
-        term(4,4) = F11*F31*dSdF1113 + F11*F32*dSdF1213 + F11*F33*dSdF1313 + F12*F31*dSdF2113 + F12*F32*dSdF2213 + F12*F33*dSdF2313 + F13*F31*dSdF3113 + F13*F32*dSdF3213 + F13*F33*dSdF3313;
-        term(4,5) = F11*F31*dSdF1112 + F11*F32*dSdF1212 + F11*F33*dSdF1312 + F12*F31*dSdF2112 + F12*F32*dSdF2212 + F12*F33*dSdF2312 + F13*F31*dSdF3112 + F13*F32*dSdF3212 + F13*F33*dSdF3312;
-        term(4,6) = F11*F31*dSdF1132 + F11*F32*dSdF1232 + F11*F33*dSdF1332 + F12*F31*dSdF2132 + F12*F32*dSdF2232 + F12*F33*dSdF2332 + F13*F31*dSdF3132 + F13*F32*dSdF3232 + F13*F33*dSdF3332;
-        term(4,7) = F11*F31*dSdF1131 + F11*F32*dSdF1231 + F11*F33*dSdF1331 + F12*F31*dSdF2131 + F12*F32*dSdF2231 + F12*F33*dSdF2331 + F13*F31*dSdF3131 + F13*F32*dSdF3231 + F13*F33*dSdF3331;
-        term(4,8) = F11*F31*dSdF1121 + F11*F32*dSdF1221 + F11*F33*dSdF1321 + F12*F31*dSdF2121 + F12*F32*dSdF2221 + F12*F33*dSdF2321 + F13*F31*dSdF3121 + F13*F32*dSdF3221 + F13*F33*dSdF3321;
-        term(5,0) = F11*F21*dSdF1111 + F11*F22*dSdF1211 + F11*F23*dSdF1311 + F12*F21*dSdF2111 + F12*F22*dSdF2211 + F12*F23*dSdF2311 + F13*F21*dSdF3111 + F13*F22*dSdF3211 + F13*F23*dSdF3311;
-        term(5,1) = F11*F21*dSdF1122 + F11*F22*dSdF1222 + F11*F23*dSdF1322 + F12*F21*dSdF2122 + F12*F22*dSdF2222 + F12*F23*dSdF2322 + F13*F21*dSdF3122 + F13*F22*dSdF3222 + F13*F23*dSdF3322;
-        term(5,2) = F11*F21*dSdF1133 + F11*F22*dSdF1233 + F11*F23*dSdF1333 + F12*F21*dSdF2133 + F12*F22*dSdF2233 + F12*F23*dSdF2333 + F13*F21*dSdF3133 + F13*F22*dSdF3233 + F13*F23*dSdF3333;
-        term(5,3) = F11*F21*dSdF1123 + F11*F22*dSdF1223 + F11*F23*dSdF1323 + F12*F21*dSdF2123 + F12*F22*dSdF2223 + F12*F23*dSdF2323 + F13*F21*dSdF3123 + F13*F22*dSdF3223 + F13*F23*dSdF3323;
-        term(5,4) = F11*F21*dSdF1113 + F11*F22*dSdF1213 + F11*F23*dSdF1313 + F12*F21*dSdF2113 + F12*F22*dSdF2213 + F12*F23*dSdF2313 + F13*F21*dSdF3113 + F13*F22*dSdF3213 + F13*F23*dSdF3313;
-        term(5,5) = F11*F21*dSdF1112 + F11*F22*dSdF1212 + F11*F23*dSdF1312 + F12*F21*dSdF2112 + F12*F22*dSdF2212 + F12*F23*dSdF2312 + F13*F21*dSdF3112 + F13*F22*dSdF3212 + F13*F23*dSdF3312;
-        term(5,6) = F11*F21*dSdF1132 + F11*F22*dSdF1232 + F11*F23*dSdF1332 + F12*F21*dSdF2132 + F12*F22*dSdF2232 + F12*F23*dSdF2332 + F13*F21*dSdF3132 + F13*F22*dSdF3232 + F13*F23*dSdF3332;
-        term(5,7) = F11*F21*dSdF1131 + F11*F22*dSdF1231 + F11*F23*dSdF1331 + F12*F21*dSdF2131 + F12*F22*dSdF2231 + F12*F23*dSdF2331 + F13*F21*dSdF3131 + F13*F22*dSdF3231 + F13*F23*dSdF3331;
-        term(5,8) = F11*F21*dSdF1121 + F11*F22*dSdF1221 + F11*F23*dSdF1321 + F12*F21*dSdF2121 + F12*F22*dSdF2221 + F12*F23*dSdF2321 + F13*F21*dSdF3121 + F13*F22*dSdF3221 + F13*F23*dSdF3321;
-        term(6,0) = F21*F31*dSdF1111 + F21*F32*dSdF2111 + F21*F33*dSdF3111 + F22*F31*dSdF1211 + F22*F32*dSdF2211 + F22*F33*dSdF3211 + F23*F31*dSdF1311 + F23*F32*dSdF2311 + F23*F33*dSdF3311;
-        term(6,1) = F21*F31*dSdF1122 + F21*F32*dSdF2122 + F21*F33*dSdF3122 + F22*F31*dSdF1222 + F22*F32*dSdF2222 + F22*F33*dSdF3222 + F23*F31*dSdF1322 + F23*F32*dSdF2322 + F23*F33*dSdF3322;
-        term(6,2) = F21*F31*dSdF1133 + F21*F32*dSdF2133 + F21*F33*dSdF3133 + F22*F31*dSdF1233 + F22*F32*dSdF2233 + F22*F33*dSdF3233 + F23*F31*dSdF1333 + F23*F32*dSdF2333 + F23*F33*dSdF3333;
-        term(6,3) = F21*F31*dSdF1123 + F21*F32*dSdF2123 + F21*F33*dSdF3123 + F22*F31*dSdF1223 + F22*F32*dSdF2223 + F22*F33*dSdF3223 + F23*F31*dSdF1323 + F23*F32*dSdF2323 + F23*F33*dSdF3323;
-        term(6,4) = F21*F31*dSdF1113 + F21*F32*dSdF2113 + F21*F33*dSdF3113 + F22*F31*dSdF1213 + F22*F32*dSdF2213 + F22*F33*dSdF3213 + F23*F31*dSdF1313 + F23*F32*dSdF2313 + F23*F33*dSdF3313;
-        term(6,5) = F21*F31*dSdF1112 + F21*F32*dSdF2112 + F21*F33*dSdF3112 + F22*F31*dSdF1212 + F22*F32*dSdF2212 + F22*F33*dSdF3212 + F23*F31*dSdF1312 + F23*F32*dSdF2312 + F23*F33*dSdF3312;
-        term(6,6) = F21*F31*dSdF1132 + F21*F32*dSdF2132 + F21*F33*dSdF3132 + F22*F31*dSdF1232 + F22*F32*dSdF2232 + F22*F33*dSdF3232 + F23*F31*dSdF1332 + F23*F32*dSdF2332 + F23*F33*dSdF3332;
-        term(6,7) = F21*F31*dSdF1131 + F21*F32*dSdF2131 + F21*F33*dSdF3131 + F22*F31*dSdF1231 + F22*F32*dSdF2231 + F22*F33*dSdF3231 + F23*F31*dSdF1331 + F23*F32*dSdF2331 + F23*F33*dSdF3331;
-        term(6,8) = F21*F31*dSdF1121 + F21*F32*dSdF2121 + F21*F33*dSdF3121 + F22*F31*dSdF1221 + F22*F32*dSdF2221 + F22*F33*dSdF3221 + F23*F31*dSdF1321 + F23*F32*dSdF2321 + F23*F33*dSdF3321;
-        term(7,0) = F11*F31*dSdF1111 + F11*F32*dSdF2111 + F11*F33*dSdF3111 + F12*F31*dSdF1211 + F12*F32*dSdF2211 + F12*F33*dSdF3211 + F13*F31*dSdF1311 + F13*F32*dSdF2311 + F13*F33*dSdF3311;
-        term(7,1) = F11*F31*dSdF1122 + F11*F32*dSdF2122 + F11*F33*dSdF3122 + F12*F31*dSdF1222 + F12*F32*dSdF2222 + F12*F33*dSdF3222 + F13*F31*dSdF1322 + F13*F32*dSdF2322 + F13*F33*dSdF3322;
-        term(7,2) = F11*F31*dSdF1133 + F11*F32*dSdF2133 + F11*F33*dSdF3133 + F12*F31*dSdF1233 + F12*F32*dSdF2233 + F12*F33*dSdF3233 + F13*F31*dSdF1333 + F13*F32*dSdF2333 + F13*F33*dSdF3333;
-        term(7,3) = F11*F31*dSdF1123 + F11*F32*dSdF2123 + F11*F33*dSdF3123 + F12*F31*dSdF1223 + F12*F32*dSdF2223 + F12*F33*dSdF3223 + F13*F31*dSdF1323 + F13*F32*dSdF2323 + F13*F33*dSdF3323;
-        term(7,4) = F11*F31*dSdF1113 + F11*F32*dSdF2113 + F11*F33*dSdF3113 + F12*F31*dSdF1213 + F12*F32*dSdF2213 + F12*F33*dSdF3213 + F13*F31*dSdF1313 + F13*F32*dSdF2313 + F13*F33*dSdF3313;
-        term(7,5) = F11*F31*dSdF1112 + F11*F32*dSdF2112 + F11*F33*dSdF3112 + F12*F31*dSdF1212 + F12*F32*dSdF2212 + F12*F33*dSdF3212 + F13*F31*dSdF1312 + F13*F32*dSdF2312 + F13*F33*dSdF3312;
-        term(7,6) = F11*F31*dSdF1132 + F11*F32*dSdF2132 + F11*F33*dSdF3132 + F12*F31*dSdF1232 + F12*F32*dSdF2232 + F12*F33*dSdF3232 + F13*F31*dSdF1332 + F13*F32*dSdF2332 + F13*F33*dSdF3332;
-        term(7,7) = F11*F31*dSdF1131 + F11*F32*dSdF2131 + F11*F33*dSdF3131 + F12*F31*dSdF1231 + F12*F32*dSdF2231 + F12*F33*dSdF3231 + F13*F31*dSdF1331 + F13*F32*dSdF2331 + F13*F33*dSdF3331;
-        term(7,8) = F11*F31*dSdF1121 + F11*F32*dSdF2121 + F11*F33*dSdF3121 + F12*F31*dSdF1221 + F12*F32*dSdF2221 + F12*F33*dSdF3221 + F13*F31*dSdF1321 + F13*F32*dSdF2321 + F13*F33*dSdF3321;
-        term(8,0) = F11*F21*dSdF1111 + F11*F22*dSdF2111 + F11*F23*dSdF3111 + F12*F21*dSdF1211 + F12*F22*dSdF2211 + F12*F23*dSdF3211 + F13*F21*dSdF1311 + F13*F22*dSdF2311 + F13*F23*dSdF3311;
-        term(8,1) = F11*F21*dSdF1122 + F11*F22*dSdF2122 + F11*F23*dSdF3122 + F12*F21*dSdF1222 + F12*F22*dSdF2222 + F12*F23*dSdF3222 + F13*F21*dSdF1322 + F13*F22*dSdF2322 + F13*F23*dSdF3322;
-        term(8,2) = F11*F21*dSdF1133 + F11*F22*dSdF2133 + F11*F23*dSdF3133 + F12*F21*dSdF1233 + F12*F22*dSdF2233 + F12*F23*dSdF3233 + F13*F21*dSdF1333 + F13*F22*dSdF2333 + F13*F23*dSdF3333;
-        term(8,3) = F11*F21*dSdF1123 + F11*F22*dSdF2123 + F11*F23*dSdF3123 + F12*F21*dSdF1223 + F12*F22*dSdF2223 + F12*F23*dSdF3223 + F13*F21*dSdF1323 + F13*F22*dSdF2323 + F13*F23*dSdF3323;
-        term(8,4) = F11*F21*dSdF1113 + F11*F22*dSdF2113 + F11*F23*dSdF3113 + F12*F21*dSdF1213 + F12*F22*dSdF2213 + F12*F23*dSdF3213 + F13*F21*dSdF1313 + F13*F22*dSdF2313 + F13*F23*dSdF3313;
-        term(8,5) = F11*F21*dSdF1112 + F11*F22*dSdF2112 + F11*F23*dSdF3112 + F12*F21*dSdF1212 + F12*F22*dSdF2212 + F12*F23*dSdF3212 + F13*F21*dSdF1312 + F13*F22*dSdF2312 + F13*F23*dSdF3312;
-        term(8,6) = F11*F21*dSdF1132 + F11*F22*dSdF2132 + F11*F23*dSdF3132 + F12*F21*dSdF1232 + F12*F22*dSdF2232 + F12*F23*dSdF3232 + F13*F21*dSdF1332 + F13*F22*dSdF2332 + F13*F23*dSdF3332;
-        term(8,7) = F11*F21*dSdF1131 + F11*F22*dSdF2131 + F11*F23*dSdF3131 + F12*F21*dSdF1231 + F12*F22*dSdF2231 + F12*F23*dSdF3231 + F13*F21*dSdF1331 + F13*F22*dSdF2331 + F13*F23*dSdF3331;
-        term(8,8) = F11*F21*dSdF1121 + F11*F22*dSdF2121 + F11*F23*dSdF3121 + F12*F21*dSdF1221 + F12*F22*dSdF2221 + F12*F23*dSdF3221 + F13*F21*dSdF1321 + F13*F22*dSdF2321 + F13*F23*dSdF3321;
-
+        //Compute term
+        term(0,0) = pow(F11, 2)*dSdfot1111 + F11*F12*dSdfot1211 + F11*F12*dSdfot2111 + F11*F13*dSdfot1311 + F11*F13*dSdfot3111 + pow(F12, 2)*dSdfot2211 + F12*F13*dSdfot2311 + F12*F13*dSdfot3211 + pow(F13, 2)*dSdfot3311;
+        term(0,1) = pow(F11, 2)*dSdfot1122 + F11*F12*dSdfot1222 + F11*F12*dSdfot2122 + F11*F13*dSdfot1322 + F11*F13*dSdfot3122 + pow(F12, 2)*dSdfot2222 + F12*F13*dSdfot2322 + F12*F13*dSdfot3222 + pow(F13, 2)*dSdfot3322;
+        term(0,2) = pow(F11, 2)*dSdfot1133 + F11*F12*dSdfot1233 + F11*F12*dSdfot2133 + F11*F13*dSdfot1333 + F11*F13*dSdfot3133 + pow(F12, 2)*dSdfot2233 + F12*F13*dSdfot2333 + F12*F13*dSdfot3233 + pow(F13, 2)*dSdfot3333;
+        term(0,3) = pow(F11, 2)*dSdfot1123 + F11*F12*dSdfot1223 + F11*F12*dSdfot2123 + F11*F13*dSdfot1323 + F11*F13*dSdfot3123 + pow(F12, 2)*dSdfot2223 + F12*F13*dSdfot2323 + F12*F13*dSdfot3223 + pow(F13, 2)*dSdfot3323;
+        term(0,4) = pow(F11, 2)*dSdfot1113 + F11*F12*dSdfot1213 + F11*F12*dSdfot2113 + F11*F13*dSdfot1313 + F11*F13*dSdfot3113 + pow(F12, 2)*dSdfot2213 + F12*F13*dSdfot2313 + F12*F13*dSdfot3213 + pow(F13, 2)*dSdfot3313;
+        term(0,5) = pow(F11, 2)*dSdfot1112 + F11*F12*dSdfot1212 + F11*F12*dSdfot2112 + F11*F13*dSdfot1312 + F11*F13*dSdfot3112 + pow(F12, 2)*dSdfot2212 + F12*F13*dSdfot2312 + F12*F13*dSdfot3212 + pow(F13, 2)*dSdfot3312;
+        term(0,6) = pow(F11, 2)*dSdfot1132 + F11*F12*dSdfot1232 + F11*F12*dSdfot2132 + F11*F13*dSdfot1332 + F11*F13*dSdfot3132 + pow(F12, 2)*dSdfot2232 + F12*F13*dSdfot2332 + F12*F13*dSdfot3232 + pow(F13, 2)*dSdfot3332;
+        term(0,7) = pow(F11, 2)*dSdfot1131 + F11*F12*dSdfot1231 + F11*F12*dSdfot2131 + F11*F13*dSdfot1331 + F11*F13*dSdfot3131 + pow(F12, 2)*dSdfot2231 + F12*F13*dSdfot2331 + F12*F13*dSdfot3231 + pow(F13, 2)*dSdfot3331;
+        term(0,8) = pow(F11, 2)*dSdfot1121 + F11*F12*dSdfot1221 + F11*F12*dSdfot2121 + F11*F13*dSdfot1321 + F11*F13*dSdfot3121 + pow(F12, 2)*dSdfot2221 + F12*F13*dSdfot2321 + F12*F13*dSdfot3221 + pow(F13, 2)*dSdfot3321;
+        term(1,0) = pow(F21, 2)*dSdfot1111 + F21*F22*dSdfot1211 + F21*F22*dSdfot2111 + F21*F23*dSdfot1311 + F21*F23*dSdfot3111 + pow(F22, 2)*dSdfot2211 + F22*F23*dSdfot2311 + F22*F23*dSdfot3211 + pow(F23, 2)*dSdfot3311;
+        term(1,1) = pow(F21, 2)*dSdfot1122 + F21*F22*dSdfot1222 + F21*F22*dSdfot2122 + F21*F23*dSdfot1322 + F21*F23*dSdfot3122 + pow(F22, 2)*dSdfot2222 + F22*F23*dSdfot2322 + F22*F23*dSdfot3222 + pow(F23, 2)*dSdfot3322;
+        term(1,2) = pow(F21, 2)*dSdfot1133 + F21*F22*dSdfot1233 + F21*F22*dSdfot2133 + F21*F23*dSdfot1333 + F21*F23*dSdfot3133 + pow(F22, 2)*dSdfot2233 + F22*F23*dSdfot2333 + F22*F23*dSdfot3233 + pow(F23, 2)*dSdfot3333;
+        term(1,3) = pow(F21, 2)*dSdfot1123 + F21*F22*dSdfot1223 + F21*F22*dSdfot2123 + F21*F23*dSdfot1323 + F21*F23*dSdfot3123 + pow(F22, 2)*dSdfot2223 + F22*F23*dSdfot2323 + F22*F23*dSdfot3223 + pow(F23, 2)*dSdfot3323;
+        term(1,4) = pow(F21, 2)*dSdfot1113 + F21*F22*dSdfot1213 + F21*F22*dSdfot2113 + F21*F23*dSdfot1313 + F21*F23*dSdfot3113 + pow(F22, 2)*dSdfot2213 + F22*F23*dSdfot2313 + F22*F23*dSdfot3213 + pow(F23, 2)*dSdfot3313;
+        term(1,5) = pow(F21, 2)*dSdfot1112 + F21*F22*dSdfot1212 + F21*F22*dSdfot2112 + F21*F23*dSdfot1312 + F21*F23*dSdfot3112 + pow(F22, 2)*dSdfot2212 + F22*F23*dSdfot2312 + F22*F23*dSdfot3212 + pow(F23, 2)*dSdfot3312;
+        term(1,6) = pow(F21, 2)*dSdfot1132 + F21*F22*dSdfot1232 + F21*F22*dSdfot2132 + F21*F23*dSdfot1332 + F21*F23*dSdfot3132 + pow(F22, 2)*dSdfot2232 + F22*F23*dSdfot2332 + F22*F23*dSdfot3232 + pow(F23, 2)*dSdfot3332;
+        term(1,7) = pow(F21, 2)*dSdfot1131 + F21*F22*dSdfot1231 + F21*F22*dSdfot2131 + F21*F23*dSdfot1331 + F21*F23*dSdfot3131 + pow(F22, 2)*dSdfot2231 + F22*F23*dSdfot2331 + F22*F23*dSdfot3231 + pow(F23, 2)*dSdfot3331;
+        term(1,8) = pow(F21, 2)*dSdfot1121 + F21*F22*dSdfot1221 + F21*F22*dSdfot2121 + F21*F23*dSdfot1321 + F21*F23*dSdfot3121 + pow(F22, 2)*dSdfot2221 + F22*F23*dSdfot2321 + F22*F23*dSdfot3221 + pow(F23, 2)*dSdfot3321;
+        term(2,0) = pow(F31, 2)*dSdfot1111 + F31*F32*dSdfot1211 + F31*F32*dSdfot2111 + F31*F33*dSdfot1311 + F31*F33*dSdfot3111 + pow(F32, 2)*dSdfot2211 + F32*F33*dSdfot2311 + F32*F33*dSdfot3211 + pow(F33, 2)*dSdfot3311;
+        term(2,1) = pow(F31, 2)*dSdfot1122 + F31*F32*dSdfot1222 + F31*F32*dSdfot2122 + F31*F33*dSdfot1322 + F31*F33*dSdfot3122 + pow(F32, 2)*dSdfot2222 + F32*F33*dSdfot2322 + F32*F33*dSdfot3222 + pow(F33, 2)*dSdfot3322;
+        term(2,2) = pow(F31, 2)*dSdfot1133 + F31*F32*dSdfot1233 + F31*F32*dSdfot2133 + F31*F33*dSdfot1333 + F31*F33*dSdfot3133 + pow(F32, 2)*dSdfot2233 + F32*F33*dSdfot2333 + F32*F33*dSdfot3233 + pow(F33, 2)*dSdfot3333;
+        term(2,3) = pow(F31, 2)*dSdfot1123 + F31*F32*dSdfot1223 + F31*F32*dSdfot2123 + F31*F33*dSdfot1323 + F31*F33*dSdfot3123 + pow(F32, 2)*dSdfot2223 + F32*F33*dSdfot2323 + F32*F33*dSdfot3223 + pow(F33, 2)*dSdfot3323;
+        term(2,4) = pow(F31, 2)*dSdfot1113 + F31*F32*dSdfot1213 + F31*F32*dSdfot2113 + F31*F33*dSdfot1313 + F31*F33*dSdfot3113 + pow(F32, 2)*dSdfot2213 + F32*F33*dSdfot2313 + F32*F33*dSdfot3213 + pow(F33, 2)*dSdfot3313;
+        term(2,5) = pow(F31, 2)*dSdfot1112 + F31*F32*dSdfot1212 + F31*F32*dSdfot2112 + F31*F33*dSdfot1312 + F31*F33*dSdfot3112 + pow(F32, 2)*dSdfot2212 + F32*F33*dSdfot2312 + F32*F33*dSdfot3212 + pow(F33, 2)*dSdfot3312;
+        term(2,6) = pow(F31, 2)*dSdfot1132 + F31*F32*dSdfot1232 + F31*F32*dSdfot2132 + F31*F33*dSdfot1332 + F31*F33*dSdfot3132 + pow(F32, 2)*dSdfot2232 + F32*F33*dSdfot2332 + F32*F33*dSdfot3232 + pow(F33, 2)*dSdfot3332;
+        term(2,7) = pow(F31, 2)*dSdfot1131 + F31*F32*dSdfot1231 + F31*F32*dSdfot2131 + F31*F33*dSdfot1331 + F31*F33*dSdfot3131 + pow(F32, 2)*dSdfot2231 + F32*F33*dSdfot2331 + F32*F33*dSdfot3231 + pow(F33, 2)*dSdfot3331;
+        term(2,8) = pow(F31, 2)*dSdfot1121 + F31*F32*dSdfot1221 + F31*F32*dSdfot2121 + F31*F33*dSdfot1321 + F31*F33*dSdfot3121 + pow(F32, 2)*dSdfot2221 + F32*F33*dSdfot2321 + F32*F33*dSdfot3221 + pow(F33, 2)*dSdfot3321;
+        term(3,0) = F21*F31*dSdfot1111 + F21*F32*dSdfot1211 + F21*F33*dSdfot1311 + F22*F31*dSdfot2111 + F22*F32*dSdfot2211 + F22*F33*dSdfot2311 + F23*F31*dSdfot3111 + F23*F32*dSdfot3211 + F23*F33*dSdfot3311;
+        term(3,1) = F21*F31*dSdfot1122 + F21*F32*dSdfot1222 + F21*F33*dSdfot1322 + F22*F31*dSdfot2122 + F22*F32*dSdfot2222 + F22*F33*dSdfot2322 + F23*F31*dSdfot3122 + F23*F32*dSdfot3222 + F23*F33*dSdfot3322;
+        term(3,2) = F21*F31*dSdfot1133 + F21*F32*dSdfot1233 + F21*F33*dSdfot1333 + F22*F31*dSdfot2133 + F22*F32*dSdfot2233 + F22*F33*dSdfot2333 + F23*F31*dSdfot3133 + F23*F32*dSdfot3233 + F23*F33*dSdfot3333;
+        term(3,3) = F21*F31*dSdfot1123 + F21*F32*dSdfot1223 + F21*F33*dSdfot1323 + F22*F31*dSdfot2123 + F22*F32*dSdfot2223 + F22*F33*dSdfot2323 + F23*F31*dSdfot3123 + F23*F32*dSdfot3223 + F23*F33*dSdfot3323;
+        term(3,4) = F21*F31*dSdfot1113 + F21*F32*dSdfot1213 + F21*F33*dSdfot1313 + F22*F31*dSdfot2113 + F22*F32*dSdfot2213 + F22*F33*dSdfot2313 + F23*F31*dSdfot3113 + F23*F32*dSdfot3213 + F23*F33*dSdfot3313;
+        term(3,5) = F21*F31*dSdfot1112 + F21*F32*dSdfot1212 + F21*F33*dSdfot1312 + F22*F31*dSdfot2112 + F22*F32*dSdfot2212 + F22*F33*dSdfot2312 + F23*F31*dSdfot3112 + F23*F32*dSdfot3212 + F23*F33*dSdfot3312;
+        term(3,6) = F21*F31*dSdfot1132 + F21*F32*dSdfot1232 + F21*F33*dSdfot1332 + F22*F31*dSdfot2132 + F22*F32*dSdfot2232 + F22*F33*dSdfot2332 + F23*F31*dSdfot3132 + F23*F32*dSdfot3232 + F23*F33*dSdfot3332;
+        term(3,7) = F21*F31*dSdfot1131 + F21*F32*dSdfot1231 + F21*F33*dSdfot1331 + F22*F31*dSdfot2131 + F22*F32*dSdfot2231 + F22*F33*dSdfot2331 + F23*F31*dSdfot3131 + F23*F32*dSdfot3231 + F23*F33*dSdfot3331;
+        term(3,8) = F21*F31*dSdfot1121 + F21*F32*dSdfot1221 + F21*F33*dSdfot1321 + F22*F31*dSdfot2121 + F22*F32*dSdfot2221 + F22*F33*dSdfot2321 + F23*F31*dSdfot3121 + F23*F32*dSdfot3221 + F23*F33*dSdfot3321;
+        term(4,0) = F11*F31*dSdfot1111 + F11*F32*dSdfot1211 + F11*F33*dSdfot1311 + F12*F31*dSdfot2111 + F12*F32*dSdfot2211 + F12*F33*dSdfot2311 + F13*F31*dSdfot3111 + F13*F32*dSdfot3211 + F13*F33*dSdfot3311;
+        term(4,1) = F11*F31*dSdfot1122 + F11*F32*dSdfot1222 + F11*F33*dSdfot1322 + F12*F31*dSdfot2122 + F12*F32*dSdfot2222 + F12*F33*dSdfot2322 + F13*F31*dSdfot3122 + F13*F32*dSdfot3222 + F13*F33*dSdfot3322;
+        term(4,2) = F11*F31*dSdfot1133 + F11*F32*dSdfot1233 + F11*F33*dSdfot1333 + F12*F31*dSdfot2133 + F12*F32*dSdfot2233 + F12*F33*dSdfot2333 + F13*F31*dSdfot3133 + F13*F32*dSdfot3233 + F13*F33*dSdfot3333;
+        term(4,3) = F11*F31*dSdfot1123 + F11*F32*dSdfot1223 + F11*F33*dSdfot1323 + F12*F31*dSdfot2123 + F12*F32*dSdfot2223 + F12*F33*dSdfot2323 + F13*F31*dSdfot3123 + F13*F32*dSdfot3223 + F13*F33*dSdfot3323;
+        term(4,4) = F11*F31*dSdfot1113 + F11*F32*dSdfot1213 + F11*F33*dSdfot1313 + F12*F31*dSdfot2113 + F12*F32*dSdfot2213 + F12*F33*dSdfot2313 + F13*F31*dSdfot3113 + F13*F32*dSdfot3213 + F13*F33*dSdfot3313;
+        term(4,5) = F11*F31*dSdfot1112 + F11*F32*dSdfot1212 + F11*F33*dSdfot1312 + F12*F31*dSdfot2112 + F12*F32*dSdfot2212 + F12*F33*dSdfot2312 + F13*F31*dSdfot3112 + F13*F32*dSdfot3212 + F13*F33*dSdfot3312;
+        term(4,6) = F11*F31*dSdfot1132 + F11*F32*dSdfot1232 + F11*F33*dSdfot1332 + F12*F31*dSdfot2132 + F12*F32*dSdfot2232 + F12*F33*dSdfot2332 + F13*F31*dSdfot3132 + F13*F32*dSdfot3232 + F13*F33*dSdfot3332;
+        term(4,7) = F11*F31*dSdfot1131 + F11*F32*dSdfot1231 + F11*F33*dSdfot1331 + F12*F31*dSdfot2131 + F12*F32*dSdfot2231 + F12*F33*dSdfot2331 + F13*F31*dSdfot3131 + F13*F32*dSdfot3231 + F13*F33*dSdfot3331;
+        term(4,8) = F11*F31*dSdfot1121 + F11*F32*dSdfot1221 + F11*F33*dSdfot1321 + F12*F31*dSdfot2121 + F12*F32*dSdfot2221 + F12*F33*dSdfot2321 + F13*F31*dSdfot3121 + F13*F32*dSdfot3221 + F13*F33*dSdfot3321;
+        term(5,0) = F11*F21*dSdfot1111 + F11*F22*dSdfot1211 + F11*F23*dSdfot1311 + F12*F21*dSdfot2111 + F12*F22*dSdfot2211 + F12*F23*dSdfot2311 + F13*F21*dSdfot3111 + F13*F22*dSdfot3211 + F13*F23*dSdfot3311;
+        term(5,1) = F11*F21*dSdfot1122 + F11*F22*dSdfot1222 + F11*F23*dSdfot1322 + F12*F21*dSdfot2122 + F12*F22*dSdfot2222 + F12*F23*dSdfot2322 + F13*F21*dSdfot3122 + F13*F22*dSdfot3222 + F13*F23*dSdfot3322;
+        term(5,2) = F11*F21*dSdfot1133 + F11*F22*dSdfot1233 + F11*F23*dSdfot1333 + F12*F21*dSdfot2133 + F12*F22*dSdfot2233 + F12*F23*dSdfot2333 + F13*F21*dSdfot3133 + F13*F22*dSdfot3233 + F13*F23*dSdfot3333;
+        term(5,3) = F11*F21*dSdfot1123 + F11*F22*dSdfot1223 + F11*F23*dSdfot1323 + F12*F21*dSdfot2123 + F12*F22*dSdfot2223 + F12*F23*dSdfot2323 + F13*F21*dSdfot3123 + F13*F22*dSdfot3223 + F13*F23*dSdfot3323;
+        term(5,4) = F11*F21*dSdfot1113 + F11*F22*dSdfot1213 + F11*F23*dSdfot1313 + F12*F21*dSdfot2113 + F12*F22*dSdfot2213 + F12*F23*dSdfot2313 + F13*F21*dSdfot3113 + F13*F22*dSdfot3213 + F13*F23*dSdfot3313;
+        term(5,5) = F11*F21*dSdfot1112 + F11*F22*dSdfot1212 + F11*F23*dSdfot1312 + F12*F21*dSdfot2112 + F12*F22*dSdfot2212 + F12*F23*dSdfot2312 + F13*F21*dSdfot3112 + F13*F22*dSdfot3212 + F13*F23*dSdfot3312;
+        term(5,6) = F11*F21*dSdfot1132 + F11*F22*dSdfot1232 + F11*F23*dSdfot1332 + F12*F21*dSdfot2132 + F12*F22*dSdfot2232 + F12*F23*dSdfot2332 + F13*F21*dSdfot3132 + F13*F22*dSdfot3232 + F13*F23*dSdfot3332;
+        term(5,7) = F11*F21*dSdfot1131 + F11*F22*dSdfot1231 + F11*F23*dSdfot1331 + F12*F21*dSdfot2131 + F12*F22*dSdfot2231 + F12*F23*dSdfot2331 + F13*F21*dSdfot3131 + F13*F22*dSdfot3231 + F13*F23*dSdfot3331;
+        term(5,8) = F11*F21*dSdfot1121 + F11*F22*dSdfot1221 + F11*F23*dSdfot1321 + F12*F21*dSdfot2121 + F12*F22*dSdfot2221 + F12*F23*dSdfot2321 + F13*F21*dSdfot3121 + F13*F22*dSdfot3221 + F13*F23*dSdfot3321;
+        term(6,0) = F21*F31*dSdfot1111 + F21*F32*dSdfot2111 + F21*F33*dSdfot3111 + F22*F31*dSdfot1211 + F22*F32*dSdfot2211 + F22*F33*dSdfot3211 + F23*F31*dSdfot1311 + F23*F32*dSdfot2311 + F23*F33*dSdfot3311;
+        term(6,1) = F21*F31*dSdfot1122 + F21*F32*dSdfot2122 + F21*F33*dSdfot3122 + F22*F31*dSdfot1222 + F22*F32*dSdfot2222 + F22*F33*dSdfot3222 + F23*F31*dSdfot1322 + F23*F32*dSdfot2322 + F23*F33*dSdfot3322;
+        term(6,2) = F21*F31*dSdfot1133 + F21*F32*dSdfot2133 + F21*F33*dSdfot3133 + F22*F31*dSdfot1233 + F22*F32*dSdfot2233 + F22*F33*dSdfot3233 + F23*F31*dSdfot1333 + F23*F32*dSdfot2333 + F23*F33*dSdfot3333;
+        term(6,3) = F21*F31*dSdfot1123 + F21*F32*dSdfot2123 + F21*F33*dSdfot3123 + F22*F31*dSdfot1223 + F22*F32*dSdfot2223 + F22*F33*dSdfot3223 + F23*F31*dSdfot1323 + F23*F32*dSdfot2323 + F23*F33*dSdfot3323;
+        term(6,4) = F21*F31*dSdfot1113 + F21*F32*dSdfot2113 + F21*F33*dSdfot3113 + F22*F31*dSdfot1213 + F22*F32*dSdfot2213 + F22*F33*dSdfot3213 + F23*F31*dSdfot1313 + F23*F32*dSdfot2313 + F23*F33*dSdfot3313;
+        term(6,5) = F21*F31*dSdfot1112 + F21*F32*dSdfot2112 + F21*F33*dSdfot3112 + F22*F31*dSdfot1212 + F22*F32*dSdfot2212 + F22*F33*dSdfot3212 + F23*F31*dSdfot1312 + F23*F32*dSdfot2312 + F23*F33*dSdfot3312;
+        term(6,6) = F21*F31*dSdfot1132 + F21*F32*dSdfot2132 + F21*F33*dSdfot3132 + F22*F31*dSdfot1232 + F22*F32*dSdfot2232 + F22*F33*dSdfot3232 + F23*F31*dSdfot1332 + F23*F32*dSdfot2332 + F23*F33*dSdfot3332;
+        term(6,7) = F21*F31*dSdfot1131 + F21*F32*dSdfot2131 + F21*F33*dSdfot3131 + F22*F31*dSdfot1231 + F22*F32*dSdfot2231 + F22*F33*dSdfot3231 + F23*F31*dSdfot1331 + F23*F32*dSdfot2331 + F23*F33*dSdfot3331;
+        term(6,8) = F21*F31*dSdfot1121 + F21*F32*dSdfot2121 + F21*F33*dSdfot3121 + F22*F31*dSdfot1221 + F22*F32*dSdfot2221 + F22*F33*dSdfot3221 + F23*F31*dSdfot1321 + F23*F32*dSdfot2321 + F23*F33*dSdfot3321;
+        term(7,0) = F11*F31*dSdfot1111 + F11*F32*dSdfot2111 + F11*F33*dSdfot3111 + F12*F31*dSdfot1211 + F12*F32*dSdfot2211 + F12*F33*dSdfot3211 + F13*F31*dSdfot1311 + F13*F32*dSdfot2311 + F13*F33*dSdfot3311;
+        term(7,1) = F11*F31*dSdfot1122 + F11*F32*dSdfot2122 + F11*F33*dSdfot3122 + F12*F31*dSdfot1222 + F12*F32*dSdfot2222 + F12*F33*dSdfot3222 + F13*F31*dSdfot1322 + F13*F32*dSdfot2322 + F13*F33*dSdfot3322;
+        term(7,2) = F11*F31*dSdfot1133 + F11*F32*dSdfot2133 + F11*F33*dSdfot3133 + F12*F31*dSdfot1233 + F12*F32*dSdfot2233 + F12*F33*dSdfot3233 + F13*F31*dSdfot1333 + F13*F32*dSdfot2333 + F13*F33*dSdfot3333;
+        term(7,3) = F11*F31*dSdfot1123 + F11*F32*dSdfot2123 + F11*F33*dSdfot3123 + F12*F31*dSdfot1223 + F12*F32*dSdfot2223 + F12*F33*dSdfot3223 + F13*F31*dSdfot1323 + F13*F32*dSdfot2323 + F13*F33*dSdfot3323;
+        term(7,4) = F11*F31*dSdfot1113 + F11*F32*dSdfot2113 + F11*F33*dSdfot3113 + F12*F31*dSdfot1213 + F12*F32*dSdfot2213 + F12*F33*dSdfot3213 + F13*F31*dSdfot1313 + F13*F32*dSdfot2313 + F13*F33*dSdfot3313;
+        term(7,5) = F11*F31*dSdfot1112 + F11*F32*dSdfot2112 + F11*F33*dSdfot3112 + F12*F31*dSdfot1212 + F12*F32*dSdfot2212 + F12*F33*dSdfot3212 + F13*F31*dSdfot1312 + F13*F32*dSdfot2312 + F13*F33*dSdfot3312;
+        term(7,6) = F11*F31*dSdfot1132 + F11*F32*dSdfot2132 + F11*F33*dSdfot3132 + F12*F31*dSdfot1232 + F12*F32*dSdfot2232 + F12*F33*dSdfot3232 + F13*F31*dSdfot1332 + F13*F32*dSdfot2332 + F13*F33*dSdfot3332;
+        term(7,7) = F11*F31*dSdfot1131 + F11*F32*dSdfot2131 + F11*F33*dSdfot3131 + F12*F31*dSdfot1231 + F12*F32*dSdfot2231 + F12*F33*dSdfot3231 + F13*F31*dSdfot1331 + F13*F32*dSdfot2331 + F13*F33*dSdfot3331;
+        term(7,8) = F11*F31*dSdfot1121 + F11*F32*dSdfot2121 + F11*F33*dSdfot3121 + F12*F31*dSdfot1221 + F12*F32*dSdfot2221 + F12*F33*dSdfot3221 + F13*F31*dSdfot1321 + F13*F32*dSdfot2321 + F13*F33*dSdfot3321;
+        term(8,0) = F11*F21*dSdfot1111 + F11*F22*dSdfot2111 + F11*F23*dSdfot3111 + F12*F21*dSdfot1211 + F12*F22*dSdfot2211 + F12*F23*dSdfot3211 + F13*F21*dSdfot1311 + F13*F22*dSdfot2311 + F13*F23*dSdfot3311;
+        term(8,1) = F11*F21*dSdfot1122 + F11*F22*dSdfot2122 + F11*F23*dSdfot3122 + F12*F21*dSdfot1222 + F12*F22*dSdfot2222 + F12*F23*dSdfot3222 + F13*F21*dSdfot1322 + F13*F22*dSdfot2322 + F13*F23*dSdfot3322;
+        term(8,2) = F11*F21*dSdfot1133 + F11*F22*dSdfot2133 + F11*F23*dSdfot3133 + F12*F21*dSdfot1233 + F12*F22*dSdfot2233 + F12*F23*dSdfot3233 + F13*F21*dSdfot1333 + F13*F22*dSdfot2333 + F13*F23*dSdfot3333;
+        term(8,3) = F11*F21*dSdfot1123 + F11*F22*dSdfot2123 + F11*F23*dSdfot3123 + F12*F21*dSdfot1223 + F12*F22*dSdfot2223 + F12*F23*dSdfot3223 + F13*F21*dSdfot1323 + F13*F22*dSdfot2323 + F13*F23*dSdfot3323;
+        term(8,4) = F11*F21*dSdfot1113 + F11*F22*dSdfot2113 + F11*F23*dSdfot3113 + F12*F21*dSdfot1213 + F12*F22*dSdfot2213 + F12*F23*dSdfot3213 + F13*F21*dSdfot1313 + F13*F22*dSdfot2313 + F13*F23*dSdfot3313;
+        term(8,5) = F11*F21*dSdfot1112 + F11*F22*dSdfot2112 + F11*F23*dSdfot3112 + F12*F21*dSdfot1212 + F12*F22*dSdfot2212 + F12*F23*dSdfot3212 + F13*F21*dSdfot1312 + F13*F22*dSdfot2312 + F13*F23*dSdfot3312;
+        term(8,6) = F11*F21*dSdfot1132 + F11*F22*dSdfot2132 + F11*F23*dSdfot3132 + F12*F21*dSdfot1232 + F12*F22*dSdfot2232 + F12*F23*dSdfot3232 + F13*F21*dSdfot1332 + F13*F22*dSdfot2332 + F13*F23*dSdfot3332;
+        term(8,7) = F11*F21*dSdfot1131 + F11*F22*dSdfot2131 + F11*F23*dSdfot3131 + F12*F21*dSdfot1231 + F12*F22*dSdfot2231 + F12*F23*dSdfot3231 + F13*F21*dSdfot1331 + F13*F22*dSdfot2331 + F13*F23*dSdfot3331;
+        term(8,8) = F11*F21*dSdfot1121 + F11*F22*dSdfot2121 + F11*F23*dSdfot3121 + F12*F21*dSdfot1221 + F12*F22*dSdfot2221 + F12*F23*dSdfot3221 + F13*F21*dSdfot1321 + F13*F22*dSdfot2321 + F13*F23*dSdfot3321;
 
         term /= J;
         return;
@@ -744,7 +744,7 @@ namespace micro_material{
         Map a fifth order stress jacobian from the reference to the current configuration.
 
         */
-
+        
         //Extract the deformation gradient
         double F11 = F(0,0);
         double F12 = F(0,1);
@@ -1002,87 +1002,87 @@ namespace micro_material{
         double dSdtot33333 = dSdtot(2,20);
 
         //Map the stress gradient w.r.t. the gradient of chi
-        term(0,0) = F11**2*dSdtot11111 + F11*F12*dSdtot12111 + F11*F12*dSdtot21111 + F11*F13*dSdtot13111 + F11*F13*dSdtot31111 + F12**2*dSdtot22111 + F12*F13*dSdtot23111 + F12*F13*dSdtot32111 + F13**2*dSdtot33111;
-        term(0,1) = F11**2*dSdtot11122 + F11*F12*dSdtot12122 + F11*F12*dSdtot21122 + F11*F13*dSdtot13122 + F11*F13*dSdtot31122 + F12**2*dSdtot22122 + F12*F13*dSdtot23122 + F12*F13*dSdtot32122 + F13**2*dSdtot33122;
-        term(0,2) = F11**2*dSdtot11133 + F11*F12*dSdtot12133 + F11*F12*dSdtot21133 + F11*F13*dSdtot13133 + F11*F13*dSdtot31133 + F12**2*dSdtot22133 + F12*F13*dSdtot23133 + F12*F13*dSdtot32133 + F13**2*dSdtot33133;
-        term(0,3) = F11**2*dSdtot11123 + F11*F12*dSdtot12123 + F11*F12*dSdtot21123 + F11*F13*dSdtot13123 + F11*F13*dSdtot31123 + F12**2*dSdtot22123 + F12*F13*dSdtot23123 + F12*F13*dSdtot32123 + F13**2*dSdtot33123;
-        term(0,4) = F11**2*dSdtot11113 + F11*F12*dSdtot12113 + F11*F12*dSdtot21113 + F11*F13*dSdtot13113 + F11*F13*dSdtot31113 + F12**2*dSdtot22113 + F12*F13*dSdtot23113 + F12*F13*dSdtot32113 + F13**2*dSdtot33113;
-        term(0,5) = F11**2*dSdtot11112 + F11*F12*dSdtot12112 + F11*F12*dSdtot21112 + F11*F13*dSdtot13112 + F11*F13*dSdtot31112 + F12**2*dSdtot22112 + F12*F13*dSdtot23112 + F12*F13*dSdtot32112 + F13**2*dSdtot33112;
-        term(0,6) = F11**2*dSdtot11132 + F11*F12*dSdtot12132 + F11*F12*dSdtot21132 + F11*F13*dSdtot13132 + F11*F13*dSdtot31132 + F12**2*dSdtot22132 + F12*F13*dSdtot23132 + F12*F13*dSdtot32132 + F13**2*dSdtot33132;
-        term(0,7) = F11**2*dSdtot11131 + F11*F12*dSdtot12131 + F11*F12*dSdtot21131 + F11*F13*dSdtot13131 + F11*F13*dSdtot31131 + F12**2*dSdtot22131 + F12*F13*dSdtot23131 + F12*F13*dSdtot32131 + F13**2*dSdtot33131;
-        term(0,8) = F11**2*dSdtot11121 + F11*F12*dSdtot12121 + F11*F12*dSdtot21121 + F11*F13*dSdtot13121 + F11*F13*dSdtot31121 + F12**2*dSdtot22121 + F12*F13*dSdtot23121 + F12*F13*dSdtot32121 + F13**2*dSdtot33121;
-        term(0,9) = F11**2*dSdtot11211 + F11*F12*dSdtot12211 + F11*F12*dSdtot21211 + F11*F13*dSdtot13211 + F11*F13*dSdtot31211 + F12**2*dSdtot22211 + F12*F13*dSdtot23211 + F12*F13*dSdtot32211 + F13**2*dSdtot33211;
-        term(0,10) = F11**2*dSdtot11222 + F11*F12*dSdtot12222 + F11*F12*dSdtot21222 + F11*F13*dSdtot13222 + F11*F13*dSdtot31222 + F12**2*dSdtot22222 + F12*F13*dSdtot23222 + F12*F13*dSdtot32222 + F13**2*dSdtot33222;
-        term(0,11) = F11**2*dSdtot11233 + F11*F12*dSdtot12233 + F11*F12*dSdtot21233 + F11*F13*dSdtot13233 + F11*F13*dSdtot31233 + F12**2*dSdtot22233 + F12*F13*dSdtot23233 + F12*F13*dSdtot32233 + F13**2*dSdtot33233;
-        term(0,12) = F11**2*dSdtot11223 + F11*F12*dSdtot12223 + F11*F12*dSdtot21223 + F11*F13*dSdtot13223 + F11*F13*dSdtot31223 + F12**2*dSdtot22223 + F12*F13*dSdtot23223 + F12*F13*dSdtot32223 + F13**2*dSdtot33223;
-        term(0,13) = F11**2*dSdtot11213 + F11*F12*dSdtot12213 + F11*F12*dSdtot21213 + F11*F13*dSdtot13213 + F11*F13*dSdtot31213 + F12**2*dSdtot22213 + F12*F13*dSdtot23213 + F12*F13*dSdtot32213 + F13**2*dSdtot33213;
-        term(0,14) = F11**2*dSdtot11212 + F11*F12*dSdtot12212 + F11*F12*dSdtot21212 + F11*F13*dSdtot13212 + F11*F13*dSdtot31212 + F12**2*dSdtot22212 + F12*F13*dSdtot23212 + F12*F13*dSdtot32212 + F13**2*dSdtot33212;
-        term(0,15) = F11**2*dSdtot11232 + F11*F12*dSdtot12232 + F11*F12*dSdtot21232 + F11*F13*dSdtot13232 + F11*F13*dSdtot31232 + F12**2*dSdtot22232 + F12*F13*dSdtot23232 + F12*F13*dSdtot32232 + F13**2*dSdtot33232;
-        term(0,16) = F11**2*dSdtot11231 + F11*F12*dSdtot12231 + F11*F12*dSdtot21231 + F11*F13*dSdtot13231 + F11*F13*dSdtot31231 + F12**2*dSdtot22231 + F12*F13*dSdtot23231 + F12*F13*dSdtot32231 + F13**2*dSdtot33231;
-        term(0,17) = F11**2*dSdtot11221 + F11*F12*dSdtot12221 + F11*F12*dSdtot21221 + F11*F13*dSdtot13221 + F11*F13*dSdtot31221 + F12**2*dSdtot22221 + F12*F13*dSdtot23221 + F12*F13*dSdtot32221 + F13**2*dSdtot33221;
-        term(0,18) = F11**2*dSdtot11311 + F11*F12*dSdtot12311 + F11*F12*dSdtot21311 + F11*F13*dSdtot13311 + F11*F13*dSdtot31311 + F12**2*dSdtot22311 + F12*F13*dSdtot23311 + F12*F13*dSdtot32311 + F13**2*dSdtot33311;
-        term(0,19) = F11**2*dSdtot11322 + F11*F12*dSdtot12322 + F11*F12*dSdtot21322 + F11*F13*dSdtot13322 + F11*F13*dSdtot31322 + F12**2*dSdtot22322 + F12*F13*dSdtot23322 + F12*F13*dSdtot32322 + F13**2*dSdtot33322;
-        term(0,20) = F11**2*dSdtot11333 + F11*F12*dSdtot12333 + F11*F12*dSdtot21333 + F11*F13*dSdtot13333 + F11*F13*dSdtot31333 + F12**2*dSdtot22333 + F12*F13*dSdtot23333 + F12*F13*dSdtot32333 + F13**2*dSdtot33333;
-        term(0,21) = F11**2*dSdtot11323 + F11*F12*dSdtot12323 + F11*F12*dSdtot21323 + F11*F13*dSdtot13323 + F11*F13*dSdtot31323 + F12**2*dSdtot22323 + F12*F13*dSdtot23323 + F12*F13*dSdtot32323 + F13**2*dSdtot33323;
-        term(0,22) = F11**2*dSdtot11313 + F11*F12*dSdtot12313 + F11*F12*dSdtot21313 + F11*F13*dSdtot13313 + F11*F13*dSdtot31313 + F12**2*dSdtot22313 + F12*F13*dSdtot23313 + F12*F13*dSdtot32313 + F13**2*dSdtot33313;
-        term(0,23) = F11**2*dSdtot11312 + F11*F12*dSdtot12312 + F11*F12*dSdtot21312 + F11*F13*dSdtot13312 + F11*F13*dSdtot31312 + F12**2*dSdtot22312 + F12*F13*dSdtot23312 + F12*F13*dSdtot32312 + F13**2*dSdtot33312;
-        term(0,24) = F11**2*dSdtot11332 + F11*F12*dSdtot12332 + F11*F12*dSdtot21332 + F11*F13*dSdtot13332 + F11*F13*dSdtot31332 + F12**2*dSdtot22332 + F12*F13*dSdtot23332 + F12*F13*dSdtot32332 + F13**2*dSdtot33332;
-        term(0,25) = F11**2*dSdtot11331 + F11*F12*dSdtot12331 + F11*F12*dSdtot21331 + F11*F13*dSdtot13331 + F11*F13*dSdtot31331 + F12**2*dSdtot22331 + F12*F13*dSdtot23331 + F12*F13*dSdtot32331 + F13**2*dSdtot33331;
-        term(0,26) = F11**2*dSdtot11321 + F11*F12*dSdtot12321 + F11*F12*dSdtot21321 + F11*F13*dSdtot13321 + F11*F13*dSdtot31321 + F12**2*dSdtot22321 + F12*F13*dSdtot23321 + F12*F13*dSdtot32321 + F13**2*dSdtot33321;
-        term(1,0) = F21**2*dSdtot11111 + F21*F22*dSdtot12111 + F21*F22*dSdtot21111 + F21*F23*dSdtot13111 + F21*F23*dSdtot31111 + F22**2*dSdtot22111 + F22*F23*dSdtot23111 + F22*F23*dSdtot32111 + F23**2*dSdtot33111;
-        term(1,1) = F21**2*dSdtot11122 + F21*F22*dSdtot12122 + F21*F22*dSdtot21122 + F21*F23*dSdtot13122 + F21*F23*dSdtot31122 + F22**2*dSdtot22122 + F22*F23*dSdtot23122 + F22*F23*dSdtot32122 + F23**2*dSdtot33122;
-        term(1,2) = F21**2*dSdtot11133 + F21*F22*dSdtot12133 + F21*F22*dSdtot21133 + F21*F23*dSdtot13133 + F21*F23*dSdtot31133 + F22**2*dSdtot22133 + F22*F23*dSdtot23133 + F22*F23*dSdtot32133 + F23**2*dSdtot33133;
-        term(1,3) = F21**2*dSdtot11123 + F21*F22*dSdtot12123 + F21*F22*dSdtot21123 + F21*F23*dSdtot13123 + F21*F23*dSdtot31123 + F22**2*dSdtot22123 + F22*F23*dSdtot23123 + F22*F23*dSdtot32123 + F23**2*dSdtot33123;
-        term(1,4) = F21**2*dSdtot11113 + F21*F22*dSdtot12113 + F21*F22*dSdtot21113 + F21*F23*dSdtot13113 + F21*F23*dSdtot31113 + F22**2*dSdtot22113 + F22*F23*dSdtot23113 + F22*F23*dSdtot32113 + F23**2*dSdtot33113;
-        term(1,5) = F21**2*dSdtot11112 + F21*F22*dSdtot12112 + F21*F22*dSdtot21112 + F21*F23*dSdtot13112 + F21*F23*dSdtot31112 + F22**2*dSdtot22112 + F22*F23*dSdtot23112 + F22*F23*dSdtot32112 + F23**2*dSdtot33112;
-        term(1,6) = F21**2*dSdtot11132 + F21*F22*dSdtot12132 + F21*F22*dSdtot21132 + F21*F23*dSdtot13132 + F21*F23*dSdtot31132 + F22**2*dSdtot22132 + F22*F23*dSdtot23132 + F22*F23*dSdtot32132 + F23**2*dSdtot33132;
-        term(1,7) = F21**2*dSdtot11131 + F21*F22*dSdtot12131 + F21*F22*dSdtot21131 + F21*F23*dSdtot13131 + F21*F23*dSdtot31131 + F22**2*dSdtot22131 + F22*F23*dSdtot23131 + F22*F23*dSdtot32131 + F23**2*dSdtot33131;
-        term(1,8) = F21**2*dSdtot11121 + F21*F22*dSdtot12121 + F21*F22*dSdtot21121 + F21*F23*dSdtot13121 + F21*F23*dSdtot31121 + F22**2*dSdtot22121 + F22*F23*dSdtot23121 + F22*F23*dSdtot32121 + F23**2*dSdtot33121;
-        term(1,9) = F21**2*dSdtot11211 + F21*F22*dSdtot12211 + F21*F22*dSdtot21211 + F21*F23*dSdtot13211 + F21*F23*dSdtot31211 + F22**2*dSdtot22211 + F22*F23*dSdtot23211 + F22*F23*dSdtot32211 + F23**2*dSdtot33211;
-        term(1,10) = F21**2*dSdtot11222 + F21*F22*dSdtot12222 + F21*F22*dSdtot21222 + F21*F23*dSdtot13222 + F21*F23*dSdtot31222 + F22**2*dSdtot22222 + F22*F23*dSdtot23222 + F22*F23*dSdtot32222 + F23**2*dSdtot33222;
-        term(1,11) = F21**2*dSdtot11233 + F21*F22*dSdtot12233 + F21*F22*dSdtot21233 + F21*F23*dSdtot13233 + F21*F23*dSdtot31233 + F22**2*dSdtot22233 + F22*F23*dSdtot23233 + F22*F23*dSdtot32233 + F23**2*dSdtot33233;
-        term(1,12) = F21**2*dSdtot11223 + F21*F22*dSdtot12223 + F21*F22*dSdtot21223 + F21*F23*dSdtot13223 + F21*F23*dSdtot31223 + F22**2*dSdtot22223 + F22*F23*dSdtot23223 + F22*F23*dSdtot32223 + F23**2*dSdtot33223;
-        term(1,13) = F21**2*dSdtot11213 + F21*F22*dSdtot12213 + F21*F22*dSdtot21213 + F21*F23*dSdtot13213 + F21*F23*dSdtot31213 + F22**2*dSdtot22213 + F22*F23*dSdtot23213 + F22*F23*dSdtot32213 + F23**2*dSdtot33213;
-        term(1,14) = F21**2*dSdtot11212 + F21*F22*dSdtot12212 + F21*F22*dSdtot21212 + F21*F23*dSdtot13212 + F21*F23*dSdtot31212 + F22**2*dSdtot22212 + F22*F23*dSdtot23212 + F22*F23*dSdtot32212 + F23**2*dSdtot33212;
-        term(1,15) = F21**2*dSdtot11232 + F21*F22*dSdtot12232 + F21*F22*dSdtot21232 + F21*F23*dSdtot13232 + F21*F23*dSdtot31232 + F22**2*dSdtot22232 + F22*F23*dSdtot23232 + F22*F23*dSdtot32232 + F23**2*dSdtot33232;
-        term(1,16) = F21**2*dSdtot11231 + F21*F22*dSdtot12231 + F21*F22*dSdtot21231 + F21*F23*dSdtot13231 + F21*F23*dSdtot31231 + F22**2*dSdtot22231 + F22*F23*dSdtot23231 + F22*F23*dSdtot32231 + F23**2*dSdtot33231;
-        term(1,17) = F21**2*dSdtot11221 + F21*F22*dSdtot12221 + F21*F22*dSdtot21221 + F21*F23*dSdtot13221 + F21*F23*dSdtot31221 + F22**2*dSdtot22221 + F22*F23*dSdtot23221 + F22*F23*dSdtot32221 + F23**2*dSdtot33221;
-        term(1,18) = F21**2*dSdtot11311 + F21*F22*dSdtot12311 + F21*F22*dSdtot21311 + F21*F23*dSdtot13311 + F21*F23*dSdtot31311 + F22**2*dSdtot22311 + F22*F23*dSdtot23311 + F22*F23*dSdtot32311 + F23**2*dSdtot33311;
-        term(1,19) = F21**2*dSdtot11322 + F21*F22*dSdtot12322 + F21*F22*dSdtot21322 + F21*F23*dSdtot13322 + F21*F23*dSdtot31322 + F22**2*dSdtot22322 + F22*F23*dSdtot23322 + F22*F23*dSdtot32322 + F23**2*dSdtot33322;
-        term(1,20) = F21**2*dSdtot11333 + F21*F22*dSdtot12333 + F21*F22*dSdtot21333 + F21*F23*dSdtot13333 + F21*F23*dSdtot31333 + F22**2*dSdtot22333 + F22*F23*dSdtot23333 + F22*F23*dSdtot32333 + F23**2*dSdtot33333;
-        term(1,21) = F21**2*dSdtot11323 + F21*F22*dSdtot12323 + F21*F22*dSdtot21323 + F21*F23*dSdtot13323 + F21*F23*dSdtot31323 + F22**2*dSdtot22323 + F22*F23*dSdtot23323 + F22*F23*dSdtot32323 + F23**2*dSdtot33323;
-        term(1,22) = F21**2*dSdtot11313 + F21*F22*dSdtot12313 + F21*F22*dSdtot21313 + F21*F23*dSdtot13313 + F21*F23*dSdtot31313 + F22**2*dSdtot22313 + F22*F23*dSdtot23313 + F22*F23*dSdtot32313 + F23**2*dSdtot33313;
-        term(1,23) = F21**2*dSdtot11312 + F21*F22*dSdtot12312 + F21*F22*dSdtot21312 + F21*F23*dSdtot13312 + F21*F23*dSdtot31312 + F22**2*dSdtot22312 + F22*F23*dSdtot23312 + F22*F23*dSdtot32312 + F23**2*dSdtot33312;
-        term(1,24) = F21**2*dSdtot11332 + F21*F22*dSdtot12332 + F21*F22*dSdtot21332 + F21*F23*dSdtot13332 + F21*F23*dSdtot31332 + F22**2*dSdtot22332 + F22*F23*dSdtot23332 + F22*F23*dSdtot32332 + F23**2*dSdtot33332;
-        term(1,25) = F21**2*dSdtot11331 + F21*F22*dSdtot12331 + F21*F22*dSdtot21331 + F21*F23*dSdtot13331 + F21*F23*dSdtot31331 + F22**2*dSdtot22331 + F22*F23*dSdtot23331 + F22*F23*dSdtot32331 + F23**2*dSdtot33331;
-        term(1,26) = F21**2*dSdtot11321 + F21*F22*dSdtot12321 + F21*F22*dSdtot21321 + F21*F23*dSdtot13321 + F21*F23*dSdtot31321 + F22**2*dSdtot22321 + F22*F23*dSdtot23321 + F22*F23*dSdtot32321 + F23**2*dSdtot33321;
-        term(2,0) = F31**2*dSdtot11111 + F31*F32*dSdtot12111 + F31*F32*dSdtot21111 + F31*F33*dSdtot13111 + F31*F33*dSdtot31111 + F32**2*dSdtot22111 + F32*F33*dSdtot23111 + F32*F33*dSdtot32111 + F33**2*dSdtot33111;
-        term(2,1) = F31**2*dSdtot11122 + F31*F32*dSdtot12122 + F31*F32*dSdtot21122 + F31*F33*dSdtot13122 + F31*F33*dSdtot31122 + F32**2*dSdtot22122 + F32*F33*dSdtot23122 + F32*F33*dSdtot32122 + F33**2*dSdtot33122;
-        term(2,2) = F31**2*dSdtot11133 + F31*F32*dSdtot12133 + F31*F32*dSdtot21133 + F31*F33*dSdtot13133 + F31*F33*dSdtot31133 + F32**2*dSdtot22133 + F32*F33*dSdtot23133 + F32*F33*dSdtot32133 + F33**2*dSdtot33133;
-        term(2,3) = F31**2*dSdtot11123 + F31*F32*dSdtot12123 + F31*F32*dSdtot21123 + F31*F33*dSdtot13123 + F31*F33*dSdtot31123 + F32**2*dSdtot22123 + F32*F33*dSdtot23123 + F32*F33*dSdtot32123 + F33**2*dSdtot33123;
-        term(2,4) = F31**2*dSdtot11113 + F31*F32*dSdtot12113 + F31*F32*dSdtot21113 + F31*F33*dSdtot13113 + F31*F33*dSdtot31113 + F32**2*dSdtot22113 + F32*F33*dSdtot23113 + F32*F33*dSdtot32113 + F33**2*dSdtot33113;
-        term(2,5) = F31**2*dSdtot11112 + F31*F32*dSdtot12112 + F31*F32*dSdtot21112 + F31*F33*dSdtot13112 + F31*F33*dSdtot31112 + F32**2*dSdtot22112 + F32*F33*dSdtot23112 + F32*F33*dSdtot32112 + F33**2*dSdtot33112;
-        term(2,6) = F31**2*dSdtot11132 + F31*F32*dSdtot12132 + F31*F32*dSdtot21132 + F31*F33*dSdtot13132 + F31*F33*dSdtot31132 + F32**2*dSdtot22132 + F32*F33*dSdtot23132 + F32*F33*dSdtot32132 + F33**2*dSdtot33132;
-        term(2,7) = F31**2*dSdtot11131 + F31*F32*dSdtot12131 + F31*F32*dSdtot21131 + F31*F33*dSdtot13131 + F31*F33*dSdtot31131 + F32**2*dSdtot22131 + F32*F33*dSdtot23131 + F32*F33*dSdtot32131 + F33**2*dSdtot33131;
-        term(2,8) = F31**2*dSdtot11121 + F31*F32*dSdtot12121 + F31*F32*dSdtot21121 + F31*F33*dSdtot13121 + F31*F33*dSdtot31121 + F32**2*dSdtot22121 + F32*F33*dSdtot23121 + F32*F33*dSdtot32121 + F33**2*dSdtot33121;
-        term(2,9) = F31**2*dSdtot11211 + F31*F32*dSdtot12211 + F31*F32*dSdtot21211 + F31*F33*dSdtot13211 + F31*F33*dSdtot31211 + F32**2*dSdtot22211 + F32*F33*dSdtot23211 + F32*F33*dSdtot32211 + F33**2*dSdtot33211;
-        term(2,10) = F31**2*dSdtot11222 + F31*F32*dSdtot12222 + F31*F32*dSdtot21222 + F31*F33*dSdtot13222 + F31*F33*dSdtot31222 + F32**2*dSdtot22222 + F32*F33*dSdtot23222 + F32*F33*dSdtot32222 + F33**2*dSdtot33222;
-        term(2,11) = F31**2*dSdtot11233 + F31*F32*dSdtot12233 + F31*F32*dSdtot21233 + F31*F33*dSdtot13233 + F31*F33*dSdtot31233 + F32**2*dSdtot22233 + F32*F33*dSdtot23233 + F32*F33*dSdtot32233 + F33**2*dSdtot33233;
-        term(2,12) = F31**2*dSdtot11223 + F31*F32*dSdtot12223 + F31*F32*dSdtot21223 + F31*F33*dSdtot13223 + F31*F33*dSdtot31223 + F32**2*dSdtot22223 + F32*F33*dSdtot23223 + F32*F33*dSdtot32223 + F33**2*dSdtot33223;
-        term(2,13) = F31**2*dSdtot11213 + F31*F32*dSdtot12213 + F31*F32*dSdtot21213 + F31*F33*dSdtot13213 + F31*F33*dSdtot31213 + F32**2*dSdtot22213 + F32*F33*dSdtot23213 + F32*F33*dSdtot32213 + F33**2*dSdtot33213;
-        term(2,14) = F31**2*dSdtot11212 + F31*F32*dSdtot12212 + F31*F32*dSdtot21212 + F31*F33*dSdtot13212 + F31*F33*dSdtot31212 + F32**2*dSdtot22212 + F32*F33*dSdtot23212 + F32*F33*dSdtot32212 + F33**2*dSdtot33212;
-        term(2,15) = F31**2*dSdtot11232 + F31*F32*dSdtot12232 + F31*F32*dSdtot21232 + F31*F33*dSdtot13232 + F31*F33*dSdtot31232 + F32**2*dSdtot22232 + F32*F33*dSdtot23232 + F32*F33*dSdtot32232 + F33**2*dSdtot33232;
-        term(2,16) = F31**2*dSdtot11231 + F31*F32*dSdtot12231 + F31*F32*dSdtot21231 + F31*F33*dSdtot13231 + F31*F33*dSdtot31231 + F32**2*dSdtot22231 + F32*F33*dSdtot23231 + F32*F33*dSdtot32231 + F33**2*dSdtot33231;
-        term(2,17) = F31**2*dSdtot11221 + F31*F32*dSdtot12221 + F31*F32*dSdtot21221 + F31*F33*dSdtot13221 + F31*F33*dSdtot31221 + F32**2*dSdtot22221 + F32*F33*dSdtot23221 + F32*F33*dSdtot32221 + F33**2*dSdtot33221;
-        term(2,18) = F31**2*dSdtot11311 + F31*F32*dSdtot12311 + F31*F32*dSdtot21311 + F31*F33*dSdtot13311 + F31*F33*dSdtot31311 + F32**2*dSdtot22311 + F32*F33*dSdtot23311 + F32*F33*dSdtot32311 + F33**2*dSdtot33311;
-        term(2,19) = F31**2*dSdtot11322 + F31*F32*dSdtot12322 + F31*F32*dSdtot21322 + F31*F33*dSdtot13322 + F31*F33*dSdtot31322 + F32**2*dSdtot22322 + F32*F33*dSdtot23322 + F32*F33*dSdtot32322 + F33**2*dSdtot33322;
-        term(2,20) = F31**2*dSdtot11333 + F31*F32*dSdtot12333 + F31*F32*dSdtot21333 + F31*F33*dSdtot13333 + F31*F33*dSdtot31333 + F32**2*dSdtot22333 + F32*F33*dSdtot23333 + F32*F33*dSdtot32333 + F33**2*dSdtot33333;
-        term(2,21) = F31**2*dSdtot11323 + F31*F32*dSdtot12323 + F31*F32*dSdtot21323 + F31*F33*dSdtot13323 + F31*F33*dSdtot31323 + F32**2*dSdtot22323 + F32*F33*dSdtot23323 + F32*F33*dSdtot32323 + F33**2*dSdtot33323;
-        term(2,22) = F31**2*dSdtot11313 + F31*F32*dSdtot12313 + F31*F32*dSdtot21313 + F31*F33*dSdtot13313 + F31*F33*dSdtot31313 + F32**2*dSdtot22313 + F32*F33*dSdtot23313 + F32*F33*dSdtot32313 + F33**2*dSdtot33313;
-        term(2,23) = F31**2*dSdtot11312 + F31*F32*dSdtot12312 + F31*F32*dSdtot21312 + F31*F33*dSdtot13312 + F31*F33*dSdtot31312 + F32**2*dSdtot22312 + F32*F33*dSdtot23312 + F32*F33*dSdtot32312 + F33**2*dSdtot33312;
-        term(2,24) = F31**2*dSdtot11332 + F31*F32*dSdtot12332 + F31*F32*dSdtot21332 + F31*F33*dSdtot13332 + F31*F33*dSdtot31332 + F32**2*dSdtot22332 + F32*F33*dSdtot23332 + F32*F33*dSdtot32332 + F33**2*dSdtot33332;
-        term(2,25) = F31**2*dSdtot11331 + F31*F32*dSdtot12331 + F31*F32*dSdtot21331 + F31*F33*dSdtot13331 + F31*F33*dSdtot31331 + F32**2*dSdtot22331 + F32*F33*dSdtot23331 + F32*F33*dSdtot32331 + F33**2*dSdtot33331;
-        term(2,26) = F31**2*dSdtot11321 + F31*F32*dSdtot12321 + F31*F32*dSdtot21321 + F31*F33*dSdtot13321 + F31*F33*dSdtot31321 + F32**2*dSdtot22321 + F32*F33*dSdtot23321 + F32*F33*dSdtot32321 + F33**2*dSdtot33321;
+        term(0,0) = pow(F11, 2)*dSdtot11111 + F11*F12*dSdtot12111 + F11*F12*dSdtot21111 + F11*F13*dSdtot13111 + F11*F13*dSdtot31111 + pow(F12, 2)*dSdtot22111 + F12*F13*dSdtot23111 + F12*F13*dSdtot32111 + pow(F13, 2)*dSdtot33111;
+        term(0,1) = pow(F11, 2)*dSdtot11122 + F11*F12*dSdtot12122 + F11*F12*dSdtot21122 + F11*F13*dSdtot13122 + F11*F13*dSdtot31122 + pow(F12, 2)*dSdtot22122 + F12*F13*dSdtot23122 + F12*F13*dSdtot32122 + pow(F13, 2)*dSdtot33122;
+        term(0,2) = pow(F11, 2)*dSdtot11133 + F11*F12*dSdtot12133 + F11*F12*dSdtot21133 + F11*F13*dSdtot13133 + F11*F13*dSdtot31133 + pow(F12, 2)*dSdtot22133 + F12*F13*dSdtot23133 + F12*F13*dSdtot32133 + pow(F13, 2)*dSdtot33133;
+        term(0,3) = pow(F11, 2)*dSdtot11123 + F11*F12*dSdtot12123 + F11*F12*dSdtot21123 + F11*F13*dSdtot13123 + F11*F13*dSdtot31123 + pow(F12, 2)*dSdtot22123 + F12*F13*dSdtot23123 + F12*F13*dSdtot32123 + pow(F13, 2)*dSdtot33123;
+        term(0,4) = pow(F11, 2)*dSdtot11113 + F11*F12*dSdtot12113 + F11*F12*dSdtot21113 + F11*F13*dSdtot13113 + F11*F13*dSdtot31113 + pow(F12, 2)*dSdtot22113 + F12*F13*dSdtot23113 + F12*F13*dSdtot32113 + pow(F13, 2)*dSdtot33113;
+        term(0,5) = pow(F11, 2)*dSdtot11112 + F11*F12*dSdtot12112 + F11*F12*dSdtot21112 + F11*F13*dSdtot13112 + F11*F13*dSdtot31112 + pow(F12, 2)*dSdtot22112 + F12*F13*dSdtot23112 + F12*F13*dSdtot32112 + pow(F13, 2)*dSdtot33112;
+        term(0,6) = pow(F11, 2)*dSdtot11132 + F11*F12*dSdtot12132 + F11*F12*dSdtot21132 + F11*F13*dSdtot13132 + F11*F13*dSdtot31132 + pow(F12, 2)*dSdtot22132 + F12*F13*dSdtot23132 + F12*F13*dSdtot32132 + pow(F13, 2)*dSdtot33132;
+        term(0,7) = pow(F11, 2)*dSdtot11131 + F11*F12*dSdtot12131 + F11*F12*dSdtot21131 + F11*F13*dSdtot13131 + F11*F13*dSdtot31131 + pow(F12, 2)*dSdtot22131 + F12*F13*dSdtot23131 + F12*F13*dSdtot32131 + pow(F13, 2)*dSdtot33131;
+        term(0,8) = pow(F11, 2)*dSdtot11121 + F11*F12*dSdtot12121 + F11*F12*dSdtot21121 + F11*F13*dSdtot13121 + F11*F13*dSdtot31121 + pow(F12, 2)*dSdtot22121 + F12*F13*dSdtot23121 + F12*F13*dSdtot32121 + pow(F13, 2)*dSdtot33121;
+        term(0,9) = pow(F11, 2)*dSdtot11211 + F11*F12*dSdtot12211 + F11*F12*dSdtot21211 + F11*F13*dSdtot13211 + F11*F13*dSdtot31211 + pow(F12, 2)*dSdtot22211 + F12*F13*dSdtot23211 + F12*F13*dSdtot32211 + pow(F13, 2)*dSdtot33211;
+        term(0,10) = pow(F11, 2)*dSdtot11222 + F11*F12*dSdtot12222 + F11*F12*dSdtot21222 + F11*F13*dSdtot13222 + F11*F13*dSdtot31222 + pow(F12, 2)*dSdtot22222 + F12*F13*dSdtot23222 + F12*F13*dSdtot32222 + pow(F13, 2)*dSdtot33222;
+        term(0,11) = pow(F11, 2)*dSdtot11233 + F11*F12*dSdtot12233 + F11*F12*dSdtot21233 + F11*F13*dSdtot13233 + F11*F13*dSdtot31233 + pow(F12, 2)*dSdtot22233 + F12*F13*dSdtot23233 + F12*F13*dSdtot32233 + pow(F13, 2)*dSdtot33233;
+        term(0,12) = pow(F11, 2)*dSdtot11223 + F11*F12*dSdtot12223 + F11*F12*dSdtot21223 + F11*F13*dSdtot13223 + F11*F13*dSdtot31223 + pow(F12, 2)*dSdtot22223 + F12*F13*dSdtot23223 + F12*F13*dSdtot32223 + pow(F13, 2)*dSdtot33223;
+        term(0,13) = pow(F11, 2)*dSdtot11213 + F11*F12*dSdtot12213 + F11*F12*dSdtot21213 + F11*F13*dSdtot13213 + F11*F13*dSdtot31213 + pow(F12, 2)*dSdtot22213 + F12*F13*dSdtot23213 + F12*F13*dSdtot32213 + pow(F13, 2)*dSdtot33213;
+        term(0,14) = pow(F11, 2)*dSdtot11212 + F11*F12*dSdtot12212 + F11*F12*dSdtot21212 + F11*F13*dSdtot13212 + F11*F13*dSdtot31212 + pow(F12, 2)*dSdtot22212 + F12*F13*dSdtot23212 + F12*F13*dSdtot32212 + pow(F13, 2)*dSdtot33212;
+        term(0,15) = pow(F11, 2)*dSdtot11232 + F11*F12*dSdtot12232 + F11*F12*dSdtot21232 + F11*F13*dSdtot13232 + F11*F13*dSdtot31232 + pow(F12, 2)*dSdtot22232 + F12*F13*dSdtot23232 + F12*F13*dSdtot32232 + pow(F13, 2)*dSdtot33232;
+        term(0,16) = pow(F11, 2)*dSdtot11231 + F11*F12*dSdtot12231 + F11*F12*dSdtot21231 + F11*F13*dSdtot13231 + F11*F13*dSdtot31231 + pow(F12, 2)*dSdtot22231 + F12*F13*dSdtot23231 + F12*F13*dSdtot32231 + pow(F13, 2)*dSdtot33231;
+        term(0,17) = pow(F11, 2)*dSdtot11221 + F11*F12*dSdtot12221 + F11*F12*dSdtot21221 + F11*F13*dSdtot13221 + F11*F13*dSdtot31221 + pow(F12, 2)*dSdtot22221 + F12*F13*dSdtot23221 + F12*F13*dSdtot32221 + pow(F13, 2)*dSdtot33221;
+        term(0,18) = pow(F11, 2)*dSdtot11311 + F11*F12*dSdtot12311 + F11*F12*dSdtot21311 + F11*F13*dSdtot13311 + F11*F13*dSdtot31311 + pow(F12, 2)*dSdtot22311 + F12*F13*dSdtot23311 + F12*F13*dSdtot32311 + pow(F13, 2)*dSdtot33311;
+        term(0,19) = pow(F11, 2)*dSdtot11322 + F11*F12*dSdtot12322 + F11*F12*dSdtot21322 + F11*F13*dSdtot13322 + F11*F13*dSdtot31322 + pow(F12, 2)*dSdtot22322 + F12*F13*dSdtot23322 + F12*F13*dSdtot32322 + pow(F13, 2)*dSdtot33322;
+        term(0,20) = pow(F11, 2)*dSdtot11333 + F11*F12*dSdtot12333 + F11*F12*dSdtot21333 + F11*F13*dSdtot13333 + F11*F13*dSdtot31333 + pow(F12, 2)*dSdtot22333 + F12*F13*dSdtot23333 + F12*F13*dSdtot32333 + pow(F13, 2)*dSdtot33333;
+        term(0,21) = pow(F11, 2)*dSdtot11323 + F11*F12*dSdtot12323 + F11*F12*dSdtot21323 + F11*F13*dSdtot13323 + F11*F13*dSdtot31323 + pow(F12, 2)*dSdtot22323 + F12*F13*dSdtot23323 + F12*F13*dSdtot32323 + pow(F13, 2)*dSdtot33323;
+        term(0,22) = pow(F11, 2)*dSdtot11313 + F11*F12*dSdtot12313 + F11*F12*dSdtot21313 + F11*F13*dSdtot13313 + F11*F13*dSdtot31313 + pow(F12, 2)*dSdtot22313 + F12*F13*dSdtot23313 + F12*F13*dSdtot32313 + pow(F13, 2)*dSdtot33313;
+        term(0,23) = pow(F11, 2)*dSdtot11312 + F11*F12*dSdtot12312 + F11*F12*dSdtot21312 + F11*F13*dSdtot13312 + F11*F13*dSdtot31312 + pow(F12, 2)*dSdtot22312 + F12*F13*dSdtot23312 + F12*F13*dSdtot32312 + pow(F13, 2)*dSdtot33312;
+        term(0,24) = pow(F11, 2)*dSdtot11332 + F11*F12*dSdtot12332 + F11*F12*dSdtot21332 + F11*F13*dSdtot13332 + F11*F13*dSdtot31332 + pow(F12, 2)*dSdtot22332 + F12*F13*dSdtot23332 + F12*F13*dSdtot32332 + pow(F13, 2)*dSdtot33332;
+        term(0,25) = pow(F11, 2)*dSdtot11331 + F11*F12*dSdtot12331 + F11*F12*dSdtot21331 + F11*F13*dSdtot13331 + F11*F13*dSdtot31331 + pow(F12, 2)*dSdtot22331 + F12*F13*dSdtot23331 + F12*F13*dSdtot32331 + pow(F13, 2)*dSdtot33331;
+        term(0,26) = pow(F11, 2)*dSdtot11321 + F11*F12*dSdtot12321 + F11*F12*dSdtot21321 + F11*F13*dSdtot13321 + F11*F13*dSdtot31321 + pow(F12, 2)*dSdtot22321 + F12*F13*dSdtot23321 + F12*F13*dSdtot32321 + pow(F13, 2)*dSdtot33321;
+        term(1,0) = pow(F21, 2)*dSdtot11111 + F21*F22*dSdtot12111 + F21*F22*dSdtot21111 + F21*F23*dSdtot13111 + F21*F23*dSdtot31111 + pow(F22, 2)*dSdtot22111 + F22*F23*dSdtot23111 + F22*F23*dSdtot32111 + pow(F23, 2)*dSdtot33111;
+        term(1,1) = pow(F21, 2)*dSdtot11122 + F21*F22*dSdtot12122 + F21*F22*dSdtot21122 + F21*F23*dSdtot13122 + F21*F23*dSdtot31122 + pow(F22, 2)*dSdtot22122 + F22*F23*dSdtot23122 + F22*F23*dSdtot32122 + pow(F23, 2)*dSdtot33122;
+        term(1,2) = pow(F21, 2)*dSdtot11133 + F21*F22*dSdtot12133 + F21*F22*dSdtot21133 + F21*F23*dSdtot13133 + F21*F23*dSdtot31133 + pow(F22, 2)*dSdtot22133 + F22*F23*dSdtot23133 + F22*F23*dSdtot32133 + pow(F23, 2)*dSdtot33133;
+        term(1,3) = pow(F21, 2)*dSdtot11123 + F21*F22*dSdtot12123 + F21*F22*dSdtot21123 + F21*F23*dSdtot13123 + F21*F23*dSdtot31123 + pow(F22, 2)*dSdtot22123 + F22*F23*dSdtot23123 + F22*F23*dSdtot32123 + pow(F23, 2)*dSdtot33123;
+        term(1,4) = pow(F21, 2)*dSdtot11113 + F21*F22*dSdtot12113 + F21*F22*dSdtot21113 + F21*F23*dSdtot13113 + F21*F23*dSdtot31113 + pow(F22, 2)*dSdtot22113 + F22*F23*dSdtot23113 + F22*F23*dSdtot32113 + pow(F23, 2)*dSdtot33113;
+        term(1,5) = pow(F21, 2)*dSdtot11112 + F21*F22*dSdtot12112 + F21*F22*dSdtot21112 + F21*F23*dSdtot13112 + F21*F23*dSdtot31112 + pow(F22, 2)*dSdtot22112 + F22*F23*dSdtot23112 + F22*F23*dSdtot32112 + pow(F23, 2)*dSdtot33112;
+        term(1,6) = pow(F21, 2)*dSdtot11132 + F21*F22*dSdtot12132 + F21*F22*dSdtot21132 + F21*F23*dSdtot13132 + F21*F23*dSdtot31132 + pow(F22, 2)*dSdtot22132 + F22*F23*dSdtot23132 + F22*F23*dSdtot32132 + pow(F23, 2)*dSdtot33132;
+        term(1,7) = pow(F21, 2)*dSdtot11131 + F21*F22*dSdtot12131 + F21*F22*dSdtot21131 + F21*F23*dSdtot13131 + F21*F23*dSdtot31131 + pow(F22, 2)*dSdtot22131 + F22*F23*dSdtot23131 + F22*F23*dSdtot32131 + pow(F23, 2)*dSdtot33131;
+        term(1,8) = pow(F21, 2)*dSdtot11121 + F21*F22*dSdtot12121 + F21*F22*dSdtot21121 + F21*F23*dSdtot13121 + F21*F23*dSdtot31121 + pow(F22, 2)*dSdtot22121 + F22*F23*dSdtot23121 + F22*F23*dSdtot32121 + pow(F23, 2)*dSdtot33121;
+        term(1,9) = pow(F21, 2)*dSdtot11211 + F21*F22*dSdtot12211 + F21*F22*dSdtot21211 + F21*F23*dSdtot13211 + F21*F23*dSdtot31211 + pow(F22, 2)*dSdtot22211 + F22*F23*dSdtot23211 + F22*F23*dSdtot32211 + pow(F23, 2)*dSdtot33211;
+        term(1,10) = pow(F21, 2)*dSdtot11222 + F21*F22*dSdtot12222 + F21*F22*dSdtot21222 + F21*F23*dSdtot13222 + F21*F23*dSdtot31222 + pow(F22, 2)*dSdtot22222 + F22*F23*dSdtot23222 + F22*F23*dSdtot32222 + pow(F23, 2)*dSdtot33222;
+        term(1,11) = pow(F21, 2)*dSdtot11233 + F21*F22*dSdtot12233 + F21*F22*dSdtot21233 + F21*F23*dSdtot13233 + F21*F23*dSdtot31233 + pow(F22, 2)*dSdtot22233 + F22*F23*dSdtot23233 + F22*F23*dSdtot32233 + pow(F23, 2)*dSdtot33233;
+        term(1,12) = pow(F21, 2)*dSdtot11223 + F21*F22*dSdtot12223 + F21*F22*dSdtot21223 + F21*F23*dSdtot13223 + F21*F23*dSdtot31223 + pow(F22, 2)*dSdtot22223 + F22*F23*dSdtot23223 + F22*F23*dSdtot32223 + pow(F23, 2)*dSdtot33223;
+        term(1,13) = pow(F21, 2)*dSdtot11213 + F21*F22*dSdtot12213 + F21*F22*dSdtot21213 + F21*F23*dSdtot13213 + F21*F23*dSdtot31213 + pow(F22, 2)*dSdtot22213 + F22*F23*dSdtot23213 + F22*F23*dSdtot32213 + pow(F23, 2)*dSdtot33213;
+        term(1,14) = pow(F21, 2)*dSdtot11212 + F21*F22*dSdtot12212 + F21*F22*dSdtot21212 + F21*F23*dSdtot13212 + F21*F23*dSdtot31212 + pow(F22, 2)*dSdtot22212 + F22*F23*dSdtot23212 + F22*F23*dSdtot32212 + pow(F23, 2)*dSdtot33212;
+        term(1,15) = pow(F21, 2)*dSdtot11232 + F21*F22*dSdtot12232 + F21*F22*dSdtot21232 + F21*F23*dSdtot13232 + F21*F23*dSdtot31232 + pow(F22, 2)*dSdtot22232 + F22*F23*dSdtot23232 + F22*F23*dSdtot32232 + pow(F23, 2)*dSdtot33232;
+        term(1,16) = pow(F21, 2)*dSdtot11231 + F21*F22*dSdtot12231 + F21*F22*dSdtot21231 + F21*F23*dSdtot13231 + F21*F23*dSdtot31231 + pow(F22, 2)*dSdtot22231 + F22*F23*dSdtot23231 + F22*F23*dSdtot32231 + pow(F23, 2)*dSdtot33231;
+        term(1,17) = pow(F21, 2)*dSdtot11221 + F21*F22*dSdtot12221 + F21*F22*dSdtot21221 + F21*F23*dSdtot13221 + F21*F23*dSdtot31221 + pow(F22, 2)*dSdtot22221 + F22*F23*dSdtot23221 + F22*F23*dSdtot32221 + pow(F23, 2)*dSdtot33221;
+        term(1,18) = pow(F21, 2)*dSdtot11311 + F21*F22*dSdtot12311 + F21*F22*dSdtot21311 + F21*F23*dSdtot13311 + F21*F23*dSdtot31311 + pow(F22, 2)*dSdtot22311 + F22*F23*dSdtot23311 + F22*F23*dSdtot32311 + pow(F23, 2)*dSdtot33311;
+        term(1,19) = pow(F21, 2)*dSdtot11322 + F21*F22*dSdtot12322 + F21*F22*dSdtot21322 + F21*F23*dSdtot13322 + F21*F23*dSdtot31322 + pow(F22, 2)*dSdtot22322 + F22*F23*dSdtot23322 + F22*F23*dSdtot32322 + pow(F23, 2)*dSdtot33322;
+        term(1,20) = pow(F21, 2)*dSdtot11333 + F21*F22*dSdtot12333 + F21*F22*dSdtot21333 + F21*F23*dSdtot13333 + F21*F23*dSdtot31333 + pow(F22, 2)*dSdtot22333 + F22*F23*dSdtot23333 + F22*F23*dSdtot32333 + pow(F23, 2)*dSdtot33333;
+        term(1,21) = pow(F21, 2)*dSdtot11323 + F21*F22*dSdtot12323 + F21*F22*dSdtot21323 + F21*F23*dSdtot13323 + F21*F23*dSdtot31323 + pow(F22, 2)*dSdtot22323 + F22*F23*dSdtot23323 + F22*F23*dSdtot32323 + pow(F23, 2)*dSdtot33323;
+        term(1,22) = pow(F21, 2)*dSdtot11313 + F21*F22*dSdtot12313 + F21*F22*dSdtot21313 + F21*F23*dSdtot13313 + F21*F23*dSdtot31313 + pow(F22, 2)*dSdtot22313 + F22*F23*dSdtot23313 + F22*F23*dSdtot32313 + pow(F23, 2)*dSdtot33313;
+        term(1,23) = pow(F21, 2)*dSdtot11312 + F21*F22*dSdtot12312 + F21*F22*dSdtot21312 + F21*F23*dSdtot13312 + F21*F23*dSdtot31312 + pow(F22, 2)*dSdtot22312 + F22*F23*dSdtot23312 + F22*F23*dSdtot32312 + pow(F23, 2)*dSdtot33312;
+        term(1,24) = pow(F21, 2)*dSdtot11332 + F21*F22*dSdtot12332 + F21*F22*dSdtot21332 + F21*F23*dSdtot13332 + F21*F23*dSdtot31332 + pow(F22, 2)*dSdtot22332 + F22*F23*dSdtot23332 + F22*F23*dSdtot32332 + pow(F23, 2)*dSdtot33332;
+        term(1,25) = pow(F21, 2)*dSdtot11331 + F21*F22*dSdtot12331 + F21*F22*dSdtot21331 + F21*F23*dSdtot13331 + F21*F23*dSdtot31331 + pow(F22, 2)*dSdtot22331 + F22*F23*dSdtot23331 + F22*F23*dSdtot32331 + pow(F23, 2)*dSdtot33331;
+        term(1,26) = pow(F21, 2)*dSdtot11321 + F21*F22*dSdtot12321 + F21*F22*dSdtot21321 + F21*F23*dSdtot13321 + F21*F23*dSdtot31321 + pow(F22, 2)*dSdtot22321 + F22*F23*dSdtot23321 + F22*F23*dSdtot32321 + pow(F23, 2)*dSdtot33321;
+        term(2,0) = pow(F31, 2)*dSdtot11111 + F31*F32*dSdtot12111 + F31*F32*dSdtot21111 + F31*F33*dSdtot13111 + F31*F33*dSdtot31111 + pow(F32, 2)*dSdtot22111 + F32*F33*dSdtot23111 + F32*F33*dSdtot32111 + pow(F33, 2)*dSdtot33111;
+        term(2,1) = pow(F31, 2)*dSdtot11122 + F31*F32*dSdtot12122 + F31*F32*dSdtot21122 + F31*F33*dSdtot13122 + F31*F33*dSdtot31122 + pow(F32, 2)*dSdtot22122 + F32*F33*dSdtot23122 + F32*F33*dSdtot32122 + pow(F33, 2)*dSdtot33122;
+        term(2,2) = pow(F31, 2)*dSdtot11133 + F31*F32*dSdtot12133 + F31*F32*dSdtot21133 + F31*F33*dSdtot13133 + F31*F33*dSdtot31133 + pow(F32, 2)*dSdtot22133 + F32*F33*dSdtot23133 + F32*F33*dSdtot32133 + pow(F33, 2)*dSdtot33133;
+        term(2,3) = pow(F31, 2)*dSdtot11123 + F31*F32*dSdtot12123 + F31*F32*dSdtot21123 + F31*F33*dSdtot13123 + F31*F33*dSdtot31123 + pow(F32, 2)*dSdtot22123 + F32*F33*dSdtot23123 + F32*F33*dSdtot32123 + pow(F33, 2)*dSdtot33123;
+        term(2,4) = pow(F31, 2)*dSdtot11113 + F31*F32*dSdtot12113 + F31*F32*dSdtot21113 + F31*F33*dSdtot13113 + F31*F33*dSdtot31113 + pow(F32, 2)*dSdtot22113 + F32*F33*dSdtot23113 + F32*F33*dSdtot32113 + pow(F33, 2)*dSdtot33113;
+        term(2,5) = pow(F31, 2)*dSdtot11112 + F31*F32*dSdtot12112 + F31*F32*dSdtot21112 + F31*F33*dSdtot13112 + F31*F33*dSdtot31112 + pow(F32, 2)*dSdtot22112 + F32*F33*dSdtot23112 + F32*F33*dSdtot32112 + pow(F33, 2)*dSdtot33112;
+        term(2,6) = pow(F31, 2)*dSdtot11132 + F31*F32*dSdtot12132 + F31*F32*dSdtot21132 + F31*F33*dSdtot13132 + F31*F33*dSdtot31132 + pow(F32, 2)*dSdtot22132 + F32*F33*dSdtot23132 + F32*F33*dSdtot32132 + pow(F33, 2)*dSdtot33132;
+        term(2,7) = pow(F31, 2)*dSdtot11131 + F31*F32*dSdtot12131 + F31*F32*dSdtot21131 + F31*F33*dSdtot13131 + F31*F33*dSdtot31131 + pow(F32, 2)*dSdtot22131 + F32*F33*dSdtot23131 + F32*F33*dSdtot32131 + pow(F33, 2)*dSdtot33131;
+        term(2,8) = pow(F31, 2)*dSdtot11121 + F31*F32*dSdtot12121 + F31*F32*dSdtot21121 + F31*F33*dSdtot13121 + F31*F33*dSdtot31121 + pow(F32, 2)*dSdtot22121 + F32*F33*dSdtot23121 + F32*F33*dSdtot32121 + pow(F33, 2)*dSdtot33121;
+        term(2,9) = pow(F31, 2)*dSdtot11211 + F31*F32*dSdtot12211 + F31*F32*dSdtot21211 + F31*F33*dSdtot13211 + F31*F33*dSdtot31211 + pow(F32, 2)*dSdtot22211 + F32*F33*dSdtot23211 + F32*F33*dSdtot32211 + pow(F33, 2)*dSdtot33211;
+        term(2,10) = pow(F31, 2)*dSdtot11222 + F31*F32*dSdtot12222 + F31*F32*dSdtot21222 + F31*F33*dSdtot13222 + F31*F33*dSdtot31222 + pow(F32, 2)*dSdtot22222 + F32*F33*dSdtot23222 + F32*F33*dSdtot32222 + pow(F33, 2)*dSdtot33222;
+        term(2,11) = pow(F31, 2)*dSdtot11233 + F31*F32*dSdtot12233 + F31*F32*dSdtot21233 + F31*F33*dSdtot13233 + F31*F33*dSdtot31233 + pow(F32, 2)*dSdtot22233 + F32*F33*dSdtot23233 + F32*F33*dSdtot32233 + pow(F33, 2)*dSdtot33233;
+        term(2,12) = pow(F31, 2)*dSdtot11223 + F31*F32*dSdtot12223 + F31*F32*dSdtot21223 + F31*F33*dSdtot13223 + F31*F33*dSdtot31223 + pow(F32, 2)*dSdtot22223 + F32*F33*dSdtot23223 + F32*F33*dSdtot32223 + pow(F33, 2)*dSdtot33223;
+        term(2,13) = pow(F31, 2)*dSdtot11213 + F31*F32*dSdtot12213 + F31*F32*dSdtot21213 + F31*F33*dSdtot13213 + F31*F33*dSdtot31213 + pow(F32, 2)*dSdtot22213 + F32*F33*dSdtot23213 + F32*F33*dSdtot32213 + pow(F33, 2)*dSdtot33213;
+        term(2,14) = pow(F31, 2)*dSdtot11212 + F31*F32*dSdtot12212 + F31*F32*dSdtot21212 + F31*F33*dSdtot13212 + F31*F33*dSdtot31212 + pow(F32, 2)*dSdtot22212 + F32*F33*dSdtot23212 + F32*F33*dSdtot32212 + pow(F33, 2)*dSdtot33212;
+        term(2,15) = pow(F31, 2)*dSdtot11232 + F31*F32*dSdtot12232 + F31*F32*dSdtot21232 + F31*F33*dSdtot13232 + F31*F33*dSdtot31232 + pow(F32, 2)*dSdtot22232 + F32*F33*dSdtot23232 + F32*F33*dSdtot32232 + pow(F33, 2)*dSdtot33232;
+        term(2,16) = pow(F31, 2)*dSdtot11231 + F31*F32*dSdtot12231 + F31*F32*dSdtot21231 + F31*F33*dSdtot13231 + F31*F33*dSdtot31231 + pow(F32, 2)*dSdtot22231 + F32*F33*dSdtot23231 + F32*F33*dSdtot32231 + pow(F33, 2)*dSdtot33231;
+        term(2,17) = pow(F31, 2)*dSdtot11221 + F31*F32*dSdtot12221 + F31*F32*dSdtot21221 + F31*F33*dSdtot13221 + F31*F33*dSdtot31221 + pow(F32, 2)*dSdtot22221 + F32*F33*dSdtot23221 + F32*F33*dSdtot32221 + pow(F33, 2)*dSdtot33221;
+        term(2,18) = pow(F31, 2)*dSdtot11311 + F31*F32*dSdtot12311 + F31*F32*dSdtot21311 + F31*F33*dSdtot13311 + F31*F33*dSdtot31311 + pow(F32, 2)*dSdtot22311 + F32*F33*dSdtot23311 + F32*F33*dSdtot32311 + pow(F33, 2)*dSdtot33311;
+        term(2,19) = pow(F31, 2)*dSdtot11322 + F31*F32*dSdtot12322 + F31*F32*dSdtot21322 + F31*F33*dSdtot13322 + F31*F33*dSdtot31322 + pow(F32, 2)*dSdtot22322 + F32*F33*dSdtot23322 + F32*F33*dSdtot32322 + pow(F33, 2)*dSdtot33322;
+        term(2,20) = pow(F31, 2)*dSdtot11333 + F31*F32*dSdtot12333 + F31*F32*dSdtot21333 + F31*F33*dSdtot13333 + F31*F33*dSdtot31333 + pow(F32, 2)*dSdtot22333 + F32*F33*dSdtot23333 + F32*F33*dSdtot32333 + pow(F33, 2)*dSdtot33333;
+        term(2,21) = pow(F31, 2)*dSdtot11323 + F31*F32*dSdtot12323 + F31*F32*dSdtot21323 + F31*F33*dSdtot13323 + F31*F33*dSdtot31323 + pow(F32, 2)*dSdtot22323 + F32*F33*dSdtot23323 + F32*F33*dSdtot32323 + pow(F33, 2)*dSdtot33323;
+        term(2,22) = pow(F31, 2)*dSdtot11313 + F31*F32*dSdtot12313 + F31*F32*dSdtot21313 + F31*F33*dSdtot13313 + F31*F33*dSdtot31313 + pow(F32, 2)*dSdtot22313 + F32*F33*dSdtot23313 + F32*F33*dSdtot32313 + pow(F33, 2)*dSdtot33313;
+        term(2,23) = pow(F31, 2)*dSdtot11312 + F31*F32*dSdtot12312 + F31*F32*dSdtot21312 + F31*F33*dSdtot13312 + F31*F33*dSdtot31312 + pow(F32, 2)*dSdtot22312 + F32*F33*dSdtot23312 + F32*F33*dSdtot32312 + pow(F33, 2)*dSdtot33312;
+        term(2,24) = pow(F31, 2)*dSdtot11332 + F31*F32*dSdtot12332 + F31*F32*dSdtot21332 + F31*F33*dSdtot13332 + F31*F33*dSdtot31332 + pow(F32, 2)*dSdtot22332 + F32*F33*dSdtot23332 + F32*F33*dSdtot32332 + pow(F33, 2)*dSdtot33332;
+        term(2,25) = pow(F31, 2)*dSdtot11331 + F31*F32*dSdtot12331 + F31*F32*dSdtot21331 + F31*F33*dSdtot13331 + F31*F33*dSdtot31331 + pow(F32, 2)*dSdtot22331 + F32*F33*dSdtot23331 + F32*F33*dSdtot32331 + pow(F33, 2)*dSdtot33331;
+        term(2,26) = pow(F31, 2)*dSdtot11321 + F31*F32*dSdtot12321 + F31*F32*dSdtot21321 + F31*F33*dSdtot13321 + F31*F33*dSdtot31321 + pow(F32, 2)*dSdtot22321 + F32*F33*dSdtot23321 + F32*F33*dSdtot32321 + pow(F33, 2)*dSdtot33321;
         term(3,0) = F21*F31*dSdtot11111 + F21*F32*dSdtot12111 + F21*F33*dSdtot13111 + F22*F31*dSdtot21111 + F22*F32*dSdtot22111 + F22*F33*dSdtot23111 + F23*F31*dSdtot31111 + F23*F32*dSdtot32111 + F23*F33*dSdtot33111;
         term(3,1) = F21*F31*dSdtot11122 + F21*F32*dSdtot12122 + F21*F33*dSdtot13122 + F22*F31*dSdtot21122 + F22*F32*dSdtot22122 + F22*F33*dSdtot23122 + F23*F31*dSdtot31122 + F23*F32*dSdtot32122 + F23*F33*dSdtot33122;
         term(3,2) = F21*F31*dSdtot11133 + F21*F32*dSdtot12133 + F21*F33*dSdtot13133 + F22*F31*dSdtot21133 + F22*F32*dSdtot22133 + F22*F33*dSdtot23133 + F23*F31*dSdtot31133 + F23*F32*dSdtot32133 + F23*F33*dSdtot33133;
@@ -1136,7 +1136,7 @@ namespace micro_material{
         term(4,23) = F11*F31*dSdtot11312 + F11*F32*dSdtot12312 + F11*F33*dSdtot13312 + F12*F31*dSdtot21312 + F12*F32*dSdtot22312 + F12*F33*dSdtot23312 + F13*F31*dSdtot31312 + F13*F32*dSdtot32312 + F13*F33*dSdtot33312;
         term(4,24) = F11*F31*dSdtot11332 + F11*F32*dSdtot12332 + F11*F33*dSdtot13332 + F12*F31*dSdtot21332 + F12*F32*dSdtot22332 + F12*F33*dSdtot23332 + F13*F31*dSdtot31332 + F13*F32*dSdtot32332 + F13*F33*dSdtot33332;
         term(4,25) = F11*F31*dSdtot11331 + F11*F32*dSdtot12331 + F11*F33*dSdtot13331 + F12*F31*dSdtot21331 + F12*F32*dSdtot22331 + F12*F33*dSdtot23331 + F13*F31*dSdtot31331 + F13*F32*dSdtot32331 + F13*F33*dSdtot33331;
-        term(4,26) = F11*F31*dSdtot11321 + F11*F32*dSdtot12321 + F11*F33*dSdtot13321 + F12*F31*dSdtot21321 + F12*F32*dSdtot22321 + F12*F33*dSdtot23321 + F13*F31*dSdtot31321 + F13*F32*dSdtot32321 + F13*F33*dSdtot33321;
+        term(5,26) = F11*F31*dSdtot11321 + F11*F32*dSdtot12321 + F11*F33*dSdtot13321 + F12*F31*dSdtot21321 + F12*F32*dSdtot22321 + F12*F33*dSdtot23321 + F13*F31*dSdtot31321 + F13*F32*dSdtot32321 + F13*F33*dSdtot33321;
         term(5,0) = F11*F21*dSdtot11111 + F11*F22*dSdtot12111 + F11*F23*dSdtot13111 + F12*F21*dSdtot21111 + F12*F22*dSdtot22111 + F12*F23*dSdtot23111 + F13*F21*dSdtot31111 + F13*F22*dSdtot32111 + F13*F23*dSdtot33111;
         term(5,1) = F11*F21*dSdtot11122 + F11*F22*dSdtot12122 + F11*F23*dSdtot13122 + F12*F21*dSdtot21122 + F12*F22*dSdtot22122 + F12*F23*dSdtot23122 + F13*F21*dSdtot31122 + F13*F22*dSdtot32122 + F13*F23*dSdtot33122;
         term(5,2) = F11*F21*dSdtot11133 + F11*F22*dSdtot12133 + F11*F23*dSdtot13133 + F12*F21*dSdtot21133 + F12*F22*dSdtot22133 + F12*F23*dSdtot23133 + F13*F21*dSdtot31133 + F13*F22*dSdtot32133 + F13*F23*dSdtot33133;
@@ -1245,7 +1245,7 @@ namespace micro_material{
         term(8,24) = F11*F21*dSdtot11332 + F11*F22*dSdtot21332 + F11*F23*dSdtot31332 + F12*F21*dSdtot12332 + F12*F22*dSdtot22332 + F12*F23*dSdtot32332 + F13*F21*dSdtot13332 + F13*F22*dSdtot23332 + F13*F23*dSdtot33332;
         term(8,25) = F11*F21*dSdtot11331 + F11*F22*dSdtot21331 + F11*F23*dSdtot31331 + F12*F21*dSdtot12331 + F12*F22*dSdtot22331 + F12*F23*dSdtot32331 + F13*F21*dSdtot13331 + F13*F22*dSdtot23331 + F13*F23*dSdtot33331;
         term(8,26) = F11*F21*dSdtot11321 + F11*F22*dSdtot21321 + F11*F23*dSdtot31321 + F12*F21*dSdtot12321 + F12*F22*dSdtot22321 + F12*F23*dSdtot32321 + F13*F21*dSdtot13321 + F13*F22*dSdtot23321 + F13*F23*dSdtot33321;
-
+        
         term /= J;
         return;
     }
@@ -1281,7 +1281,7 @@ namespace micro_material{
         }
 
         //Populate term2 of the jacobian
-        Matrix_9x9 term2::Zero();
+        Matrix_9x9 term2 = Matrix_9x9::Zero();
         
         T1 = PK2_mat*F.transpose()/J;
         term2(0,0) = T1(0,0);
@@ -1313,12 +1313,12 @@ namespace micro_material{
         term2(8,8) = T1(0,0);
 
         //Populate term3 of the jacobian
-        Matrix_9x9 term3::Zero();
+        Matrix_9x9 term3 = Matrix_9x9::Zero();
 
-        map_fot_stress_jacobian(F, dPK2dF, J, term3)
+        map_fot_stress_jacobian(F, dPK2dF, J, term3);
 
         //Populate term4 of the jacobian
-        Matrix_9x9 term4::Zero();
+        Matrix_9x9 term4 = Matrix_9x9::Zero();
 
         T1 = F*PK2_mat/J;
         term4(0,0) = T1(0,0);
@@ -1354,7 +1354,7 @@ namespace micro_material{
         return;
     }
 
-    void compute_dcauchydchi(const Matrix_3x3 &F, const Matrix_9x9 &dPK2dchi, const Matrix_9x9 &dcauchydchi){
+    void compute_dcauchydchi(const Matrix_3x3 &F, const Matrix_9x9 &dPK2dchi, Matrix_9x9 &dcauchydchi){
         /*!==========================
         |    compute_dcauchydchi    |
         =============================
@@ -1369,7 +1369,7 @@ namespace micro_material{
         return;
     }
 
-    void compute_dcauchydgrad_chi(const Matrix_3x3 &F, const Matrix_9x27 &dPK2dgrad_chi, const Matrix_9x27 &dcauchydgrad_chi){
+    void compute_dcauchydgrad_chi(const Matrix_3x3 &F, const Matrix_9x27 &dPK2dgrad_chi, Matrix_9x27 &dcauchydgrad_chi){
         /*!==================================
         |    compute_dcauchydgrad_chi    |
         ==================================
@@ -1399,7 +1399,7 @@ namespace micro_material{
         return;
     }
 
-    void compute_dsdchi(const Matrix_3x3 &F, const Matrix_9x9 &dSIGMAdchi, const Matrix_9x9 &dsdchi){
+    void compute_dsdchi(const Matrix_3x3 &F, const Matrix_9x9 &dSIGMAdchi, Matrix_9x9 &dsdchi){
         /*!========================
         |    compute_dsdchi    |
         ========================
@@ -1413,7 +1413,7 @@ namespace micro_material{
         return;
     }
 
-    void compute_dsdgrad_chi(const Matrix_3x3 &F, const Matrix_9x27 &dSIGMAdgrad_chi, const Matrix_9x27 &dsdgrad_chi){
+    void compute_dsdgrad_chi(const Matrix_3x3 &F, const Matrix_9x27 &dSIGMAdgrad_chi, Matrix_9x27 &dsdgrad_chi){
         /*!=============================
         |    compute_dsdgrad_chi    |
         =============================
