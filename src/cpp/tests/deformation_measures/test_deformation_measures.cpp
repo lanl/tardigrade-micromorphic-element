@@ -16,6 +16,7 @@
    ============================================================================*/
 
 #include<iostream>
+#include<vector>
 #include<fstream>
 #include<deformation_measures.h>
 
@@ -105,7 +106,7 @@ void define_deformation_gradient(Matrix_3x3 &F){
 }
 
 void define_chi(Matrix_3x3 &chi){
-    /*====================
+    /*!====================
       |    define_chi    |
       ====================
 
@@ -1160,6 +1161,48 @@ int test_dot_2ot_5ot(std::ofstream &results){
     return 1;
 }
 
+int test_two_sot_to_fot(std::ostream &results){
+    /*!=============================
+    |    test_two_sot_to_fot    |
+    =============================
+    
+    Test mapping two second order tensors to a 
+    fourth order tensor.
+    */
+    
+    Matrix_9x9 C;  //The expected result
+    Matrix_9x9 _C; //The function value
+    
+    //Initialize the generating tensors
+    Matrix_3x3 A;
+    Matrix_3x3 B;
+    
+    A << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+    B << 10, 11, 12, 13, 14, 15, 16, 17, 18;
+    
+    //Load the expected result
+    C << 10,  14,  18,  15,  12,  11,  17,  16,  13,  50,  70,  90,  75,
+         60,  55,  85,  80,  65,  90, 126, 162, 135, 108,  99, 153, 144,
+        117,  60,  84, 108,  90,  72,  66, 102,  96,  78,  30,  42,  54,
+         45,  36,  33,  51,  48,  39,  20,  28,  36,  30,  24,  22,  34,
+         32,  26,  80, 112, 144, 120,  96,  88, 136, 128, 104,  70,  98,
+        126, 105,  84,  77, 119, 112,  91,  40,  56,  72,  60,  48,  44,
+         68,  64,  52;
+    
+    deformation_measures::two_sot_to_fot(A,B,_C);
+    
+    bool tot_result = C.isApprox(_C);
+    
+    if (tot_result){
+        results << "test_two_sot_to_fot & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_two_sot_to_fot & False\\\\\n\\hline\n";
+    }
+    
+    return 1;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -1195,6 +1238,7 @@ int main(){
     test_perform_right_positive_cyclic_permutation(results);
     test_dot_2ot_4ot(results);
     test_dot_2ot_5ot(results);
+    test_two_sot_to_fot(results);
 
     //Close the results file
     results.close();
