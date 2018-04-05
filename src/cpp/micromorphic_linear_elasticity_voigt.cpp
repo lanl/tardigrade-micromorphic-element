@@ -1017,6 +1017,51 @@ namespace micro_material{
         return;
     }
     
+    void compute_dPK2dRCG(const Matrix_3x3 &RCG, const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma, const Vector_27 &Gamma_voigt,
+                          const Matrix_3x3 &E, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
+                          const SpMat &A,      const SpMat &B,        const SpMat &C,  const SpMat &D, Matrix_9x9 (&terms)[4], Matrix_9x9 &dPK2dRCG){
+        /*!==========================
+        |    compute_dPK2dRCG    |
+        ==========================
+        
+        Compute the derivative of the PK2 stress w.r.t. 
+        the deformation gradient.
+        
+        */
+        
+        //Initialize temporary terms
+        Vector_9   V1;
+        Vector_27  V2;
+        Matrix_3x3 T1;
+        Matrix_9x9 T2;
+        Matrix_3x9 T3;
+        
+        Matrix_9x9 dRCGinvdRCG;
+        compute_dAinvdA(RCGinv,dRCGinvdRCG);
+        
+        //Compute term1
+        terms[0] = 0.5*A;
+        
+        //Compute term2
+        T1 = RCGinv*(E_micro+Matrix_3x3::Identity());
+        deformation_measures::dot_2ot_4ot(1,1,T1,0.5*D,terms[1]);
+        
+        //Compute term3
+        V1 = (B*E_micro_voigt+D*E_voigt);
+        deformation_measures::undo_voigt_3x3_tensor(V1,T1);
+        deformation_measures::dot_2ot_4ot(1,0,T1*(E_micro+Matrix_3x3::Identity()).transpose(),dRCGinvdRCG,terms[2]);
+        
+        //Compute term4
+        deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,T3);
+        T1 = T3*Gamma.transpose();
+        deformation_measures::dot_2ot_4ot(1,0,T1,dRCGinvdRCG,terms[3]);
+        
+        //Assemble the derivative
+        dPK2dRCG = (terms[0] + terms[1] + terms[2] + terms[3]);
+        
+        return;
+    }
+    
     void compute_dPK2dPsi(const Matrix_3x3 &RCGinv, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
                           const SpMat &B, const SpMat &D, Matrix_9x9 &dPK2dPsi){
         /*!==========================
@@ -1047,6 +1092,42 @@ namespace micro_material{
         deformation_measures::undo_voigt_3x3_tensor(V1,T1);
         deformation_measures::two_sot_to_fot(2,T1,RCGinv,T2);
         dPK2dPsi += T2;
+        
+        return;
+    }
+    
+    void compute_dPK2dPsi(const Matrix_3x3 &RCGinv, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
+                          const SpMat &B, const SpMat &D, Matrix_9x9 (&terms)[3], Matrix_9x9 &dPK2dPsi){
+        /*!==========================
+        |    compute_dPK2dPsi    |
+        ==========================
+        
+        Compute the derivative of the second piola kirchoff 
+        stress w.r.t. the deformation measure Psi.
+        
+        */
+        
+        //Initialize temporary terms
+        Vector_9   V1;
+        Vector_27  V2;
+        Matrix_3x3 T1;
+        Matrix_9x9 T2;
+        Matrix_3x9 T3;
+        
+        //Add term1
+        terms[0] = D;
+        
+        //Add term2
+        deformation_measures::dot_2ot_4ot(1, 1, RCGinv*(E_micro + Matrix_3x3::Identity()), B, T2);
+        terms[1] = T2;
+        
+        //Add term3
+        V1 = B*E_micro_voigt + D*E_voigt;
+        deformation_measures::undo_voigt_3x3_tensor(V1,T1);
+        deformation_measures::two_sot_to_fot(2,T1,RCGinv,T2);
+        terms[2] = T2;
+        
+        dPk2dPsi = terms[0] + terms[1] + terms[2];
         
         return;
     }
@@ -2393,6 +2474,31 @@ namespace micro_material{
         dPK2dGamma = term2 + term3;
     }
     
+    void compute_dPK2dGamma(const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma, const Vector_27 &Gamma_voigt,
+                            SpMat &C, Matrix_9x27 (&terms)[2], Matrix_9x27 &dPK2dGamma){
+        /*!============================
+        |    compute_dPK2dGamma    |
+        ============================
+        
+        Compute the derivative of the second piola kirchoff stress 
+        w.r.t. the deformation measure Gamma.
+        
+        */
+        
+        //Compute term1
+        Vector_27 term1;
+        deformation_measures::voigt_3x9_tensor(RCGinv*Gamma,term1);
+        
+        //Compute term2
+        Matrix_27x27 _C = C; //Copy the sparse matrix to a dense matrix.
+        compute_dPK2dGamma_term2(term1,_C,terms[0]);
+        
+        //Compute term3
+        compute_dPK2dGamma_term3(C*Gamma_voigt,RCGinv,terms[1]);
+        
+        dPK2dGamma = terms[0] + terms[1];
+    }
+    
     void compute_dAinvdA(const Matrix_3x3 &Ainv, Matrix_9x9 &dAinvdA){
         /*!=========================
         |    compute_dAinvdA    |
@@ -2495,5 +2601,92 @@ namespace micro_material{
         dAinvdA(8,6) = -Ainv21*Ainv23;
         dAinvdA(8,7) = -Ainv11*Ainv23;
         dAinvdA(8,8) = -Ainv11*Ainv22;
+    }
+    
+    void compute_dSIGMAdRCG(Matrix_9x9 (&terms)[4], Matrix_9x9 &dSIGMAdRCG){
+        /*!=========================
+        |    compute_dSIGMAdRCG    |
+        ============================
+        
+        Compute the derivative of the symmetric stress in the 
+        reference configuration using the terms from the 
+        computation of dPK2dRCG.
+        
+        This is the preferred method since the computation has 
+        already been done for the PK2 derivative.
+        
+        */
+        
+        dSIGMAdRCG = terms[0];
+        
+        Matrix_9x9 temp;
+        
+        for (int i=1; i<4; i++){
+            temp = terms[i];
+            temp.row(3) += temp.row(6);
+            temp.row(4) += temp.row(7);
+            temp.row(5) += temp.row(8);
+            
+            dSIGMAdRCG += temp;
+        }
+        return;
+    }
+    
+    void compute_dSIGMAdPsi(Matrix_9x9 (&terms)[3], Matrix_9x9 &dSIGMAdPsi){
+        /*!============================
+        |    compute_dSIGMAdPsi    |
+        ============================
+        
+        Compute the derivative of the symmetric stress in the 
+        reference configuration using the terms from the 
+        computation of dPK2dPsi.
+        
+        This is the preferred method since the computation has already 
+        been done for the PK2 derivative.
+        
+        */
+        
+        dSIGMAdPsi = terms[0];
+        
+        Matrix_9x9 temp;
+        
+        for (int i=1; i<3; i++){
+            temp = terms[i];
+            temp.row(3) += temp.row(6);
+            temp.row(4) += temp.row(7);
+            temp.row(5) += temp.row(8);
+            
+            dSIGMAdPsi += temp;
+        }
+        return;
+    }
+    
+    void compute_dSIGMAdGamma(Matrix_9x27 (&terms)[2], Matrix_9x27 &dSigmadGamma){
+        /*!===========================
+        |    compute_dSIGMAdGamma    |
+        ==============================
+        
+        Compute the derivative of the symmetric stress in the 
+        reference configuration using the terms from the computation 
+        of dPK2dGamma.
+        
+        This is the preferred method since the computation has already
+        been done for the PK2 derivative.
+        
+        */
+        
+        dSIGMAdGamma = Matrix_9x27::Zero();
+        
+        Matrix_9x27 temp;
+        
+        for (int i=1; i<2; i++){
+            temp = terms[i];
+            temp.row(3) += temp.row(6);
+            temp.row(4) += temp.row(7);
+            temp.row(5) += temp.row(8);
+            
+            dSIGMAdGamma += temp;
+        }
+        return;
     }
 }
