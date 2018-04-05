@@ -62,14 +62,14 @@ namespace micro_material{
     void compute_D_voigt(const double &sigma, const double &tau, SpMat &D);
 
     void compute_PK2_stress(const Vector_9 &E_voigt,      const Vector_9 &E_micro_voigt,
-                            const Vector_27 &Gamma_voigt, const Matrix_3x3 &Cinv,
+                            const Vector_27 &Gamma_voigt, const Matrix_3x3 &RCGinv,
                             const Matrix_3x3 &Psi,        const Matrix_3x9 &Gamma,
                             const SpMat &A,               const SpMat &B,
                             const SpMat &C,               const SpMat &D,
                             Vector_9 &PK2);
                             
     void compute_symmetric_stress(const Vector_9 &E_voigt,      const Vector_9 &E_micro_voigt,
-                                  const Vector_27 &Gamma_voigt, const Matrix_3x3 &Cinv,
+                                  const Vector_27 &Gamma_voigt, const Matrix_3x3 &RCGinv,
                                   const Matrix_3x3 &Psi,        const Matrix_3x9 &Gamma,
                                   const SpMat &A,               const SpMat &B,
                                   const SpMat &C,               const SpMat &D,
@@ -89,14 +89,25 @@ namespace micro_material{
 
     void compute_dcauchydgrad_chi(const Matrix_3x3 &F, const Matrix_9x27 &dPK2dgrad_chi, Matrix_9x27 &dcauchydgrad_chi);
 
-    void compute_dPK2dF(const Matrix_3x3 &F, const Matrix_3x3 &RCG, const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma,
-                        const Vector_27 &Gamma_voigt,
+    void compute_dPK2dRCG(const Matrix_3x3 &RCG, const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma, const Vector_27 &Gamma_voigt,
                         const Matrix_3x3 &E, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
-                        const SpMat &A,      const SpMat &B,        const SpMat &C,  const SpMat &D, Matrix_9x9 &dPK2dF);
+                        const SpMat &A,      const SpMat &B,        const SpMat &C,  const SpMat &D, Matrix_9x9 &dPK2dRCG);
+                        
+    void compute_dPK2dPsi(const Matrix_3x3 &RCGinv, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
+                          const SpMat &B, const SpMat &D, Matrix_9x9 &dPK2dPsi);
+                          
+    void compute_dPK2dGamma(const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma, const Vector_27 &Gamma_voigt,
+                            SpMat &C, Matrix_9x27 &dPK2dGamma);
+                          
+    void compute_dPK2dGamma_term2(const Vector_27 &term1, const Matrix_27x27 &C, Matrix_9x27 &term2);
+    
+    void compute_dPK2dGamma_term3(const Vector_27 &term1, const Matrix_3x3 &RCGinv, Matrix_9x27 &term3);
     
     void compute_dRCGdF(const Matrix_3x3 &F, SpMat &dRCGdF);
+    
+    void compute_dPsidF(const Matrix_3x3 &chi, SpMat &dPsidF);
 
-        
+    void compute_dAinvdA(const Matrix_3x3 &A, Matrix_9x9 &dAinvdA);
 }
 
 #endif
