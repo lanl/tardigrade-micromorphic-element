@@ -826,9 +826,22 @@ int test_dot_2ot_4ot(std::ofstream &results){
           16, 15, 12, 63, 67, 71, 68, 65, 64, 70, 69, 66, 54, 58, 62, 59, 56,
           55, 61, 60, 57, 27, 31, 35, 32, 29, 28, 34, 33, 30;
     
-    for (int i=0; i<4; i++){deformation_measures::dot_2ot_4ot(i,SOT,FOT,_r[i]);}
+    //Test function
+    for (int i=0; i<4; i++){deformation_measures::dot_2ot_4ot(i,0,SOT,FOT,_r[i]);}
     
     bool tot_result = true;
+    for (int i=0; i<4; i++){tot_result *= r[i].isApprox(_r[i]);}
+    
+    //Test function with transposed leading indices
+    
+    for (int i=0; i<4; i++){deformation_measures::dot_2ot_4ot(i,1,SOT,FOT,_r[i]);}
+
+    for (int i=0; i<4; i++){
+        r[i].row(3).swap(r[i].row(6));
+        r[i].row(4).swap(r[i].row(7));
+        r[i].row(5).swap(r[i].row(8));
+    }
+    
     for (int i=0; i<4; i++){tot_result *= r[i].isApprox(_r[i]);}
     
     if (tot_result){
@@ -1170,7 +1183,9 @@ int test_two_sot_to_fot(std::ostream &results){
     fourth order tensor.
     */
     
-    Matrix_9x9 C;  //The expected result
+    Matrix_9x9 C1;  //The first expected result
+    Matrix_9x9 C2;  //The second expected result
+    Matrix_9x9 C3;  //The third expected result
     Matrix_9x9 _C; //The function value
     
     //Initialize the generating tensors
@@ -1181,17 +1196,41 @@ int test_two_sot_to_fot(std::ostream &results){
     B << 10, 11, 12, 13, 14, 15, 16, 17, 18;
     
     //Load the expected result
-    C << 10,  14,  18,  15,  12,  11,  17,  16,  13,  50,  70,  90,  75,
-         60,  55,  85,  80,  65,  90, 126, 162, 135, 108,  99, 153, 144,
-        117,  60,  84, 108,  90,  72,  66, 102,  96,  78,  30,  42,  54,
-         45,  36,  33,  51,  48,  39,  20,  28,  36,  30,  24,  22,  34,
-         32,  26,  80, 112, 144, 120,  96,  88, 136, 128, 104,  70,  98,
-        126, 105,  84,  77, 119, 112,  91,  40,  56,  72,  60,  48,  44,
-         68,  64,  52;
+    C1 << 10,  14,  18,  15,  12,  11,  17,  16,  13,  50,  70,  90,  75,
+          60,  55,  85,  80,  65,  90, 126, 162, 135, 108,  99, 153, 144,
+         117,  60,  84, 108,  90,  72,  66, 102,  96,  78,  30,  42,  54,
+          45,  36,  33,  51,  48,  39,  20,  28,  36,  30,  24,  22,  34,
+          32,  26,  80, 112, 144, 120,  96,  88, 136, 128, 104,  70,  98,
+         126, 105,  84,  77, 119, 112,  91,  40,  56,  72,  60,  48,  44,
+          68,  64,  52;
     
-    deformation_measures::two_sot_to_fot(A,B,_C);
+    C2 << 10,  44,  84,  48,  12,  11,  77,  70,  40,  26,  70, 120,  75,
+          30,  28, 112, 104,  65,  48, 102, 162, 108,  54,  51, 153, 144,
+          96,  39,  84, 135,  90,  45,  42, 126, 117,  78,  30,  66, 108,
+          72,  36,  33,  99,  90,  60,  20,  55,  96,  60,  24,  22,  88,
+          80,  50,  32,  85, 144,  90,  36,  34, 136, 128,  80,  16,  68,
+         126,  72,  18,  17, 119, 112,  64,  13,  56, 105,  60,  15,  14,
+          98,  91,  52;
+          
+    C3 << 10,  26,  48,  39,  30,  20,  32,  16,  13,  44,  70, 102,  84,
+          66,  55,  85,  68,  56,  84, 120, 162, 135, 108,  96, 144, 126,
+         105,  48,  75, 108,  90,  72,  60,  90,  72,  60,  12,  30,  54,
+          45,  36,  24,  36,  18,  15,  11,  28,  51,  42,  33,  22,  34,
+          17,  14,  77, 112, 153, 126,  99,  88, 136, 119,  98,  70, 104,
+         144, 117,  90,  80, 128, 112,  91,  40,  65,  96,  78,  60,  50,
+          80,  64,  52;
     
-    bool tot_result = C.isApprox(_C);
+    deformation_measures::two_sot_to_fot(0,A,B,_C);
+    
+    bool tot_result = C1.isApprox(_C);
+    
+    deformation_measures::two_sot_to_fot(1,A,B,_C);
+    
+    tot_result *= C2.isApprox(_C);
+    
+    deformation_measures::two_sot_to_fot(2,A,B,_C);
+    
+    tot_result *= C3.isApprox(_C);
     
     if (tot_result){
         results << "test_two_sot_to_fot & True\\\\\n\\hline\n";

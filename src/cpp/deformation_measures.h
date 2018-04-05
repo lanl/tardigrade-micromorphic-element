@@ -71,13 +71,13 @@ namespace deformation_measures
     
     void perform_right_positive_cyclic_permutation(Vector_27 &A);
     
-    void dot_2ot_4ot(const int &i, const Matrix_3x3 &sot, const Matrix_9x9  &fot, Matrix_9x9  &result);
+    void dot_2ot_4ot(const int &i, const int &mode, const Matrix_3x3 &sot, const Matrix_9x9  &fot, Matrix_9x9  &result);
     
     void dot_2ot_5ot(const int &i, const Matrix_3x3 &sot, const Matrix_9x27 &fot, Matrix_9x27 &result);
     
     void dot_2ot_5ot(const int &i, const Matrix_3x3 &sot, const Matrix_27x9 &fot, Matrix_27x9 &result);
     
-    void two_sot_to_fot(const Matrix_3x3 &A, const Matrix_3x3 &B, Matrix_9x9 &C);
+    void two_sot_to_fot(const int &swap, const Matrix_3x3 &A, const Matrix_3x3 &B, Matrix_9x9 &C);
 }
 
 #endif

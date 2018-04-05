@@ -505,20 +505,28 @@ namespace deformation_measures
         
     }
     
-    void dot_2ot_4ot(const int &i, const Matrix_3x3 &sot, const Matrix_9x9 &fot, Matrix_9x9 &result){
+    void dot_2ot_4ot(const int &i, const int &mode, const Matrix_3x3 &sot, const Matrix_9x9 &fot, Matrix_9x9 &result){
         /*!==================
         |    dot_2ot_4ot    |
         =====================
         
         Compute the dot product of a second order tensor and a fourth order tensor at index i+1 i.e.
         
-        index = 0
+        index = 0, mode=0
         
         result_ijkl = sot_im fot_mjkl
         
-        index = 1
+        index = 1, mode=0
         
         result_ijkl = sot_im fot_jmkl
+        
+        index = 0, mode=1
+        
+        result_ijkl = sot_jm fot_mikl
+        
+        index = 1, mode=1
+        
+        result_ijkl = sot_jm fot_imkl
         
         */
         //Extract the second order tensor
@@ -951,6 +959,11 @@ namespace deformation_measures
         else {
             std::cout << "Error: Index out of range\n";
             assert(1==0); //TODO: Replace with better error handling
+        }
+        if (mode == 1){
+            result.row(3).swap(result.row(6));
+            result.row(4).swap(result.row(7));
+            result.row(5).swap(result.row(8));
         }
         return;
     }
@@ -3967,7 +3980,7 @@ namespace deformation_measures
         return;
     }
     
-    void two_sot_to_fot(const Matrix_3x3 &A, const Matrix_3x3 &B, Matrix_9x9 &C){
+    void two_sot_to_fot(const int &swap, const Matrix_3x3 &A, const Matrix_3x3 &B, Matrix_9x9 &C){
         /*!=========================
         |    two_sot_to_fot    |
         ========================
@@ -3976,24 +3989,288 @@ namespace deformation_measures
         
         i.e.
         
+        swap = 0
         C_ijkl = A_ij B_kl
+        
+        swap = 1
+        C_ijkl = A_kj B_il
+        
+        swap = 2
+        C_ijkl = A_il B_kj
         
         */
         
-        Vector_9 V1;
-        Vector_9 V2;
-        
-        //Convert the second order tensors to voigt notation.
-        voigt_3x3_tensor(A,V1);
-        voigt_3x3_tensor(B,V2);
-        
-        for (int i=0; i<9; i++){
-            
-            for (int j=0; j<9; j++){
-                
-                C(i,j) = V1(i)*V2(j);
-                
-            }
+        //Extract A
+        double A11 = A(0,0);
+        double A12 = A(0,1);
+        double A13 = A(0,2);
+        double A21 = A(1,0);
+        double A22 = A(1,1);
+        double A23 = A(1,2);
+        double A31 = A(2,0);
+        double A32 = A(2,1);
+        double A33 = A(2,2);
+
+        //Extract B
+        double B11 = B(0,0);
+        double B12 = B(0,1);
+        double B13 = B(0,2);
+        double B21 = B(1,0);
+        double B22 = B(1,1);
+        double B23 = B(1,2);
+        double B31 = B(2,0);
+        double B32 = B(2,1);
+        double B33 = B(2,2);
+
+         //Assemble C
+        if (swap == 0){
+            C(0,0) = A11*B11;
+            C(0,1) = A11*B22;
+            C(0,2) = A11*B33;
+            C(0,3) = A11*B23;
+            C(0,4) = A11*B13;
+            C(0,5) = A11*B12;
+            C(0,6) = A11*B32;
+            C(0,7) = A11*B31;
+            C(0,8) = A11*B21;
+            C(1,0) = A22*B11;
+            C(1,1) = A22*B22;
+            C(1,2) = A22*B33;
+            C(1,3) = A22*B23;
+            C(1,4) = A22*B13;
+            C(1,5) = A22*B12;
+            C(1,6) = A22*B32;
+            C(1,7) = A22*B31;
+            C(1,8) = A22*B21;
+            C(2,0) = A33*B11;
+            C(2,1) = A33*B22;
+            C(2,2) = A33*B33;
+            C(2,3) = A33*B23;
+            C(2,4) = A33*B13;
+            C(2,5) = A33*B12;
+            C(2,6) = A33*B32;
+            C(2,7) = A33*B31;
+            C(2,8) = A33*B21;
+            C(3,0) = A23*B11;
+            C(3,1) = A23*B22;
+            C(3,2) = A23*B33;
+            C(3,3) = A23*B23;
+            C(3,4) = A23*B13;
+            C(3,5) = A23*B12;
+            C(3,6) = A23*B32;
+            C(3,7) = A23*B31;
+            C(3,8) = A23*B21;
+            C(4,0) = A13*B11;
+            C(4,1) = A13*B22;
+            C(4,2) = A13*B33;
+            C(4,3) = A13*B23;
+            C(4,4) = A13*B13;
+            C(4,5) = A13*B12;
+            C(4,6) = A13*B32;
+            C(4,7) = A13*B31;
+            C(4,8) = A13*B21;
+            C(5,0) = A12*B11;
+            C(5,1) = A12*B22;
+            C(5,2) = A12*B33;
+            C(5,3) = A12*B23;
+            C(5,4) = A12*B13;
+            C(5,5) = A12*B12;
+            C(5,6) = A12*B32;
+            C(5,7) = A12*B31;
+            C(5,8) = A12*B21;
+            C(6,0) = A32*B11;
+            C(6,1) = A32*B22;
+            C(6,2) = A32*B33;
+            C(6,3) = A32*B23;
+            C(6,4) = A32*B13;
+            C(6,5) = A32*B12;
+            C(6,6) = A32*B32;
+            C(6,7) = A32*B31;
+            C(6,8) = A32*B21;
+            C(7,0) = A31*B11;
+            C(7,1) = A31*B22;
+            C(7,2) = A31*B33;
+            C(7,3) = A31*B23;
+            C(7,4) = A31*B13;
+            C(7,5) = A31*B12;
+            C(7,6) = A31*B32;
+            C(7,7) = A31*B31;
+            C(7,8) = A31*B21;
+            C(8,0) = A21*B11;
+            C(8,1) = A21*B22;
+            C(8,2) = A21*B33;
+            C(8,3) = A21*B23;
+            C(8,4) = A21*B13;
+            C(8,5) = A21*B12;
+            C(8,6) = A21*B32;
+            C(8,7) = A21*B31;
+            C(8,8) = A21*B21;
+        }
+        else if (swap == 1){
+            C(0,0) = A11*B11;
+            C(0,1) = A21*B12;
+            C(0,2) = A31*B13;
+            C(0,3) = A21*B13;
+            C(0,4) = A11*B13;
+            C(0,5) = A11*B12;
+            C(0,6) = A31*B12;
+            C(0,7) = A31*B11;
+            C(0,8) = A21*B11;
+            C(1,0) = A12*B21;
+            C(1,1) = A22*B22;
+            C(1,2) = A32*B23;
+            C(1,3) = A22*B23;
+            C(1,4) = A12*B23;
+            C(1,5) = A12*B22;
+            C(1,6) = A32*B22;
+            C(1,7) = A32*B21;
+            C(1,8) = A22*B21;
+            C(2,0) = A13*B31;
+            C(2,1) = A23*B32;
+            C(2,2) = A33*B33;
+            C(2,3) = A23*B33;
+            C(2,4) = A13*B33;
+            C(2,5) = A13*B32;
+            C(2,6) = A33*B32;
+            C(2,7) = A33*B31;
+            C(2,8) = A23*B31;
+            C(3,0) = A13*B21;
+            C(3,1) = A23*B22;
+            C(3,2) = A33*B23;
+            C(3,3) = A23*B23;
+            C(3,4) = A13*B23;
+            C(3,5) = A13*B22;
+            C(3,6) = A33*B22;
+            C(3,7) = A33*B21;
+            C(3,8) = A23*B21;
+            C(4,0) = A13*B11;
+            C(4,1) = A23*B12;
+            C(4,2) = A33*B13;
+            C(4,3) = A23*B13;
+            C(4,4) = A13*B13;
+            C(4,5) = A13*B12;
+            C(4,6) = A33*B12;
+            C(4,7) = A33*B11;
+            C(4,8) = A23*B11;
+            C(5,0) = A12*B11;
+            C(5,1) = A22*B12;
+            C(5,2) = A32*B13;
+            C(5,3) = A22*B13;
+            C(5,4) = A12*B13;
+            C(5,5) = A12*B12;
+            C(5,6) = A32*B12;
+            C(5,7) = A32*B11;
+            C(5,8) = A22*B11;
+            C(6,0) = A12*B31;
+            C(6,1) = A22*B32;
+            C(6,2) = A32*B33;
+            C(6,3) = A22*B33;
+            C(6,4) = A12*B33;
+            C(6,5) = A12*B32;
+            C(6,6) = A32*B32;
+            C(6,7) = A32*B31;
+            C(6,8) = A22*B31;
+            C(7,0) = A11*B31;
+            C(7,1) = A21*B32;
+            C(7,2) = A31*B33;
+            C(7,3) = A21*B33;
+            C(7,4) = A11*B33;
+            C(7,5) = A11*B32;
+            C(7,6) = A31*B32;
+            C(7,7) = A31*B31;
+            C(7,8) = A21*B31;
+            C(8,0) = A11*B21;
+            C(8,1) = A21*B22;
+            C(8,2) = A31*B23;
+            C(8,3) = A21*B23;
+            C(8,4) = A11*B23;
+            C(8,5) = A11*B22;
+            C(8,6) = A31*B22;
+            C(8,7) = A31*B21;
+            C(8,8) = A21*B21;
+        }
+        else if (swap == 2){
+            C(0,0) = A11*B11;
+            C(0,1) = A12*B21;
+            C(0,2) = A13*B31;
+            C(0,3) = A13*B21;
+            C(0,4) = A13*B11;
+            C(0,5) = A12*B11;
+            C(0,6) = A12*B31;
+            C(0,7) = A11*B31;
+            C(0,8) = A11*B21;
+            C(1,0) = A21*B12;
+            C(1,1) = A22*B22;
+            C(1,2) = A23*B32;
+            C(1,3) = A23*B22;
+            C(1,4) = A23*B12;
+            C(1,5) = A22*B12;
+            C(1,6) = A22*B32;
+            C(1,7) = A21*B32;
+            C(1,8) = A21*B22;
+            C(2,0) = A31*B13;
+            C(2,1) = A32*B23;
+            C(2,2) = A33*B33;
+            C(2,3) = A33*B23;
+            C(2,4) = A33*B13;
+            C(2,5) = A32*B13;
+            C(2,6) = A32*B33;
+            C(2,7) = A31*B33;
+            C(2,8) = A31*B23;
+            C(3,0) = A21*B13;
+            C(3,1) = A22*B23;
+            C(3,2) = A23*B33;
+            C(3,3) = A23*B23;
+            C(3,4) = A23*B13;
+            C(3,5) = A22*B13;
+            C(3,6) = A22*B33;
+            C(3,7) = A21*B33;
+            C(3,8) = A21*B23;
+            C(4,0) = A11*B13;
+            C(4,1) = A12*B23;
+            C(4,2) = A13*B33;
+            C(4,3) = A13*B23;
+            C(4,4) = A13*B13;
+            C(4,5) = A12*B13;
+            C(4,6) = A12*B33;
+            C(4,7) = A11*B33;
+            C(4,8) = A11*B23;
+            C(5,0) = A11*B12;
+            C(5,1) = A12*B22;
+            C(5,2) = A13*B32;
+            C(5,3) = A13*B22;
+            C(5,4) = A13*B12;
+            C(5,5) = A12*B12;
+            C(5,6) = A12*B32;
+            C(5,7) = A11*B32;
+            C(5,8) = A11*B22;
+            C(6,0) = A31*B12;
+            C(6,1) = A32*B22;
+            C(6,2) = A33*B32;
+            C(6,3) = A33*B22;
+            C(6,4) = A33*B12;
+            C(6,5) = A32*B12;
+            C(6,6) = A32*B32;
+            C(6,7) = A31*B32;
+            C(6,8) = A31*B22;
+            C(7,0) = A31*B11;
+            C(7,1) = A32*B21;
+            C(7,2) = A33*B31;
+            C(7,3) = A33*B21;
+            C(7,4) = A33*B11;
+            C(7,5) = A32*B11;
+            C(7,6) = A32*B31;
+            C(7,7) = A31*B31;
+            C(7,8) = A31*B21;
+            C(8,0) = A21*B11;
+            C(8,1) = A22*B21;
+            C(8,2) = A23*B31;
+            C(8,3) = A23*B21;
+            C(8,4) = A23*B11;
+            C(8,5) = A22*B11;
+            C(8,6) = A22*B31;
+            C(8,7) = A21*B31;
+            C(8,8) = A21*B21;
         }
         return;
     }
