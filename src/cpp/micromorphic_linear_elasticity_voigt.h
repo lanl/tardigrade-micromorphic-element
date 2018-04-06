@@ -111,14 +111,14 @@ namespace micro_material{
                           const SpMat &B, const SpMat &D, Matrix_9x9 (&terms)[3], Matrix_9x9 &dPK2dPsi);
                           
     void compute_dPK2dGamma(const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma, const Vector_27 &Gamma_voigt,
-                            SpMat &C, Matrix_9x17 (&terms)[2], Matrix_9x27 &dPK2dGamma);
+                            SpMat &C, Matrix_9x27 (&terms)[2], Matrix_9x27 &dPK2dGamma);
                             
     //Gradients of the symmetric stress (reference configuration)
     void compute_dSIGMAdRCG(Matrix_9x9 (&terms)[4], Matrix_9x9 &dSIGMAdRCG);
     
     void compute_dSIGMAdPsi(Matrix_9x9 (&terms)[3], Matrix_9x9 &dSIGMAdPsi);
     
-    void compute_dSIGMAdGamma(Matrix_9x27 (&terms)[2], Matrix_9x27 &dSigmadGamma);
+    void compute_dSIGMAdGamma(Matrix_9x27 (&terms)[2], Matrix_9x27 &dSIGMAdGamma);
                           
     void compute_dPK2dGamma_term2(const Vector_27 &term1, const Matrix_27x27 &C, Matrix_9x27 &term2);
     

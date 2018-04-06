@@ -1127,7 +1127,7 @@ namespace micro_material{
         deformation_measures::two_sot_to_fot(2,T1,RCGinv,T2);
         terms[2] = T2;
         
-        dPk2dPsi = terms[0] + terms[1] + terms[2];
+        dPK2dPsi = terms[0] + terms[1] + terms[2];
         
         return;
     }
@@ -2623,9 +2623,16 @@ namespace micro_material{
         
         for (int i=1; i<4; i++){
             temp = terms[i];
-            temp.row(3) += temp.row(6);
-            temp.row(4) += temp.row(7);
-            temp.row(5) += temp.row(8);
+            
+            temp.row(0) *= 2;
+            temp.row(1) *= 2;
+            temp.row(2) *= 2;
+            temp.row(3) += terms[i].row(6);
+            temp.row(4) += terms[i].row(7);
+            temp.row(5) += terms[i].row(8);
+            temp.row(6) += terms[i].row(3);
+            temp.row(7) += terms[i].row(4);
+            temp.row(8) += terms[i].row(5);
             
             dSIGMAdRCG += temp;
         }
@@ -2652,16 +2659,24 @@ namespace micro_material{
         
         for (int i=1; i<3; i++){
             temp = terms[i];
-            temp.row(3) += temp.row(6);
-            temp.row(4) += temp.row(7);
-            temp.row(5) += temp.row(8);
+            
+            temp.row(0) *= 2;
+            temp.row(1) *= 2;
+            temp.row(2) *= 2;
+            
+            temp.row(3) += terms[i].row(6);
+            temp.row(4) += terms[i].row(7);
+            temp.row(5) += terms[i].row(8);
+            temp.row(6) += terms[i].row(3);
+            temp.row(7) += terms[i].row(4);
+            temp.row(8) += terms[i].row(5);
             
             dSIGMAdPsi += temp;
         }
         return;
     }
     
-    void compute_dSIGMAdGamma(Matrix_9x27 (&terms)[2], Matrix_9x27 &dSigmadGamma){
+    void compute_dSIGMAdGamma(Matrix_9x27 (&terms)[2], Matrix_9x27 &dSIGMAdGamma){
         /*!===========================
         |    compute_dSIGMAdGamma    |
         ==============================
@@ -2681,9 +2696,16 @@ namespace micro_material{
         
         for (int i=1; i<2; i++){
             temp = terms[i];
-            temp.row(3) += temp.row(6);
-            temp.row(4) += temp.row(7);
-            temp.row(5) += temp.row(8);
+            
+            temp.row(0) *= 2.;
+            temp.row(1) *= 2.;
+            temp.row(2) *= 2.;
+            temp.row(3) += terms[i].row(6);
+            temp.row(4) += terms[i].row(7);
+            temp.row(5) += terms[i].row(8);
+            temp.row(6) += terms[i].row(3);
+            temp.row(7) += terms[i].row(4);
+            temp.row(8) += terms[i].row(5);
             
             dSIGMAdGamma += temp;
         }

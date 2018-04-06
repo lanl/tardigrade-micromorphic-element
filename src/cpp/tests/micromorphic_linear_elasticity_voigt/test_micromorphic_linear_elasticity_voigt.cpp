@@ -677,6 +677,65 @@ std::vector<double> parse_pk2_stress_RCG(std::vector<double> RCGvec){
     return PK2_vec;
 }
 
+std::vector<double> parse_symmetric_stress_RCG(std::vector<double> RCGvec){
+    /*!====================================
+    |    parse_symmetric_stress_RCG    |
+    ====================================
+    
+    Parse the symmetric stress as a function of the right cauchy-green 
+    deformation tensor in vector form.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_9 RCG_voigt;
+    Matrix_3x3 RCG;
+    
+    //Define additional required values
+    double t  = 0;
+    double dt = 0;
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    define_deformation_gradient(F);
+    define_chi(chi);
+    define_grad_phi(grad_chi); //Note: grad_chi == grad_phi
+    
+    for (int i=0; i<9; i++){RCG_voigt[i] = RCGvec[i];}
+    deformation_measures::undo_voigt_3x3_tensor(RCG_voigt,RCG);
+    Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 SIGMA;
+    micro_material::compute_symmetric_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, SIGMA);
+    
+    std::vector<double> SIGMA_vec;
+    SIGMA_vec.resize(9);
+    for (int i=0; i<9; i++){SIGMA_vec[i] = SIGMA(i);}
+    return SIGMA_vec;
+}
+
 std::vector<double> parse_pk2_stress_Psi(std::vector<double> Psivec){
     /*!==============================
     |    parse_pk2_stress_Psi    |
@@ -733,6 +792,63 @@ std::vector<double> parse_pk2_stress_Psi(std::vector<double> Psivec){
     return PK2_vec;
 }
 
+std::vector<double> parse_symmetric_stress_Psi(std::vector<double> Psivec){
+    /*!=================================
+    |    parse_symmetric_stress_Psi    |
+    ====================================
+    
+    Parse the symmetric stress in the reference configuration 
+    as a function of the deformation measure Psi in vector form.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_9 Psi_voigt;
+    Matrix_3x3 Psi;
+    
+    //Define additional required values
+    double t  = 0;
+    double dt = 0;
+    Matrix_3x3 F;
+    Matrix_3x9 grad_chi;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    define_deformation_gradient(F);
+    define_grad_phi(grad_chi); //Note: grad_chi == grad_phi
+    
+    for (int i=0; i<9; i++){Psi_voigt[i] = Psivec[i];}
+    deformation_measures::undo_voigt_3x3_tensor(Psi_voigt,Psi);
+
+    Matrix_3x3 RCG   = F.transpose()*F;
+    Matrix_3x3 RCGinv = RCG.inverse();
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 SIGMA;
+    micro_material::compute_symmetric_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, SIGMA);
+    
+    std::vector<double> SIGMA_vec;
+    SIGMA_vec.resize(9);
+    for (int i=0; i<9; i++){SIGMA_vec[i] = SIGMA(i);}
+    return SIGMA_vec;
+}
+
 std::vector<double> parse_pk2_stress_Gamma(std::vector<double> Gammavec){
     /*!================================
     |    parse_pk2_stress_Gamma    |
@@ -786,6 +902,62 @@ std::vector<double> parse_pk2_stress_Gamma(std::vector<double> Gammavec){
     PK2_vec.resize(9);
     for (int i=0; i<9; i++){PK2_vec[i] = PK2(i);}
     return PK2_vec;
+}
+
+std::vector<double> parse_symmetric_stress_Gamma(std::vector<double> Gammavec){
+    /*!======================================
+    |    parse_symmetric_stress_Gamma    |
+    ======================================
+    
+    Parse the symmetric stress as a function of the 
+    deformation measure Gamma in vector form.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_27  Gamma_voigt;
+    Matrix_3x9 Gamma;
+    
+    //Define additional required values
+    double t  = 0;
+    double dt = 0;
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    define_deformation_gradient(F);
+    define_chi(chi);
+    
+    for (int i=0; i<27; i++){Gamma_voigt[i] = Gammavec[i];}
+    deformation_measures::undo_voigt_3x9_tensor(Gamma_voigt,Gamma);
+
+    Matrix_3x3 RCG    = F.transpose()*F;
+    Matrix_3x3 RCGinv = RCG.inverse();
+    Matrix_3x3 Psi    = F.transpose()*chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 SIGMA;
+    micro_material::compute_symmetric_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, SIGMA);
+    
+    std::vector<double> SIGMA_vec;
+    SIGMA_vec.resize(9);
+    for (int i=0; i<9; i++){SIGMA_vec[i] = SIGMA(i);}
+    return SIGMA_vec;
 }
 
 int test_compute_A_voigt(std::ofstream &results){
@@ -1180,6 +1352,108 @@ int test_compute_dPK2dRCG(std::ofstream &results){
     return 1;
 }
 
+int test_compute_dSIGMAdRCG(std::ofstream &results){
+    /*!=================================
+    |    test_compute_dSIGMAdRCG    |
+    =================================
+    
+    Test the computation of the derivative of the symmetric 
+    stress in the reference configuration w.r.t. the right cauchy-green 
+    deformation tensor.
+    
+    */
+    
+    Matrix_9x9 dSIGMAdRCG; //The expected result
+    std::vector< std::vector<double> > dSIGMAdRCG_vec; //The vector form.
+    Matrix_9x9 _dSIGMAdRCG; //The result of the function.
+    
+    Matrix_3x3 F0; //The base point about which to compute the derivative
+    define_deformation_gradient(F0);
+    
+    Matrix_3x3 RCG0 = F0.transpose()*F0;
+    
+    Vector_9 RCG0_vec; //The vector form of RCG
+    deformation_measures::voigt_3x3_tensor(RCG0,RCG0_vec);
+    
+    std::vector<double> x0;
+    x0.resize(9);
+    for (int i=0; i<9; i++){x0[i] = RCG0_vec(i);}
+    
+    //Initialize the finite difference operator
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_symmetric_stress_RCG, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dSIGMAdRCG_vec = fd.numeric_gradient();
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dSIGMAdRCG_vec.size(); i++){
+        for (int j=0; j<dSIGMAdRCG_vec[i].size(); j++){
+            dSIGMAdRCG(j,i) = dSIGMAdRCG_vec[i][j];
+        }
+    }
+    
+    //Obtain the required values
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The deformation gradient
+    Matrix_3x3 chi;           //The micro-dof
+    Matrix_3x9 grad_chi;      //The gradient of the micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric stress
+    Vector_27 M;              //The higher order stress
+    
+    //Poputate the stiffness matrices
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    //Populate the required values
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    define_grad_phi(grad_chi); //Note: grad_phi == grad_chi
+    
+    Matrix_3x3 E = 0.5*(F.transpose()*F - Matrix_3x3::Identity());
+    Matrix_3x3 E_micro = F.transpose()*chi - Matrix_3x3::Identity();
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    
+    deformation_measures::voigt_3x3_tensor(E,E_voigt);
+    deformation_measures::voigt_3x3_tensor(E_micro,E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    //Evaluate the function
+    Matrix_9x9 terms[4];
+    Matrix_9x9 dPK2dRCG;
+    micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
+                                     E, E_micro, E_voigt, E_micro_voigt,
+                                     A, B, C, D, terms, dPK2dRCG);
+    micro_material::compute_dSIGMAdRCG(terms, _dSIGMAdRCG);
+    
+    bool tot_result = dSIGMAdRCG.isApprox(_dSIGMAdRCG,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dSIGMAdRCG & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dSIGMAdRCG & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
 int test_compute_dPK2dPsi(std::ofstream &results){
     /*!===============================
     |    test_compute_dPK2dPsi    |
@@ -1280,6 +1554,109 @@ int test_compute_dPK2dPsi(std::ofstream &results){
     return 1;
 }
 
+int test_compute_dSIGMAdPsi(std::ofstream &results){
+    /*!=================================
+    |    test_compute_dSIGMAdPsi    |
+    =================================
+    
+    Test the computation of the derivative of the symmetric 
+    stress in the reference configuration w.r.t. the deformation 
+    measure Psi.
+    
+    */
+    
+    Matrix_9x9 dSIGMAdPsi; //The expected result
+    std::vector< std::vector<double> > dSIGMAdPsi_vec; //The vector form.
+    Matrix_9x9 _dSIGMAdPsi; //The result of the function.
+    
+    //Define the fundamental measures
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    define_deformation_gradient(F);
+    define_chi(chi);
+    define_grad_phi(grad_chi);
+    
+    //Define the derived deformation measures
+    Matrix_3x3 RCG   = F.transpose()*F;
+    Matrix_3x3 Psi0  = F.transpose()*chi; //The base point about which to compute the derivative
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    Vector_9 Phi0_vec; //The vector form of RCG
+    deformation_measures::voigt_3x3_tensor(Psi0,Phi0_vec);
+    
+    std::vector<double> x0;
+    x0.resize(9);
+    for (int i=0; i<9; i++){x0[i] = Phi0_vec(i);}
+    
+    //Initialize the finite difference operator
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_symmetric_stress_Psi, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dSIGMAdPsi_vec = fd.numeric_gradient();
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dSIGMAdPsi_vec.size(); i++){
+        for (int j=0; j<dSIGMAdPsi_vec[i].size(); j++){
+            dSIGMAdPsi(j,i) = dSIGMAdPsi_vec[i][j];
+        }
+    }
+    
+    //Obtain the required values
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric stress
+    Vector_27 M;              //The higher order stress
+    
+    //Poputate the stiffness matrices
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    //Populate the required values
+    define_parameters(params);
+    
+    Matrix_3x3 E = 0.5*(F.transpose()*F - Matrix_3x3::Identity());
+    Matrix_3x3 E_micro = F.transpose()*chi - Matrix_3x3::Identity();
+    
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    
+    deformation_measures::voigt_3x3_tensor(E,E_voigt);
+    deformation_measures::voigt_3x3_tensor(E_micro,E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    //Evaluate the function
+    Matrix_9x9 dPK2dPsi;
+    Matrix_9x9 terms[3];
+    micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
+                                     B, D, terms, dPK2dPsi);
+    micro_material::compute_dSIGMAdPsi(terms, _dSIGMAdPsi);
+    
+    bool tot_result = dSIGMAdPsi.isApprox(_dSIGMAdPsi,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dSIGMAdPsi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dSIGMAdPsi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
 int test_compute_dPK2dGamma(std::ofstream &results){
     /*!=================================
     |    test_compute_dPK2dGamma    |
@@ -1369,14 +1746,113 @@ int test_compute_dPK2dGamma(std::ofstream &results){
     
     bool tot_result = dPK2dGamma.isApprox(_dPK2dGamma,1e-6);
     
-    std::cout << "dPK2dGamma:\n" << dPK2dGamma << "\n";
-    std::cout << "_dPK2dGamma:\n" << _dPK2dGamma << "\n";
-    
     if (tot_result){
         results << "test_compute_dPK2dGamma & True\\\\\n\\hline\n";
     }
     else {
         results << "test_compute_dPK2dGamma & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_dSIGMAdGamma(std::ofstream &results){
+    /*!===================================
+    |    test_compute_dSIGMAdGamma    |
+    ===================================
+    
+    Test the computation of the derivative of the symmetric 
+    stress in the reference configuration w.r.t. the 
+    deformation measure Gamma.
+    
+    */
+    
+    Matrix_9x27 dSIGMAdGamma;                            //The expected result
+    std::vector< std::vector<double> > dSIGMAdGamma_vec; //The vector form.
+    Matrix_9x27 _dSIGMAdGamma;                           //The result of the function.
+    
+    //Define the fundamental measures
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    define_deformation_gradient(F);
+    define_chi(chi);
+    define_grad_phi(grad_chi);
+    
+    //Define the derived deformation measures
+    Matrix_3x3 RCG    = F.transpose()*F;
+    Matrix_3x3 Psi    = F.transpose()*chi; //The base point about which to compute the derivative
+    Matrix_3x9 Gamma0 = F.transpose()*grad_chi;
+    
+    Vector_27 Gamma0_vec; //The vector form of RCG
+    deformation_measures::voigt_3x9_tensor(Gamma0,Gamma0_vec);
+    
+    std::vector<double> x0;
+    x0.resize(27);
+    for (int i=0; i<27; i++){x0[i] = Gamma0_vec(i);}
+    
+    //Initialize the finite difference operator
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_symmetric_stress_Gamma, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dSIGMAdGamma_vec = fd.numeric_gradient();
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dSIGMAdGamma_vec.size(); i++){
+        for (int j=0; j<dSIGMAdGamma_vec[i].size(); j++){
+            dSIGMAdGamma(j,i) = dSIGMAdGamma_vec[i][j];
+        }
+    }
+    
+    //Obtain the required values
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric stress
+    Vector_27 M;              //The higher order stress
+    
+    //Poputate the stiffness matrices
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    //Populate the required values
+    define_parameters(params);
+    
+    Matrix_3x3 E = 0.5*(F.transpose()*F - Matrix_3x3::Identity());
+    Matrix_3x3 E_micro = F.transpose()*chi - Matrix_3x3::Identity();
+    
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    
+    deformation_measures::voigt_3x3_tensor(E,E_voigt);
+    deformation_measures::voigt_3x3_tensor(E_micro,E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma0,Gamma_voigt);
+    
+    //Evaluate the function
+    Matrix_9x27 dPK2dGamma;
+    Matrix_9x27 terms[2];
+    micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C, terms, dPK2dGamma);
+    micro_material::compute_dSIGMAdGamma(terms, _dSIGMAdGamma);
+    
+    bool tot_result = dSIGMAdGamma.isApprox(_dSIGMAdGamma,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dSIGMAdGamma & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dSIGMAdGamma & False\\\\\n\\hline\n";
     }
 
     return 1;
@@ -1459,7 +1935,9 @@ int main(){
     test_compute_higher_order_stress(results);
     test_map_stresses_to_current_configuration(results);
     test_compute_dPK2dRCG(results);
+    test_compute_dSIGMAdRCG(results);
     test_compute_dPK2dPsi(results);
+    test_compute_dSIGMAdPsi(results);
     test_compute_dPK2dGamma(results);
     test_compute_dAinvdA(results);
 
