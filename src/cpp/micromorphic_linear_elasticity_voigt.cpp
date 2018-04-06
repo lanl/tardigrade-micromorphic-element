@@ -968,6 +968,308 @@ namespace micro_material{
         return;
     }
     
+    void compute_dGammadF(const Vector_27 &grad_chi, SpMat &dGammadF){
+        /*!==========================
+        |    compute_dGammadF    |
+        ==========================
+        
+        Compute the derivative of gamma w.r.t. F.
+        
+        */
+        
+        //Initialize the tripletList
+        std::vector<T> tripletList;
+        tripletList.reserve(81);
+
+        //Extract grad_chi
+        double grad_chi111 = grad_chi(0);
+        double grad_chi122 = grad_chi(1);
+        double grad_chi133 = grad_chi(2);
+        double grad_chi123 = grad_chi(3);
+        double grad_chi113 = grad_chi(4);
+        double grad_chi112 = grad_chi(5);
+        double grad_chi132 = grad_chi(6);
+        double grad_chi131 = grad_chi(7);
+        double grad_chi121 = grad_chi(8);
+        double grad_chi211 = grad_chi(9);
+        double grad_chi222 = grad_chi(10);
+        double grad_chi233 = grad_chi(11);
+        double grad_chi223 = grad_chi(12);
+        double grad_chi213 = grad_chi(13);
+        double grad_chi212 = grad_chi(14);
+        double grad_chi232 = grad_chi(15);
+        double grad_chi231 = grad_chi(16);
+        double grad_chi221 = grad_chi(17);
+        double grad_chi311 = grad_chi(18);
+        double grad_chi322 = grad_chi(19);
+        double grad_chi333 = grad_chi(20);
+        double grad_chi323 = grad_chi(21);
+        double grad_chi313 = grad_chi(22);
+        double grad_chi312 = grad_chi(23);
+        double grad_chi332 = grad_chi(24);
+        double grad_chi331 = grad_chi(25);
+        double grad_chi321 = grad_chi(26);
+
+         //Assemble dGammadF
+        tripletList.push_back(T(0,0,grad_chi111));
+        tripletList.push_back(T(0,7,grad_chi311));
+        tripletList.push_back(T(0,8,grad_chi211));
+        tripletList.push_back(T(1,0,grad_chi122));
+        tripletList.push_back(T(1,7,grad_chi322));
+        tripletList.push_back(T(1,8,grad_chi222));
+        tripletList.push_back(T(2,0,grad_chi133));
+        tripletList.push_back(T(2,7,grad_chi333));
+        tripletList.push_back(T(2,8,grad_chi233));
+        tripletList.push_back(T(3,0,grad_chi123));
+        tripletList.push_back(T(3,7,grad_chi323));
+        tripletList.push_back(T(3,8,grad_chi223));
+        tripletList.push_back(T(4,0,grad_chi113));
+        tripletList.push_back(T(4,7,grad_chi313));
+        tripletList.push_back(T(4,8,grad_chi213));
+        tripletList.push_back(T(5,0,grad_chi112));
+        tripletList.push_back(T(5,7,grad_chi312));
+        tripletList.push_back(T(5,8,grad_chi212));
+        tripletList.push_back(T(6,0,grad_chi132));
+        tripletList.push_back(T(6,7,grad_chi332));
+        tripletList.push_back(T(6,8,grad_chi232));
+        tripletList.push_back(T(7,0,grad_chi131));
+        tripletList.push_back(T(7,7,grad_chi331));
+        tripletList.push_back(T(7,8,grad_chi231));
+        tripletList.push_back(T(8,0,grad_chi121));
+        tripletList.push_back(T(8,7,grad_chi321));
+        tripletList.push_back(T(8,8,grad_chi221));
+        tripletList.push_back(T(9,1,grad_chi211));
+        tripletList.push_back(T(9,5,grad_chi111));
+        tripletList.push_back(T(9,6,grad_chi311));
+        tripletList.push_back(T(10,1,grad_chi222));
+        tripletList.push_back(T(10,5,grad_chi122));
+        tripletList.push_back(T(10,6,grad_chi322));
+        tripletList.push_back(T(11,1,grad_chi233));
+        tripletList.push_back(T(11,5,grad_chi133));
+        tripletList.push_back(T(11,6,grad_chi333));
+        tripletList.push_back(T(12,1,grad_chi223));
+        tripletList.push_back(T(12,5,grad_chi123));
+        tripletList.push_back(T(12,6,grad_chi323));
+        tripletList.push_back(T(13,1,grad_chi213));
+        tripletList.push_back(T(13,5,grad_chi113));
+        tripletList.push_back(T(13,6,grad_chi313));
+        tripletList.push_back(T(14,1,grad_chi212));
+        tripletList.push_back(T(14,5,grad_chi112));
+        tripletList.push_back(T(14,6,grad_chi312));
+        tripletList.push_back(T(15,1,grad_chi232));
+        tripletList.push_back(T(15,5,grad_chi132));
+        tripletList.push_back(T(15,6,grad_chi332));
+        tripletList.push_back(T(16,1,grad_chi231));
+        tripletList.push_back(T(16,5,grad_chi131));
+        tripletList.push_back(T(16,6,grad_chi331));
+        tripletList.push_back(T(17,1,grad_chi221));
+        tripletList.push_back(T(17,5,grad_chi121));
+        tripletList.push_back(T(17,6,grad_chi321));
+        tripletList.push_back(T(18,2,grad_chi311));
+        tripletList.push_back(T(18,3,grad_chi211));
+        tripletList.push_back(T(18,4,grad_chi111));
+        tripletList.push_back(T(19,2,grad_chi322));
+        tripletList.push_back(T(19,3,grad_chi222));
+        tripletList.push_back(T(19,4,grad_chi122));
+        tripletList.push_back(T(20,2,grad_chi333));
+        tripletList.push_back(T(20,3,grad_chi233));
+        tripletList.push_back(T(20,4,grad_chi133));
+        tripletList.push_back(T(21,2,grad_chi323));
+        tripletList.push_back(T(21,3,grad_chi223));
+        tripletList.push_back(T(21,4,grad_chi123));
+        tripletList.push_back(T(22,2,grad_chi313));
+        tripletList.push_back(T(22,3,grad_chi213));
+        tripletList.push_back(T(22,4,grad_chi113));
+        tripletList.push_back(T(23,2,grad_chi312));
+        tripletList.push_back(T(23,3,grad_chi212));
+        tripletList.push_back(T(23,4,grad_chi112));
+        tripletList.push_back(T(24,2,grad_chi332));
+        tripletList.push_back(T(24,3,grad_chi232));
+        tripletList.push_back(T(24,4,grad_chi132));
+        tripletList.push_back(T(25,2,grad_chi331));
+        tripletList.push_back(T(25,3,grad_chi231));
+        tripletList.push_back(T(25,4,grad_chi131));
+        tripletList.push_back(T(26,2,grad_chi321));
+        tripletList.push_back(T(26,3,grad_chi221));
+        tripletList.push_back(T(26,4,grad_chi121));
+        
+        dGammadF.setFromTriplets(tripletList.begin(), tripletList.end());
+        return;
+    }
+    
+    void compute_dPsidchi(const Matrix_3x3 &F, SpMat &dPsidchi){
+        /*!==========================
+        |    compute_dPsidchi    |
+        ==========================
+        
+        Compute the derivative of Psi with respect to chi.
+        
+        */
+        
+        //Initialize the tripletList
+        std::vector<T> tripletList;
+        tripletList.reserve(27);
+
+        //Extract F
+        double F11 = F(0,0);
+        double F12 = F(0,1);
+        double F13 = F(0,2);
+        double F21 = F(1,0);
+        double F22 = F(1,1);
+        double F23 = F(1,2);
+        double F31 = F(2,0);
+        double F32 = F(2,1);
+        double F33 = F(2,2);
+
+        //Assemble dPsidchi
+        tripletList.push_back(T(0,0,F11));
+        tripletList.push_back(T(0,7,F31));
+        tripletList.push_back(T(0,8,F21));
+        tripletList.push_back(T(1,1,F22));
+        tripletList.push_back(T(1,5,F12));
+        tripletList.push_back(T(1,6,F32));
+        tripletList.push_back(T(2,2,F33));
+        tripletList.push_back(T(2,3,F23));
+        tripletList.push_back(T(2,4,F13));
+        tripletList.push_back(T(3,2,F32));
+        tripletList.push_back(T(3,3,F22));
+        tripletList.push_back(T(3,4,F12));
+        tripletList.push_back(T(4,2,F31));
+        tripletList.push_back(T(4,3,F21));
+        tripletList.push_back(T(4,4,F11));
+        tripletList.push_back(T(5,1,F21));
+        tripletList.push_back(T(5,5,F11));
+        tripletList.push_back(T(5,6,F31));
+        tripletList.push_back(T(6,1,F23));
+        tripletList.push_back(T(6,5,F13));
+        tripletList.push_back(T(6,6,F33));
+        tripletList.push_back(T(7,0,F13));
+        tripletList.push_back(T(7,7,F33));
+        tripletList.push_back(T(7,8,F23));
+        tripletList.push_back(T(8,0,F12));
+        tripletList.push_back(T(8,7,F32));
+        tripletList.push_back(T(8,8,F22));
+        
+        dPsidchi.setFromTriplets(tripletList.begin(), tripletList.end());
+        return;
+    }
+    
+    void compute_dGammadgrad_chi(const Matrix_3x3 &F, SpMat &dGammadgrad_chi){
+        /*!=================================
+        |    compute_dGammadgrad_chi    |
+        =================================
+        
+        Computes the gradient of gamma w.r.t. the gradient 
+        of chi.
+        
+        NOTE: The gradient of chi is assumed to be in the reference
+              configuration. This means Gamma is defined as
+              
+              Gamma_IJK = F_iI chi_iJ,K
+        */
+        
+        //Initialize the tripletList
+        std::vector<T> tripletList;
+        tripletList.reserve(81);
+
+        //Extract F
+        double F11 = F(0,0);
+        double F12 = F(0,1);
+        double F13 = F(0,2);
+        double F21 = F(1,0);
+        double F22 = F(1,1);
+        double F23 = F(1,2);
+        double F31 = F(2,0);
+        double F32 = F(2,1);
+        double F33 = F(2,2);
+
+        //Assemble dGammadgrad_chi
+        tripletList.push_back(T(0,0,F11));
+        tripletList.push_back(T(0,9,F21));
+        tripletList.push_back(T(0,18,F31));
+        tripletList.push_back(T(1,1,F11));
+        tripletList.push_back(T(1,10,F21));
+        tripletList.push_back(T(1,19,F31));
+        tripletList.push_back(T(2,2,F11));
+        tripletList.push_back(T(2,11,F21));
+        tripletList.push_back(T(2,20,F31));
+        tripletList.push_back(T(3,3,F11));
+        tripletList.push_back(T(3,12,F21));
+        tripletList.push_back(T(3,21,F31));
+        tripletList.push_back(T(4,4,F11));
+        tripletList.push_back(T(4,13,F21));
+        tripletList.push_back(T(4,22,F31));
+        tripletList.push_back(T(5,5,F11));
+        tripletList.push_back(T(5,14,F21));
+        tripletList.push_back(T(5,23,F31));
+        tripletList.push_back(T(6,6,F11));
+        tripletList.push_back(T(6,15,F21));
+        tripletList.push_back(T(6,24,F31));
+        tripletList.push_back(T(7,7,F11));
+        tripletList.push_back(T(7,16,F21));
+        tripletList.push_back(T(7,25,F31));
+        tripletList.push_back(T(8,8,F11));
+        tripletList.push_back(T(8,17,F21));
+        tripletList.push_back(T(8,26,F31));
+        tripletList.push_back(T(9,0,F12));
+        tripletList.push_back(T(9,9,F22));
+        tripletList.push_back(T(9,18,F32));
+        tripletList.push_back(T(10,1,F12));
+        tripletList.push_back(T(10,10,F22));
+        tripletList.push_back(T(10,19,F32));
+        tripletList.push_back(T(11,2,F12));
+        tripletList.push_back(T(11,11,F22));
+        tripletList.push_back(T(11,20,F32));
+        tripletList.push_back(T(12,3,F12));
+        tripletList.push_back(T(12,12,F22));
+        tripletList.push_back(T(12,21,F32));
+        tripletList.push_back(T(13,4,F12));
+        tripletList.push_back(T(13,13,F22));
+        tripletList.push_back(T(13,22,F32));
+        tripletList.push_back(T(14,5,F12));
+        tripletList.push_back(T(14,14,F22));
+        tripletList.push_back(T(14,23,F32));
+        tripletList.push_back(T(15,6,F12));
+        tripletList.push_back(T(15,15,F22));
+        tripletList.push_back(T(15,24,F32));
+        tripletList.push_back(T(16,7,F12));
+        tripletList.push_back(T(16,16,F22));
+        tripletList.push_back(T(16,25,F32));
+        tripletList.push_back(T(17,8,F12));
+        tripletList.push_back(T(17,17,F22));
+        tripletList.push_back(T(17,26,F32));
+        tripletList.push_back(T(18,0,F13));
+        tripletList.push_back(T(18,9,F23));
+        tripletList.push_back(T(18,18,F33));
+        tripletList.push_back(T(19,1,F13));
+        tripletList.push_back(T(19,10,F23));
+        tripletList.push_back(T(19,19,F33));
+        tripletList.push_back(T(20,2,F13));
+        tripletList.push_back(T(20,11,F23));
+        tripletList.push_back(T(20,20,F33));
+        tripletList.push_back(T(21,3,F13));
+        tripletList.push_back(T(21,12,F23));
+        tripletList.push_back(T(21,21,F33));
+        tripletList.push_back(T(22,4,F13));
+        tripletList.push_back(T(22,13,F23));
+        tripletList.push_back(T(22,22,F33));
+        tripletList.push_back(T(23,5,F13));
+        tripletList.push_back(T(23,14,F23));
+        tripletList.push_back(T(23,23,F33));
+        tripletList.push_back(T(24,6,F13));
+        tripletList.push_back(T(24,15,F23));
+        tripletList.push_back(T(24,24,F33));
+        tripletList.push_back(T(25,7,F13));
+        tripletList.push_back(T(25,16,F23));
+        tripletList.push_back(T(25,25,F33));
+        tripletList.push_back(T(26,8,F13));
+        tripletList.push_back(T(26,17,F23));
+        tripletList.push_back(T(26,26,F33));
+        
+        dGammadgrad_chi.setFromTriplets(tripletList.begin(), tripletList.end());
+        return;
+    }
+    
     void compute_dPK2dRCG(const Matrix_3x3 &RCG, const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma, const Vector_27 &Gamma_voigt,
                           const Matrix_3x3 &E, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
                           const SpMat &A,      const SpMat &B,        const SpMat &C,  const SpMat &D, Matrix_9x9 &dPK2dRCG){
@@ -2709,6 +3011,249 @@ namespace micro_material{
             
             dSIGMAdGamma += temp;
         }
+        return;
+    }
+    
+    void compute_dgrad_chidgrad_phi(const Matrix_3x3 &F, SpMat &dgrad_chidgrad_phi){
+        /*!====================================
+        |    compute_dgrad_chidgrad_phi    |
+        ====================================
+        
+        Compute the gradient of the gradient of chi w.r.t. the gradient of phi.
+        
+        Note: We assume that grad_phi is a gradient of phi in the current configuration.
+        
+        */
+        
+        //Initialize the tripletList
+        std::vector<T> tripletList;
+        tripletList.reserve(81);
+
+        //Extract F
+        double F11 = F(0,0);
+        double F12 = F(0,1);
+        double F13 = F(0,2);
+        double F21 = F(1,0);
+        double F22 = F(1,1);
+        double F23 = F(1,2);
+        double F31 = F(2,0);
+        double F32 = F(2,1);
+        double F33 = F(2,2);
+
+        //Assemble dgrad_chidgrad_phi
+        tripletList.push_back(T(0,0,F11));
+        tripletList.push_back(T(0,4,F31));
+        tripletList.push_back(T(0,5,F21));
+        tripletList.push_back(T(1,1,F22));
+        tripletList.push_back(T(1,3,F32));
+        tripletList.push_back(T(1,8,F12));
+        tripletList.push_back(T(2,2,F33));
+        tripletList.push_back(T(2,6,F23));
+        tripletList.push_back(T(2,7,F13));
+        tripletList.push_back(T(3,1,F23));
+        tripletList.push_back(T(3,3,F33));
+        tripletList.push_back(T(3,8,F13));
+        tripletList.push_back(T(4,0,F13));
+        tripletList.push_back(T(4,4,F33));
+        tripletList.push_back(T(4,5,F23));
+        tripletList.push_back(T(5,0,F12));
+        tripletList.push_back(T(5,4,F32));
+        tripletList.push_back(T(5,5,F22));
+        tripletList.push_back(T(6,2,F32));
+        tripletList.push_back(T(6,6,F22));
+        tripletList.push_back(T(6,7,F12));
+        tripletList.push_back(T(7,2,F31));
+        tripletList.push_back(T(7,6,F21));
+        tripletList.push_back(T(7,7,F11));
+        tripletList.push_back(T(8,1,F21));
+        tripletList.push_back(T(8,3,F31));
+        tripletList.push_back(T(8,8,F11));
+        tripletList.push_back(T(9,9,F11));
+        tripletList.push_back(T(9,13,F31));
+        tripletList.push_back(T(9,14,F21));
+        tripletList.push_back(T(10,10,F22));
+        tripletList.push_back(T(10,12,F32));
+        tripletList.push_back(T(10,17,F12));
+        tripletList.push_back(T(11,11,F33));
+        tripletList.push_back(T(11,15,F23));
+        tripletList.push_back(T(11,16,F13));
+        tripletList.push_back(T(12,10,F23));
+        tripletList.push_back(T(12,12,F33));
+        tripletList.push_back(T(12,17,F13));
+        tripletList.push_back(T(13,9,F13));
+        tripletList.push_back(T(13,13,F33));
+        tripletList.push_back(T(13,14,F23));
+        tripletList.push_back(T(14,9,F12));
+        tripletList.push_back(T(14,13,F32));
+        tripletList.push_back(T(14,14,F22));
+        tripletList.push_back(T(15,11,F32));
+        tripletList.push_back(T(15,15,F22));
+        tripletList.push_back(T(15,16,F12));
+        tripletList.push_back(T(16,11,F31));
+        tripletList.push_back(T(16,15,F21));
+        tripletList.push_back(T(16,16,F11));
+        tripletList.push_back(T(17,10,F21));
+        tripletList.push_back(T(17,12,F31));
+        tripletList.push_back(T(17,17,F11));
+        tripletList.push_back(T(18,18,F11));
+        tripletList.push_back(T(18,22,F31));
+        tripletList.push_back(T(18,23,F21));
+        tripletList.push_back(T(19,19,F22));
+        tripletList.push_back(T(19,21,F32));
+        tripletList.push_back(T(19,26,F12));
+        tripletList.push_back(T(20,20,F33));
+        tripletList.push_back(T(20,24,F23));
+        tripletList.push_back(T(20,25,F13));
+        tripletList.push_back(T(21,19,F23));
+        tripletList.push_back(T(21,21,F33));
+        tripletList.push_back(T(21,26,F13));
+        tripletList.push_back(T(22,18,F13));
+        tripletList.push_back(T(22,22,F33));
+        tripletList.push_back(T(22,23,F23));
+        tripletList.push_back(T(23,18,F12));
+        tripletList.push_back(T(23,22,F32));
+        tripletList.push_back(T(23,23,F22));
+        tripletList.push_back(T(24,20,F32));
+        tripletList.push_back(T(24,24,F22));
+        tripletList.push_back(T(24,25,F12));
+        tripletList.push_back(T(25,20,F31));
+        tripletList.push_back(T(25,24,F21));
+        tripletList.push_back(T(25,25,F11));
+        tripletList.push_back(T(26,19,F21));
+        tripletList.push_back(T(26,21,F31));
+        tripletList.push_back(T(26,26,F11));
+        
+        dgrad_chidgrad_phi.setFromTriplets(tripletList.begin(), tripletList.end());
+        return;
+    }
+    
+    void compute_dgrad_chidF(const Vector_27 &grad_phi, SpMat &dgrad_chidF){
+        /*!=============================
+        |    compute_dgrad_chidF    |
+        =============================
+        
+        Compute the gradient of grad_chi w.r.t. the deformation gradient.
+        
+        Note: We assume that grad_phi is a gradient of phi in the current configuration
+        
+        */
+        //Initialize the tripletList
+        std::vector<T> tripletList;
+        tripletList.reserve(81);
+
+        //Extract grad_phi
+        double grad_phi111 = grad_phi(0);
+        double grad_phi122 = grad_phi(1);
+        double grad_phi133 = grad_phi(2);
+        double grad_phi123 = grad_phi(3);
+        double grad_phi113 = grad_phi(4);
+        double grad_phi112 = grad_phi(5);
+        double grad_phi132 = grad_phi(6);
+        double grad_phi131 = grad_phi(7);
+        double grad_phi121 = grad_phi(8);
+        double grad_phi211 = grad_phi(9);
+        double grad_phi222 = grad_phi(10);
+        double grad_phi233 = grad_phi(11);
+        double grad_phi223 = grad_phi(12);
+        double grad_phi213 = grad_phi(13);
+        double grad_phi212 = grad_phi(14);
+        double grad_phi232 = grad_phi(15);
+        double grad_phi231 = grad_phi(16);
+        double grad_phi221 = grad_phi(17);
+        double grad_phi311 = grad_phi(18);
+        double grad_phi322 = grad_phi(19);
+        double grad_phi333 = grad_phi(20);
+        double grad_phi323 = grad_phi(21);
+        double grad_phi313 = grad_phi(22);
+        double grad_phi312 = grad_phi(23);
+        double grad_phi332 = grad_phi(24);
+        double grad_phi331 = grad_phi(25);
+        double grad_phi321 = grad_phi(26);
+
+        //Assemble dgrad_chidgrad_phi
+        tripletList.push_back(T(0,0,grad_phi111));
+        tripletList.push_back(T(0,7,grad_phi113));
+        tripletList.push_back(T(0,8,grad_phi112));
+        tripletList.push_back(T(1,1,grad_phi122));
+        tripletList.push_back(T(1,5,grad_phi121));
+        tripletList.push_back(T(1,6,grad_phi123));
+        tripletList.push_back(T(2,2,grad_phi133));
+        tripletList.push_back(T(2,3,grad_phi132));
+        tripletList.push_back(T(2,4,grad_phi131));
+        tripletList.push_back(T(3,2,grad_phi123));
+        tripletList.push_back(T(3,3,grad_phi122));
+        tripletList.push_back(T(3,4,grad_phi121));
+        tripletList.push_back(T(4,2,grad_phi113));
+        tripletList.push_back(T(4,3,grad_phi112));
+        tripletList.push_back(T(4,4,grad_phi111));
+        tripletList.push_back(T(5,1,grad_phi112));
+        tripletList.push_back(T(5,5,grad_phi111));
+        tripletList.push_back(T(5,6,grad_phi113));
+        tripletList.push_back(T(6,1,grad_phi132));
+        tripletList.push_back(T(6,5,grad_phi131));
+        tripletList.push_back(T(6,6,grad_phi133));
+        tripletList.push_back(T(7,0,grad_phi131));
+        tripletList.push_back(T(7,7,grad_phi133));
+        tripletList.push_back(T(7,8,grad_phi132));
+        tripletList.push_back(T(8,0,grad_phi121));
+        tripletList.push_back(T(8,7,grad_phi123));
+        tripletList.push_back(T(8,8,grad_phi122));
+        tripletList.push_back(T(9,0,grad_phi211));
+        tripletList.push_back(T(9,7,grad_phi213));
+        tripletList.push_back(T(9,8,grad_phi212));
+        tripletList.push_back(T(10,1,grad_phi222));
+        tripletList.push_back(T(10,5,grad_phi221));
+        tripletList.push_back(T(10,6,grad_phi223));
+        tripletList.push_back(T(11,2,grad_phi233));
+        tripletList.push_back(T(11,3,grad_phi232));
+        tripletList.push_back(T(11,4,grad_phi231));
+        tripletList.push_back(T(12,2,grad_phi223));
+        tripletList.push_back(T(12,3,grad_phi222));
+        tripletList.push_back(T(12,4,grad_phi221));
+        tripletList.push_back(T(13,2,grad_phi213));
+        tripletList.push_back(T(13,3,grad_phi212));
+        tripletList.push_back(T(13,4,grad_phi211));
+        tripletList.push_back(T(14,1,grad_phi212));
+        tripletList.push_back(T(14,5,grad_phi211));
+        tripletList.push_back(T(14,6,grad_phi213));
+        tripletList.push_back(T(15,1,grad_phi232));
+        tripletList.push_back(T(15,5,grad_phi231));
+        tripletList.push_back(T(15,6,grad_phi233));
+        tripletList.push_back(T(16,0,grad_phi231));
+        tripletList.push_back(T(16,7,grad_phi233));
+        tripletList.push_back(T(16,8,grad_phi232));
+        tripletList.push_back(T(17,0,grad_phi221));
+        tripletList.push_back(T(17,7,grad_phi223));
+        tripletList.push_back(T(17,8,grad_phi222));
+        tripletList.push_back(T(18,0,grad_phi311));
+        tripletList.push_back(T(18,7,grad_phi313));
+        tripletList.push_back(T(18,8,grad_phi312));
+        tripletList.push_back(T(19,1,grad_phi322));
+        tripletList.push_back(T(19,5,grad_phi321));
+        tripletList.push_back(T(19,6,grad_phi323));
+        tripletList.push_back(T(20,2,grad_phi333));
+        tripletList.push_back(T(20,3,grad_phi332));
+        tripletList.push_back(T(20,4,grad_phi331));
+        tripletList.push_back(T(21,2,grad_phi323));
+        tripletList.push_back(T(21,3,grad_phi322));
+        tripletList.push_back(T(21,4,grad_phi321));
+        tripletList.push_back(T(22,2,grad_phi313));
+        tripletList.push_back(T(22,3,grad_phi312));
+        tripletList.push_back(T(22,4,grad_phi311));
+        tripletList.push_back(T(23,1,grad_phi312));
+        tripletList.push_back(T(23,5,grad_phi311));
+        tripletList.push_back(T(23,6,grad_phi313));
+        tripletList.push_back(T(24,1,grad_phi332));
+        tripletList.push_back(T(24,5,grad_phi331));
+        tripletList.push_back(T(24,6,grad_phi333));
+        tripletList.push_back(T(25,0,grad_phi331));
+        tripletList.push_back(T(25,7,grad_phi333));
+        tripletList.push_back(T(25,8,grad_phi332));
+        tripletList.push_back(T(26,0,grad_phi321));
+        tripletList.push_back(T(26,7,grad_phi323));
+        tripletList.push_back(T(26,8,grad_phi322));
+        
+        dgrad_chidF.setFromTriplets(tripletList.begin(), tripletList.end());
         return;
     }
 }
