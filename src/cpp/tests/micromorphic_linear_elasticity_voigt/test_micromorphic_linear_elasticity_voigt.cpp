@@ -1111,6 +1111,54 @@ std::vector<double> parse_grad_chi_grad_phi(std::vector<double> grad_phivec){
     return grad_chi_vec;
 }
 
+std::vector<double> parse_grad_chi_F(std::vector<double> Fvec){
+    /*!=======================
+    |    parse_Gamma_F    |
+    =======================
+    
+    Parse Gamma with respect to the 
+    deformation gradient.
+    
+    */
+    
+    Matrix_3x9 grad_phi;
+    Matrix_3x3 F;
+    Vector_9   F_voigt;
+    
+    double grad_phi_tmp[9][3] = {{0.268677941492,  0.0956706826016, 0.325269776806},
+                                 {0.638467644829,  0.997489522961,  0.173494630408},
+                                 {0.81125862445,   0.224706569702,  0.514463248854},
+                                 {0.748926548687,  0.1079833322,    0.797424154102},
+                                 {0.0782798344482, 0.324585039367,  0.032983492952},
+                                 {0.84359324251,   0.602202553902,  0.165660665757},
+                                 {0.117005479066,  0.476022110021,  0.00730531427893},
+                                 {0.792163708315,  0.968709140644,  0.0352176264845},
+                                 {0.585823963851,  0.611515761521,  0.0102566326533}};
+    
+    //Put grad_phi into matrix form
+    deformation_measures::assemble_grad_chi(grad_phi_tmp,Matrix_3x3::Identity(),grad_phi);
+    
+    for (int i=0; i<9; i++){F_voigt(i) = Fvec[i];}
+    deformation_measures::undo_voigt_3x3_tensor(F_voigt,F);
+    
+    Matrix_3x9 grad_chi;
+    Vector_27  grad_chi_voigt;
+    Vector_27  grad_phi_voigt;
+    
+    deformation_measures::voigt_3x9_tensor(grad_phi,grad_phi_voigt);
+    deformation_measures::perform_right_positive_cyclic_permutation(grad_phi_voigt);
+    deformation_measures::undo_voigt_3x9_tensor(grad_phi_voigt,grad_phi);
+    grad_chi = F.transpose()*grad_phi;
+    deformation_measures::voigt_3x9_tensor(grad_chi,grad_chi_voigt);
+    deformation_measures::perform_left_positive_cyclic_permutation(grad_chi_voigt);
+    
+    std::vector<double> grad_chi_vec;
+    grad_chi_vec.resize(27);
+    
+    for (int i=0; i<27; i++){grad_chi_vec[i] = grad_chi_voigt(i);}
+    return grad_chi_vec;
+}
+
 std::vector<double> parse_Gamma_grad_chi(std::vector<double> grad_chivec){
     /*!==============================
     |    parse_Gamma_grad_chi    |
@@ -2440,14 +2488,84 @@ int test_compute_dgrad_chidgrad_phi(std::ofstream &results){
     Matrix_27x27 _dgrad_chidgrad_phi_dense = _dgrad_chidgrad_phi;
     bool tot_result = dgrad_chidgrad_phi.isApprox(_dgrad_chidgrad_phi_dense,1e-6);
     
-    std::cout << "dgrad_chidgrad_phi:\n" << dgrad_chidgrad_phi << "\n";
-    std::cout << "_dgrad_chidgrad_phi:\n" << _dgrad_chidgrad_phi_dense << "\n";
-    
     if (tot_result){
         results << "test_compute_dgrad_chidgrad_phi & True\\\\\n\\hline\n";
     }
     else {
         results << "test_compute_dgrad_chidgrad_phi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_dgrad_chidF(std::ofstream &results){
+    /*!==================================
+    |    test_compute_dgrad_chidF    |
+    ==================================
+    
+    Test the computation of the gradient of chi w.r.t. 
+    the deformation gradient.
+    
+    Note: We assume that the phi is the gradient in the 
+          current configuration.
+    */
+    
+    Matrix_27x9 dgrad_chidF; //The expected result
+    std::vector< std::vector<double> > dgrad_chidF_vec; //Output from the finite_difference
+    SpMat _dgrad_chidF(27,9); //The function result
+    
+    
+    //Define the required fundamental measures
+    Matrix_3x3 F0;
+    define_deformation_gradient(F0);
+    Matrix_3x9 grad_phi;
+    define_grad_phi(grad_phi);
+    Vector_27 grad_phi_voigt;
+    double grad_phi_tmp[9][3] = {{0.268677941492,  0.0956706826016, 0.325269776806},
+                                 {0.638467644829,  0.997489522961,  0.173494630408},
+                                 {0.81125862445,   0.224706569702,  0.514463248854},
+                                 {0.748926548687,  0.1079833322,    0.797424154102},
+                                 {0.0782798344482, 0.324585039367,  0.032983492952},
+                                 {0.84359324251,   0.602202553902,  0.165660665757},
+                                 {0.117005479066,  0.476022110021,  0.00730531427893},
+                                 {0.792163708315,  0.968709140644,  0.0352176264845},
+                                 {0.585823963851,  0.611515761521,  0.0102566326533}};
+    
+    //Put grad_phi into matrix form
+    deformation_measures::assemble_grad_chi(grad_phi_tmp,Matrix_3x3::Identity(),grad_phi);
+    deformation_measures::voigt_3x9_tensor(grad_phi,grad_phi_voigt);
+    
+    Vector_9 F_vec; //The vector form of grad_chi
+    deformation_measures::voigt_3x3_tensor(F0,F_vec);
+    
+    std::vector<double> x0;
+    x0.resize(9);
+    for (int i=0; i<9; i++){x0[i] = F_vec(i);}
+    
+    //Initialize the finite difference operator
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_grad_chi_F, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dgrad_chidF_vec = fd.numeric_gradient();
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dgrad_chidF_vec.size(); i++){
+        for (int j=0; j<dgrad_chidF_vec[i].size(); j++){
+            dgrad_chidF(j,i) = dgrad_chidF_vec[i][j];
+        }
+    }
+    
+    micro_material::compute_dgrad_chidF(grad_phi_voigt,_dgrad_chidF);
+    
+    Matrix_27x9 _dgrad_chidF_dense = _dgrad_chidF;
+    bool tot_result = dgrad_chidF.isApprox(_dgrad_chidF_dense,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dgrad_chidF & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dgrad_chidF & False\\\\\n\\hline\n";
     }
 
     return 1;
@@ -2488,6 +2606,7 @@ int main(){
     test_compute_dGammadF(results);
     test_compute_dGammadgrad_chi(results);
     test_compute_dgrad_chidgrad_phi(results);
+    test_compute_dgrad_chidF(results);
 
     //Close the results file
     results.close();
