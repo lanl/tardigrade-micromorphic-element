@@ -5056,4 +5056,86 @@ namespace deformation_measures
         dgrad_chidF.setFromTriplets(tripletList.begin(), tripletList.end());
         return;
     }
+    
+    void compute_ddetAdA(const Matrix_3x3 &A, Matrix_3x3 &ddetAdA){
+        /*!======================
+        |    compute_dJdF    |
+        ======================
+        
+        Compute the derivative of the determinant of the second order tensor A 
+        w.r.t. A.
+        
+        */
+        
+        double detA = A.determinant();
+        
+        Matrix_3x3 Ainv = A.inverse();
+        
+        ddetAdA = detA*Ainv.transpose();
+        
+        return;
+    }
+    
+    void map_stresses_to_current_configuration(const Matrix_3x3 &F, const Matrix_3x3 &chi,
+                                               const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M,
+                                               Vector_9 &cauchy, Vector_9 &s, Vector_27 &m){
+        /*!===============================================
+        |    map_stresses_to_current_configuration    |
+        ===============================================
+
+        Map the stresses to the current configuration.
+
+        */
+
+        //Compute the jacobian of deformation
+        double Jac = F.determinant();
+
+        //Map the PK2 stress to the cauchy stress
+        Matrix_3x3 PK2_mat;
+        undo_voigt_3x3_tensor(PK2,PK2_mat);
+        voigt_3x3_tensor(F*PK2_mat*F.transpose()/Jac,cauchy);
+
+        //Map the symmetric stress to the current configuration
+        Matrix_3x3 SIGMA_mat;
+        undo_voigt_3x3_tensor(SIGMA,SIGMA_mat);
+        voigt_3x3_tensor(F*SIGMA_mat*F.transpose()/Jac,s);
+
+        //Map the higher order stress to the current configuration
+        Matrix_3x9 M_mat;
+        undo_voigt_3x9_tensor(M,M_mat);
+        voigt_3x9_tensor(F*M_mat,m);                 //Map the first index
+        perform_left_positive_cyclic_permutation(m); //Cycle the indices
+        undo_voigt_3x9_tensor(m,M_mat);
+        voigt_3x9_tensor(F*M_mat,m);                 //Map the second index
+        perform_left_positive_cyclic_permutation(m); //Cycle the indices
+        undo_voigt_3x9_tensor(m,M_mat);
+        voigt_3x9_tensor(chi*M_mat,m);               //Map the third index
+        perform_left_positive_cyclic_permutation(m); //Cycle the indices
+        m = m/Jac;
+
+        return;
+    }
+    
+    void map_jacobians_to_current_configuration(const Matrix_3x3  &F,         const Matrix_3x3  &chi,
+                                                const Vector_9    &PK2_voigt, const Vector_9    &SIGMA_voigt, const Vector_27    &M_voigt,
+                                                const Matrix_9x9  &dPK2dF,    const Matrix_9x9  &dPK2dchi,    const Matrix_9x27  &dPK2dgrad_chi,
+                                                const Matrix_9x9  &dSIGMAdF,  const Matrix_9x9  &dSIGMAdchi,  const Matrix_9x27  &dSIGMAdgrad_chi,
+                                                const Matrix_27x9 &dMdF,      const Matrix_27x9 &dMdchi,      const Matrix_27x27 &dMdgrad_chi){
+    
+        /*!================================================
+        |    map_jacobians_to_current_configuration    |
+        ================================================
+        
+        Function to map jacobians computed in the reference or intermediate configuration to 
+        jacobians in the current configuration with respect to the fundamental deformation measures.
+        
+        Note: You should always write a test function for this in your code. It *should* work but 
+              it is possible the previously written test coverage will miss your application.
+        
+        */
+        
+        
+        
+        return;
+    }
 }

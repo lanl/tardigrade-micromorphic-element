@@ -103,6 +103,13 @@ namespace deformation_measures
     void compute_dgrad_chidF(const Vector_27 &grad_phi, SpMat &dgrad_chidF);
     
     void compute_dAinvdA(const Matrix_3x3 &A, Matrix_9x9 &dAinvdA);
+    
+    void compute_ddetAdA(const Matrix_3x3 &A, Matrix_3x3 &ddetAdA);
+    
+    //Map stresses between configurations
+    void map_stresses_to_current_configuration(const Matrix_3x3 &F, const Matrix_3x3 &chi,
+                                               const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M,
+                                               Vector_9 &cauchy, Vector_9 &s, Vector_27 &m);
 }
 
 #endif

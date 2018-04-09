@@ -121,6 +121,106 @@ void define_chi(Matrix_3x3 &chi){
     chi = phi + Matrix_3x3::Identity();
 }
 
+void define_PK2(Vector_9 &PK2){
+    /*!==================
+    |    define_PK2    |
+    ====================
+    
+    Define the expected value of the PK2 stress.
+    
+    */
+    
+    PK2 << 59.03427247, 160.14321551, 105.82494785, 214.53178439,
+           237.37311424, 249.55639324, 110.81529   ,  25.70187797,
+           17.88329254;
+}
+
+void define_SIGMA(Vector_9 &SIGMA){
+    /*!======================
+    |    define_SIGMA    |
+    ======================
+    
+    Define the expected value of the symmetric stress.
+    
+    */
+    
+    SIGMA << 119.79705742647155, 323.7978637411792, 216.13272323537976,
+             326.0970440545271, 263.5407883419666, 267.61699074207695,
+             326.0970440545271, 263.5407883419666, 267.61699074207695;
+}
+
+void define_M(Vector_27 &M){
+    /*!==================
+    |    define_M    |
+    ==================
+    
+    Define the expected value of the higher-order stress.
+    
+    */
+    
+    M << 81.31981706487286, 31.798586060251207, 27.355416705438905,
+         4.4605220584734795, 15.239752824275838, 22.917719613671604,
+         4.761661534444574, 13.617364734132286, 20.631211107480663,
+         25.446753288061686, 41.98935229144166, 17.27436660090204,
+         12.970633348345526, 4.29549454562416, 21.185457632363434,
+         10.684683278867416, 4.658645978608793, 26.552528036554328,
+         18.65235152889546, 16.02598269360608, 29.787283731069458,
+         11.17944236411268, 18.36235422268097, 4.559452481399969,
+         14.133232412473218, 23.03915084858808, 4.849232622884019;
+}
+
+void define_cauchy(Vector_9 &cauchy){
+    /*!=======================
+    |    define_cauchy    |
+    =======================
+
+    Define the expected value of the cauchy stress.
+
+    */
+
+    cauchy << -48.84329314813607, -167.47094085138679, -318.99997557253636,
+              -284.3961266524248, -34.71321545072979, -30.136059986911263,
+              -205.35807451733308, -282.42756314420484, -216.4214058205378;
+
+}
+
+void define_s(Vector_9 &s){
+    /*!==================
+    |    define_s    |
+    ==================
+
+    Define the expected value of the symmetric stress in the 
+    current configuration.
+
+    */
+
+    s << -99.10582206835683, -338.1967416137846, -642.1118225175197,
+         -491.7929923630433, -318.2450527392582, -246.8057390623807,
+         -491.7929923630433, -318.24505273925826, -246.80573906238072;
+
+}
+
+void define_m(Vector_27 &m){
+    /*!==================
+    |    define_m    |
+    ==================
+
+    Define the expected value of the higher-order stress in the 
+    current configuration.
+
+    */
+
+    m << -17.153265392410482, -12.480771016951493, -19.147225245448556,
+         -11.26628746512982,  -14.179072065222964, -15.619789973641112,
+         -27.06888669123007,  -21.847082786416394, -9.37069422181913,
+         -7.149691649496841,  -97.42799562868105,  -125.8651897371535,
+         -139.98361743799694, -12.071479260463587, -18.679837246649882,
+         -118.73866356078591, -197.65579976538393, -200.62313337544705,
+         -20.39625460432565,  -109.58264684993866, -145.89097968348062,
+         -132.89656976443473, -21.83692364109874,  -32.86501911273255, 
+         -165.24571159030918, -239.6065692494737,  -201.04091236148963;
+}
+
 std::vector<double> parse_inv_sot(std::vector<double> Avec){
     /*!=======================
     |    parse_inv_sot    |
@@ -375,6 +475,24 @@ std::vector<double> parse_Gamma_grad_chi(std::vector<double> grad_chivec){
     
     for (int i=0; i<27; i++){Gamma_vec[i] = Gamma_voigt(i);}
     return Gamma_vec;
+}
+
+std::vector<double> parse_detA_A(std::vector<double> A_vec){
+    /*!======================
+    |    parse_detA_A    |
+    ======================
+    
+    Parse the determinant of A as a function of A.
+    */
+    
+    Vector_9 A_voigt;
+    for (int i=0; i<9; i++){A_voigt(i) = A_vec[i];}
+    Matrix_3x3 A;
+    deformation_measures::undo_voigt_3x3_tensor(A_voigt,A);
+    std::vector<double> J;
+    J.resize(1);
+    J[0] = A.determinant();
+    return J;
 }
 
 int test_get_deformation_gradient(std::ofstream &results){
@@ -1982,6 +2100,117 @@ int test_compute_dgrad_chidF(std::ofstream &results){
     return 1;
 }
 
+int test_compute_ddetAdA(std::ofstream &results){
+    /*!==============================
+    |    test_compute_ddetAdA    |
+    ==============================
+    
+    Test the computation of the derivative of the determinant 
+    of a second order tensor A w.r.t. A.
+    */
+    
+    Matrix_3x3 ddetAdA;                               //The expected result
+    std::vector< std::vector< double > > ddetAdA_vec; //The vector expected result
+    Vector_9 ddetAdA_voigt;                           //The expected result in voigt notation.
+    Matrix_3x3 _ddetAdA;                              //The function output
+    
+    std::vector< double > x0;
+    x0.resize(9);
+    
+    //Load in the matrix A
+    Matrix_3x3 A;
+    A << 0.69646919,  0.28613933,  0.22685145,  0.55131477,  0.71946897,
+         0.42310646,  0.9807642 ,  0.68482974,  0.4809319;
+    Vector_9 A_voigt;
+    deformation_measures::voigt_3x3_tensor(A,A_voigt);
+    
+    //Populate x0
+    for (int i=0; i<9; i++){x0[i] = A_voigt(i);}
+    
+    //Initialize the finite difference operator
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_detA_A, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    ddetAdA_vec = fd.numeric_gradient();
+    
+    for (int i=0; i<ddetAdA_vec.size(); i++){
+        for (int j=0; j<ddetAdA_vec[i].size(); j++){
+            ddetAdA_voigt(i,j) = ddetAdA_vec[i][j];
+        }
+        
+    }
+    
+    deformation_measures::undo_voigt_3x3_tensor(ddetAdA_voigt,ddetAdA);
+    
+    //Compute the analytic result
+    deformation_measures::compute_ddetAdA(A,_ddetAdA);
+    
+    bool tot_result = ddetAdA.isApprox(_ddetAdA,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_ddetAdA & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_ddetAdA & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+    
+}
+
+int test_map_stresses_to_current_configuration(std::ofstream &results){
+    /*!====================================================
+    |    test_map_stresses_to_current_configuration    |
+    ====================================================
+    
+    Test the mapping of stresses in the reference or intermediate configurations
+    to the current configuration.
+    
+    */
+
+    Vector_9   cauchy; //The expected cauchy stress
+    Vector_9  _cauchy; //The result of the function
+    Vector_9   s; //The expected symmetric stress
+    Vector_9  _s; //The result of the function
+    Vector_27  m; //The expected higher order stress
+    Vector_27 _m; //The result of the function
+
+    Vector_9 PK2;   //The second piola kirchhoff stress
+    Vector_9 SIGMA; //The symmetric stress
+    Vector_27 M;    //The higher order stress
+
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    define_deformation_gradient(F);
+    define_chi(chi);
+
+    //Extract the stresses in the reference configuration
+    define_PK2(PK2);
+    define_SIGMA(SIGMA);
+    define_M(M);
+
+    //Extract the stresses in the current configuration
+    define_cauchy(cauchy);
+    define_s(s);
+    define_m(m);
+
+    deformation_measures::map_stresses_to_current_configuration(F,chi,PK2,SIGMA,M,_cauchy,_s,_m);
+
+    bool tot_result = cauchy.isApprox(_cauchy,1e-6);
+    tot_result *= s.isApprox(_s,1e-6);
+    tot_result *= m.isApprox(_m,1e-6);
+
+    if (tot_result){
+        results << "test_map_stresses_to_current_configuration & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_map_stresses_to_current_configuration & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -2026,6 +2255,8 @@ int main(){
     test_compute_dGammadgrad_chi(results);
     test_compute_dgrad_chidgrad_phi(results);
     test_compute_dgrad_chidF(results);
+    test_compute_ddetAdA(results);
+    test_map_stresses_to_current_configuration(results);
 
     //Close the results file
     results.close();
