@@ -3388,13 +3388,19 @@ int main(){
     results.open ("results.tex");
 
     //!Run the test functions
+    
+    //!Test of the stiffness tensors
     test_compute_A_voigt(results);
     test_compute_B_voigt(results);
     test_compute_C_voigt(results);
     test_compute_D_voigt(results);
+    
+    //!Tests of the stress computations
     test_compute_PK2_stress(results);
     test_compute_symmetric_stress(results);
     test_compute_higher_order_stress(results);
+    
+    //!Tests of the non-zero gradients w.r.t. the derived deformation measures.
     test_compute_dPK2dRCG(results);
     test_compute_dSIGMAdRCG(results);
     test_compute_dPK2dPsi(results);
@@ -3403,14 +3409,17 @@ int main(){
     test_compute_dSIGMAdGamma(results);
     test_compute_dMdGamma(results);
     
+    //!Tests of the reference configuration jacobians w.r.t. the deformation gradient.
     test_compute_dPK2dF(results);
     test_compute_dSIGMAdF(results);
     test_compute_dMdF(results);
     
+    //!Tests of the reference configuration jacobians w.r.t. the micro-displacement tensor.
     test_compute_dPK2dchi(results);
     test_compute_dSIGMAdchi(results);
     test_compute_dMdchi(results);
     
+    //!Tests of the reference configuration jacobians w.r.t. the gradient of the micro-displacement tensor.
     test_compute_dPK2dgrad_chi(results);
     test_compute_dSIGMAdgrad_chi(results);
     test_compute_dMdgrad_chi(results);
