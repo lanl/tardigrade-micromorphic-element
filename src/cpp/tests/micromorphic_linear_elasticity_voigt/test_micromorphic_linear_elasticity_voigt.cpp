@@ -3308,7 +3308,7 @@ int test_compute_dMdgrad_chi(std::ofstream &results){
     for (int i=0; i<27; i++){x0[i] = grad_chi0_vec(i);}
     
     //Initialize the finite difference operator
-    std::cout << "\ndMdchi\n";
+    std::cout << "\ndMdgrad_chi\n";
     std::cout << "Finite Difference vs. Analytic Jacobian\n";
     auto t0 = Clock::now();
     finite_difference::FiniteDifference fd;
