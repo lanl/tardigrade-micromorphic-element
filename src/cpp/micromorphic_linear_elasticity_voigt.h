@@ -123,26 +123,6 @@ namespace micro_material{
     void compute_dPK2dGamma_term2(const Vector_27 &term1, const Matrix_27x27 &C, Matrix_9x27 &term2);
     
     void compute_dPK2dGamma_term3(const Vector_27 &term1, const Matrix_3x3 &RCGinv, Matrix_9x27 &term3);
-    
-    //Compute the non-zero gradients of the derived deformation measures
-    //w.r.t. the fundamental deformation measures
-    void compute_dRCGdF(const Matrix_3x3 &F, SpMat &dRCGdF);
-    
-    void compute_dPsidF(const Matrix_3x3 &chi, SpMat &dPsidF);
-
-    void compute_dGammadF(const Vector_27 &grad_chi, SpMat &dGammadF);
-    
-    void compute_dPsidchi(const Matrix_3x3 &F, SpMat &dPsidchi);
-    
-    void compute_dGammadgrad_chi(const Matrix_3x3 &F, SpMat &dGammadgrad_chi);
-    
-    //Compute the gradients of grad_chi with respect to the deformation gradient and 
-    //the gradient of phi w.r.t. the current coordinates.
-    void compute_dgrad_chidgrad_phi(const Matrix_3x3 &F, SpMat &dgrad_chidgrad_phi);
-    
-    void compute_dgrad_chidF(const Vector_27 &grad_phi, SpMat &dgrad_chidF);
-    
-    void compute_dAinvdA(const Matrix_3x3 &A, Matrix_9x9 &dAinvdA);
 }
 
 #endif

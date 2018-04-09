@@ -20,6 +20,7 @@
 #include <iostream>
 #include <cassert>
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 //!Type definitions of common vector and matrix sizes.
 typedef Eigen::Matrix<double, 6, 1> Vector_6;
@@ -31,6 +32,10 @@ typedef Eigen::Matrix<double, 9, 9> Matrix_9x9;
 typedef Eigen::Matrix<double, 9,27> Matrix_9x27;
 typedef Eigen::Matrix<double,27, 9> Matrix_27x9;
 typedef Eigen::Matrix<double,27,27> Matrix_27x27;
+
+//Sparse matrix type definitions
+typedef Eigen::SparseMatrix<double> SpMat;
+typedef Eigen::Triplet<double> T;
 
 namespace deformation_measures
 {
@@ -78,6 +83,26 @@ namespace deformation_measures
     void dot_2ot_5ot(const int &i, const Matrix_3x3 &sot, const Matrix_27x9 &fot, Matrix_27x9 &result);
     
     void two_sot_to_fot(const int &swap, const Matrix_3x3 &A, const Matrix_3x3 &B, Matrix_9x9 &C);
+    
+    //Compute the non-zero gradients of the derived deformation measures
+    //w.r.t. the fundamental deformation measures
+    void compute_dRCGdF(const Matrix_3x3 &F, SpMat &dRCGdF);
+    
+    void compute_dPsidF(const Matrix_3x3 &chi, SpMat &dPsidF);
+
+    void compute_dGammadF(const Vector_27 &grad_chi, SpMat &dGammadF);
+    
+    void compute_dPsidchi(const Matrix_3x3 &F, SpMat &dPsidchi);
+    
+    void compute_dGammadgrad_chi(const Matrix_3x3 &F, SpMat &dGammadgrad_chi);
+    
+    //Compute the gradients of grad_chi with respect to the deformation gradient and 
+    //the gradient of phi w.r.t. the current coordinates.
+    void compute_dgrad_chidgrad_phi(const Matrix_3x3 &F, SpMat &dgrad_chidgrad_phi);
+    
+    void compute_dgrad_chidF(const Vector_27 &grad_phi, SpMat &dgrad_chidF);
+    
+    void compute_dAinvdA(const Matrix_3x3 &A, Matrix_9x9 &dAinvdA);
 }
 
 #endif
