@@ -46,7 +46,9 @@ namespace micro_material{
     void get_stress(const double t,      const double dt,       const double (&params)[18], 
                     const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
                     std::vector<double> &SDVS, Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M,
-                    Matrix_9x9 &dPK2dF);
+                    Matrix_9x9  &dPK2dF,   Matrix_9x9  &dPK2dchi,   Matrix_9x27  &dPK2dgrad_chi,
+                    Matrix_9x9  &dSIGMAdF, Matrix_9x9  &dSIGMAdchi, Matrix_9x27  &dSIGMAdgrad_chi,
+                    Matrix_27x9 &dMdF,     Matrix_27x9 &dMdchi,     Matrix_27x27 &dMdgrad_chi);
 
     void compute_A_voigt(const double &lambda,const double &mu, SpMat &A);
 
@@ -76,10 +78,6 @@ namespace micro_material{
                                   Vector_9 &SIGMA);
                                   
     void compute_higher_order_stress(const Vector_27 &Gamma_voigt, const SpMat &C, Vector_27 &M);
-
-    void map_stresses_to_current_configuration(const Matrix_3x3 &F, const Matrix_3x3 &chi,
-                                               const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M,
-                                               Vector_9 &cauchy, Vector_9 &s, Vector_27 &m);
 
     void dcauchydF(const Matrix_3x3 &F, const Vector_9 &cauchy, const Vector_9 &PK2, Matrix_9x9 &dcauchydF);
 
@@ -119,6 +117,8 @@ namespace micro_material{
     void compute_dSIGMAdPsi(Matrix_9x9 (&terms)[3], Matrix_9x9 &dSIGMAdPsi);
     
     void compute_dSIGMAdGamma(Matrix_9x27 (&terms)[2], Matrix_9x27 &dSIGMAdGamma);
+    
+    void compute_dMdGamma(const Matrix_27x27 &C, Matrix_27x27 &dMdGamma);
                           
     void compute_dPK2dGamma_term2(const Vector_27 &term1, const Matrix_27x27 &C, Matrix_9x27 &term2);
     
