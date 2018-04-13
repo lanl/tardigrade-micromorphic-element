@@ -5118,6 +5118,7 @@ namespace deformation_measures
     
     void map_jacobians_to_current_configuration(const Matrix_3x3  &F,         const Matrix_3x3  &chi,
                                                 const Vector_9    &PK2_voigt, const Vector_9    &SIGMA_voigt, const Vector_27    &M_voigt,
+                                                const Vector_9    &cauchy_voigt, const Vector_9 &s_voigt, const Vector_27 &m_voigt,
                                                 const Matrix_9x9  &dPK2dF,    const Matrix_9x9  &dPK2dchi,    const Matrix_9x27  &dPK2dgrad_chi,
                                                 const Matrix_9x9  &dSIGMAdF,  const Matrix_9x9  &dSIGMAdchi,  const Matrix_9x27  &dSIGMAdgrad_chi,
                                                 const Matrix_27x9 &dMdF,      const Matrix_27x9 &dMdchi,      const Matrix_27x27 &dMdgrad_chi){
@@ -5130,10 +5131,28 @@ namespace deformation_measures
         jacobians in the current configuration with respect to the fundamental deformation measures.
         
         Note: You should always write a test function for this in your code. It *should* work but 
-              it is possible the previously written test coverage will miss your application.
+              it is possible the previously written test coverage will miss a problem shown by
+              your application.
         
         */
         
+        //Define the identity tensor
+        Matrix_3x3 eye = Matrix_3x3::Identity();
+
+        //Compute the jacobian of deformation
+        double Jac = F.determinant();
+
+        //Compute the derivative of the jacobian of deformation w.r.t. the deformation gradient.
+        Matrix_3x3 dJacdF;
+        compute_ddetAdA(F,dJacdF);
+
+        //Compute the first term
+        Matrix_9x9 term1;
+        two_sot_to_fot(cauchy,dJacdF,term1);
+        term1 /= Jac;
+
+        //Compute the second term
+        Matrix_9x9 term2;
         
         
         return;
