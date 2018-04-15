@@ -1999,12 +1999,12 @@ This leads to
 \sum_{n=1}^{N^{nodes}} w_j^n\left\{ \int_{\partial \mathcal{B}} N^n \sigma_{ij} n_i da + \int_{\mathcal{B}} \left[ - N_{,i}^{n} \sigma_{ij} + N^n \rho \left(f_j - a_j \right) \right] dv\right\} &= 0\\
 \end{align*}
 
-We introduce the material point nature by evaluating the volume integrals through a single point Gauss quadrature evaluated at many different locations or particles defined such that
-\begin{align*}
-\rho\left(\VEC{x}\right) &= \sum_{p=1}^{N^{points}} m_p \delta\left(\VEC{x}-\VEC{x}_p\right)
-\end{align*}
+%We introduce the material point nature by evaluating the volume integrals through a single point Gauss quadrature evaluated at many different locations or particles defined such that
+%\begin{align*}
+%\rho\left(\VEC{x}\right) &= \sum_{p=1}^{N^{points}} m_p \delta\left(\VEC{x}-\VEC{x}_p\right)
+%\end{align*}
 
-where $m_p$ is the mass of the particle, $\delta$ is the Dirac delta function, and $\VEC{x}_p$ is the particle location.
+%where $m_p$ is the mass of the particle, $\delta$ is the Dirac delta function, and $\VEC{x}_p$ is the particle location.
 
 \end{frame}
 
@@ -2659,6 +2659,34 @@ F^1 & F^2 & \cdots & F^8
 
 \end{frame}
 
+\begin{frame}{Derivative of $F_{iI}$ w.r.t. the degree of freedom vector}
+
+An alternate way to compute the deformation gradient (and it's derivative) is via
+
+\begin{align*}
+\TEN{F}^{-1} &= \TEN{I} - \frac{\VEC{u}}{\VEC{x}}\\
+\end{align*}
+
+where $u_i$ are the macro-displacement degrees of freedom. This means
+\begin{align*}
+\frac{\partial F_{iI}}{\partial u_K} &=  \frac{\partial F_{iI}}{\partial F_{Jj}^{-1}}\frac{\partial F_{Jj}^{-1}}{\partial u_K}
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{Derivative of $F_{iI}$ w.r.t. the degree of freedom vector}
+
+This leads to
+\begin{align*}
+\frac{\partial F_{iI}}{\partial F_{Jj}^{-1}} &= -F_{iJ} F_{jI}\\
+\frac{\partial F_{Jj}^{-1}}{\partial u_K} &= -\frac{\partial N}{\partial x_j} \delta_{JK}\\
+\Rightarrow\ \frac{\partial F_{iI}}{\partial u_K} &= F_{iK} F_{jI}\frac{\partial N}{\partial x_j}\\
+\end{align*}
+
+which will be zero for all $\TEN{\phi}$ degrees of freedom and is potentially more natural than the previous construction.
+
+\end{frame}
+
 \begin{frame}{Derivative of $\chi_{iI}$ w.r.t. the degree of freedom vector}
 
 We define
@@ -2762,6 +2790,31 @@ G_{IJ}^n &= \left[\begin{array}{cc}
 \end{align*}
 
 \end{frame}
+
+\begin{frame}{Derivative of $\chi_{iI,J}$ w.r.t. the degree of freedom vector}
+
+In some cases the degree of freedom $\phi_{iI}$ has it's gradient computed in the current configuration. In those cases we note that
+
+\begin{align*}
+\chi_{iI,J} &= \chi_{iI,j} F_{jJ}\\
+\Rightarrow\ \frac{\partial \chi_{iI,J}}{\partial U_K} &= \frac{\partial \chi_{iI,j}}{\partial U_K} F_{jJ} + \chi_{iI,j} \frac{\partial F_{jJ}}{\partial U_K}\\
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{Derivative of $\chi_{iI,J}$ w.r.t. the degree of freedom vector}
+
+We can therefore write
+\begin{align*}
+\frac{\partial \chi_{iI,J}}{\partial U_K} &= \frac{\partial \eta}{\partial x_j} F_{jJ} + \chi_{iI,j} F_{jK}F_{lJ} \frac{\partial N}{\partial x_l}\\
+\end{align*}
+
+Where the first term is only non-zero for the $\TEN{\phi}$ degrees of freedom and the second term is only non-zero for the $\VEC{u}$ degrees of freedom.
+
+This shows that the gradient of $\chi_{iI,J}$ computed in this manner does have terms contributing from the macro degrees of freedom.
+
+\end{frame}
+
 %
 %\begin{frame}{Derivative of $\chi_{iI,J}$ w.r.t. the degree of freedom vector}
 %
@@ -2841,7 +2894,7 @@ We begin by computing the tangent of the Cauchy stress in the reference configur
 The higher order couple stress only depends upon $\Gamma$ so we note the other derivatives are zero.
 
 \begin{align*}
-\frac{\partial M_{IJK}}{\partial \Gamma_{OPQ}} &= C_{IJKLMN} \delta_{LO} \delta_{MP} \delta_{NQ} = C_{JKIOPQ}\\
+\frac{\partial M_{IJK}}{\partial \Gamma_{OPQ}} &= C_{JKILMN} \delta_{LO} \delta_{MP} \delta_{NQ} = C_{JKIOPQ}\\
 \end{align*}
 
 \end{frame}
