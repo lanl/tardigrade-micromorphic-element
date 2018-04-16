@@ -5116,15 +5116,15 @@ namespace deformation_measures
         return;
     }
     
-    void map_jacobians_to_current_configuration(const Matrix_3x3  &F,         const Matrix_3x3  &chi,
-                                                const Vector_9    &PK2_voigt, const Vector_9    &SIGMA_voigt, const Vector_27    &M_voigt,
-                                                const Vector_9    &cauchy_voigt, const Vector_9 &s_voigt, const Vector_27 &m_voigt,
-                                                const Matrix_9x9  &dPK2dF,    const Matrix_9x9  &dPK2dchi,    const Matrix_9x27  &dPK2dgrad_chi,
-                                                const Matrix_9x9  &dSIGMAdF,  const Matrix_9x9  &dSIGMAdchi,  const Matrix_9x27  &dSIGMAdgrad_chi,
-                                                const Matrix_27x9 &dMdF,      const Matrix_27x9 &dMdchi,      const Matrix_27x27 &dMdgrad_chi, 
-                                                Matrix_9x9  &dcauchydF, Matrix_9x9 &dcauchydchi, Matrix_9x27  &dcauchydgrad_chi,
-                                                Matrix_9x9  &dsdF,      Matrix_9x9 &dsdchi,      Matrix_9x27  &dsdgrad_chi,
-                                                Matrix_27x9 &dmdF,      Matrix_27x9 &dmdchi,     Matrix_27x27 &dmdgrad_chi){
+    void map_jacobians_to_current_configuration(const Matrix_3x3  &F,            const Matrix_3x3  &chi,
+                                                const Vector_9    &PK2_voigt,    const Vector_9    &SIGMA_voigt, const Vector_27    &M_voigt,
+                                                const Vector_9    &cauchy_voigt, const Vector_9    &s_voigt,     const Vector_27    &m_voigt,
+                                                const Matrix_9x9  &dPK2dF,       const Matrix_9x9  &dPK2dchi,    const Matrix_9x27  &dPK2dgrad_chi,
+                                                const Matrix_9x9  &dSIGMAdF,     const Matrix_9x9  &dSIGMAdchi,  const Matrix_9x27  &dSIGMAdgrad_chi,
+                                                const Matrix_27x9 &dMdF,         const Matrix_27x9 &dMdchi,      const Matrix_27x27 &dMdgrad_chi, 
+                                                Matrix_9x9        &dcauchydF,    Matrix_9x9        &dcauchydchi, Matrix_9x27        &dcauchydgrad_chi,
+                                                Matrix_9x9        &dsdF,         Matrix_9x9        &dsdchi,      Matrix_9x27        &dsdgrad_chi,
+                                                Matrix_27x9       &dmdF,         Matrix_27x9       &dmdchi,      Matrix_27x27       &dmdgrad_chi){
     
         /*!================================================
         |    map_jacobians_to_current_configuration    |
@@ -5149,16 +5149,17 @@ namespace deformation_measures
         //Map the cauchy stress
         map_dAdF_to_dadF(cauchy_voigt, PK2_voigt, dPK2dF, J, dJdF, F, dcauchydF);
         map_dAdchi_to_dadchi(PK2_voigt, dPK2dchi, J, F, dcauchydchi);
-        
+        map_dAdgrad_chi_to_dadgrad_chi(PK2_voigt, dPK2dgrad_chi, J, F, dcauchydgrad_chi);        
         
         //Map the symmetric stress
         map_dAdF_to_dadF(s_voigt, SIGMA_voigt, dSIGMAdF, J, dJdF, F, dsdF);
         map_dAdchi_to_dadchi(SIGMA_voigt, dSIGMAdchi, J, F, dsdchi);
+        map_dAdgrad_chi_to_dadgrad_chi(SIGMA_voigt, dSIGMAdgrad_chi, J, F, dsdgrad_chi);
         
         //Map the higher order stress
         map_dAdF_to_dadF(m_voigt, M_voigt, dMdF, J, dJdF, F, chi, dmdF);
         map_dAdchi_to_dadchi(M_voigt, dMdchi, J, F, chi, dmdchi);
-        
+        map_dAdgrad_chi_to_dadgrad_chi(M_voigt, dMdgrad_chi, J, F, chi, dmdgrad_chi);
         
         return;
     }

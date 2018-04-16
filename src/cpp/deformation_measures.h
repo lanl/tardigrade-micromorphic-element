@@ -112,6 +112,16 @@ namespace deformation_measures
                                                Vector_9 &cauchy, Vector_9 &s, Vector_27 &m);
                                                
     //Map jacobians between configurations
+    void map_jacobians_to_current_configuration(const Matrix_3x3  &F,            const Matrix_3x3  &chi,
+                                                const Vector_9    &PK2_voigt,    const Vector_9    &SIGMA_voigt, const Vector_27    &M_voigt,
+                                                const Vector_9    &cauchy_voigt, const Vector_9 &s_voigt,        const Vector_27    &m_voigt,
+                                                const Matrix_9x9  &dPK2dF,       const Matrix_9x9  &dPK2dchi,    const Matrix_9x27  &dPK2dgrad_chi,
+                                                const Matrix_9x9  &dSIGMAdF,     const Matrix_9x9  &dSIGMAdchi,  const Matrix_9x27  &dSIGMAdgrad_chi,
+                                                const Matrix_27x9 &dMdF,         const Matrix_27x9 &dMdchi,      const Matrix_27x27 &dMdgrad_chi,
+                                                Matrix_9x9  &dcauchydF,          Matrix_9x9        &dcauchydchi, Matrix_9x27        &dcauchydgrad_chi,
+                                                Matrix_9x9  &dsdF,               Matrix_9x9        &dsdchi,      Matrix_9x27        &dsdgrad_chi,
+                                                Matrix_27x9 &dmdF,               Matrix_27x9       &dmdchi,      Matrix_27x27       &dmdgrad_chi);
+
     void map_dAdF_to_dadF(const Vector_9 &a,  const Vector_9 &A,  const Matrix_9x9 &dAdF,  const double &J, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, Matrix_9x9 &dadF);
     void map_dAdF_to_dadF(const Vector_27& a, const Vector_27 &A, const Matrix_27x9 &dAdF, const double &J, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 &dadF);
     
