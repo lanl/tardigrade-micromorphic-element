@@ -5188,7 +5188,7 @@ namespace deformation_measures
         double dJdF31= dJdF(2,0);
         double dJdF32= dJdF(2,1);
         double dJdF33= dJdF(2,2);
-        
+
         //Extracting a
         double a11= a(0);
         double a22= a(1);
@@ -5199,17 +5199,6 @@ namespace deformation_measures
         double a32= a(6);
         double a31= a(7);
         double a21= a(8);
-
-        //Extracting A
-        double A11= A(0);
-        double A22= A(1);
-        double A33= A(2);
-        double A23= A(3);
-        double A13= A(4);
-        double A12= A(5);
-        double A32= A(6);
-        double A31= A(7);
-        double A21= A(8);
 
         //Extracting dAdF
         double dAdF1111= dAdF(0,0);
@@ -5294,28 +5283,6 @@ namespace deformation_measures
         double dAdF2131= dAdF(8,7);
         double dAdF2121= dAdF(8,8);
 
-        //Extracting F
-        double F11= F(0,0);
-        double F12= F(0,1);
-        double F13= F(0,2);
-        double F21= F(1,0);
-        double F22= F(1,1);
-        double F23= F(1,2);
-        double F31= F(2,0);
-        double F32= F(2,1);
-        double F33= F(2,2);
-
-        //Extracting a
-        double a11= a(0);
-        double a22= a(1);
-        double a33= a(2);
-        double a23= a(3);
-        double a13= a(4);
-        double a12= a(5);
-        double a32= a(6);
-        double a31= a(7);
-        double a21= a(8);
-
         //Extracting A
         double A11= A(0);
         double A22= A(1);
@@ -5326,89 +5293,6 @@ namespace deformation_measures
         double A32= A(6);
         double A31= A(7);
         double A21= A(8);
-
-        //Extracting dAdF
-        double dAdF1111= dAdF(0,0);
-        double dAdF1122= dAdF(0,1);
-        double dAdF1133= dAdF(0,2);
-        double dAdF1123= dAdF(0,3);
-        double dAdF1113= dAdF(0,4);
-        double dAdF1112= dAdF(0,5);
-        double dAdF1132= dAdF(0,6);
-        double dAdF1131= dAdF(0,7);
-        double dAdF1121= dAdF(0,8);
-        double dAdF2211= dAdF(1,0);
-        double dAdF2222= dAdF(1,1);
-        double dAdF2233= dAdF(1,2);
-        double dAdF2223= dAdF(1,3);
-        double dAdF2213= dAdF(1,4);
-        double dAdF2212= dAdF(1,5);
-        double dAdF2232= dAdF(1,6);
-        double dAdF2231= dAdF(1,7);
-        double dAdF2221= dAdF(1,8);
-        double dAdF3311= dAdF(2,0);
-        double dAdF3322= dAdF(2,1);
-        double dAdF3333= dAdF(2,2);
-        double dAdF3323= dAdF(2,3);
-        double dAdF3313= dAdF(2,4);
-        double dAdF3312= dAdF(2,5);
-        double dAdF3332= dAdF(2,6);
-        double dAdF3331= dAdF(2,7);
-        double dAdF3321= dAdF(2,8);
-        double dAdF2311= dAdF(3,0);
-        double dAdF2322= dAdF(3,1);
-        double dAdF2333= dAdF(3,2);
-        double dAdF2323= dAdF(3,3);
-        double dAdF2313= dAdF(3,4);
-        double dAdF2312= dAdF(3,5);
-        double dAdF2332= dAdF(3,6);
-        double dAdF2331= dAdF(3,7);
-        double dAdF2321= dAdF(3,8);
-        double dAdF1311= dAdF(4,0);
-        double dAdF1322= dAdF(4,1);
-        double dAdF1333= dAdF(4,2);
-        double dAdF1323= dAdF(4,3);
-        double dAdF1313= dAdF(4,4);
-        double dAdF1312= dAdF(4,5);
-        double dAdF1332= dAdF(4,6);
-        double dAdF1331= dAdF(4,7);
-        double dAdF1321= dAdF(4,8);
-        double dAdF1211= dAdF(5,0);
-        double dAdF1222= dAdF(5,1);
-        double dAdF1233= dAdF(5,2);
-        double dAdF1223= dAdF(5,3);
-        double dAdF1213= dAdF(5,4);
-        double dAdF1212= dAdF(5,5);
-        double dAdF1232= dAdF(5,6);
-        double dAdF1231= dAdF(5,7);
-        double dAdF1221= dAdF(5,8);
-        double dAdF3211= dAdF(6,0);
-        double dAdF3222= dAdF(6,1);
-        double dAdF3233= dAdF(6,2);
-        double dAdF3223= dAdF(6,3);
-        double dAdF3213= dAdF(6,4);
-        double dAdF3212= dAdF(6,5);
-        double dAdF3232= dAdF(6,6);
-        double dAdF3231= dAdF(6,7);
-        double dAdF3221= dAdF(6,8);
-        double dAdF3111= dAdF(7,0);
-        double dAdF3122= dAdF(7,1);
-        double dAdF3133= dAdF(7,2);
-        double dAdF3123= dAdF(7,3);
-        double dAdF3113= dAdF(7,4);
-        double dAdF3112= dAdF(7,5);
-        double dAdF3132= dAdF(7,6);
-        double dAdF3131= dAdF(7,7);
-        double dAdF3121= dAdF(7,8);
-        double dAdF2111= dAdF(8,0);
-        double dAdF2122= dAdF(8,1);
-        double dAdF2133= dAdF(8,2);
-        double dAdF2123= dAdF(8,3);
-        double dAdF2113= dAdF(8,4);
-        double dAdF2112= dAdF(8,5);
-        double dAdF2132= dAdF(8,6);
-        double dAdF2131= dAdF(8,7);
-        double dAdF2121= dAdF(8,8);
 
         //Extracting F
         double F11= F(0,0);
@@ -5502,7 +5386,7 @@ namespace deformation_measures
         dadF(8,6) = F11*F21*dAdF1132 + F11*F22*dAdF2132 + F11*F23*dAdF3132 + F12*F21*dAdF1232 + F12*F22*dAdF2232 + F12*F23*dAdF3232 + F13*F21*dAdF1332 + F13*F22*dAdF2332 + F13*F23*dAdF3332 - a21*dJdF32;
         dadF(8,7) = F11*F21*dAdF1131 + F11*F22*dAdF2131 + F11*F23*dAdF3131 + F12*F21*dAdF1231 + F12*F22*dAdF2231 + F12*F23*dAdF3231 + F13*F21*dAdF1331 + F13*F22*dAdF2331 + F13*F23*dAdF3331 - a21*dJdF31;
         dadF(8,8) = A11*F11 + A12*F12 + A13*F13 + F11*F21*dAdF1121 + F11*F22*dAdF2121 + F11*F23*dAdF3121 + F12*F21*dAdF1221 + F12*F22*dAdF2221 + F12*F23*dAdF3221 + F13*F21*dAdF1321 + F13*F22*dAdF2321 + F13*F23*dAdF3321 - a21*dJdF21;
-
+        
         dadF /= J;
         
         return;
@@ -5521,7 +5405,7 @@ namespace deformation_measures
         This is for the higher-order stress measure.
         
         */
-        
+
        //Extracting dJdF
         double dJdF11= dJdF(0,0);
         double dJdF12= dJdF(0,1);
@@ -6101,7 +5985,6 @@ namespace deformation_measures
         dadF(26,6) = A211*F21*chi11 + A212*F21*chi12 + A213*F21*chi13 + A221*F22*chi11 + A222*F22*chi12 + A223*F22*chi13 + A231*F23*chi11 + A232*F23*chi12 + A233*F23*chi13 + F21*F31*chi11*dAdF11132 + F21*F31*chi12*dAdF11232 + F21*F31*chi13*dAdF11332 + F21*F32*chi11*dAdF21132 + F21*F32*chi12*dAdF21232 + F21*F32*chi13*dAdF21332 + F21*F33*chi11*dAdF31132 + F21*F33*chi12*dAdF31232 + F21*F33*chi13*dAdF31332 + F22*F31*chi11*dAdF12132 + F22*F31*chi12*dAdF12232 + F22*F31*chi13*dAdF12332 + F22*F32*chi11*dAdF22132 + F22*F32*chi12*dAdF22232 + F22*F32*chi13*dAdF22332 + F22*F33*chi11*dAdF32132 + F22*F33*chi12*dAdF32232 + F22*F33*chi13*dAdF32332 + F23*F31*chi11*dAdF13132 + F23*F31*chi12*dAdF13232 + F23*F31*chi13*dAdF13332 + F23*F32*chi11*dAdF23132 + F23*F32*chi12*dAdF23232 + F23*F32*chi13*dAdF23332 + F23*F33*chi11*dAdF33132 + F23*F33*chi12*dAdF33232 + F23*F33*chi13*dAdF33332 - a321*dJdF32;
         dadF(26,7) = A111*F21*chi11 + A112*F21*chi12 + A113*F21*chi13 + A121*F22*chi11 + A122*F22*chi12 + A123*F22*chi13 + A131*F23*chi11 + A132*F23*chi12 + A133*F23*chi13 + F21*F31*chi11*dAdF11131 + F21*F31*chi12*dAdF11231 + F21*F31*chi13*dAdF11331 + F21*F32*chi11*dAdF21131 + F21*F32*chi12*dAdF21231 + F21*F32*chi13*dAdF21331 + F21*F33*chi11*dAdF31131 + F21*F33*chi12*dAdF31231 + F21*F33*chi13*dAdF31331 + F22*F31*chi11*dAdF12131 + F22*F31*chi12*dAdF12231 + F22*F31*chi13*dAdF12331 + F22*F32*chi11*dAdF22131 + F22*F32*chi12*dAdF22231 + F22*F32*chi13*dAdF22331 + F22*F33*chi11*dAdF32131 + F22*F33*chi12*dAdF32231 + F22*F33*chi13*dAdF32331 + F23*F31*chi11*dAdF13131 + F23*F31*chi12*dAdF13231 + F23*F31*chi13*dAdF13331 + F23*F32*chi11*dAdF23131 + F23*F32*chi12*dAdF23231 + F23*F32*chi13*dAdF23331 + F23*F33*chi11*dAdF33131 + F23*F33*chi12*dAdF33231 + F23*F33*chi13*dAdF33331 - a321*dJdF31;
         dadF(26,8) = A111*F31*chi11 + A112*F31*chi12 + A113*F31*chi13 + A211*F32*chi11 + A212*F32*chi12 + A213*F32*chi13 + A311*F33*chi11 + A312*F33*chi12 + A313*F33*chi13 + F21*F31*chi11*dAdF11121 + F21*F31*chi12*dAdF11221 + F21*F31*chi13*dAdF11321 + F21*F32*chi11*dAdF21121 + F21*F32*chi12*dAdF21221 + F21*F32*chi13*dAdF21321 + F21*F33*chi11*dAdF31121 + F21*F33*chi12*dAdF31221 + F21*F33*chi13*dAdF31321 + F22*F31*chi11*dAdF12121 + F22*F31*chi12*dAdF12221 + F22*F31*chi13*dAdF12321 + F22*F32*chi11*dAdF22121 + F22*F32*chi12*dAdF22221 + F22*F32*chi13*dAdF22321 + F22*F33*chi11*dAdF32121 + F22*F33*chi12*dAdF32221 + F22*F33*chi13*dAdF32321 + F23*F31*chi11*dAdF13121 + F23*F31*chi12*dAdF13221 + F23*F31*chi13*dAdF13321 + F23*F32*chi11*dAdF23121 + F23*F32*chi12*dAdF23221 + F23*F32*chi13*dAdF23321 + F23*F33*chi11*dAdF33121 + F23*F33*chi12*dAdF33221 + F23*F33*chi13*dAdF33321 - a321*dJdF21;
-
 
         dadF /= J;
         return;
