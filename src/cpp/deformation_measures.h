@@ -113,7 +113,7 @@ namespace deformation_measures
                                                
     //Map jacobians between configurations
     void map_dAdF_to_dadF(const Vector_9 &a,  const Vector_9 &A,  const Matrix_9x9 &dAdF,  const double &J, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, Matrix_9x9 &dadF);
-    void map_dAdF_to_dadF(const Vector_27& m, const Vector_27 &A, const Matrix_27x9 &dAdF, const double &J, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 &dadF);
+    void map_dAdF_to_dadF(const Vector_27& a, const Vector_27 &A, const Matrix_27x9 &dAdF, const double &J, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 &dadF);
     
     void map_dAdchi_to_dadchi(const Vector_9 &A,  const Matrix_9x9 &dAdchi,  const double &J, const Matrix_3x3 &F, Matrix_9x9 dadchi);
     void map_dAdchi_to_dadchi(const Vector_27 &A, const Matrix_27x9 &dAdchi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 dadchi);
