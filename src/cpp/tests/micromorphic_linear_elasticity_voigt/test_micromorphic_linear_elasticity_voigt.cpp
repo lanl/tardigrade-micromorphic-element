@@ -4138,10 +4138,10 @@ int test_compute_dcauchydchi(std::ofstream &results){
     bool tot_result = dcauchydchi.isApprox(_dcauchydchi,1e-6);
     
     if (tot_result){
-        results << "test_compute_dcauchydF & True\\\\\n\\hline\n";
+        results << "test_compute_dcauchydchi & True\\\\\n\\hline\n";
     }
     else {
-        results << "test_compute_dcauchydF & False\\\\\n\\hline\n";
+        results << "test_compute_dcauchydchi & False\\\\\n\\hline\n";
     }
 
     return 1;
