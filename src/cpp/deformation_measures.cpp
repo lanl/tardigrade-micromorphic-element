@@ -5148,18 +5148,18 @@ namespace deformation_measures
         
         //Map the cauchy stress
         map_dAdF_to_dadF(cauchy_voigt, PK2_voigt, dPK2dF, J, dJdF, F, dcauchydF);
-        map_dAdchi_to_dadchi(PK2_voigt, dPK2dchi, J, F, dcauchydchi);
-        map_dAdgrad_chi_to_dadgrad_chi(PK2_voigt, dPK2dgrad_chi, J, F, dcauchydgrad_chi);        
+        map_dAdchi_to_dadchi(dPK2dchi, J, F, dcauchydchi);
+        map_dAdgrad_chi_to_dadgrad_chi(dPK2dgrad_chi, J, F, dcauchydgrad_chi);        
         
         //Map the symmetric stress
         map_dAdF_to_dadF(s_voigt, SIGMA_voigt, dSIGMAdF, J, dJdF, F, dsdF);
-        map_dAdchi_to_dadchi(SIGMA_voigt, dSIGMAdchi, J, F, dsdchi);
-        map_dAdgrad_chi_to_dadgrad_chi(SIGMA_voigt, dSIGMAdgrad_chi, J, F, dsdgrad_chi);
+        map_dAdchi_to_dadchi(dSIGMAdchi, J, F, dsdchi);
+        map_dAdgrad_chi_to_dadgrad_chi(dSIGMAdgrad_chi, J, F, dsdgrad_chi);
         
         //Map the higher order stress
         map_dAdF_to_dadF(m_voigt, M_voigt, dMdF, J, dJdF, F, chi, dmdF);
         map_dAdchi_to_dadchi(M_voigt, dMdchi, J, F, chi, dmdchi);
-        map_dAdgrad_chi_to_dadgrad_chi(M_voigt, dMdgrad_chi, J, F, chi, dmdgrad_chi);
+        map_dAdgrad_chi_to_dadgrad_chi(dMdgrad_chi, J, F, chi, dmdgrad_chi);
         
         return;
     }
@@ -5990,7 +5990,7 @@ namespace deformation_measures
         return;
     }
 
-    void map_dAdchi_to_dadchi(const Vector_9 &A,  const Matrix_9x9 &dAdchi,  const double &J, const Matrix_3x3 &F, Matrix_9x9 dadchi){
+    void map_dAdchi_to_dadchi(const Matrix_9x9 &dAdchi,  const double &J, const Matrix_3x3 &F, Matrix_9x9 &dadchi){
         /*!==============================
         |    map_dAdchi_to_dadchi    |
         ==============================
@@ -6002,18 +6002,7 @@ namespace deformation_measures
         
         dadchi = Matrix_9x9::Zero();
         
-        //Extracting A
-        double A11= A(0);
-        double A22= A(1);
-        double A33= A(2);
-        double A23= A(3);
-        double A13= A(4);
-        double A12= A(5);
-        double A32= A(6);
-        double A31= A(7);
-        double A21= A(8);
-
-        //Extracting dAdchi
+       //Extracting dAdchi
         double dAdchi1111= dAdchi(0,0);
         double dAdchi1122= dAdchi(0,1);
         double dAdchi1133= dAdchi(0,2);
@@ -6194,7 +6183,7 @@ namespace deformation_measures
         return;
     }
     
-    void map_dAdchi_to_dadchi(const Vector_27 &A, const Matrix_27x9 &dAdchi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 dadchi){
+    void map_dAdchi_to_dadchi(const Vector_27 &A, const Matrix_27x9 &dAdchi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 &dadchi){
         /*!==============================
         |    map_dAdchi_to_dadchi    |
         ==============================
@@ -6754,7 +6743,7 @@ namespace deformation_measures
         return;
     }
 
-    void map_dAdgrad_chi_to_dadgrad_chi(const Vector_9 &A,  const Matrix_9x27 &dAdgrad_chi,  const double &J, const Matrix_3x3 &F, Matrix_9x27 dadgrad_chi){
+    void map_dAdgrad_chi_to_dadgrad_chi(const Matrix_9x27 &dAdgrad_chi,  const double &J, const Matrix_3x3 &F, Matrix_9x27 &dadgrad_chi){
         /*!========================================
         |    map_dAdgrad_chi_to_dadgrad_chi    |
         ========================================
@@ -6767,17 +6756,6 @@ namespace deformation_measures
         
         dadgrad_chi = Matrix_9x27::Zero();
         
-        //Extracting A
-        double A11= A(0);
-        double A22= A(1);
-        double A33= A(2);
-        double A23= A(3);
-        double A13= A(4);
-        double A12= A(5);
-        double A32= A(6);
-        double A31= A(7);
-        double A21= A(8);
-
         //Extracting dAdgrad_chi
         double dAdgrad_chi11111= dAdgrad_chi(0,0);
         double dAdgrad_chi11122= dAdgrad_chi(0,1);
@@ -7283,7 +7261,7 @@ namespace deformation_measures
         return;
     }
     
-    void map_dAdgrad_chi_to_dadgrad_chi(const Vector_27 &A, const Matrix_27x27 &dAdgrad_chi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x27 dadgrad_chi){
+    void map_dAdgrad_chi_to_dadgrad_chi(const Matrix_27x27 &dAdgrad_chi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x27 &dadgrad_chi){
         /*!========================================
         |    map_dAdgrad_chi_to_dadgrad_chi    |
         ========================================
@@ -7297,35 +7275,6 @@ namespace deformation_measures
         */
         
         dadgrad_chi = Matrix_27x27::Zero();
-        
-        //Extracting A
-        double A111= A(0);
-        double A122= A(1);
-        double A133= A(2);
-        double A123= A(3);
-        double A113= A(4);
-        double A112= A(5);
-        double A132= A(6);
-        double A131= A(7);
-        double A121= A(8);
-        double A211= A(9);
-        double A222= A(10);
-        double A233= A(11);
-        double A223= A(12);
-        double A213= A(13);
-        double A212= A(14);
-        double A232= A(15);
-        double A231= A(16);
-        double A221= A(17);
-        double A311= A(18);
-        double A322= A(19);
-        double A333= A(20);
-        double A323= A(21);
-        double A313= A(22);
-        double A312= A(23);
-        double A332= A(24);
-        double A331= A(25);
-        double A321= A(26);
 
         //Extracting chi
         double chi11= chi(0,0);
