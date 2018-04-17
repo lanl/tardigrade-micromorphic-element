@@ -221,6 +221,44 @@ void define_m(Vector_27 &m){
          -165.24571159030918, -239.6065692494737,  -201.04091236148963;
 }
 
+std::vector<double> parse_F_grad_u(std::vector<double> grad_uvec){
+    /*!========================
+    |    parse_F_grad_u    |
+    ========================
+    
+    Parse the deformation gradient as a function of the gradient of u in 
+    the current configuration.
+    
+    */
+    
+    Vector_9 grad_u_voigt;
+    for (int i=0; i<9; i++){grad_u_voigt[i] = grad_uvec[i];}
+    
+    Matrix_3x3 grad_u;
+    
+    deformation_measures::undo_voigt_3x3_tensor(grad_u_voigt,grad_u);
+    
+    double grad_u_array[3][3];
+    
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            grad_u_array[i][j] = grad_u(i,j);
+        }
+    }
+    
+    Matrix_3x3 F;
+    deformation_measures::get_deformation_gradient(grad_u_array,F);
+    
+    Vector_9 F_voigt;
+    deformation_measures::voigt_3x3_tensor(F,F_voigt);
+    
+    std::vector<double> result;
+    result.resize(9);
+    for (int i=0; i<9; i++){result[i] = F_voigt[i];}
+    
+    return result;
+}
+
 std::vector<double> parse_inv_sot(std::vector<double> Avec){
     /*!=======================
     |    parse_inv_sot    |
@@ -2211,6 +2249,61 @@ int test_map_stresses_to_current_configuration(std::ofstream &results){
     return 1;
 }
 
+int test_compute_dFdgrad_u(std::ofstream &results){
+    /*!================================
+    |    test_compute_dFdgrad_u    |
+    ================================
+    
+    Test the computation of the derivative of F 
+    w.r.t. the gradient of u in the current configuration.
+    
+    */
+    
+    Matrix_9x9  dFdgrad_u;
+    Matrix_9x9 _dFdgrad_u;
+    
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    
+    Vector_9 grad_u_voigt;
+    deformation_measures::voigt_3x3_tensor(grad_u,grad_u_voigt);
+    
+    std::vector<double> x0;
+    x0.resize(9);
+    
+    //Populate x0
+    for (int i=0; i<9; i++){x0[i] = grad_u_voigt(i);}
+    
+    //Initialize the finite difference operator
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_F_grad_u, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> dFdgrad_u_vec = fd.numeric_gradient();
+    
+    for (int i=0; i<dFdgrad_u_vec.size(); i++){
+        for (int j=0; j<dFdgrad_u_vec[i].size(); j++){
+            dFdgrad_u(j,i) = dFdgrad_u_vec[i][j];
+        }
+    }
+    
+    Matrix_3x3 F;
+    define_deformation_gradient(F);
+    
+    deformation_measures::compute_dFdgrad_u(F, _dFdgrad_u);
+    
+    bool tot_result = dFdgrad_u.isApprox(_dFdgrad_u,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dFdgrad_u & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dFdgrad_u & False\\\\\n\\hline\n";
+    }
+    
+    return 1;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -2257,6 +2350,7 @@ int main(){
     test_compute_dgrad_chidF(results);
     test_compute_ddetAdA(results);
     test_map_stresses_to_current_configuration(results);
+    test_compute_dFdgrad_u(results);
 
     //Close the results file
     results.close();
