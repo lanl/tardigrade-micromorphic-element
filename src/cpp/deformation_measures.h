@@ -125,11 +125,11 @@ namespace deformation_measures
     void map_dAdF_to_dadF(const Vector_9 &a,  const Vector_9 &A,  const Matrix_9x9 &dAdF,  const double &J, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, Matrix_9x9 &dadF);
     void map_dAdF_to_dadF(const Vector_27& a, const Vector_27 &A, const Matrix_27x9 &dAdF, const double &J, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 &dadF);
     
-    void map_dAdchi_to_dadchi(const Vector_9 &A,  const Matrix_9x9 &dAdchi,  const double &J, const Matrix_3x3 &F, Matrix_9x9 dadchi);
-    void map_dAdchi_to_dadchi(const Vector_27 &A, const Matrix_27x9 &dAdchi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 dadchi);
+    void map_dAdchi_to_dadchi(const Matrix_9x9 &dAdchi,  const double &J, const Matrix_3x3 &F, Matrix_9x9 &dadchi);
+    void map_dAdchi_to_dadchi(const Vector_27 &A, const Matrix_27x9 &dAdchi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 &dadchi);
     
-    void map_dAdgrad_chi_to_dadgrad_chi(const Vector_9 &A,  const Matrix_9x27 &dAdgrad_chi,  const double &J, const Matrix_3x3 &F, Matrix_9x27 dadgrad_chi);
-    void map_dAdgrad_chi_to_dadgrad_chi(const Vector_27 &A, const Matrix_27x27 &dAdgrad_chi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x27 dadgrad_chi);
+    void map_dAdgrad_chi_to_dadgrad_chi(const Matrix_9x27 &dAdgrad_chi,  const double &J, const Matrix_3x3 &F, Matrix_9x27 &dadgrad_chi);
+    void map_dAdgrad_chi_to_dadgrad_chi(const Matrix_27x27 &dAdgrad_chi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x27 &dadgrad_chi);
 }
 
 #endif

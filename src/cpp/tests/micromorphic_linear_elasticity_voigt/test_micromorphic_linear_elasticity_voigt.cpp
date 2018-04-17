@@ -1581,6 +1581,72 @@ std::vector<double> parse_cauchy_stress_chi(std::vector<double> chivec){
     return cauchy_vec;
 }
 
+std::vector<double> parse_cauchy_stress_grad_chi(std::vector<double> grad_chivec){
+    /*!======================================
+    |    parse_cauchy_stress_grad_chi    |
+    ======================================
+    
+    Parse the cauchy stress as a function of the gradient of 
+    the micro-displacement tensor chi in vector form.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_27 grad_chi_voigt;
+    Matrix_3x9 grad_chi;
+    
+    //Define additional required values
+    double t  = 0;
+    double dt = 0;
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    for (int i=0; i<27; i++){grad_chi_voigt[i] = grad_chivec[i];}
+    deformation_measures::undo_voigt_3x9_tensor(grad_chi_voigt,grad_chi);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    
+    Matrix_3x3 RCG;
+    deformation_measures::get_right_cauchy_green(F,RCG);
+    Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 PK2;
+    micro_material::compute_PK2_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, PK2);
+    
+    //Map the PK2 stress to the cauchy stress
+    double Jac = F.determinant();
+    Vector_9 cauchy;
+    Matrix_3x3 PK2_mat;
+    deformation_measures::undo_voigt_3x3_tensor(PK2,PK2_mat);
+    deformation_measures::voigt_3x3_tensor(F*PK2_mat*F.transpose()/Jac,cauchy);
+    
+    std::vector<double> cauchy_vec;
+    cauchy_vec.resize(9);
+    for (int i=0; i<9; i++){cauchy_vec[i] = cauchy(i);}
+    return cauchy_vec;
+}
+
 std::vector<double> parse_s_stress_F(std::vector<double> Fvec){
     /*!==========================
     |    parse_s_stress_F    |
@@ -1647,6 +1713,139 @@ std::vector<double> parse_s_stress_F(std::vector<double> Fvec){
     return s_vec;
 }
 
+std::vector<double> parse_s_stress_chi(std::vector<double> chivec){
+    /*!============================
+    |    parse_s_stress_chi    |
+    ============================
+    
+    Parse the symmetric stress in the current configuration 
+    as a function of the micro-displacement tensor chi.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_9 chi_voigt;
+    Matrix_3x3 chi;
+    
+    //Define additional required values
+    double t  = 0;
+    double dt = 0;
+    Matrix_3x3 F;
+    Matrix_3x9 grad_chi;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    for (int i=0; i<9; i++){chi_voigt[i] = chivec[i];}
+    deformation_measures::undo_voigt_3x3_tensor(chi_voigt,chi);
+    define_deformation_gradient(F);
+    define_grad_phi(grad_chi); //Note: grad_chi == grad_phi
+    
+    Matrix_3x3 RCG;
+    deformation_measures::get_right_cauchy_green(F,RCG);
+    Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 SIGMA;
+    micro_material::compute_symmetric_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, SIGMA);
+    
+    //Map the symmetric stress to the reference configuration
+    double Jac = F.determinant();
+    Vector_9 s;
+    Matrix_3x3 SIGMA_mat;
+    deformation_measures::undo_voigt_3x3_tensor(SIGMA,SIGMA_mat);
+    deformation_measures::voigt_3x3_tensor(F*SIGMA_mat*F.transpose()/Jac,s);
+    
+    std::vector<double> s_vec;
+    s_vec.resize(9);
+    for (int i=0; i<9; i++){s_vec[i] = s(i);}
+    return s_vec;
+}
+
+std::vector<double> parse_s_stress_grad_chi(std::vector<double> grad_chivec){
+    /*!=================================
+    |    parse_s_stress_grad_chi    |
+    =================================
+    
+    Parse the symmetric stress in the current configuration 
+    as a function of the gradient of the micro-displacement 
+    tensor chi.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_27 grad_chi_voigt;
+    Matrix_3x9 grad_chi;
+    
+    //Define additional required values
+    double t  = 0;
+    double dt = 0;
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    for (int i=0; i<27; i++){grad_chi_voigt[i] = grad_chivec[i];}
+    deformation_measures::undo_voigt_3x9_tensor(grad_chi_voigt,grad_chi);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    
+    Matrix_3x3 RCG;
+    deformation_measures::get_right_cauchy_green(F,RCG);
+    Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 SIGMA;
+    micro_material::compute_symmetric_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, SIGMA);
+    
+    //Map the symmetric stress to the reference configuration
+    double Jac = F.determinant();
+    Vector_9 s;
+    Matrix_3x3 SIGMA_mat;
+    deformation_measures::undo_voigt_3x3_tensor(SIGMA,SIGMA_mat);
+    deformation_measures::voigt_3x3_tensor(F*SIGMA_mat*F.transpose()/Jac,s);
+    
+    std::vector<double> s_vec;
+    s_vec.resize(9);
+    for (int i=0; i<9; i++){s_vec[i] = s(i);}
+    return s_vec;
+}
+
 std::vector<double> parse_m_stress_F(std::vector<double> Fvec){
     /*!==========================
     |    parse_m_stress_F    |
@@ -1685,6 +1884,124 @@ std::vector<double> parse_m_stress_F(std::vector<double> Fvec){
     Vector_27 M;
     micro_material::compute_higher_order_stress(Gamma_voigt, C, M);
 
+    //Map the higher order stress to the current configuration
+    double Jac = F.determinant();
+    Matrix_3x9 M_mat;
+    Vector_27 m;
+    deformation_measures::undo_voigt_3x9_tensor(M,M_mat);
+    deformation_measures::voigt_3x9_tensor(F*M_mat,m);                 //Map the first index
+    deformation_measures::perform_left_positive_cyclic_permutation(m); //Cycle the indices
+    deformation_measures::undo_voigt_3x9_tensor(m,M_mat);
+    deformation_measures::voigt_3x9_tensor(F*M_mat,m);                 //Map the second index
+    deformation_measures::perform_left_positive_cyclic_permutation(m); //Cycle the indices
+    deformation_measures::undo_voigt_3x9_tensor(m,M_mat);
+    deformation_measures::voigt_3x9_tensor(chi*M_mat,m);               //Map the third index
+    deformation_measures::perform_left_positive_cyclic_permutation(m); //Cycle the indices
+    m = m/Jac;
+    
+    std::vector<double> m_vec;
+    m_vec.resize(27);
+    for (int i=0; i<27; i++){m_vec[i] = m(i);}
+    return m_vec;
+}
+
+std::vector<double> parse_m_stress_chi(std::vector<double> chivec){
+    /*!============================
+    |    parse_m_stress_chi    |
+    ============================
+    
+    Parse the higher order stress in the current configuration as a function of the micro-deformation
+    tensor chi.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_9 chi_voigt;
+    Matrix_3x3 chi;
+    
+    //Define additional required values
+    double t  = 0;
+    double dt = 0;
+    Matrix_3x3 F;
+    Matrix_3x9 grad_chi;
+    
+    SpMat C(27,27);
+    define_C(C);
+    
+    for (int i=0; i<9; i++){chi_voigt[i] = chivec[i];}
+    deformation_measures::undo_voigt_3x3_tensor(chi_voigt,chi);
+    define_deformation_gradient(F);
+    define_grad_phi(grad_chi); //Note: grad_chi == grad_phi
+    
+    //Deformation measures
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures in voigt notation
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_27 M;
+    micro_material::compute_higher_order_stress(Gamma_voigt, C, M);
+    
+    //Map the higher order stress to the current configuration
+    double Jac = F.determinant();
+    Matrix_3x9 M_mat;
+    Vector_27 m;
+    deformation_measures::undo_voigt_3x9_tensor(M,M_mat);
+    deformation_measures::voigt_3x9_tensor(F*M_mat,m);                 //Map the first index
+    deformation_measures::perform_left_positive_cyclic_permutation(m); //Cycle the indices
+    deformation_measures::undo_voigt_3x9_tensor(m,M_mat);
+    deformation_measures::voigt_3x9_tensor(F*M_mat,m);                 //Map the second index
+    deformation_measures::perform_left_positive_cyclic_permutation(m); //Cycle the indices
+    deformation_measures::undo_voigt_3x9_tensor(m,M_mat);
+    deformation_measures::voigt_3x9_tensor(chi*M_mat,m);               //Map the third index
+    deformation_measures::perform_left_positive_cyclic_permutation(m); //Cycle the indices
+    m = m/Jac;
+    
+    std::vector<double> m_vec;
+    m_vec.resize(27);
+    for (int i=0; i<27; i++){m_vec[i] = m(i);}
+    return m_vec;
+}
+
+std::vector<double> parse_m_stress_grad_chi(std::vector<double> grad_chivec){
+    /*!=================================
+    |    parse_m_stress_grad_chi    |
+    =================================
+    
+    Parse the higher order stress in the current configuration 
+    as a function of the gradient of the micro-deformation tensor chi.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_27 grad_chi_voigt;
+    Matrix_3x9 grad_chi;
+    
+    //Define additional required values
+    double t  = 0;
+    double dt = 0;
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    
+    SpMat C(27,27);
+    define_C(C);
+    
+    for (int i=0; i<27; i++){grad_chi_voigt[i] = grad_chivec[i];}
+    deformation_measures::undo_voigt_3x9_tensor(grad_chi_voigt,grad_chi);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    
+    //Deformation measures
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures in voigt notation
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_27 M;
+    micro_material::compute_higher_order_stress(Gamma_voigt, C, M);
+    
     //Map the higher order stress to the current configuration
     double Jac = F.determinant();
     Matrix_3x9 M_mat;
@@ -2883,6 +3200,9 @@ int test_compute_dPK2dchi(std::ofstream &results){
     t1 = Clock::now();
     std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
+    //std::cout << " dPK2dchi:\n" <<  dPK2dchi << "\n";
+    //std::cout << "_dPK2dchi:\n" << _dPK2dchi << "\n";
+    
     bool tot_result = dPK2dchi.isApprox(_dPK2dchi,1e-6);
     
     if (tot_result){
@@ -3744,8 +4064,8 @@ int test_compute_dcauchydF(std::ofstream &results){
     t1 = Clock::now();
     std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
 
-    std::cout << " dcauchydF:\n" <<  dcauchydF << "\n";
-    std::cout << "_dcauchydF:\n" << _dcauchydF << "\n";
+    //std::cout << " dcauchydF:\n" <<  dcauchydF << "\n";
+    //std::cout << "_dcauchydF:\n" << _dcauchydF << "\n";
     
     bool tot_result = dcauchydF.isApprox(_dcauchydF,1e-6);
     
@@ -4131,9 +4451,9 @@ int test_compute_dcauchydchi(std::ofstream &results){
 
     t1 = Clock::now();
     std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
-
-    std::cout << " dcauchydchi:\n" <<  dcauchydchi << "\n";
-    std::cout << "_dcauchydchi:\n" << _dcauchydchi << "\n";
+    
+    //std::cout << " dcauchydchi:\n" <<  dcauchydchi << "\n";
+    //std::cout << "_dcauchydchi:\n" << _dcauchydchi << "\n";
     
     bool tot_result = dcauchydchi.isApprox(_dcauchydchi,1e-6);
     
@@ -4142,6 +4462,649 @@ int test_compute_dcauchydchi(std::ofstream &results){
     }
     else {
         results << "test_compute_dcauchydchi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_dsdchi(std::ofstream &results){
+    /*!=============================
+    |    test_compute_dsdchi    |
+    =============================
+    
+    Test the computation of the derivative of the symmetric  
+    stress in the current configuration w.r.t. the deformation gradient.
+    
+    */
+    
+    Matrix_9x9 dsdchi; //The expected result
+    std::vector< std::vector<double> > dsdchi_vec; //The vector form.
+    Matrix_9x9 _dsdchi; //The result of the function.
+    
+    //Define the other gradients
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+//    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Matrix_3x3 chi; //The base point about which to compute the derivative
+    define_chi(chi);
+    Vector_9 x0_vec; //The vector form of chi
+    deformation_measures::voigt_3x3_tensor(chi,x0_vec);
+    
+    std::vector<double> x0;
+    x0.resize(9);
+    for (int i=0; i<9; i++){x0[i] = x0_vec(i);}
+    
+    //Initialize the finite difference operator
+    std::cout << "\ndsdchi\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_s_stress_chi, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dsdchi_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dsdchi_vec.size(); i++){
+        for (int j=0; j<dsdchi_vec[i].size(); j++){
+            dsdchi(j,i) = dsdchi_vec[i][j];
+        }
+    }
+    
+    //Obtain the required values
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The deformation gradient
+    Matrix_3x9 grad_chi;      //The gradient of the micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric stress
+    Vector_27 M;              //The higher order stress
+
+    //The jacobians in the reference configuration
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+
+    //The stresses in the current configuation
+    Vector_9  cauchy; //The cauchy stress
+    Vector_9  s;      //The symmetric stress
+    Vector_27 m;      //The higher-order stress
+    
+    //Populate the stiffness matrices
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    //Populate the required values
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_grad_phi(grad_chi); //Note: grad_phi == grad_chi
+    
+    t0 = Clock::now();
+    micro_material::get_stress(t,        dt,         params,  
+                               F,        chi,        grad_chi,
+                               SDVS,     PK2,        SIGMA,    M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+    deformation_measures::map_jacobians_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m,
+                                                dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi, dMdF, dMdchi, dMdgrad_chi,
+                                                dcauchydF, dcauchydchi, dcauchydgrad_chi,
+                                                     dsdF,     _dsdchi,      dsdgrad_chi,
+                                                     dmdF,      dmdchi,      dmdgrad_chi);
+
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+
+    //std::cout << " dsdchi:\n" <<  dsdchi << "\n";
+    //std::cout << "_dsdchi:\n" << _dsdchi << "\n";
+    
+    bool tot_result = dsdchi.isApprox(_dsdchi,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dsdchi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dsdchi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_dmdchi(std::ofstream &results){
+    /*!=============================
+    |    test_compute_dmdchi    |
+    =============================
+    
+    Test the computation of the derivative of the higher order 
+    stress in the current configuration w.r.t. the micro-displacement
+    tensor.
+    
+    */
+    
+    Matrix_27x9 dmdchi; //The expected result
+    std::vector< std::vector<double> > dmdchi_vec; //The vector form.
+    Matrix_27x9 _dmdchi; //The result of the function.
+    
+    //Define the other gradients
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+//    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Matrix_3x3 chi; //The base point about which to compute the derivative
+    define_chi(chi);
+    Vector_9 x0_vec; //The vector form of chi
+    deformation_measures::voigt_3x3_tensor(chi,x0_vec);
+    
+    std::vector<double> x0;
+    x0.resize(9);
+    for (int i=0; i<9; i++){x0[i] = x0_vec(i);}
+    
+    //Initialize the finite difference operator
+    std::cout << "\ndmdchi\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_m_stress_chi, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dmdchi_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dmdchi_vec.size(); i++){
+        for (int j=0; j<dmdchi_vec[i].size(); j++){
+            dmdchi(j,i) = dmdchi_vec[i][j];
+        }
+    }
+    
+    //Obtain the required values
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The deformation gradient
+    Matrix_3x9 grad_chi;      //The gradient of the micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric stress
+    Vector_27 M;              //The higher order stress
+
+    //The jacobians in the reference configuration
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+
+    //The stresses in the current configuation
+    Vector_9  cauchy; //The cauchy stress
+    Vector_9  s;      //The symmetric stress
+    Vector_27 m;      //The higher-order stress
+    
+    //Populate the stiffness matrices
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    //Populate the required values
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_grad_phi(grad_chi); //Note: grad_phi == grad_chi
+    
+    t0 = Clock::now();
+    micro_material::get_stress(t,        dt,         params,  
+                               F,        chi,        grad_chi,
+                               SDVS,     PK2,        SIGMA,    M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+    deformation_measures::map_jacobians_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m,
+                                                dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi, dMdF, dMdchi, dMdgrad_chi,
+                                                dcauchydF, dcauchydchi, dcauchydgrad_chi,
+                                                     dsdF,      dsdchi,      dsdgrad_chi,
+                                                     dmdF,     _dmdchi,      dmdgrad_chi);
+
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //std::cout << " dmdchi:\n" <<  dmdchi << "\n";
+    //std::cout << "_dmdchi:\n" << _dmdchi << "\n";
+    
+    bool tot_result = dmdchi.isApprox(_dmdchi,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dmdchi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dmdchi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_dcauchydgrad_chi(std::ofstream &results){
+    /*!=======================================
+    |    test_compute_dcauchydgrad_chi    |
+    =======================================
+    
+    Test the computation of the derivative of the cauchy 
+    stress w.r.t. the gradient of the micro-displacement tensor.
+    
+    */
+    
+    Matrix_9x27 dcauchydgrad_chi; //The expected result
+    std::vector< std::vector<double> > dcauchydgrad_chi_vec; //The vector form.
+    Matrix_9x27 _dcauchydgrad_chi; //The result of the function.
+    
+    //Define the other gradients
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+//    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Matrix_3x9 grad_chi;
+    define_grad_phi(grad_chi);
+    Vector_27 x0_vec;
+    deformation_measures::voigt_3x9_tensor(grad_chi,x0_vec);
+    
+    std::vector<double> x0;
+    x0.resize(27);
+    for (int i=0; i<27; i++){x0[i] = x0_vec(i);}
+    
+    //Initialize the finite difference operator
+    std::cout << "\ndcauchydgrad_chi\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_cauchy_stress_grad_chi, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dcauchydgrad_chi_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dcauchydgrad_chi_vec.size(); i++){
+        for (int j=0; j<dcauchydgrad_chi_vec[i].size(); j++){
+            dcauchydgrad_chi(j,i) = dcauchydgrad_chi_vec[i][j];
+        }
+    }
+    
+    //Obtain the required values
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The micro-dof
+    Matrix_3x3 chi;           //The micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric stress
+    Vector_27 M;              //The higher order stress
+
+    //The jacobians in the reference configuration
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+
+    //The stresses in the current configuation
+    Vector_9  cauchy; //The cauchy stress
+    Vector_9  s;      //The symmetric stress
+    Vector_27 m;      //The higher-order stress
+    
+    //Populate the stiffness matrices
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    //Populate the required values
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    
+    t0 = Clock::now();
+    micro_material::get_stress(t,        dt,         params,  
+                               F,        chi,        grad_chi,
+                               SDVS,     PK2,        SIGMA,    M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+    deformation_measures::map_jacobians_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m,
+                                                dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi, dMdF, dMdchi, dMdgrad_chi,
+                                                 dcauchydF,  dcauchydchi, _dcauchydgrad_chi,
+                                                      dsdF,       dsdchi,       dsdgrad_chi,
+                                                      dmdF,       dmdchi,       dmdgrad_chi);
+
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //std::cout << " dcauchydgrad_chi:\n" <<  dcauchydgrad_chi << "\n";
+    //std::cout << "_dcauchydgrad_chi:\n" << _dcauchydgrad_chi << "\n";
+    
+    bool tot_result = dcauchydgrad_chi.isApprox(_dcauchydgrad_chi,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dcauchydgrad_chi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dcauchydgrad_chi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_dsdgrad_chi(std::ofstream &results){
+    /*!==================================
+    |    test_compute_dsdgrad_chi    |
+    ==================================
+    
+    Test the computation of the derivative of the symmetric  
+    stress in the current configuration w.r.t. the gradient 
+    of the micro-displacement tensor.
+    
+    */
+    
+    Matrix_9x27 dsdgrad_chi; //The expected result
+    std::vector< std::vector<double> > dsdgrad_chi_vec; //The vector form.
+    Matrix_9x27 _dsdgrad_chi; //The result of the function.
+    
+    //Define the other gradients
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+//    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Matrix_3x9 grad_chi; //The base point about which to compute the derivative
+    define_grad_phi(grad_chi);
+    Vector_27 x0_vec; //The vector form of chi
+    deformation_measures::voigt_3x9_tensor(grad_chi,x0_vec);
+    
+    std::vector<double> x0;
+    x0.resize(27);
+    for (int i=0; i<27; i++){x0[i] = x0_vec(i);}
+    
+    //Initialize the finite difference operator
+    std::cout << "\ndsdgrad_chi\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_s_stress_grad_chi, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dsdgrad_chi_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dsdgrad_chi_vec.size(); i++){
+        for (int j=0; j<dsdgrad_chi_vec[i].size(); j++){
+            dsdgrad_chi(j,i) = dsdgrad_chi_vec[i][j];
+        }
+    }
+    
+    //Obtain the required values
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The deformation gradient
+    Matrix_3x3 chi;           //The micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric stress
+    Vector_27 M;              //The higher order stress
+
+    //The jacobians in the reference configuration
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+
+    //The stresses in the current configuation
+    Vector_9  cauchy; //The cauchy stress
+    Vector_9  s;      //The symmetric stress
+    Vector_27 m;      //The higher-order stress
+    
+    //Populate the stiffness matrices
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    //Populate the required values
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    
+    t0 = Clock::now();
+    micro_material::get_stress(t,        dt,         params,  
+                               F,        chi,        grad_chi,
+                               SDVS,     PK2,        SIGMA,    M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+    deformation_measures::map_jacobians_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m,
+                                                dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi, dMdF, dMdchi, dMdgrad_chi,
+                                                dcauchydF, dcauchydchi, dcauchydgrad_chi,
+                                                     dsdF,      dsdchi,     _dsdgrad_chi,
+                                                     dmdF,      dmdchi,      dmdgrad_chi);
+
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+
+    //std::cout << " dsdgrad_chi:\n" <<  dsdgrad_chi << "\n";
+    //std::cout << "_dsdgrad_chi:\n" << _dsdgrad_chi << "\n";
+    
+    bool tot_result = dsdgrad_chi.isApprox(_dsdgrad_chi,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dsdgrad_chi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dsdgrad_chi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_dmdgrad_chi(std::ofstream &results){
+    /*!==================================
+    |    test_compute_dmdgrad_chi    |
+    ==================================
+    
+    Test the computation of the derivative of the higher order 
+    stress in the current configuration w.r.t. the micro-displacement
+    tensor.
+    
+    */
+    
+    Matrix_27x27 dmdgrad_chi; //The expected result
+    std::vector< std::vector<double> > dmdgrad_chi_vec; //The vector form.
+    Matrix_27x27 _dmdgrad_chi; //The result of the function.
+    
+    //Define the other gradients
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+//    Matrix_27x27 dmdgrad_chi;
+    
+    Matrix_3x9 grad_chi; //The base point about which to compute the derivative
+    define_grad_phi(grad_chi);
+    Vector_27 x0_vec; //The vector form of chi
+    deformation_measures::voigt_3x9_tensor(grad_chi,x0_vec);
+    
+    std::vector<double> x0;
+    x0.resize(27);
+    for (int i=0; i<27; i++){x0[i] = x0_vec(i);}
+    
+    //Initialize the finite difference operator
+    std::cout << "\ndmdgrad_chi\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_m_stress_grad_chi, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    dmdgrad_chi_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (int i=0; i<dmdgrad_chi_vec.size(); i++){
+        for (int j=0; j<dmdgrad_chi_vec[i].size(); j++){
+            dmdgrad_chi(j,i) = dmdgrad_chi_vec[i][j];
+        }
+    }
+    
+    //Obtain the required values
+    double     t = 0.;        //The current time value (unneeded)
+    double    dt = 0.;        //The change in time (unneeded)
+    double params[18];        //The material parameters
+    Matrix_3x3 F;             //The deformation gradient
+    Matrix_3x3 chi;           //The gradient of the micro-dof
+    std::vector<double> SDVS; //The state variables (unneeded)
+    Vector_9 PK2;             //The second piola kirchhoff stress
+    Vector_9 SIGMA;           //The symmetric stress
+    Vector_27 M;              //The higher order stress
+
+    //The jacobians in the reference configuration
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+
+    //The stresses in the current configuation
+    Vector_9  cauchy; //The cauchy stress
+    Vector_9  s;      //The symmetric stress
+    Vector_27 m;      //The higher-order stress
+    
+    //Populate the stiffness matrices
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    //Populate the required values
+    define_parameters(params);
+    define_deformation_gradient(F);
+    define_chi(chi);
+    
+    t0 = Clock::now();
+    micro_material::get_stress(t,        dt,         params,  
+                               F,        chi,        grad_chi,
+                               SDVS,     PK2,        SIGMA,    M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+    deformation_measures::map_jacobians_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m,
+                                                dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi, dMdF, dMdchi, dMdgrad_chi,
+                                                dcauchydF, dcauchydchi, dcauchydgrad_chi,
+                                                     dsdF,      dsdchi,      dsdgrad_chi,
+                                                     dmdF,      dmdchi,     _dmdgrad_chi);
+
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //std::cout << " dmdgrad_chi:\n" <<  dmdgrad_chi << "\n";
+    //std::cout << "_dmdgrad_chi:\n" << _dmdgrad_chi << "\n";
+    
+    bool tot_result = dmdgrad_chi.isApprox(_dmdgrad_chi,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_dmdgrad_chi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_dmdgrad_chi & False\\\\\n\\hline\n";
     }
 
     return 1;
@@ -4205,6 +5168,13 @@ int main(){
 
     //!Tests of the current configuration jacobians w.r.t. the micro-displacement tensor
     test_compute_dcauchydchi(results);
+    test_compute_dsdchi(results);
+    test_compute_dmdchi(results);
+    
+    //!Tests of the current configuation jacobians w.r.t. the gradient of the micro-displacement tensor
+    test_compute_dcauchydgrad_chi(results);
+    test_compute_dsdgrad_chi(results);
+    test_compute_dmdgrad_chi(results);
 
     //Close the results file
     results.close();
