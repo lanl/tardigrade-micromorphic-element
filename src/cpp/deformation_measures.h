@@ -102,6 +102,8 @@ namespace deformation_measures
     
     void compute_dgrad_chidF(const Vector_27 &grad_phi, SpMat &dgrad_chidF);
     
+    void compute_dFdgrad_u(const Matrix_3x3 &F, Matrix_9x9 &dFdgrad_u);
+    
     void compute_dAinvdA(const Matrix_3x3 &A, Matrix_9x9 &dAinvdA);
     
     void compute_ddetAdA(const Matrix_3x3 &A, Matrix_3x3 &ddetAdA);
@@ -130,6 +132,14 @@ namespace deformation_measures
     
     void map_dAdgrad_chi_to_dadgrad_chi(const Matrix_9x27 &dAdgrad_chi,  const double &J, const Matrix_3x3 &F, Matrix_9x27 &dadgrad_chi);
     void map_dAdgrad_chi_to_dadgrad_chi(const Matrix_27x27 &dAdgrad_chi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x27 &dadgrad_chi);
+    
+    void compute_total_derivatives(const Matrix_3x3  &F,         const Vector_27    &grad_phi,
+                                   const Matrix_9x9  &dcauchydF, const Matrix_9x27  &dcauchydgrad_chi,
+                                   const Matrix_9x9  &dsdF,      const Matrix_9x27  &dsdgrad_chi,
+                                   const Matrix_27x9 &dmdF,      const Matrix_27x27 &dmdgrad_chi,
+                                   Matrix_9x9  &DcauchyDgrad_u,  Matrix_9x27  &DcauchyDgrad_phi,
+                                   Matrix_9x9  &DsDgrad_u,       Matrix_9x27  &DsDgrad_phi,
+                                   Matrix_27x9 &DmDgrad_u,       Matrix_27x27 &DmDgrad_phi);
 }
 
 #endif
