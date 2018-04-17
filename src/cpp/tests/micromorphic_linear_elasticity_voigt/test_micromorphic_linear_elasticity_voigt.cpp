@@ -2883,6 +2883,9 @@ int test_compute_dPK2dchi(std::ofstream &results){
     t1 = Clock::now();
     std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
+    //std::cout << " dPK2dchi:\n" <<  dPK2dchi << "\n";
+    //std::cout << "_dPK2dchi:\n" << _dPK2dchi << "\n";
+    
     bool tot_result = dPK2dchi.isApprox(_dPK2dchi,1e-6);
     
     if (tot_result){
@@ -3744,8 +3747,8 @@ int test_compute_dcauchydF(std::ofstream &results){
     t1 = Clock::now();
     std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
 
-    std::cout << " dcauchydF:\n" <<  dcauchydF << "\n";
-    std::cout << "_dcauchydF:\n" << _dcauchydF << "\n";
+    //std::cout << " dcauchydF:\n" <<  dcauchydF << "\n";
+    //std::cout << "_dcauchydF:\n" << _dcauchydF << "\n";
     
     bool tot_result = dcauchydF.isApprox(_dcauchydF,1e-6);
     
@@ -4131,9 +4134,9 @@ int test_compute_dcauchydchi(std::ofstream &results){
 
     t1 = Clock::now();
     std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
-
-    std::cout << " dcauchydchi:\n" <<  dcauchydchi << "\n";
-    std::cout << "_dcauchydchi:\n" << _dcauchydchi << "\n";
+    
+    //std::cout << " dcauchydchi:\n" <<  dcauchydchi << "\n";
+    //std::cout << "_dcauchydchi:\n" << _dcauchydchi << "\n";
     
     bool tot_result = dcauchydchi.isApprox(_dcauchydchi,1e-6);
     
