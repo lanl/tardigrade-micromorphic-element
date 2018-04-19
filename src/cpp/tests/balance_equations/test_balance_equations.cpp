@@ -250,9 +250,9 @@ void define_DcauchyDphi(Matrix_9x9 &DcauchyDphi){
 }
 
 void define_DcauchyDgrad_phi(Matrix_9x27 &DcauchyDgrad_phi){
-    /*!============================
-    |    define_DcauchyDphi    |
-    ============================
+    /*!=================================
+    |    define_DcauchyDgrad_phi    |
+    =================================
     
     Define the gradient of the cauchy stress w.r.t. the 
     micro-displacement tensor.
@@ -267,6 +267,239 @@ void define_DcauchyDgrad_phi(Matrix_9x27 &DcauchyDgrad_phi){
             initial++;
         }
     }
+}
+
+void define_DsDgrad_u(Matrix_9x9 &DsDgrad_u){
+    /*!==========================
+    |    define_DsDgrad_u    |
+    ==========================
+    
+    Define the gradient of the symmetric stress w.r.t. the 
+    gradient of u.
+    
+    */
+    
+    int initial = 87;
+    
+    for (int i=0; i<9; i++){
+        for (int j=0; j<9; j++){
+            DsDgrad_u(i,j) = initial;
+            initial++;
+        }
+    }
+}
+
+void define_DsDphi(Matrix_9x9 &DsDphi){
+    /*!=======================
+    |    define_DsDphi    |
+    =======================
+    
+    Define the gradient of the symmetric stress w.r.t. the 
+    micro-displacement tensor.
+    
+    */
+    
+    int initial = 13;
+    
+    for (int i=0; i<9; i++){
+        for (int j=0; j<9; j++){
+            DsDphi(i,j) = initial;
+            initial++;
+        }
+    }
+}
+
+void define_DsDgrad_phi(Matrix_9x27 &DsDgrad_phi){
+    /*!============================
+    |    define_DsDgrad_phi    |
+    ============================
+    
+    Define the gradient of the symmetric stress w.r.t. the 
+    micro-displacement tensor.
+    
+    */
+    
+    int initial = 2*82;
+    
+    for (int i=0; i<9; i++){
+        for (int j=0; j<27; j++){
+            DsDgrad_phi(i,j) = initial;
+            initial++;
+        }
+    }
+}
+
+void define_DmDgrad_u(Matrix_27x9 &DmDgrad_u){
+    /*!==========================
+    |    define_DsDgrad_u    |
+    ==========================
+    
+    Define the gradient of the higher-order stress w.r.t. the 
+    gradient of u.
+    
+    */
+    
+    int initial = 91;
+    
+    for (int i=0; i<27; i++){
+        for (int j=0; j<9; j++){
+            DmDgrad_u(i,j) = initial;
+            initial++;
+        }
+    }
+}
+
+void define_DmDphi(Matrix_27x9 &DmDphi){
+    /*!=======================
+    |    define_DsDphi    |
+    =======================
+    
+    Define the gradient of the higher-order stress w.r.t. the 
+    micro-displacement tensor.
+    
+    */
+    
+    int initial = 32;
+    
+    for (int i=0; i<27; i++){
+        for (int j=0; j<9; j++){
+            DmDphi(i,j) = initial;
+            initial++;
+        }
+    }
+}
+
+void define_DmDgrad_phi(Matrix_27x27 &DmDgrad_phi){
+    /*!============================
+    |    define_DmDgrad_phi    |
+    ============================
+    
+    Define the gradient of the higher-order stress w.r.t. the 
+    micro-displacement tensor.
+    
+    */
+    
+    int initial = 2*17;
+    
+    for (int i=0; i<27; i++){
+        for (int j=0; j<27; j++){
+            DmDgrad_phi(i,j) = initial;
+            initial++;
+        }
+    }
+}
+
+std::vector<double> parse_grad_u_U(std::vector<double> U){
+    /*!========================
+    |    parse_grad_u_U    |
+    ========================
+    
+    Parse the construction of the gradient of u w.r.t. U.
+    
+    */
+    
+    double dNdx[3];
+    define_dNdx(dNdx);
+    
+    Matrix_3x3 grad_u;
+    
+    grad_u(0,0) = U[0]*dNdx[0];
+    grad_u(1,1) = U[1]*dNdx[1];
+    grad_u(2,2) = U[2]*dNdx[2];
+    grad_u(1,2) = U[1]*dNdx[2];
+    grad_u(0,2) = U[0]*dNdx[2];
+    grad_u(0,1) = U[0]*dNdx[1];
+    grad_u(2,1) = U[2]*dNdx[1];
+    grad_u(2,0) = U[2]*dNdx[0];
+    grad_u(1,0) = U[1]*dNdx[0];
+    
+    Vector_9 grad_u_voigt;
+    deformation_measures::voigt_3x3_tensor(grad_u,grad_u_voigt);
+    
+    std::vector<double> result;
+    result.resize(9);
+    for (int i=0; i<9; i++){result[i] = grad_u_voigt(i);}
+    return result;
+}
+
+std::vector<double> parse_phi_U(std::vector<double> U){
+    /*!=====================
+    |    parse_phi_U    |
+    =====================
+    
+    Parse the construction of phi w.r.t. U.
+    
+    */
+    
+    double N;
+    define_N(N);
+    
+    Matrix_3x3 phi;
+    
+    phi(0,0) = U[ 3]*N;
+    phi(1,1) = U[ 4]*N;
+    phi(2,2) = U[ 5]*N;
+    phi(1,2) = U[ 6]*N;
+    phi(0,2) = U[ 7]*N;
+    phi(0,1) = U[ 8]*N;
+    phi(2,1) = U[ 9]*N;
+    phi(2,0) = U[10]*N;
+    phi(1,0) = U[11]*N;
+    
+    Vector_9 phi_voigt;
+    deformation_measures::voigt_3x3_tensor(phi,phi_voigt);
+    
+    std::vector<double> result;
+    result.resize(9);
+    for (int i=0; i<9; i++){result[i] = phi_voigt(i);}
+    return result;
+}
+
+std::vector<double> parse_grad_phi_U(std::vector<double> U){
+    /*!==========================
+    |    parse_grad_phi_U    |
+    ==========================
+    
+    Parse the construction of the gradient of phi w.r.t. U.
+    
+    */
+    
+    double dNdx[3];
+    define_dNdx(dNdx);
+    
+    int Jhat;
+    
+    Matrix_3x3 phi;
+    Matrix_3x9 grad_phi;
+    
+    phi(0,0) = U[ 3];
+    phi(1,1) = U[ 4];
+    phi(2,2) = U[ 5];
+    phi(1,2) = U[ 6];
+    phi(0,2) = U[ 7];
+    phi(0,1) = U[ 8];
+    phi(2,1) = U[ 9];
+    phi(2,0) = U[10];
+    phi(1,0) = U[11];
+    
+    for (int i=0; i<3; i++){
+        for (int I=0; I<3; I++){
+            for (int j=0; j<3; j++){
+                find_sot_index(I,j,Jhat);
+                
+                grad_phi(i,Jhat) = phi(i,I)*dNdx[j];
+                
+            }
+        }
+    }
+    
+    Vector_27 grad_phi_voigt;
+    deformation_measures::voigt_3x9_tensor(grad_phi,grad_phi_voigt);
+    
+    std::vector<double> result;
+    result.resize(27);
+    for (int i=0; i<27; i++){result[i] = grad_phi_voigt(i);}
+    return result;
 }
 
 int test_compute_internal_force(std::ofstream &results){
@@ -303,7 +536,7 @@ int test_compute_internal_force(std::ofstream &results){
     }
     
     //Compute the function output.
-    for (int i=0; i<3; i++){balance_equations::compute_internal_force(i, dNdx, cauchy, _r[i]);}
+    balance_equations::compute_internal_force(dNdx, cauchy, _r);
     
     bool tot_result = true;
     
@@ -346,7 +579,7 @@ int test_compute_body_force(std::ofstream &results){
         r[i] = N*density*b[i];
     }
     
-    for (int i=0; i<3; i++){balance_equations::compute_body_force(i, N, density, b, _r[i]);}
+    balance_equations::compute_body_force(N, density, b, _r);
     
     bool tot_result = true;
     
@@ -389,7 +622,7 @@ int test_compute_kinematic_force(std::ofstream &results){
         r[i] = -N*density*a[i];
     }
     
-    for (int i=0; i<3; i++){balance_equations::compute_kinematic_force(i, N, density, a, _r[i]);}
+    balance_equations::compute_kinematic_force(N, density, a, _r);
     
     bool tot_result = true;
     
@@ -412,8 +645,8 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     
     */
     
-    double  r[3][12]; //The expected result.
-    double _r[3][12]; //The function output.
+    double r[3][12]; //The expected result.
+    Matrix_3x12 _r;  //The function output.
     
     double N;
     define_N(N);
@@ -533,14 +766,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     }
     
     //Compute the value in the function
-    for (int i=0; i<3; i++){
-        
-        for (int K=0; K<12; K++){
-    
-            balance_equations::compute_internal_force_jacobian(i, K, N, dNdx, DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi, _r[i][K]);
-            
-        }
-    }
+    balance_equations::compute_internal_force_jacobian(N, dNdx, DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi, _r);
     
 //    std::cout << "r:\n";
 //    for (int i=0; i<3; i++){
@@ -553,7 +779,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
 //    std::cout << "_r:\n";
 //    for (int i=0; i<3; i++){
 //        for (int j=0; j<12; j++){
-//            std::cout << _r[i][j] << " ";
+//            std::cout << _r(i,j) << " ";
 //        }
 //        std::cout << "\n";
 //    }
@@ -561,7 +787,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
 //    std::cout << "error:\n";
 //    for (int i=0; i<3; i++){
 //        for (int j=0; j<12; j++){
-//            std::cout << r[i][j]-_r[i][j] << " ";
+//            std::cout << r[i][j]-_r(i,j) << " ";
 //        }
 //        std::cout << "\n";
 //    }
@@ -570,7 +796,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     
     for (int i=0; i<3; i++){
         for (int j=0; j<12; j++){
-            tot_result *= 1e-9>fabs(r[i][j]-_r[i][j]);
+            tot_result *= 1e-9>fabs(r[i][j]-_r(i,j));
         }
     }
     
@@ -581,6 +807,261 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
         results << "test_compute_internal_force_jacobian & False\\\\\n\\hline\n";
     }
 }
+
+int test_compute_internal_couple_jacobian(std::ofstream &results){
+    /*!===============================================
+    |    test_compute_internal_couple_jacobian    |
+    ===============================================
+    
+    Test the computation of the jacobian associated with the 
+    internal couple.
+    
+    */
+    
+    Matrix_9x12  r; //The expected result
+    Matrix_9x12 _r; //The function output
+    
+    //Define the shape function and it's gradient
+    double N;
+    define_N(N);
+    
+    double dNdx[3];
+    define_dNdx(dNdx);
+    
+    //Compute the mapping from the PDE degrees of freedom to the FE degrees of freedom
+    SpMat  dgrad_udU(9,12);
+    SpMat  dphidU(9,12);
+    SpMat dgrad_phidU(27,12);
+    
+    balance_equations::construct_dgrad_udU(dNdx,dgrad_udU);
+    balance_equations::construct_dphidU(N,dphidU);
+    balance_equations::construct_dgrad_phidU(dNdx,dgrad_phidU);
+    
+    //Get the stress jacobians w.r.t. the degrees of freedom
+    Matrix_9x9  DcauchyDgrad_u;
+    Matrix_9x9  DcauchyDphi;
+    Matrix_9x27 DcauchyDgrad_phi;
+    
+    Matrix_9x9  DsDgrad_u;
+    Matrix_9x9  DsDphi;
+    Matrix_9x27 DsDgrad_phi;
+    
+    Matrix_27x9  DmDgrad_u;
+    Matrix_27x9  DmDphi;
+    Matrix_27x27 DmDgrad_phi;
+    
+    define_DcauchyDgrad_u(DcauchyDgrad_u);
+    define_DcauchyDphi(DcauchyDphi);
+    define_DcauchyDgrad_phi(DcauchyDgrad_phi);
+    
+    define_DsDgrad_u(DsDgrad_u);
+    define_DsDphi(DsDphi);
+    define_DsDgrad_phi(DsDgrad_phi);
+    
+    define_DmDgrad_u(DmDgrad_u);
+    define_DmDphi(DmDphi);
+    define_DmDgrad_phi(DmDgrad_phi);
+    
+    //Construct the jacobians of the stress tensors
+    Matrix_9x12  DcauchyDU;
+    Matrix_9x12  DsDU;
+    Matrix_27x12 DmDU;
+    
+    DcauchyDU = DcauchyDgrad_u*dgrad_udU + DcauchyDphi*dphidU + DcauchyDgrad_phi*dgrad_phidU;
+    DsDU      = DsDgrad_u*dgrad_udU      + DsDphi*dphidU      + DsDgrad_phi*dgrad_phidU;
+    DmDU      = DmDgrad_u*dgrad_udU      + DmDphi*dphidU      + DmDgrad_phi*dgrad_phidU;
+    
+    r = N*(DcauchyDU - DsDU);
+    
+    int Ihat;
+    int Jhat;
+    
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            
+            find_sot_index(i,j,Ihat);
+            
+            for (int alpha=0; alpha<12; alpha++){
+                
+                for (int k=0; k<3; k++){
+                    find_tot_index(k,j,i,Jhat);
+                    r(Ihat,alpha) -= dNdx[k]*DmDU(Jhat,alpha);
+                }
+                
+            }
+        }
+    }
+    
+    balance_equations::compute_internal_couple_jacobian(N, dNdx,
+                                                        DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi,
+                                                        DsDgrad_u,      DsDphi,      DsDgrad_phi,
+                                                        DmDgrad_u,      DmDphi,      DmDgrad_phi,
+                                                        _r);
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    //std::cout << " r:\n" <<  r << "\n";
+    //std::cout << "_r:\n" << _r << "\n";
+    
+    if (tot_result){
+        results << "test_compute_internal_couple_jacobian & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_internal_couple_jacobian & False\\\\\n\\hline\n";
+    }
+}
+
+int test_construct_dgrad_udU(std::ofstream &results){
+    /*!==================================
+    |    test_construct_dgrad_udU    |
+    ==================================
+    
+    Test the construction of the derivative of the gradient of u w.r.t. 
+    the DOF vector.
+    
+    */
+    
+    const int m = 9;
+    const int n = 12;
+    
+    Matrix_9x12  r; //The expected output
+    Matrix_9x12 _r; //The function result
+    SpMat       _rsparse(9,12);
+    
+    double dNdx[3];
+    define_dNdx(dNdx);
+    
+    std::vector<double> U = {1,2,3,4,5,6,7,8,9,10,11,12};
+    
+    //Compute the finite difference
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_grad_u_U, 2, U , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    
+    for (int i=0; i<m; i++){
+        for (int j=0; j<n; j++){
+            r(i,j) = r_vec[j][i];
+        }
+    }
+    
+    balance_equations::construct_dgrad_udU(dNdx,_rsparse);
+    _r = _rsparse;
+    
+    //std::cout << " r:\n" << r << "\n";
+    //std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_construct_dgrad_udU & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_construct_dgrad_udU & False\\\\\n\\hline\n";
+    }
+} 
+    
+int test_construct_dphidU(std::ofstream &results){
+    /*!===============================
+    |    test_construct_dphidU    |
+    ===============================
+    
+    Test the construction of the derivative of phi w.r.t. 
+    the DOF vector.
+    
+    */
+    
+    const int m = 9;
+    const int n = 12;
+    
+    Matrix_9x12  r; //The expected output
+    Matrix_9x12 _r; //The function result
+    SpMat       _rsparse(9,12);
+    
+    double N;
+    define_N(N);
+    
+    std::vector<double> U = {1,2,3,4,5,6,7,8,9,10,11,12};
+    
+    //Compute the finite difference
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_phi_U, 2, U , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    
+    for (int i=0; i<m; i++){
+        for (int j=0; j<n; j++){
+            r(i,j) = r_vec[j][i];
+        }
+    }
+    
+    balance_equations::construct_dphidU(N,_rsparse);
+    _r = _rsparse;
+    
+    //std::cout << " r:\n" << r << "\n";
+    //std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_construct_dphidU & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_construct_dphidU & False\\\\\n\\hline\n";
+    }
+}
+    
+int test_construct_dgrad_phidU(std::ofstream &results){
+    /*!====================================
+    |    test_construct_dgrad_phidU    |
+    ====================================
+    
+    Test the construction of the derivative of the gradient of phi w.r.t. 
+    the DOF vector.
+    
+    */
+    
+    const int m = 27;
+    const int n = 12;
+    
+    Matrix_27x12  r; //The expected output
+    Matrix_27x12 _r; //The function result
+    SpMat       _rsparse(27,12);
+    
+    double dNdx[3];
+    define_dNdx(dNdx);
+    
+    std::vector<double> U = {1,2,3,4,5,6,7,8,9,10,11,12};
+    
+    //Compute the finite difference
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_grad_phi_U, 2, U , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    
+    for (int i=0; i<m; i++){
+        for (int j=0; j<n; j++){
+            r(i,j) = r_vec[j][i];
+        }
+    }
+    
+    balance_equations::construct_dgrad_phidU(dNdx,_rsparse);
+    _r = _rsparse;
+    
+    //std::cout << " r:\n" << r << "\n";
+    //std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_construct_dgrad_phidU & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_construct_dgrad_phidU & False\\\\\n\\hline\n";
+    }
+} 
 
 int main(){
     /*!==========================
@@ -602,6 +1083,11 @@ int main(){
     test_compute_kinematic_force(results);
     
     test_compute_internal_force_jacobian(results);
+    test_compute_internal_couple_jacobian(results);
+    
+    test_construct_dgrad_udU(results);
+    test_construct_dphidU(results);
+    test_construct_dgrad_phidU(results);
 
     //Close the results file
     results.close();
