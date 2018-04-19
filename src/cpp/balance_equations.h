@@ -38,8 +38,11 @@ namespace balance_equations{
     //Compute the jacobians of the balance of linear momentum w.r.t. the indicated displacement dof
     void compute_internal_force_jacobian(const int &component, const int &dof_num, const double &N, const double (&dNdx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, double &dfdU_iK);
     
-    
     //Compute the jacobians of the balance of first moment of momentum
+    void compute_internal_couple_jacobian(const int &component_i, const int &component_j, const int &dof_num, const double &N, const double (&dNdx)[3],
+                                          const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27  &DcauchyDgrad_phi,
+                                          const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27  &DsDgrad_phi,
+                                          const Matrix_27x9 &DmDgrad_u,      const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi);
 }
 
 #endif
