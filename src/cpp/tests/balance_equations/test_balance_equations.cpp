@@ -65,9 +65,9 @@ void get_map_tot_voigt(double (&tot_voigt)[27][3]){
         
         for (int j=0; j<9; j++){
             
-            tot_voigt[i*3+j][0] = i;
-            tot_voigt[i*3+j][1] = sot_voigt[j][0];
-            tot_voigt[i*3+j][2] = sot_voigt[j][1];            
+            tot_voigt[i*9+j][0] = i;
+            tot_voigt[i*9+j][1] = sot_voigt[j][0];
+            tot_voigt[i*9+j][2] = sot_voigt[j][1];            
         }
         
     }
@@ -109,7 +109,7 @@ void find_tot_index(const int &i, const int &j, const int &k, int &Ihat){
     get_map_tot_voigt(tot_voigt);
     
     for (int indx=0; indx<27; indx++){
-        if((tot_voigt[indx][0]==i) && (tot_voigt[indx][1]==j) && (tot_voigt[indx][2])){Ihat = indx; break;}
+        if((tot_voigt[indx][0]==i) && (tot_voigt[indx][1]==j) && (tot_voigt[indx][2]==k)){Ihat = indx; break;}
     }
     
     return;
@@ -424,6 +424,9 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     double sot_map[9][2];
     get_map_sot_voigt(sot_map);
     
+    double tot_map[27][3];
+    get_map_tot_voigt(tot_map);
+    
     Matrix_9x9  DcauchyDgrad_u;
     define_DcauchyDgrad_u(DcauchyDgrad_u);
     
@@ -433,12 +436,12 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     Matrix_9x27 DcauchyDgrad_phi;
     define_DcauchyDgrad_phi(DcauchyDgrad_phi);
     
-    //Define the required Kronecker delta-like term
-    Eigen::Matrix<double, 3, 12> K_eye;
-    K_eye = Eigen::Matrix<double, 3, 12>::Zero();
-    K_eye(0,0) = 1.;
-    K_eye(1,1) = 1.;
-    K_eye(2,2) = 1.;
+    //Define the required Kronecker delta-like term for the first term
+    Eigen::Matrix<double, 3, 12> K_eye1;
+    K_eye1 = Eigen::Matrix<double, 3, 12>::Zero();
+    K_eye1(0,0) = 1.;
+    K_eye1(1,1) = 1.;
+    K_eye1(2,2) = 1.;
     
     int Ihat;
     int Jhat;
@@ -458,7 +461,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
                         
                         find_sot_index(I,l,Jhat);
                         
-                        r[j][K] -= dNdx[i]*DcauchyDgrad_u(Ihat,Jhat)*K_eye(I,K)*dNdx[l];
+                        r[j][K] -= dNdx[i]*DcauchyDgrad_u(Ihat,Jhat)*K_eye1(I,K)*dNdx[l];
                         
                     }
                     
@@ -469,6 +472,67 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
         }
     }
     
+    Matrix_3x3 eye;
+    eye = Matrix_3x3::Identity();
+    
+    //Define the required Kronecker delta-like term for the second term
+    Eigen::Matrix<double, 12, 12> K_eye2;
+    K_eye2 = Eigen::Matrix<double, 12, 12>::Identity();
+    K_eye2(0,0) = 0;
+    K_eye2(1,1) = 0;
+    K_eye2(2,2) = 0;
+    
+    for (int j=0; j<3; j++){
+        for (int K=0; K<12; K++){
+        
+            for (int m=0; m<3; m++){
+                for (int M=0; M<3; M++){
+                
+                    find_sot_index(m,M,Jhat);
+                
+                    for (int i=0; i<3; i++){
+                    
+                        find_sot_index(i,j,Ihat);
+                    
+                        if(K>=3){
+                            r[j][K] -= dNdx[i]*DcauchyDphi(Ihat,Jhat)*N*K_eye2(Jhat+3,K);
+                        }
+                        
+                    }
+                }
+            }
+        }
+    }
+    
+    int idx;
+    
+    //Compute the third term
+    for (int j=0; j<3; j++){
+        for (int K=0; K<12; K++){
+            for (int m=0; m<3; m++){
+                for (int M=0; M<3; M++){
+                    
+                    find_sot_index(m,M,idx);
+                    
+                    for (int i=0; i<3; i++){
+                        
+                        find_sot_index(i,j,Ihat);
+                        
+                        for (int l=0; l<3; l++){
+                            
+                            find_tot_index(m,M,l,Jhat);
+                    
+                            if(K>=3){
+                                r[j][K] -= dNdx[i]*DcauchyDgrad_phi(Ihat,Jhat)*dNdx[l]*K_eye2(idx+3,K);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    //Compute the value in the function
     for (int i=0; i<3; i++){
         
         for (int K=0; K<12; K++){
@@ -478,21 +542,29 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
         }
     }
     
-    std::cout << "r:\n";
-    for (int i=0; i<3; i++){
-        for (int j=0; j<12; j++){
-            std::cout << r[i][j] << " ";
-        }
-        std::cout << "\n";
-    }
-    
-    std::cout << "_r:\n";
-    for (int i=0; i<3; i++){
-        for (int j=0; j<12; j++){
-            std::cout << _r[i][j] << " ";
-        }
-        std::cout << "\n";
-    }
+//    std::cout << "r:\n";
+//    for (int i=0; i<3; i++){
+//        for (int j=0; j<12; j++){
+//            std::cout << r[i][j] << " ";
+//        }
+//        std::cout << "\n";
+//    }
+//    
+//    std::cout << "_r:\n";
+//    for (int i=0; i<3; i++){
+//        for (int j=0; j<12; j++){
+//            std::cout << _r[i][j] << " ";
+//        }
+//        std::cout << "\n";
+//    }
+//    
+//    std::cout << "error:\n";
+//    for (int i=0; i<3; i++){
+//        for (int j=0; j<12; j++){
+//            std::cout << r[i][j]-_r[i][j] << " ";
+//        }
+//        std::cout << "\n";
+//    }
     
     bool tot_result = true;
     
