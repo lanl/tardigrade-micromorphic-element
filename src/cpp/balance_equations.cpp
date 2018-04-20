@@ -459,6 +459,75 @@ namespace balance_equations{
     
     }
     
+    void compute_internal_couple_jacobian(const int &i, const int &j, const int &dof_num, const double &N, const double (&dNdx)[3],
+                                          const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
+                                          const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
+                                          const Matrix_27x9 &DmDgrad_u,      const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
+                                          double &DcintDU_ijA){
+        /*!==========================================
+        |    compute_internal_couple_jacobian    |
+        ==========================================
+        
+        Compute the jacobian of the internal body couple.
+        
+        The degrees of freedom are organized:
+        
+        dif_num:   0   1    2       3       4       5       6       7       8       9      10      11 
+        DOF:     u_1 u_2, u_3, phi_11, phi_22, phi_33, phi_23, phi_13, phi_12, phi_32, phi_31, phi_21 
+        
+        and the jacobian is organized
+        
+        f_{i}{dof_num}
+        
+        */
+        
+        //Compute required DOF jacobians
+        SpMat _dgrad_udU(9,12);
+        SpMat _dphidU(9,12);
+        SpMat _dgrad_phidU(27,12);
+        
+        construct_dgrad_udU(dNdx, _dgrad_udU);
+        construct_dphidU(N, _dphidU);
+        construct_dgrad_phidU(dNdx, _dgrad_phidU);
+        
+        //TODO: There is probably a more efficient way to do this.
+        Matrix_9x12 dgrad_udU    = _dgrad_udU;
+        Matrix_9x12 dphidU       = _dphidU;
+        Matrix_27x12 dgrad_phidU = _dgrad_phidU;
+        
+        int Ihat;
+        int Jhat;
+        if( i==0 && j==0){Ihat = Jhat = 0;}
+        else if( i==1 && j==1){Ihat = Jhat = 1;}
+        else if( i==2 && j==2){Ihat = Jhat = 2;}
+        else if( i==1 && j==2){Ihat = 3; Jhat = 6;}
+        else if( i==0 && j==2){Ihat = 4; Jhat = 7;}
+        else if( i==0 && j==1){Ihat = 5; Jhat = 8;}
+        else if( i==2 && j==1){Ihat = 6; Jhat = 3;}
+        else if( i==2 && j==0){Ihat = 7; Jhat = 4;}
+        else if( i==1 && j==0){Ihat = 8; Jhat = 5;}
+        
+        //Compute required term from DcauchyDU;
+        double DcauchyDU_ijA;
+        DcauchyDU_ijA =   DcauchyDgrad_u.row(Ihat).dot(dgrad_udU.col(dof_num))
+                        + DcauchyDphi.row(Ihat).dot(dphidU.col(dof_num))
+                        + DcauchyDgrad_phi.row(Ihat).dot(dgrad_phidU.col(dof_num));
+        
+        //Compute DsDU
+        double DsDU_ijA;
+        DsDU_ijA =   DsDgrad_u.row(Ihat).dot(dgrad_udU.col(dof_num))
+                   + DsDphi.row(Ihat).dot(dphidU.col(dof_num))
+                   + DsDgrad_phi.row(Ihat).dot(dgrad_phidU.col(dof_num));
+                   
+        double divm_ijA;
+        divm_ijA =  ( dNdx[0]*DmDgrad_u.row(0+Jhat)   + dNdx[1]*DmDgrad_u.row(9+Jhat)   + dNdx[2]*DmDgrad_u.row(18+Jhat)  ).dot(dgrad_udU.col(dof_num))
+                   +( dNdx[0]*DmDphi.row(0+Jhat)      + dNdx[1]*DmDphi.row(9+Jhat)      + dNdx[2]*DmDphi.row(18+Jhat)     ).dot(dphidU.col(dof_num))
+                   +( dNdx[0]*DmDgrad_phi.row(0+Jhat) + dNdx[1]*DmDgrad_phi.row(9+Jhat) + dNdx[2]*DmDgrad_phi.row(18+Jhat)).dot(dgrad_phidU.col(dof_num));
+        
+        DcintDU_ijA = N*(DcauchyDU_ijA - DsDU_ijA) - divm_ijA;
+    
+    }
+    
     void construct_dgrad_udU(const double (&dNdx)[3], SpMat &dgrad_udU){
         /*!==========================
         |    construct_dgrad_udU    |

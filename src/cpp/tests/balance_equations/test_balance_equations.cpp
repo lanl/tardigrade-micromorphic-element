@@ -1307,6 +1307,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
         }
     }
     
+    //Test vector computation
     balance_equations::compute_internal_couple_jacobian(N, dNdx,
                                                         DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi,
                                                         DsDgrad_u,      DsDphi,      DsDgrad_phi,
@@ -1314,8 +1315,28 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
                                                         _r);
     bool tot_result = r.isApprox(_r,1e-6);
     
-    //std::cout << " r:\n" <<  r << "\n";
-    //std::cout << "_r:\n" << _r << "\n";
+    //std::cout << "Expected  r:\n" <<  r << "\n";
+    //std::cout << "Vector _r:\n" << _r << "\n";
+    
+    //Test component computation
+    _r = Matrix_9x12::Zero();
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            for (int A=0; A<12; A++){
+                find_sot_index(i,j,Ihat);
+                balance_equations::compute_internal_couple_jacobian(i, j, A, N, dNdx,
+                                                                    DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi,
+                                                                    DsDgrad_u,      DsDphi,      DsDgrad_phi,
+                                                                    DmDgrad_u,      DmDphi,      DmDgrad_phi,
+                                                                    _r(Ihat,A));
+            }
+        }
+    }
+    
+    tot_result *= r.isApprox(_r,1e-6);
+    
+    //std::cout << "Component _r:\n" << _r << "\n";
+    
     
     if (tot_result){
         results << "test_compute_internal_couple_jacobian & True\\\\\n\\hline\n";
