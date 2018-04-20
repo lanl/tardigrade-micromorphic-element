@@ -599,6 +599,34 @@ void define_dNdx(double (&dNdx)[3]){
     return;
 }
 
+void define_eta(double &eta){
+    /*!====================
+    |    define_eta    |
+    ====================
+
+    Define the value of the interpolation function to be used.
+
+    */
+
+    eta = 0.826;
+    return;
+}
+
+void define_detadx(double (&detadx)[3]){
+    /*!=======================
+    |    define_detadx    |
+    =======================
+
+    Define the value of the gradient of the interpolation function.
+
+    */
+
+    detadx[0] = 0.172;
+    detadx[1] = 3.121;
+    detadx[2] = 0.761;
+    return;
+}
+
 void define_density(double &density){
     /*!========================
     |    define_density    |
@@ -2642,28 +2670,34 @@ std::vector<double> parse_balance_of_linear_momentum_U(std::vector<double> U){
     
     double dNdx[3];
     define_dNdx(dNdx);
+
+    double eta;
+    define_eta(eta);
+
+    double detadx[3];
+    define_detadx(detadx);
     
     //Expand U
     double grad_u[3][3];
     
-    grad_u[0][0] = U[0]*dNdx[0];
-    grad_u[1][1] = U[1]*dNdx[1];
-    grad_u[2][2] = U[2]*dNdx[2];
-    grad_u[1][2] = U[1]*dNdx[2];
-    grad_u[0][2] = U[0]*dNdx[2];
-    grad_u[0][1] = U[0]*dNdx[1];
-    grad_u[2][1] = U[2]*dNdx[1];
-    grad_u[2][0] = U[2]*dNdx[0];
-    grad_u[1][0] = U[1]*dNdx[0];
+    grad_u[0][0] = U[0]*detadx[0];
+    grad_u[1][1] = U[1]*detadx[1];
+    grad_u[2][2] = U[2]*detadx[2];
+    grad_u[1][2] = U[1]*detadx[2];
+    grad_u[0][2] = U[0]*detadx[2];
+    grad_u[0][1] = U[0]*detadx[1];
+    grad_u[2][1] = U[2]*detadx[1];
+    grad_u[2][0] = U[2]*detadx[0];
+    grad_u[1][0] = U[1]*detadx[0];
     
     double phi[9];
-    for (int i=0; i<9; i++){phi[i] = U[i+3]*N;}
+    for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
     
     double grad_phi_data[9][3];
     
     for (int I=3; I<12; I++){
         for (int j=0; j<3; j++){            
-            grad_phi_data[I-3][j] = U[I]*dNdx[j];
+            grad_phi_data[I-3][j] = U[I]*detadx[j];
         }
     }
     
@@ -2730,28 +2764,34 @@ std::vector<double> parse_balance_of_first_moment_of_momentum_U(std::vector<doub
     
     double dNdx[3];
     define_dNdx(dNdx);
+
+    double eta;
+    define_eta(eta);
+
+    double detadx[3];
+    define_detadx(detadx);
     
     //Expand U
     double grad_u[3][3];
     
-    grad_u[0][0] = U[0]*dNdx[0];
-    grad_u[1][1] = U[1]*dNdx[1];
-    grad_u[2][2] = U[2]*dNdx[2];
-    grad_u[1][2] = U[1]*dNdx[2];
-    grad_u[0][2] = U[0]*dNdx[2];
-    grad_u[0][1] = U[0]*dNdx[1];
-    grad_u[2][1] = U[2]*dNdx[1];
-    grad_u[2][0] = U[2]*dNdx[0];
-    grad_u[1][0] = U[1]*dNdx[0];
+    grad_u[0][0] = U[0]*detadx[0];
+    grad_u[1][1] = U[1]*detadx[1];
+    grad_u[2][2] = U[2]*detadx[2];
+    grad_u[1][2] = U[1]*detadx[2];
+    grad_u[0][2] = U[0]*detadx[2];
+    grad_u[0][1] = U[0]*detadx[1];
+    grad_u[2][1] = U[2]*detadx[1];
+    grad_u[2][0] = U[2]*detadx[0];
+    grad_u[1][0] = U[1]*detadx[0];
     
     double phi[9];
-    for (int i=0; i<9; i++){phi[i] = U[i+3]*N;}
+    for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
     
     double grad_phi_data[9][3];
     
     for (int I=3; I<12; I++){
         for (int j=0; j<3; j++){            
-            grad_phi_data[I-3][j] = U[I]*dNdx[j];
+            grad_phi_data[I-3][j] = U[I]*detadx[j];
         }
     }
     
@@ -7042,13 +7082,20 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     //The DOF vector
     std::vector<double> U = {1.22,2.1,4.1,-2.3,.124,7.2,-8.2,.28,7.21,2.1,-9.2,3.1};
     
-    //The shape function values
+    //The test function values
     double N;
     define_N(N);
-    
+
     double dNdx[3];
     define_dNdx(dNdx);
     
+    //The interpolation function values
+    double eta;
+    define_eta(eta);
+
+    double detadx[3];
+    define_detadx(detadx);
+
     //Compute the numeric values
     std::cout << "\nJacobian of Balance of Linear Momentum\n";
     std::cout << "Finite Difference vs. Analytic Jacobian\n";
@@ -7070,24 +7117,24 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     //Compute the analytic values
     double grad_u[3][3];
     
-    grad_u[0][0] = U[0]*dNdx[0];
-    grad_u[1][1] = U[1]*dNdx[1];
-    grad_u[2][2] = U[2]*dNdx[2];
-    grad_u[1][2] = U[1]*dNdx[2];
-    grad_u[0][2] = U[0]*dNdx[2];
-    grad_u[0][1] = U[0]*dNdx[1];
-    grad_u[2][1] = U[2]*dNdx[1];
-    grad_u[2][0] = U[2]*dNdx[0];
-    grad_u[1][0] = U[1]*dNdx[0];
+    grad_u[0][0] = U[0]*detadx[0];
+    grad_u[1][1] = U[1]*detadx[1];
+    grad_u[2][2] = U[2]*detadx[2];
+    grad_u[1][2] = U[1]*detadx[2];
+    grad_u[0][2] = U[0]*detadx[2];
+    grad_u[0][1] = U[0]*detadx[1];
+    grad_u[2][1] = U[2]*detadx[1];
+    grad_u[2][0] = U[2]*detadx[0];
+    grad_u[1][0] = U[1]*detadx[0];
     
     double phi[9];
-    for (int i=0; i<9; i++){phi[i] = U[i+3]*N;}
+    for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
     
     double grad_phi_data[9][3];
     
     for (int I=3; I<12; I++){
         for (int j=0; j<3; j++){            
-            grad_phi_data[I-3][j] = U[I]*dNdx[j];
+            grad_phi_data[I-3][j] = U[I]*detadx[j];
         }
     }
     
@@ -7171,7 +7218,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
                                                     DsDgrad_u,       DsDgrad_phi,
                                                     DmDgrad_u,       DmDgrad_phi);
     
-    balance_equations::compute_internal_force_jacobian(N, dNdx, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi, _r);
+    balance_equations::compute_internal_force_jacobian(N, dNdx, eta, detadx, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi, _r);
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
@@ -7213,6 +7260,12 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     
     double dNdx[3];
     define_dNdx(dNdx);
+
+    double eta;
+    define_eta(eta);
+
+    double detadx[3];
+    define_detadx(detadx);
     
     //Compute the numeric values
     std::cout << "\nJacobian of Balance of First Moment of Momentum\n";
@@ -7235,24 +7288,24 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     //Compute the analytic values
     double grad_u[3][3];
     
-    grad_u[0][0] = U[0]*dNdx[0];
-    grad_u[1][1] = U[1]*dNdx[1];
-    grad_u[2][2] = U[2]*dNdx[2];
-    grad_u[1][2] = U[1]*dNdx[2];
-    grad_u[0][2] = U[0]*dNdx[2];
-    grad_u[0][1] = U[0]*dNdx[1];
-    grad_u[2][1] = U[2]*dNdx[1];
-    grad_u[2][0] = U[2]*dNdx[0];
-    grad_u[1][0] = U[1]*dNdx[0];
+    grad_u[0][0] = U[0]*detadx[0];
+    grad_u[1][1] = U[1]*detadx[1];
+    grad_u[2][2] = U[2]*detadx[2];
+    grad_u[1][2] = U[1]*detadx[2];
+    grad_u[0][2] = U[0]*detadx[2];
+    grad_u[0][1] = U[0]*detadx[1];
+    grad_u[2][1] = U[2]*detadx[1];
+    grad_u[2][0] = U[2]*detadx[0];
+    grad_u[1][0] = U[1]*detadx[0];
     
     double phi[9];
-    for (int i=0; i<9; i++){phi[i] = U[i+3]*N;}
+    for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
     
     double grad_phi_data[9][3];
     
     for (int I=3; I<12; I++){
         for (int j=0; j<3; j++){            
-            grad_phi_data[I-3][j] = U[I]*dNdx[j];
+            grad_phi_data[I-3][j] = U[I]*detadx[j];
         }
     }
     
@@ -7336,7 +7389,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
                                                     DsDgrad_u,       DsDgrad_phi,
                                                     DmDgrad_u,       DmDgrad_phi);
     
-    balance_equations::compute_internal_couple_jacobian(N, dNdx,
+    balance_equations::compute_internal_couple_jacobian(N, dNdx, eta, detadx,
                                                         DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
                                                         DsDgrad_u,      dsdchi,      DsDgrad_phi,
                                                         DmDgrad_u,      dmdchi,      DmDgrad_phi,

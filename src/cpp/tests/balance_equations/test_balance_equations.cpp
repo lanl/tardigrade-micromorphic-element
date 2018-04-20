@@ -120,7 +120,7 @@ void define_N(double &N){
     |    define_N    |
     ==================
     
-    Define the value of the shape function to be used.
+    Define the value of the test function to be used.
     
     */
     
@@ -133,13 +133,41 @@ void define_dNdx(double (&dNdx)[3]){
     |    define_dNdx    |
     =====================
     
-    Define the gradient of the shape function 
+    Define the gradient of the test function 
     to be used.
     */
     
     dNdx[0] =  1.42;
     dNdx[1] =  0.271;
     dNdx[2] = -2.31;
+    return;
+}
+
+void define_eta(double &eta){
+    /*!====================
+    |    define_eta    |
+    ====================
+
+    Define the value of the interpolation function to be used.
+
+    */
+
+    eta = 0.826;
+    return;
+}
+
+void define_detadx(double (&detadx)[3]){
+    /*!=======================
+    |    define_detadx    |
+    =======================
+
+    Define the value of the gradient of the interpolation function.
+
+    */
+
+    detadx[0] = 0.172;
+    detadx[1] = 3.121;
+    detadx[2] = 0.761;
     return;
 }
 
@@ -504,20 +532,20 @@ std::vector<double> parse_grad_u_U(std::vector<double> U){
     
     */
     
-    double dNdx[3];
-    define_dNdx(dNdx);
+    double detadx[3];
+    define_detadx(detadx);
     
     Matrix_3x3 grad_u;
     
-    grad_u(0,0) = U[0]*dNdx[0];
-    grad_u(1,1) = U[1]*dNdx[1];
-    grad_u(2,2) = U[2]*dNdx[2];
-    grad_u(1,2) = U[1]*dNdx[2];
-    grad_u(0,2) = U[0]*dNdx[2];
-    grad_u(0,1) = U[0]*dNdx[1];
-    grad_u(2,1) = U[2]*dNdx[1];
-    grad_u(2,0) = U[2]*dNdx[0];
-    grad_u(1,0) = U[1]*dNdx[0];
+    grad_u(0,0) = U[0]*detadx[0];
+    grad_u(1,1) = U[1]*detadx[1];
+    grad_u(2,2) = U[2]*detadx[2];
+    grad_u(1,2) = U[1]*detadx[2];
+    grad_u(0,2) = U[0]*detadx[2];
+    grad_u(0,1) = U[0]*detadx[1];
+    grad_u(2,1) = U[2]*detadx[1];
+    grad_u(2,0) = U[2]*detadx[0];
+    grad_u(1,0) = U[1]*detadx[0];
     
     Vector_9 grad_u_voigt;
     deformation_measures::voigt_3x3_tensor(grad_u,grad_u_voigt);
@@ -537,20 +565,20 @@ std::vector<double> parse_phi_U(std::vector<double> U){
     
     */
     
-    double N;
-    define_N(N);
+    double eta;
+    define_eta(eta);
     
     Matrix_3x3 phi;
     
-    phi(0,0) = U[ 3]*N;
-    phi(1,1) = U[ 4]*N;
-    phi(2,2) = U[ 5]*N;
-    phi(1,2) = U[ 6]*N;
-    phi(0,2) = U[ 7]*N;
-    phi(0,1) = U[ 8]*N;
-    phi(2,1) = U[ 9]*N;
-    phi(2,0) = U[10]*N;
-    phi(1,0) = U[11]*N;
+    phi(0,0) = U[ 3]*eta;
+    phi(1,1) = U[ 4]*eta;
+    phi(2,2) = U[ 5]*eta;
+    phi(1,2) = U[ 6]*eta;
+    phi(0,2) = U[ 7]*eta;
+    phi(0,1) = U[ 8]*eta;
+    phi(2,1) = U[ 9]*eta;
+    phi(2,0) = U[10]*eta;
+    phi(1,0) = U[11]*eta;
     
     Vector_9 phi_voigt;
     deformation_measures::voigt_3x3_tensor(phi,phi_voigt);
@@ -570,8 +598,8 @@ std::vector<double> parse_grad_phi_U(std::vector<double> U){
     
     */
     
-    double dNdx[3];
-    define_dNdx(dNdx);
+    double detadx[3];
+    define_detadx(detadx);
     
     int Jhat;
     
@@ -593,7 +621,7 @@ std::vector<double> parse_grad_phi_U(std::vector<double> U){
             for (int j=0; j<3; j++){
                 find_sot_index(I,j,Jhat);
                 
-                grad_phi(i,Jhat) = phi(i,I)*dNdx[j];
+                grad_phi(i,Jhat) = phi(i,I)*detadx[j];
                 
             }
         }
@@ -1047,6 +1075,12 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     
     double dNdx[3];
     define_dNdx(dNdx);
+
+    double eta;
+    define_eta(eta);
+
+    double detadx[3];
+    define_detadx(detadx);
     
     double sot_map[9][2];
     get_map_sot_voigt(sot_map);
@@ -1088,7 +1122,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
                         
                         find_sot_index(I,l,Jhat);
                         
-                        r[j][K] -= dNdx[i]*DcauchyDgrad_u(Ihat,Jhat)*K_eye1(I,K)*dNdx[l];
+                        r[j][K] -= dNdx[i]*DcauchyDgrad_u(Ihat,Jhat)*K_eye1(I,K)*detadx[l];
                         
                     }
                     
@@ -1122,7 +1156,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
                         find_sot_index(i,j,Ihat);
                     
                         if(K>=3){
-                            r[j][K] -= dNdx[i]*DcauchyDphi(Ihat,Jhat)*N*K_eye2(Jhat+3,K);
+                            r[j][K] -= dNdx[i]*DcauchyDphi(Ihat,Jhat)*eta*K_eye2(Jhat+3,K);
                         }
                         
                     }
@@ -1150,7 +1184,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
                             find_tot_index(m,M,l,Jhat);
                     
                             if(K>=3){
-                                r[j][K] -= dNdx[i]*DcauchyDgrad_phi(Ihat,Jhat)*dNdx[l]*K_eye2(idx+3,K);
+                                r[j][K] -= dNdx[i]*DcauchyDgrad_phi(Ihat,Jhat)*detadx[l]*K_eye2(idx+3,K);
                             }
                         }
                     }
@@ -1186,7 +1220,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     bool tot_result = true;
     
     //Compute the value in the vector function
-    balance_equations::compute_internal_force_jacobian(N, dNdx, DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi, _r);
+    balance_equations::compute_internal_force_jacobian(N, dNdx, eta, detadx, DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi, _r);
     for (int i=0; i<3; i++){
         for (int j=0; j<12; j++){
             tot_result *= 1e-9>fabs(r[i][j]-_r(i,j));
@@ -1202,7 +1236,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     for (int i=0; i<3; i++){
         
         for (int A=0; A<12; A++){
-            balance_equations::compute_internal_force_jacobian(i, A, N, dNdx, DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi, _r(i,A));
+            balance_equations::compute_internal_force_jacobian(i, A, N, dNdx, eta, detadx, DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi, _r(i,A));
         }
     }
     
@@ -1236,21 +1270,28 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     Matrix_9x12  r; //The expected result
     Matrix_9x12 _r; //The function output
     
-    //Define the shape function and it's gradient
+    //Define the test function and it's gradient
     double N;
     define_N(N);
     
     double dNdx[3];
     define_dNdx(dNdx);
+
+    //Define the interpolation function and it's gradient
+    double eta;
+    define_eta(N);
+
+    double detadx[3];
+    define_detadx(detadx);
     
     //Compute the mapping from the PDE degrees of freedom to the FE degrees of freedom
     SpMat  dgrad_udU(9,12);
     SpMat  dphidU(9,12);
     SpMat dgrad_phidU(27,12);
     
-    balance_equations::construct_dgrad_udU(dNdx,dgrad_udU);
-    balance_equations::construct_dphidU(N,dphidU);
-    balance_equations::construct_dgrad_phidU(dNdx,dgrad_phidU);
+    balance_equations::construct_dgrad_udU(detadx,dgrad_udU);
+    balance_equations::construct_dphidU(eta,dphidU);
+    balance_equations::construct_dgrad_phidU(detadx,dgrad_phidU);
     
     //Get the stress jacobians w.r.t. the degrees of freedom
     Matrix_9x9  DcauchyDgrad_u;
@@ -1308,7 +1349,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     }
     
     //Test vector computation
-    balance_equations::compute_internal_couple_jacobian(N, dNdx,
+    balance_equations::compute_internal_couple_jacobian(N, dNdx, eta, detadx,
                                                         DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi,
                                                         DsDgrad_u,      DsDphi,      DsDgrad_phi,
                                                         DmDgrad_u,      DmDphi,      DmDgrad_phi,
@@ -1324,7 +1365,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
         for (int j=0; j<3; j++){
             for (int A=0; A<12; A++){
                 find_sot_index(i,j,Ihat);
-                balance_equations::compute_internal_couple_jacobian(i, j, A, N, dNdx,
+                balance_equations::compute_internal_couple_jacobian(i, j, A, N, dNdx, eta, detadx,
                                                                     DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi,
                                                                     DsDgrad_u,      DsDphi,      DsDgrad_phi,
                                                                     DmDgrad_u,      DmDphi,      DmDgrad_phi,
@@ -1363,8 +1404,8 @@ int test_construct_dgrad_udU(std::ofstream &results){
     Matrix_9x12 _r; //The function result
     SpMat       _rsparse(9,12);
     
-    double dNdx[3];
-    define_dNdx(dNdx);
+    double detadx[3];
+    define_detadx(detadx);
     
     std::vector<double> U = {1,2,3,4,5,6,7,8,9,10,11,12};
     
@@ -1381,7 +1422,7 @@ int test_construct_dgrad_udU(std::ofstream &results){
         }
     }
     
-    balance_equations::construct_dgrad_udU(dNdx,_rsparse);
+    balance_equations::construct_dgrad_udU(detadx,_rsparse);
     _r = _rsparse;
     
     //std::cout << " r:\n" << r << "\n";
@@ -1414,8 +1455,8 @@ int test_construct_dphidU(std::ofstream &results){
     Matrix_9x12 _r; //The function result
     SpMat       _rsparse(9,12);
     
-    double N;
-    define_N(N);
+    double eta;
+    define_eta(eta);
     
     std::vector<double> U = {1,2,3,4,5,6,7,8,9,10,11,12};
     
@@ -1432,7 +1473,7 @@ int test_construct_dphidU(std::ofstream &results){
         }
     }
     
-    balance_equations::construct_dphidU(N,_rsparse);
+    balance_equations::construct_dphidU(eta,_rsparse);
     _r = _rsparse;
     
     //std::cout << " r:\n" << r << "\n";
@@ -1465,8 +1506,8 @@ int test_construct_dgrad_phidU(std::ofstream &results){
     Matrix_27x12 _r; //The function result
     SpMat       _rsparse(27,12);
     
-    double dNdx[3];
-    define_dNdx(dNdx);
+    double detadx[3];
+    define_detadx(detadx);
     
     std::vector<double> U = {1,2,3,4,5,6,7,8,9,10,11,12};
     
@@ -1483,7 +1524,7 @@ int test_construct_dgrad_phidU(std::ofstream &results){
         }
     }
     
-    balance_equations::construct_dgrad_phidU(dNdx,_rsparse);
+    balance_equations::construct_dgrad_phidU(detadx,_rsparse);
     _r = _rsparse;
     
     //std::cout << " r:\n" << r << "\n";

@@ -325,7 +325,7 @@ namespace balance_equations{
         return;
     }
     
-    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, Matrix_3x12 &DfintDU){
+    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, Matrix_3x12 &DfintDU){
         /*!=========================================
         |    compute_internal_force_jacobian    |
         =========================================
@@ -339,9 +339,9 @@ namespace balance_equations{
         SpMat dphidU(9,12);
         SpMat dgrad_phidU(27,12);
         
-        construct_dgrad_udU(dNdx, dgrad_udU);
-        construct_dphidU(N, dphidU);
-        construct_dgrad_phidU(dNdx, dgrad_phidU);
+        construct_dgrad_udU(detadx, dgrad_udU);
+        construct_dphidU(eta, dphidU);
+        construct_dgrad_phidU(detadx, dgrad_phidU);
 
         //Compute DcauchyDU;
         Matrix_9x12 DcauchyDU;
@@ -354,7 +354,7 @@ namespace balance_equations{
         
     }
     
-    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, double &DfintDU_iA){
+    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, double &DfintDU_iA){
         /*!=========================================
         |    compute_internal_force_jacobian    |
         =========================================
@@ -377,9 +377,9 @@ namespace balance_equations{
         SpMat _dphidU(9,12);
         SpMat _dgrad_phidU(27,12);
         
-        construct_dgrad_udU(dNdx, _dgrad_udU);
-        construct_dphidU(N, _dphidU);
-        construct_dgrad_phidU(dNdx, _dgrad_phidU);
+        construct_dgrad_udU(detadx, _dgrad_udU);
+        construct_dphidU(eta, _dphidU);
+        construct_dgrad_phidU(detadx, _dgrad_phidU);
         
         //TODO: There is probably a more efficient way to do this.
         Matrix_9x12 dgrad_udU    = _dgrad_udU;
@@ -408,7 +408,7 @@ namespace balance_equations{
         return;
     }
     
-    void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3],
+    void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
                                           const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                           const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
                                           const Matrix_27x9 &DmDgrad_u,      const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
@@ -426,9 +426,9 @@ namespace balance_equations{
         SpMat dphidU(9,12);
         SpMat dgrad_phidU(27,12);
         
-        construct_dgrad_udU(dNdx, dgrad_udU);
-        construct_dphidU(N, dphidU);
-        construct_dgrad_phidU(dNdx, dgrad_phidU);
+        construct_dgrad_udU(detadx, dgrad_udU);
+        construct_dphidU(eta, dphidU);
+        construct_dgrad_phidU(detadx, dgrad_phidU);
         
         //Compute DcauchyDU;
         Matrix_9x12 DcauchyDU;
@@ -459,7 +459,7 @@ namespace balance_equations{
     
     }
     
-    void compute_internal_couple_jacobian(const int &i, const int &j, const int &dof_num, const double &N, const double (&dNdx)[3],
+    void compute_internal_couple_jacobian(const int &i, const int &j, const int &dof_num, const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
                                           const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                           const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
                                           const Matrix_27x9 &DmDgrad_u,      const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
@@ -486,9 +486,9 @@ namespace balance_equations{
         SpMat _dphidU(9,12);
         SpMat _dgrad_phidU(27,12);
         
-        construct_dgrad_udU(dNdx, _dgrad_udU);
-        construct_dphidU(N, _dphidU);
-        construct_dgrad_phidU(dNdx, _dgrad_phidU);
+        construct_dgrad_udU(detadx, _dgrad_udU);
+        construct_dphidU(eta, _dphidU);
+        construct_dgrad_phidU(detadx, _dgrad_phidU);
         
         //TODO: There is probably a more efficient way to do this.
         Matrix_9x12 dgrad_udU    = _dgrad_udU;
@@ -528,7 +528,7 @@ namespace balance_equations{
     
     }
     
-    void construct_dgrad_udU(const double (&dNdx)[3], SpMat &dgrad_udU){
+    void construct_dgrad_udU(const double (&detadx)[3], SpMat &dgrad_udU){
         /*!==========================
         |    construct_dgrad_udU    |
         =============================
@@ -543,22 +543,22 @@ namespace balance_equations{
         tripletList.reserve(9);
 
         //Assemble dgrad_udU
-        tripletList.push_back(T(0,0,dNdx[0]));
-        tripletList.push_back(T(5,0,dNdx[1]));
-        tripletList.push_back(T(4,0,dNdx[2]));
-        tripletList.push_back(T(8,1,dNdx[0]));
-        tripletList.push_back(T(1,1,dNdx[1]));
-        tripletList.push_back(T(3,1,dNdx[2]));
-        tripletList.push_back(T(7,2,dNdx[0]));
-        tripletList.push_back(T(6,2,dNdx[1]));
-        tripletList.push_back(T(2,2,dNdx[2]));
+        tripletList.push_back(T(0,0,detadx[0]));
+        tripletList.push_back(T(5,0,detadx[1]));
+        tripletList.push_back(T(4,0,detadx[2]));
+        tripletList.push_back(T(8,1,detadx[0]));
+        tripletList.push_back(T(1,1,detadx[1]));
+        tripletList.push_back(T(3,1,detadx[2]));
+        tripletList.push_back(T(7,2,detadx[0]));
+        tripletList.push_back(T(6,2,detadx[1]));
+        tripletList.push_back(T(2,2,detadx[2]));
         
         dgrad_udU.setFromTriplets(tripletList.begin(), tripletList.end()); 
 
         return;
     }
     
-    void construct_dphidU(const double &N, SpMat &dphidU){
+    void construct_dphidU(const double &eta, SpMat &dphidU){
         /*!==========================
         |    construct_dphidU    |
         ==========================
@@ -573,22 +573,22 @@ namespace balance_equations{
         tripletList.reserve(9);
 
         //Assemble dphidU
-        tripletList.push_back(T(0,3,N));
-        tripletList.push_back(T(5,8,N));
-        tripletList.push_back(T(4,7,N));
-        tripletList.push_back(T(8,11,N));
-        tripletList.push_back(T(1,4,N));
-        tripletList.push_back(T(3,6,N));
-        tripletList.push_back(T(7,10,N));
-        tripletList.push_back(T(6,9,N));
-        tripletList.push_back(T(2,5,N));
+        tripletList.push_back(T(0, 3,eta));
+        tripletList.push_back(T(5, 8,eta));
+        tripletList.push_back(T(4, 7,eta));
+        tripletList.push_back(T(8,11,eta));
+        tripletList.push_back(T(1, 4,eta));
+        tripletList.push_back(T(3, 6,eta));
+        tripletList.push_back(T(7,10,eta));
+        tripletList.push_back(T(6, 9,eta));
+        tripletList.push_back(T(2, 5,eta));
         
         dphidU.setFromTriplets(tripletList.begin(), tripletList.end());
 
         return;
     }
     
-    void construct_dgrad_phidU(const double (&dNdx)[3], SpMat &dgrad_phidU){
+    void construct_dgrad_phidU(const double (&detadx)[3], SpMat &dgrad_phidU){
         /*!===============================
         |    construct_dgrad_phidU    |
         ===============================
@@ -602,33 +602,33 @@ namespace balance_equations{
         std::vector<T> tripletList;
         tripletList.reserve(27);
         
-        tripletList.push_back(T(0,3,dNdx[0]));
-        tripletList.push_back(T(5,3,dNdx[1]));
-        tripletList.push_back(T(4,3,dNdx[2]));
-        tripletList.push_back(T(9,11,dNdx[0]));
-        tripletList.push_back(T(14,11,dNdx[1]));
-        tripletList.push_back(T(13,11,dNdx[2]));
-        tripletList.push_back(T(18,10,dNdx[0]));
-        tripletList.push_back(T(23,10,dNdx[1]));
-        tripletList.push_back(T(22,10,dNdx[2]));
-        tripletList.push_back(T(8,8,dNdx[0]));
-        tripletList.push_back(T(1,8,dNdx[1]));
-        tripletList.push_back(T(3,8,dNdx[2]));
-        tripletList.push_back(T(17,4,dNdx[0]));
-        tripletList.push_back(T(10,4,dNdx[1]));
-        tripletList.push_back(T(12,4,dNdx[2]));
-        tripletList.push_back(T(26,9,dNdx[0]));
-        tripletList.push_back(T(19,9,dNdx[1]));
-        tripletList.push_back(T(21,9,dNdx[2]));
-        tripletList.push_back(T(7,7,dNdx[0]));
-        tripletList.push_back(T(6,7,dNdx[1]));
-        tripletList.push_back(T(2,7,dNdx[2]));
-        tripletList.push_back(T(16,6,dNdx[0]));
-        tripletList.push_back(T(15,6,dNdx[1]));
-        tripletList.push_back(T(11,6,dNdx[2]));
-        tripletList.push_back(T(25,5,dNdx[0]));
-        tripletList.push_back(T(24,5,dNdx[1]));
-        tripletList.push_back(T(20,5,dNdx[2]));
+        tripletList.push_back(T( 0, 3,detadx[0]));
+        tripletList.push_back(T( 5, 3,detadx[1]));
+        tripletList.push_back(T( 4, 3,detadx[2]));
+        tripletList.push_back(T( 9,11,detadx[0]));
+        tripletList.push_back(T(14,11,detadx[1]));
+        tripletList.push_back(T(13,11,detadx[2]));
+        tripletList.push_back(T(18,10,detadx[0]));
+        tripletList.push_back(T(23,10,detadx[1]));
+        tripletList.push_back(T(22,10,detadx[2]));
+        tripletList.push_back(T( 8, 8,detadx[0]));
+        tripletList.push_back(T( 1, 8,detadx[1]));
+        tripletList.push_back(T( 3, 8,detadx[2]));
+        tripletList.push_back(T(17, 4,detadx[0]));
+        tripletList.push_back(T(10, 4,detadx[1]));
+        tripletList.push_back(T(12, 4,detadx[2]));
+        tripletList.push_back(T(26, 9,detadx[0]));
+        tripletList.push_back(T(19, 9,detadx[1]));
+        tripletList.push_back(T(21, 9,detadx[2]));
+        tripletList.push_back(T( 7, 7,detadx[0]));
+        tripletList.push_back(T( 6, 7,detadx[1]));
+        tripletList.push_back(T( 2, 7,detadx[2]));
+        tripletList.push_back(T(16, 6,detadx[0]));
+        tripletList.push_back(T(15, 6,detadx[1]));
+        tripletList.push_back(T(11, 6,detadx[2]));
+        tripletList.push_back(T(25, 5,detadx[0]));
+        tripletList.push_back(T(24, 5,detadx[1]));
+        tripletList.push_back(T(20, 5,detadx[2]));
         
         dgrad_phidU.setFromTriplets(tripletList.begin(), tripletList.end());
 
