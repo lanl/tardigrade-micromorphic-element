@@ -71,6 +71,10 @@ namespace deformation_measures
     void undo_voigt_3x3_tensor(const Vector_9 &v, Matrix_3x3 &A);
     
     void undo_voigt_3x9_tensor(const Vector_27 &v, Matrix_3x9 &A);
+
+    void get_sot_to_voigt_map(int (&sot_to_voigt_map)[3][3]);
+
+    void get_tot_to_voigt_map(int (&tot_to_voigt_map)[3][3][3]);
     
     void perform_left_positive_cyclic_permutation(Vector_27 &A);
     

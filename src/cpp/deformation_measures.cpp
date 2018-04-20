@@ -354,6 +354,57 @@ namespace deformation_measures
 
         return;
     }
+
+    void get_sot_to_voigt_map(int (&sot_to_voigt_map)[3][3]){
+        /*!==============================
+        |    get_sot_to_voigt_map    |
+        ==============================
+
+        Get the second order tensor to voigt map.
+
+        */
+
+        sot_to_voigt_map[0][0] = 0;
+        sot_to_voigt_map[1][1] = 1;
+        sot_to_voigt_map[2][2] = 2;
+        sot_to_voigt_map[1][2] = 3;
+        sot_to_voigt_map[0][2] = 4;
+        sot_to_voigt_map[0][1] = 5;
+        sot_to_voigt_map[2][1] = 6;
+        sot_to_voigt_map[2][0] = 7;
+        sot_to_voigt_map[1][0] = 8;
+
+        return;
+    }
+
+    void get_tot_to_voigt_map(int (&tot_to_voigt_map)[3][3][3]){
+        /*!==============================
+        |    get_tot_to_voigt_map    |
+        ==============================
+
+        Get the third order tensor to voigt map.
+
+        */
+
+        int sot_to_voigt_map[3][3];
+        get_sot_to_voigt_map(sot_to_voigt_map);
+
+        for (int i=0; i<3; i++){
+
+            for (int j=0; j<3; j++){
+
+                for (int k=0; k<3; k++){
+
+                    tot_to_voigt_map[i][j][k] = sot_to_voigt_map[j][k] + 9*i;
+
+                }
+
+            }
+
+        }
+
+        return;
+    }
     
     void undo_voigt_3x3_tensor(const Vector_9 &v, Matrix_3x3 &A){
         /*!===============================

@@ -2304,6 +2304,108 @@ int test_compute_dFdgrad_u(std::ofstream &results){
     return 1;
 }
 
+int test_get_sot_to_voigt_map(std::ofstream &results){
+    /*!===================================
+    |    test_get_sot_to_voigt_map    |
+    ===================================
+
+    Test of the mapping of a second order tensor to 
+    voigt notation.
+
+    */
+
+    Vector_9  r; //The expected result
+    Vector_9 _r; //The function output
+
+    Matrix_3x3 A;
+    A << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+
+    deformation_measures::voigt_3x3_tensor(A, r);
+
+    int sot_to_voigt_map[3][3];
+    deformation_measures::get_sot_to_voigt_map(sot_to_voigt_map);
+
+    int Ihat;
+
+    for (int i=0; i<3; i++){
+
+        for (int j=0; j<3; j++){
+
+            Ihat = sot_to_voigt_map[i][j];
+            _r[Ihat] = A(i,j);
+
+        }
+
+    }
+
+    bool tot_result = r.isApprox(_r);
+
+    if (tot_result){
+        results << "test_get_sot_to_voigt_map & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_get_sot_to_voigt_map & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_get_tot_to_voigt_map(std::ofstream &results){
+    /*!===================================
+    |    test_get_tot_to_voigt_map    |
+    ===================================
+
+    Test of the mapping of a third order tensor to 
+    voigt notation.
+
+    */
+
+    Vector_27  r; //The expected result
+    Vector_27 _r; //The function output
+
+    Matrix_3x9 A;
+    A <<  1,  2,  3,  4,  5,  6,  7,  8,  9,
+         10, 11, 12, 13, 14, 15, 16, 17, 18,
+         19, 20, 21, 22, 23, 24, 25, 26, 27;
+
+    deformation_measures::voigt_3x9_tensor(A, r);
+
+    int sot_to_voigt_map[3][3];
+    deformation_measures::get_sot_to_voigt_map(sot_to_voigt_map);
+
+    int tot_to_voigt_map[3][3][3];
+    deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
+
+    int Ihat;
+    int Jhat;
+
+    for (int i=0; i<3; i++){
+
+        for (int j=0; j<3; j++){
+
+            for (int k=0; k<3; k++){
+
+                Ihat = tot_to_voigt_map[i][j][k];
+                Jhat = sot_to_voigt_map[j][k];
+                _r[Ihat] = A(i,Jhat);
+
+            }
+        }
+    }
+
+    bool tot_result = r.isApprox(_r);
+
+    if (tot_result){
+        results << "test_get_tot_to_voigt_map & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_get_tot_to_voigt_map & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+
 int main(){
     /*!==========================
     |         main            |
@@ -2332,6 +2434,8 @@ int main(){
     test_voigt_3x3_symm_tensor(results);
     test_voigt_3x3_tensor(results);
     test_voigt_3x9_tensor(results);
+    test_get_sot_to_voigt_map(results);
+    test_get_tot_to_voigt_map(results);
     test_get_micro_strain(results);
     test_undo_voigt_3x3_tensor(results);
     test_undo_voigt_3x9_tensor(results);
