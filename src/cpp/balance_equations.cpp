@@ -36,6 +36,33 @@ namespace balance_equations{
 
         return;
     }
+    
+    void compute_internal_force(const int &i, const double (&dNdx)[3], const Vector_9 &cauchy, double &fint_i){
+        /*!================================
+        |    compute_internal_force    |
+        ================================
+
+        Compute the internal force given the gradient 
+        of the shape function and the cauchy stress on 
+        one of the components.
+
+        */
+        
+        if( i == 0 ){
+            fint_i = -(dNdx[0]*cauchy[0] + dNdx[1]*cauchy[8] + dNdx[2]*cauchy[7]);
+        }
+        else if ( i == 1 ){
+            fint_i = -(dNdx[0]*cauchy[5] + dNdx[1]*cauchy[1] + dNdx[2]*cauchy[6]);
+        }
+        else if ( i == 2 ){
+            fint_i = -(dNdx[0]*cauchy[4] + dNdx[1]*cauchy[3] + dNdx[2]*cauchy[2]);
+        }
+        else{
+            std::cout << "Error: index beyond appropriate range.\n";
+        }
+
+        return;
+    }
 
     void compute_body_force(const double &N, const double &density, const double (&b)[3], double (&fb)[3]){
         /*!============================
@@ -50,6 +77,21 @@ namespace balance_equations{
         for (int i=0; i<3; i++){
             fb[i] = N*density*b[i];
         }
+
+        return;
+    }
+    
+    void compute_body_force(const int &i, const double &N, const double &density, const double (&b)[3], double &fb_i){
+        /*!============================
+        |    compute_body_force    |
+        ============================
+
+        Compute the body force given the body force per unit density
+        on one of the components.
+
+        */
+        
+        fb_i = N*density*b[i];
 
         return;
     }
@@ -70,14 +112,29 @@ namespace balance_equations{
 
         return;
     }
+    
+    void compute_kinematic_force(const int &i, const double &N, const double &density, const double (&a)[3], double &fkin_i){
+        /*!=================================
+        |    compute_kinematic_force    |
+        =================================
+
+        Compute the kinimatic force given the shape 
+        function, density, and acceleration.
+
+        */
+        
+        fkin_i = -N*density*a[i];
+
+        return;
+    }
 
     void compute_internal_couple(const double &N, const double (&dNdx)[3], const Vector_9 &cauchy, const Vector_9 &s, const Vector_27 &m, double (&cint)[9]){
         /*!=================================
         |    compute_internal_couple    |
         =================================
 
-        Compute the internal couple at a given 
-        component pair.
+        Compute the internal couple for all 
+        indices.
 
         */
         
@@ -89,7 +146,51 @@ namespace balance_equations{
         cint[5] = N*(cauchy[5] - s[5]) - (dNdx[0]*m[8]+dNdx[1]*m[17]+dNdx[2]*m[26]);
         cint[6] = N*(cauchy[6] - s[6]) - (dNdx[0]*m[3]+dNdx[1]*m[12]+dNdx[2]*m[21]);
         cint[7] = N*(cauchy[7] - s[7]) - (dNdx[0]*m[4]+dNdx[1]*m[13]+dNdx[2]*m[22]);
-        cint[8] = N*(cauchy[8] - s[8]) - (dNdx[0]*m[4]+dNdx[1]*m[13]+dNdx[2]*m[22]);
+        cint[8] = N*(cauchy[8] - s[8]) - (dNdx[0]*m[5]+dNdx[1]*m[14]+dNdx[2]*m[23]);
+        
+        return;
+    }
+    
+    void compute_internal_couple(const int &i, const int &j, const double &N, const double (&dNdx)[3], const Vector_9 &cauchy, const Vector_9 &s, const Vector_27 &m, double &cint_ij){
+        /*!=================================
+        |    compute_internal_couple    |
+        =================================
+
+        Compute the internal couple at a given 
+        component pair.
+
+        */
+        
+        if ( ( i == 0 ) && ( j == 0 ) ){
+            cint_ij = N*(cauchy[0] - s[0]) - (dNdx[0]*m[0]+dNdx[1]*m[ 9]+dNdx[2]*m[18]);
+        }
+        else if ( ( i == 1 ) && ( j == 1 ) ){
+            cint_ij = N*(cauchy[1] - s[1]) - (dNdx[0]*m[1]+dNdx[1]*m[10]+dNdx[2]*m[19]);
+        }
+        else if ( ( i == 2 ) && ( j == 2 ) ){
+            cint_ij = N*(cauchy[2] - s[2]) - (dNdx[0]*m[2]+dNdx[1]*m[11]+dNdx[2]*m[20]);
+        }
+        else if ( ( i == 1 ) && ( j == 2 ) ){
+            cint_ij = N*(cauchy[3] - s[3]) - (dNdx[0]*m[6]+dNdx[1]*m[15]+dNdx[2]*m[24]);
+        }
+        else if ( ( i == 0 ) && ( j == 2 ) ){
+            cint_ij = N*(cauchy[4] - s[4]) - (dNdx[0]*m[7]+dNdx[1]*m[16]+dNdx[2]*m[25]);
+        }
+        else if ( ( i == 0 ) && ( j == 1 ) ){
+            cint_ij = N*(cauchy[5] - s[5]) - (dNdx[0]*m[8]+dNdx[1]*m[17]+dNdx[2]*m[26]);
+        }
+        else if ( ( i == 2 ) && ( j == 1 ) ){
+            cint_ij = N*(cauchy[6] - s[6]) - (dNdx[0]*m[3]+dNdx[1]*m[12]+dNdx[2]*m[21]);
+        }
+        else if ( ( i == 2 ) && ( j == 0 ) ){
+            cint_ij = N*(cauchy[7] - s[7]) - (dNdx[0]*m[4]+dNdx[1]*m[13]+dNdx[2]*m[22]);
+        }
+        else if ( ( i == 1 ) && ( j == 0 ) ){
+            cint_ij = N*(cauchy[8] - s[8]) - (dNdx[0]*m[5]+dNdx[1]*m[14]+dNdx[2]*m[23]);
+        }
+        else{
+            std::cout << "Error: Index out of range\n";
+        }
         
         return;
     }
@@ -116,6 +217,49 @@ namespace balance_equations{
         return;
     }
     
+    void compute_body_couple(const int &i, const int &j, const double &N, const double &density, const double (&l)[9], double &cb_ij){
+        /*!=============================
+        |    compute_body_couple    |
+        =============================
+        
+        Compute the body couple term.
+        
+        */
+        
+        if ( ( i == 0 ) && ( j == 0 ) ){
+            cb_ij = N*density*l[0];
+        }
+        else if ( ( i == 1 ) && ( j == 1 ) ){
+            cb_ij = N*density*l[1];
+        }
+        else if ( ( i == 2 ) && ( j == 2 ) ){
+            cb_ij = N*density*l[2];
+        }
+        else if ( ( i == 1 ) && ( j == 2 ) ){
+            cb_ij = N*density*l[6];
+        }
+        else if ( ( i == 0 ) && ( j == 2 ) ){
+            cb_ij = N*density*l[7];
+        }
+        else if ( ( i == 0 ) && ( j == 1 ) ){
+            cb_ij = N*density*l[8];
+        }
+        else if ( ( i == 2 ) && ( j == 1 ) ){
+            cb_ij = N*density*l[3];
+        }
+        else if ( ( i == 2 ) && ( j == 0 ) ){
+            cb_ij = N*density*l[4];
+        }
+        else if ( ( i == 1 ) && ( j == 0 ) ){
+            cb_ij = N*density*l[5];
+        }
+        else{
+            std::cout << "Error: Index out of range\n";
+        }
+        
+        return;
+    }
+    
     void compute_kinematic_couple(const double &N, const double &density, const double (&omega)[9], double (&ckin)[9]){
         /*!=============================
         |    compute_body_couple    |
@@ -134,6 +278,49 @@ namespace balance_equations{
         ckin[6] = -N*density*omega[3];;
         ckin[7] = -N*density*omega[4];;
         ckin[8] = -N*density*omega[5];;
+        
+        return;
+    }
+    
+    void compute_kinematic_couple(const int &i, const int &j, const double &N, const double &density, const double (&omega)[9], double &ckin_ij){
+        /*!=============================
+        |    compute_body_couple    |
+        =============================
+        
+        Compute the body couple term.
+        
+        */
+        
+        if ( ( i == 0 ) && ( j == 0 ) ){
+            ckin_ij = -N*density*omega[0];
+        }
+        else if ( ( i == 1 ) && ( j == 1 ) ){
+            ckin_ij = -N*density*omega[1];
+        }
+        else if ( ( i == 2 ) && ( j == 2 ) ){
+            ckin_ij = -N*density*omega[2];
+        }
+        else if ( ( i == 1 ) && ( j == 2 ) ){
+            ckin_ij = -N*density*omega[6];
+        }
+        else if ( ( i == 0 ) && ( j == 2 ) ){
+            ckin_ij = -N*density*omega[7];
+        }
+        else if ( ( i == 0 ) && ( j == 1 ) ){
+            ckin_ij = -N*density*omega[8];
+        }
+        else if ( ( i == 2 ) && ( j == 1 ) ){
+            ckin_ij = -N*density*omega[3];
+        }
+        else if ( ( i == 2 ) && ( j == 0 ) ){
+            ckin_ij = -N*density*omega[4];
+        }
+        else if ( ( i == 1 ) && ( j == 0 ) ){
+            ckin_ij = -N*density*omega[5];
+        }
+        else{
+            std::cout << "Error: Index out of range\n";
+        }
         
         return;
     }
@@ -165,6 +352,60 @@ namespace balance_equations{
         DfintDU.row(1) = -(dNdx[0]*DcauchyDU.row(5) + dNdx[1]*DcauchyDU.row(1) + dNdx[2]*DcauchyDU.row(6));
         DfintDU.row(2) = -(dNdx[0]*DcauchyDU.row(4) + dNdx[1]*DcauchyDU.row(3) + dNdx[2]*DcauchyDU.row(2));
         
+    }
+    
+    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, double &DfintDU_iA){
+        /*!=========================================
+        |    compute_internal_force_jacobian    |
+        =========================================
+        
+        Compute the jacobian of the internal force.
+        
+        The degrees of freedom are organized:
+        
+        dif_num:   0   1    2       3       4       5       6       7       8       9      10      11 
+        DOF:     u_1 u_2, u_3, phi_11, phi_22, phi_33, phi_23, phi_13, phi_12, phi_32, phi_31, phi_21 
+        
+        and the jacobian is organized
+        
+        f_{i}{dof_num}
+        
+        */
+        
+        //Compute required DOF jacobians
+        SpMat _dgrad_udU(9,12);
+        SpMat _dphidU(9,12);
+        SpMat _dgrad_phidU(27,12);
+        
+        construct_dgrad_udU(dNdx, _dgrad_udU);
+        construct_dphidU(N, _dphidU);
+        construct_dgrad_phidU(dNdx, _dgrad_phidU);
+        
+        //TODO: There is probably a more efficient way to do this.
+        Matrix_9x12 dgrad_udU    = _dgrad_udU;
+        Matrix_9x12 dphidU       = _dphidU;
+        Matrix_27x12 dgrad_phidU = _dgrad_phidU;
+        
+        if ( i == 0 ){
+            DfintDU_iA = -(dNdx[0]*(DcauchyDgrad_u.row(0).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(0).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(0).dot(dgrad_phidU.col(dof_num)))
+                         + dNdx[1]*(DcauchyDgrad_u.row(8).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(8).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(8).dot(dgrad_phidU.col(dof_num)))
+                         + dNdx[2]*(DcauchyDgrad_u.row(7).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(7).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(7).dot(dgrad_phidU.col(dof_num))));
+        }
+        else if (i == 1){
+            DfintDU_iA = -(dNdx[0]*(DcauchyDgrad_u.row(5).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(5).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(5).dot(dgrad_phidU.col(dof_num)))
+                         + dNdx[1]*(DcauchyDgrad_u.row(1).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(1).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(1).dot(dgrad_phidU.col(dof_num)))
+                         + dNdx[2]*(DcauchyDgrad_u.row(6).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(6).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(6).dot(dgrad_phidU.col(dof_num))));
+        }
+        else if (i == 2){
+            DfintDU_iA = -(dNdx[0]*(DcauchyDgrad_u.row(4).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(4).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(4).dot(dgrad_phidU.col(dof_num)))
+                         + dNdx[1]*(DcauchyDgrad_u.row(3).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(3).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(3).dot(dgrad_phidU.col(dof_num)))
+                         + dNdx[2]*(DcauchyDgrad_u.row(2).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(2).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(2).dot(dgrad_phidU.col(dof_num))));
+        }
+        else{
+            std::cout << "Error: Index out of range\n";
+        }
+        
+        return;
     }
     
     void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3],

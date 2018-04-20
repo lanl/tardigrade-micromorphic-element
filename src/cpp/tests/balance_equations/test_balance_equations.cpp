@@ -177,6 +177,68 @@ void define_cauchy(Vector_9 &cauchy){
     return;
 }
 
+void define_s(Vector_9 &s){
+    /*!==================
+    |    define_s    |
+    ==================
+    
+    Define the symmetric stress to be used.
+    
+    */
+    
+    s[0] =  0.94496726;
+    s[5] =  0.73268522;
+    s[6] =  0.36190426;
+    s[8] =  0.73268522;
+    s[1] =  0.17534639;
+    s[3] =  0.35118444;
+    s[7] =  0.36190426;
+    s[6] =  0.35118444;
+    s[2] =  0.59818451;
+    
+    return;
+}
+
+void define_m(Vector_27 &m){
+    /*!==================
+    |    define_m    |
+    ==================
+    
+    Define the higher order couple stress.
+    
+    */
+    
+    m[ 0] = 0.49291984245;
+    m[ 1] = 0.463682849187;
+    m[ 2] = 0.410503481618;
+    m[ 3] = 0.790191457966;
+    m[ 4] = 0.747691366301;
+    m[ 5] = 0.415153945938;
+    m[ 6] = 0.494002422078;
+    m[ 7] = 0.917159660011;
+    m[ 8] = 0.202756449146;
+    m[ 9] = 0.842117576964;
+    m[10] = 0.105880945737;
+    m[11] = 0.345590957821;
+    m[12] = 0.786366853468;
+    m[13] = 0.343248849409;
+    m[14] = 0.481767549881;
+    m[15] = 0.898090172949;
+    m[16] = 0.319073694596;
+    m[17] = 0.414916901482;
+    m[18] = 0.731387402298;
+    m[19] = 0.388900418949;
+    m[20] = 0.064710443124;
+    m[21] = 0.327182261845;
+    m[22] = 0.337523957493;
+    m[23] = 0.950942676106;
+    m[24] = 0.419581796783;
+    m[25] = 0.164816718675;
+    m[26] = 0.521393759903;
+    
+    return;
+}
+
 void define_body_force(double (&b)[3]){
     /*!===========================
     |    define_body_force    |
@@ -193,6 +255,28 @@ void define_body_force(double (&b)[3]){
     return;
 }
 
+void define_body_couple(double (&l)[9]){
+    /*!============================
+    |    define_body_couple    |
+    ============================
+    
+    Define the body couple.
+    
+    */
+    
+    l[0] =  0.128;
+    l[1] = -2.123;
+    l[2] =  8.172;
+    l[3] =  0.271;
+    l[4] =  0.781;
+    l[5] = -6.271;
+    l[6] =  4.721;
+    l[7] =  0.927;
+    l[8] =  1.271;
+    
+    return;
+}
+
 void define_acceleration(double (&a)[3]){
     /*!=============================
     |    define_acceleration    |
@@ -205,6 +289,28 @@ void define_acceleration(double (&a)[3]){
     a[0] =  0.821;
     a[1] = -5.261;
     a[2] =  2.312;
+    
+    return;
+}
+
+void define_micro_gyration(double (&omega)[9]){
+    /*!===============================
+    |    define_micro_gyration    |
+    ===============================
+    
+    Define the micro-gyration tensor.
+    
+    */
+    
+    omega[0] = 0.773449687115;
+    omega[1] = 0.0971455366725;
+    omega[2] = 0.0972789699315;
+    omega[3] = 0.62718100678;
+    omega[4] = 0.740238358734;
+    omega[5] = 0.341171867764;
+    omega[6] = 0.436016627415;
+    omega[7] = 0.0326331393607;
+    omega[8] = 0.229705402608;
     
     return;
 }
@@ -535,11 +641,17 @@ int test_compute_internal_force(std::ofstream &results){
         }
     }
     
-    //Compute the function output.
-    balance_equations::compute_internal_force(dNdx, cauchy, _r);
-    
     bool tot_result = true;
     
+    //Compute the vector result.
+    balance_equations::compute_internal_force(dNdx, cauchy, _r);
+    for (int i=0; i<3; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
+    
+    //Zero out the result.
+    for (int i=0; i<3; i++){_r[i] = 0.;}
+    
+    //Compute the component result.
+    for (int i=0; i<3; i++){balance_equations::compute_internal_force(i, dNdx, cauchy, _r[i]);}
     for (int i=0; i<3; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
     
     if (tot_result){
@@ -578,11 +690,18 @@ int test_compute_body_force(std::ofstream &results){
     for (int i=0; i<3; i++){
         r[i] = N*density*b[i];
     }
-    
-    balance_equations::compute_body_force(N, density, b, _r);
-    
+
     bool tot_result = true;
     
+    //Test the vector form
+    balance_equations::compute_body_force(N, density, b, _r);
+    for (int i=0; i<3; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
+    
+    //Zero out the result.
+    for (int i=0; i<3; i++){_r[i] = 0.;}
+    
+    //Test the component form
+    for (int i=0; i<3; i++){balance_equations::compute_body_force(i, N, density, b, _r[i]);}
     for (int i=0; i<3; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
     
     if (tot_result){
@@ -622,17 +741,292 @@ int test_compute_kinematic_force(std::ofstream &results){
         r[i] = -N*density*a[i];
     }
     
-    balance_equations::compute_kinematic_force(N, density, a, _r);
-    
     bool tot_result = true;
     
+    //Test the vector form
+    balance_equations::compute_kinematic_force(N, density, a, _r);
     for (int i=0; i<3; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
+
+    //Zero out the result.
+    for (int i=0; i<3; i++){_r[i] = 0.;}
+    
+    //Test the component form
+    for (int i=0; i<3; i++){balance_equations::compute_kinematic_force(i, N, density, a, _r[i]);}
+    for (int i=0; i<3; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
+    
     
     if (tot_result){
         results << "test_compute_acceleration & True\\\\\n\\hline\n";
     }
     else {
         results << "test_compute_acceleration & False\\\\\n\\hline\n";
+    }
+}
+
+int test_compute_internal_couple(std::ofstream &results){
+    /*!======================================
+    |    test_compute_internal_couple    |
+    ======================================
+    
+    Test the computation of the internal couple.
+    
+    This test makes sure that the indices are lining up with 
+    what is expected. To make sure that your model is also 
+    correct you should test this in your code as well.
+    
+    */
+    
+    double  r[9]; //The expected result.
+    double _r[9]; //The function output.
+    
+    double N;
+    define_N(N);
+    
+    double dNdx[3];
+    define_dNdx(dNdx);
+    
+    Vector_9 cauchy;
+    define_cauchy(cauchy);
+    
+    Vector_9 s;
+    define_s(s);
+    
+    Vector_27 m;
+    define_m(m);
+    
+    Matrix_3x3 cauchy_mat;
+    deformation_measures::undo_voigt_3x3_tensor(cauchy,cauchy_mat);
+    
+    Matrix_3x3 s_mat;
+    deformation_measures::undo_voigt_3x3_tensor(s,s_mat);
+    
+    Matrix_3x9 m_mat;
+    deformation_measures::undo_voigt_3x9_tensor(m,m_mat);
+    
+    //Compute the divergence of the higher-order couple stress
+    Matrix_3x3 divm_mat;
+    Eigen::Matrix<double,1,3> dNdx_mat;
+    for (int i=0; i<3; i++){dNdx_mat(0,i) = dNdx[i];}
+    
+    Vector_9 divm = dNdx_mat*m_mat;
+    deformation_measures::undo_voigt_3x3_tensor(divm,divm_mat);
+    
+    //Compute the expected value
+    Matrix_3x3 r_mat = N*(cauchy_mat - s_mat) - divm_mat.transpose();
+    Vector_9 r_vec;
+    deformation_measures::voigt_3x3_tensor(r_mat,r_vec);
+    
+    for (int i=0; i<9; i++){r[i] = r_vec[i];}
+    
+    bool tot_result = true;
+    
+    //std::cout << "r: ";
+    //for (int i=0; i<9; i++){
+    //    std::cout << r[i] << " ";
+    //}
+    //std::cout << "\n";
+    
+    //Compute the vector result.
+    balance_equations::compute_internal_couple(N, dNdx, cauchy, s, m, _r);
+    for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i]-_r[i]);}
+    
+    //std::cout << "Vector _r: ";
+    //for (int i=0; i<9; i++){
+    //    std::cout << _r[i] << " ";
+    //}
+    //std::cout << "\n";
+    
+    //Zero out the result.
+    for (int i=0; i<3; i++){_r[i] = 0.;}
+    
+    //Compute the component result.
+    int Ihat;
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            find_sot_index(i,j,Ihat);
+            balance_equations::compute_internal_couple(i, j, N, dNdx, cauchy, s, m, _r[Ihat]);
+        }
+    }
+    
+    //std::cout << "Component _r: ";
+    //for (int i=0; i<9; i++){
+    //    std::cout << _r[i] << " ";
+    //}
+    //std::cout << "\n";
+    
+    for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i]-_r[i]);}
+    
+    if (tot_result){
+        results << "test_compute_internal_couple & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_internal_couple & False\\\\\n\\hline\n";
+    }
+}
+
+int test_compute_body_couple(std::ofstream &results){
+    /*!==================================
+    |    test_compute_body_couple    |
+    ==================================
+    
+    Test the computation of the body couple.
+    
+    This test makes sure that the indices are lining up with 
+    what is expected. To make sure that your model is also 
+    correct you should test this in your code as well.
+    
+    */
+    
+    double  r[9]; //The expected result.
+    double _r[9]; //The function output.
+    
+    double N;
+    define_N(N);
+    
+    double density;
+    define_density(density);
+    
+    double l[9];
+    define_body_couple(l);
+    
+    int Ihat;
+    int Jhat;
+    
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            find_sot_index(i,j,Ihat);
+            find_sot_index(j,i,Jhat);
+            r[Ihat] = N*density*l[Jhat];
+        }
+    }
+    
+    //std::cout << "Expected r: ";
+    //for (int i=0; i<9; i++){
+    //    std::cout << r[i] << " ";
+    //}
+    //std::cout << "\n";
+    
+
+    bool tot_result = true;
+    
+    //Test the vector form
+    balance_equations::compute_body_couple(N, density, l, _r);
+    for (int i=0; i<9; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
+    
+    //std::cout << "Vector _r: ";
+    //for (int i=0; i<9; i++){
+    //    std::cout << _r[i] << " ";
+    //}
+    //std::cout << "\n";
+    
+    
+    //Zero out the result.
+    for (int i=0; i<9; i++){_r[i] = 0.;}
+    
+    //Test the component form
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            find_sot_index(i,j,Ihat);
+            balance_equations::compute_body_couple(i, j, N, density, l, _r[Ihat]);
+        }
+    }
+    for (int i=0; i<9; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
+    
+    //std::cout << "Component _r: ";
+    //for (int i=0; i<9; i++){
+    //    std::cout << _r[i] << " ";
+    //}
+    //std::cout << "\n";
+    
+    
+    if (tot_result){
+        results << "test_compute_body_couple & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_body_couple & False\\\\\n\\hline\n";
+    }
+}
+
+int test_compute_kinematic_couple(std::ofstream &results){
+    /*!=======================================
+    |    test_compute_kinematic_couple    |
+    =======================================
+    
+    Test the computation of the kinematic couple.
+    
+    This test makes sure that the indices are lining up with 
+    what is expected. To make sure that your model is also 
+    correct you should test this in your code as well.
+    
+    */
+    
+    double  r[9]; //The expected result.
+    double _r[9]; //The function output.
+    
+    double N;
+    define_N(N);
+    
+    double density;
+    define_density(density);
+    
+    double omega[9];
+    define_micro_gyration(omega);
+    
+    int Ihat;
+    int Jhat;
+    
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            find_sot_index(i,j,Ihat);
+            find_sot_index(j,i,Jhat);
+            r[Ihat] = -N*density*omega[Jhat];
+        }
+    }
+    
+    //std::cout << "Expected r: ";
+    //for (int i=0; i<9; i++){
+    //    std::cout << r[i] << " ";
+    //}
+    //std::cout << "\n";
+    
+
+    bool tot_result = true;
+    
+    //Test the vector form
+    balance_equations::compute_kinematic_couple(N, density, omega, _r);
+    for (int i=0; i<9; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
+    
+    //std::cout << "Vector _r: ";
+    //for (int i=0; i<9; i++){
+    //    std::cout << _r[i] << " ";
+    //}
+    //std::cout << "\n";
+    
+    
+    //Zero out the result.
+    for (int i=0; i<9; i++){_r[i] = 0.;}
+    
+    //Test the component form
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            find_sot_index(i,j,Ihat);
+            balance_equations::compute_kinematic_couple(i, j, N, density, omega, _r[Ihat]);
+        }
+    }
+    for (int i=0; i<9; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
+    
+    //std::cout << "Component _r: ";
+    //for (int i=0; i<9; i++){
+    //    std::cout << _r[i] << " ";
+    //}
+    //std::cout << "\n";
+    
+    
+    if (tot_result){
+        results << "test_compute_kinematic_couple & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_kinematic_couple & False\\\\\n\\hline\n";
     }
 }
 
@@ -765,9 +1159,6 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
         }
     }
     
-    //Compute the value in the function
-    balance_equations::compute_internal_force_jacobian(N, dNdx, DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi, _r);
-    
 //    std::cout << "r:\n";
 //    for (int i=0; i<3; i++){
 //        for (int j=0; j<12; j++){
@@ -794,11 +1185,35 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     
     bool tot_result = true;
     
+    //Compute the value in the vector function
+    balance_equations::compute_internal_force_jacobian(N, dNdx, DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi, _r);
     for (int i=0; i<3; i++){
         for (int j=0; j<12; j++){
             tot_result *= 1e-9>fabs(r[i][j]-_r(i,j));
         }
     }
+    
+    //std::cout << "Vector _r:" << _r << "\n";
+    
+    //Zero out the result matrix.
+    _r = Matrix_3x12::Zero();
+    
+    //Compute the value for the component function
+    for (int i=0; i<3; i++){
+        
+        for (int A=0; A<12; A++){
+            balance_equations::compute_internal_force_jacobian(i, A, N, dNdx, DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi, _r(i,A));
+        }
+    }
+    
+    for (int i=0; i<3; i++){
+        for (int j=0; j<12; j++){
+            tot_result *= 1e-9>fabs(r[i][j]-_r(i,j));
+        }
+    }
+    
+    //std::cout << "Component _r:" << _r << "\n";
+    
     
     if (tot_result){
         results << "test_compute_internal_force_jacobian & True\\\\\n\\hline\n";
@@ -1078,9 +1493,15 @@ int main(){
     results.open ("results.tex");
 
     //!Run the test functions
+    
+    //!Test the force and couple computations
     test_compute_internal_force(results);
     test_compute_body_force(results);
     test_compute_kinematic_force(results);
+    
+    test_compute_internal_couple(results);
+    test_compute_body_couple(results);
+    test_compute_kinematic_couple(results);
     
     test_compute_internal_force_jacobian(results);
     test_compute_internal_couple_jacobian(results);
