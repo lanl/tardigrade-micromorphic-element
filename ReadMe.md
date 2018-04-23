@@ -21,19 +21,34 @@ Colorado at Boulder
 ** Description **
 
 An implementation of a micromorphic hex8 element. The form is 
-intended to be used for easy implementation into an Abaqus 
-user element (UEL). The current implementation is in python 
-and the intent is to make sure the method is sound in this 
-format before transitioning to either a Fortran or C++ code 
-which will be used as a user element for Abaqus. At this time 
-the C++ code appears the most advantageous due to the object 
-oriented nature but the Fortran approach is more well trod.
+intended to be used for easy implementation into a finite element 
+or other variationally based framework. The code has been implemented 
+into C++ code and utilizes the Eigen library. 
+
+An implementation of a quasi-static finite element for use in the 
+simulation code Abaqus is available in /src/cpp and can be built 
+using:
+> '''make makefile_uel'''
+
+Note that this element uses the linear elastic material model but can 
+use other material models by changing which is built in the makefile.
+It is important to note that transient analyses in Abaqus are much 
+more difficult to implement than was originally thought. This is due 
+to restrictions on the degrees of freedom.
+
+A second implementation which is more general and designed for use in 
+the simulation code MOOSE can be built from code available in /src/cpp
+ using the command
+> '''make makefile_moose'''
+
+Note that this produces a kenel structure which uses the linear elastic 
+material model but can use other material models by changing which is 
+built in the makefile.
 
 ** Upcoming work **
 
-- Debug the python code finding the source of non-convergence
-- Port the python code to C++
-- Continue to improve the documentation
+- Improve documentation
+- Add dynamics to the MOOSE implementation 
 
 ** Description of directories **
 
@@ -78,7 +93,7 @@ functions are pdflatex and bibtex respectively
 ** C++ Compiler Requirements **
 
 Requires the library [Eigen](http://eigen.tuxfamily.org) which is a collection of header files and does
-not require any compilation. The user must define the path to this library in '''setup.py'''
+not require any compilation. The user must define the path to this library in '''config.py'''
 ('''eigen_location = /absolute/path/to/eigen''')
 
 ** Code Setup **
@@ -111,7 +126,12 @@ A local installation of GCC can be used by:
    variable '''export LD_LIBRARY_PATH=/absolute/path/to/install/directory'''
 
 Also requires the library [Eigen](http://eigen.tuxfamily.org) which requires that 
-the path is defined in '''setup.py''' ('''eigen_location = /absolute/path/to/eigen''')
+the path is defined in '''config.py''' ('''eigen_location = /absolute/path/to/eigen''')
+
+You will need to copy config.py.default to config.py. This allows git to track changes which 
+are not system specific to be tracked in the default file while allowing the user to make 
+changes locally. This same approach is also used in the makefiles with makefile.default being 
+the file tracked by git.
 
 ** Abaqus environment variable setup **
 
