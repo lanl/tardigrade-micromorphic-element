@@ -36,13 +36,13 @@ namespace micromorphic_material_library{
         virtual void evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
                                     const double (&grad_u)[3][3],           const double (&phi)[9],
                                     const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
-                                    const std::vector<double> &ADDDOF,      const std::vector<std::vector<double>> &ADD_grad_DOF,
+                                    const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
                                     Vector_9 &cauchy, Vector_9 &s, Vector_27 &m, std::vector<Eigen::VectorXd> &ADD_TERMS) = 0;
                                     
         virtual void evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
                                     const double (&grad_u)[3][3],           const double (&phi)[9],
                                     const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
-                                    const std::vector<double> &ADDDOF,      const std::vector<std::vector<double>> &ADD_grad_DOF,
+                                    const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
                                     Vector_9    &cauchy,    Vector_9    &s,           Vector_27    &m,
                                     Matrix_9x9  &DcauchyDgrad_u, Matrix_9x9  &DcauchyDphi, Matrix_9x27  &DcauchyDgrad_phi,
                                     Matrix_9x9  &DsDgrad_u,      Matrix_9x9  &DsDphi,      Matrix_9x27  &DsDgrad_phi,
