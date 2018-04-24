@@ -28,6 +28,7 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <micromorphic_material_library.h>
 
 //Dense matrix type definitions
 typedef Eigen::Matrix<double,3,3> Matrix_3x3;
@@ -38,12 +39,43 @@ typedef Eigen::SparseMatrix<double> SpMat;
 typedef Eigen::Triplet<double> T;
 
 namespace micro_material{
+    
+    class LinearElasticity: public micromorphic_material_library::IMaterial{
+        /*!
+        ==========================
+        |    LinearElasticity    |
+        ==========================
+        
+        The class which is called when evaluating a 
+        linear elastic micromorphic constitutive model.
+        */
+        
+        public:
+            void evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
+                                const double (&grad_u)[3][3],           const double (&phi)[9],
+                                const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
+                                const std::vector<double> &ADDDOF,      const std::vector<std::vector<double>> &ADD_grad_DOF,
+                                Vector_9 &cauchy, Vector_9 &s, Vector_27 &m, std::vector<Eigen::VectorXd> &ADD_TERMS);
+                                
+            void evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
+                                const double (&grad_u)[3][3],           const double (&phi)[9],
+                                const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
+                                const std::vector<double> &ADDDOF,      const std::vector<std::vector<double>> &ADD_grad_DOF,
+                                Vector_9    &cauchy,    Vector_9    &s,           Vector_27    &m,
+                                Matrix_9x9  &DcauchyDgrad_u, Matrix_9x9  &DcauchyDphi, Matrix_9x27  &DcauchyDgrad_phi,
+                                Matrix_9x9  &DsDgrad_u,      Matrix_9x9  &DsDphi,      Matrix_9x27  &DsDgrad_phi,
+                                Matrix_27x9 &DmDgrad_u,      Matrix_27x9 &DmDphi,      Matrix_27x27 &DmDgrad_phi,
+                                std::vector<Eigen::VectorXd> &ADD_TERMS,               std::vector<Eigen::MatrixXd> &ADD_JACOBIANS);
+                                
+            void get_deformation_measures(const double (&grad_u)[3][3], const double (&phi)[9], const double (&grad_phi)[9][3],
+                                          Matrix_3x3 &F,          Matrix_3x3 &chi,  Matrix_3x9 &grad_chi);
+    };
 
-    void get_stress(const double t,      const double dt,       const double (&params)[18], 
+    void get_stress(const double &t,     const double &dt,      const double (&params)[18], 
                     const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
                     std::vector<double> &SDVS, Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M);
                     
-    void get_stress(const double t,      const double dt,       const double (&params)[18], 
+    void get_stress(const double &t,     const double &dt,      const double (&params)[18], 
                     const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
                     std::vector<double> &SDVS, Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M,
                     Matrix_9x9  &dPK2dF,   Matrix_9x9  &dPK2dchi,   Matrix_9x27  &dPK2dgrad_chi,
@@ -115,6 +147,8 @@ namespace micro_material{
     void compute_dPK2dGamma_term2(const Vector_27 &term1, const Matrix_27x27 &C, Matrix_9x27 &term2);
     
     void compute_dPK2dGamma_term3(const Vector_27 &term1, const Matrix_3x3 &RCGinv, Matrix_9x27 &term3);
+
+    REGISTER_MATERIAL(LinearElasticity)
 }
 
 #endif

@@ -31,7 +31,164 @@
 
 namespace micro_material{
 
-    void get_stress(const double t,      const double dt,       const double (&params)[18],
+    void LinearElasticity::evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
+                                          const double (&grad_u)[3][3],           const double (&phi)[9],
+                                          const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
+                                          const std::vector<double> &ADDDOF,      const std::vector<std::vector<double>> &ADD_grad_DOF,
+                                          Vector_9 &cauchy, Vector_9 &s, Vector_27 &m, std::vector<Eigen::VectorXd> &ADD_TERMS){
+        /*!
+        =======================
+        |    evaluate_model   |
+        =======================
+        
+        Evaluate the constitutive model 
+        from the general incoming values.
+        
+        Only returns stresses and additional 
+        terms.
+        
+        */
+        
+        //Extract the time
+        double t  = time[0];
+        double dt = time[1];
+
+        //Extract the parameters        
+        double params[18];
+        if(fparams.size() == 18){
+            for(int i=0; i<18; i++){
+                params[i] = fparams[i];
+            }
+        }
+        else{std::cout << "Error: Material parameters incorrectly specified\n";}
+        
+        //Compute the required deformation measures
+        Matrix_3x3 F;
+        Matrix_3x3 chi;
+        Matrix_3x9 grad_chi;
+        get_deformation_measures(grad_u, phi, grad_phi, F, chi, grad_chi);
+        
+        //Compute the stresses
+        Vector_9  PK2;
+        Vector_9  SIGMA;
+        Vector_27 M;
+        
+        get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M);
+        deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+        
+        return;
+    }
+                                
+    void LinearElasticity::evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
+                                          const double (&grad_u)[3][3],           const double (&phi)[9],
+                                          const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
+                                          const std::vector<double> &ADDDOF,      const std::vector<std::vector<double>> &ADD_grad_DOF,
+                                          Vector_9    &cauchy,    Vector_9    &s,           Vector_27    &m,
+                                          Matrix_9x9  &DcauchyDgrad_u, Matrix_9x9  &DcauchyDphi, Matrix_9x27  &DcauchyDgrad_phi,
+                                          Matrix_9x9  &DsDgrad_u,      Matrix_9x9  &DsDphi,      Matrix_9x27  &DsDgrad_phi,
+                                          Matrix_27x9 &DmDgrad_u,      Matrix_27x9 &DmDphi,      Matrix_27x27 &DmDgrad_phi,
+                                          std::vector<Eigen::VectorXd> &ADD_TERMS,               std::vector<Eigen::MatrixXd> &ADD_JACOBIANS){
+        /*!
+        ========================
+        |    evaluate_model    |
+        ========================
+        
+        Evaluate the constitutive model 
+        from the general incoming values.
+        
+        Returns stresses, additional 
+        terms, and their jacobians.
+        
+        */
+        
+        //Extract the time
+        double t  = time[0];
+        double dt = time[1];
+
+        //Extract the parameters        
+        double params[18];
+        if(fparams.size() == 18){
+            for(int i=0; i<18; i++){
+                params[i] = fparams[i];
+            }
+        }
+        else{std::cout << "Error: Material parameters incorrectly specified\n";}
+        
+        //Compute the required deformation measures
+        Matrix_3x3 F;
+        Matrix_3x3 chi;
+        Matrix_3x9 grad_chi;
+        get_deformation_measures(grad_u, phi, grad_phi, F, chi, grad_chi);
+        
+        //Compute the stresses and jacobians
+        Vector_9  PK2;
+        Vector_9  SIGMA;
+        Vector_27 M;
+        
+        Matrix_9x9   dPK2dF;
+        Matrix_9x9   dPK2dchi;
+        Matrix_9x27  dPK2dgrad_chi;
+        Matrix_9x9   dSIGMAdF;
+        Matrix_9x9   dSIGMAdchi;
+        Matrix_9x27  dSIGMAdgrad_chi;
+        Matrix_27x9  dMdF;
+        Matrix_27x9  dMdchi;
+        Matrix_27x27 dMdgrad_chi;
+        
+        //Note: D(x)Dphi = d(x)dchi
+        Matrix_9x9   dcauchydF;
+        Matrix_9x27  dcauchydgrad_chi;
+        Matrix_9x9   dsdF;
+        Matrix_9x27  dsdgrad_chi;
+        Matrix_27x9  dmdF;
+        Matrix_27x27 dmdgrad_chi;
+        
+        get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
+                   dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                   dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                   dMdF,     dMdchi,     dMdgrad_chi);
+                   
+        deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+        
+        deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s,   m,
+                                                                     dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
+                                                                     dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, DcauchyDphi, dcauchydgrad_chi,
+                                                                     dsdF,   DsDphi,   dsdgrad_chi,   dmdF,      DmDphi,      dmdgrad_chi);
+                                                                    
+        Matrix_3x9 _grad_phi;
+        Vector_27  _grad_phi_v;
+        Matrix_3x3 eye = Matrix_3x3::Identity();
+        deformation_measures::assemble_grad_chi(grad_phi, eye, _grad_phi); //Put grad_phi into an Eigen Matrix
+        deformation_measures::voigt_3x9_tensor(_grad_phi,_grad_phi_v);     //Put grad_phi into voigt notation
+        deformation_measures::compute_total_derivatives(F, _grad_phi_v,
+                                                        dcauchydF,      dcauchydgrad_chi, dsdF,      dsdgrad_chi, dmdF,      dmdgrad_chi,
+                                                        DcauchyDgrad_u, DcauchyDgrad_phi, DsDgrad_u, DsDgrad_phi, DmDgrad_u, DmDgrad_phi);
+                   
+        return;
+    }
+    
+    void LinearElasticity::get_deformation_measures(const double (&grad_u)[3][3], const double (&phi)[9], const double (&grad_phi)[9][3],
+                                                    Matrix_3x3 &F,                Matrix_3x3 &chi,        Matrix_3x9 &grad_chi){
+        /*!
+        ==================================
+        |    get_deformation_measures    |
+        ==================================
+        
+        Compute the deformation measures from the degrees of freedom and their 
+        gradients.
+        
+        */
+        
+        deformation_measures::get_deformation_gradient(grad_u, F);
+
+        deformation_measures::assemble_chi(phi, chi);
+
+        deformation_measures::assemble_grad_chi(grad_phi, F, grad_chi);
+        
+        return;
+    }
+
+    void get_stress(const double &t,     const double &dt,      const double (&params)[18],
                     const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
                     std::vector<double> &SDVS,    Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M){
     
@@ -112,7 +269,7 @@ namespace micro_material{
         return;
     }
     
-    void get_stress(const double t,      const double dt,       const double (&params)[18],
+    void get_stress(const double &t,     const double &dt,      const double (&params)[18],
                     const Matrix_3x3 &F, const Matrix_3x3 &chi, const Matrix_3x9 &grad_chi,
                     std::vector<double> &SDVS,    Vector_9 &PK2, Vector_9 &SIGMA, Vector_27 &M,
                     Matrix_9x9  &dPK2dF,   Matrix_9x9  &dPK2dchi,   Matrix_9x27  &dPK2dgrad_chi,

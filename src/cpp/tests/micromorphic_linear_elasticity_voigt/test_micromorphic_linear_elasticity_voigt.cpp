@@ -23,6 +23,7 @@ typedef std::chrono::high_resolution_clock Clock;
 #include<deformation_measures.h>
 #include<balance_equations.h>
 #include<micromorphic_linear_elasticity_voigt.h>
+#include<micromorphic_material_library.h>
 
 void voigt_3x3(const Matrix_3x3 &A, Vector_9 &v){
     /*!===================
@@ -7410,6 +7411,213 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     }
 }
 
+int test_micromorphic_material_library(std::ofstream &results){
+    /*!
+    ============================================
+    |    test_micromorphic_material_library    |
+    ============================================
+    
+    Test the version of the model that resides in the micromorphic material library 
+    to make sure nothing was lost in translation.
+    
+    */
+    
+    //The DOF vector
+    std::vector<double> U = {1.22,2.1,4.1,-2.3,.124,7.2,-8.2,.28,7.21,2.1,-9.2,3.1};
+    
+    //The shape function values
+    double N;
+    define_N(N);
+    
+    double dNdx[3];
+    define_dNdx(dNdx);
+
+    double eta;
+    define_eta(eta);
+
+    double detadx[3];
+    define_detadx(detadx);
+    
+    //Compute the values explicitly
+    double grad_u[3][3];
+    
+    grad_u[0][0] = U[0]*detadx[0];
+    grad_u[1][1] = U[1]*detadx[1];
+    grad_u[2][2] = U[2]*detadx[2];
+    grad_u[1][2] = U[1]*detadx[2];
+    grad_u[0][2] = U[0]*detadx[2];
+    grad_u[0][1] = U[0]*detadx[1];
+    grad_u[2][1] = U[2]*detadx[1];
+    grad_u[2][0] = U[2]*detadx[0];
+    grad_u[1][0] = U[1]*detadx[0];
+    
+    double phi[9];
+    for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
+    
+    double grad_phi_data[9][3];
+    
+    for (int I=3; I<12; I++){
+        for (int j=0; j<3; j++){            
+            grad_phi_data[I-3][j] = U[I]*detadx[j];
+        }
+    }
+    
+    //The required values for the material model
+    //Assign required values
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    double t  = 0;
+    double dt = 9;
+    double params[18];
+    std::vector<double> SDVS;
+    
+    //Output
+    Vector_9  PK2;
+    Vector_9  SIGMA;
+    Vector_27 M;
+    
+    Vector_9  cauchy;
+    Vector_9  s;
+    Vector_27 m;
+    
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+    
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Matrix_9x9   DcauchyDgrad_u;
+    Matrix_9x27  DcauchyDgrad_phi;
+    Matrix_9x9   DsDgrad_u;
+    Matrix_9x27  DsDgrad_phi;
+    Matrix_27x9  DmDgrad_u;
+    Matrix_27x27 DmDgrad_phi;
+    
+    define_parameters(params);
+    
+    deformation_measures::get_deformation_gradient(grad_u, F);
+    
+    deformation_measures::assemble_chi(phi, chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data, F, grad_chi);
+    
+    Matrix_3x9 grad_phi_mat;
+    Vector_27  grad_phi;
+    deformation_measures::assemble_grad_chi(grad_phi_data, Matrix_3x3::Identity(), grad_phi_mat);
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,grad_phi);
+    
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    
+    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+                                               
+    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
+                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
+                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
+                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
+    
+    deformation_measures::compute_total_derivatives(F,               grad_phi,
+                                                    dcauchydF,       dcauchydgrad_chi,
+                                                    dsdF,            dsdgrad_chi,
+                                                    dmdF,            dmdgrad_chi,
+                                                    DcauchyDgrad_u,  DcauchyDgrad_phi,
+                                                    DsDgrad_u,       DsDgrad_phi,
+                                                    DmDgrad_u,       DmDgrad_phi);
+                                                    
+    //Compute the values using the version stored in the material library.
+    auto &factory = micromorphic_material_library::MaterialFactory::Instance();
+
+    auto material = factory.GetMaterial("LinearElasticity");
+    
+    //Output
+    
+    Vector_9  _cauchy;
+    Vector_9  _s;
+    Vector_27 _m;
+    
+    Matrix_9x9   _DcauchyDgrad_u;
+    Matrix_9x9   _DcauchyDphi;
+    Matrix_9x27  _DcauchyDgrad_phi;
+    Matrix_9x9   _DsDgrad_u;
+    Matrix_9x9   _DsDphi;
+    Matrix_9x27  _DsDgrad_phi;
+    Matrix_27x9  _DmDgrad_u;
+    Matrix_27x9  _DmDphi;
+    Matrix_27x27 _DmDgrad_phi;
+    
+    std::vector<double> time;
+    time.resize(2);
+    time[0] = t;
+    time[1] = dt;
+    
+    std::vector<double> fparams;
+    fparams.resize(18);
+    for (int i=0; i<18; i++){fparams[i] = params[i];}
+    
+    std::vector<double> ADDDOF;
+    std::vector<std::vector<double>> ADD_grad_DOF;
+    std::vector<Eigen::VectorXd> ADD_TERMS;
+    std::vector<Eigen::MatrixXd> ADD_JACOBIANS;
+    
+    //Compare the result from the stress calculation alone
+    material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
+                             _cauchy, _s, _m, ADD_TERMS);
+                             
+    bool tot_result = true;
+    
+    tot_result *= cauchy.isApprox(_cauchy);
+    tot_result *= s.isApprox(_s);
+    tot_result *= m.isApprox(_m);
+    
+    //Compare the results from the jacobian calculation.
+    material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
+                             _cauchy, _s, _m,
+                             _DcauchyDgrad_u, _DcauchyDphi,  _DcauchyDgrad_phi,
+                             _DsDgrad_u,      _DsDphi,       _DsDgrad_phi,
+                             _DmDgrad_u,      _DmDphi,       _DmDgrad_phi,
+                             ADD_TERMS,       ADD_JACOBIANS);
+    
+    tot_result *= cauchy.isApprox(_cauchy);
+    tot_result *= s.isApprox(_s);
+    tot_result *= m.isApprox(_m);
+    
+    tot_result *= DcauchyDgrad_u.isApprox(_DcauchyDgrad_u);
+    tot_result *= dcauchydchi.isApprox(_DcauchyDphi); //d(x)dchi = D(x)Dphi
+    tot_result *= DcauchyDgrad_phi.isApprox(_DcauchyDgrad_phi);
+    
+    tot_result *= DsDgrad_u.isApprox(_DsDgrad_u);
+    tot_result *= dsdchi.isApprox(_DsDphi); //d(x)dchi = D(x)Dphi
+    tot_result *= DsDgrad_phi.isApprox(_DsDgrad_phi);
+    
+    tot_result *= DmDgrad_u.isApprox(_DmDgrad_u);
+    tot_result *= dmdchi.isApprox(_DmDphi); //d(x)dchi = D(x)Dphi
+    tot_result *= DmDgrad_phi.isApprox(_DmDgrad_phi);
+
+    if (tot_result){
+        results << "test_micromorphic_material_library & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_micromorphic_material_library & False\\\\\n\\hline\n";
+    }
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -7488,6 +7696,9 @@ int main(){
     //!Test of the computation of the balance equation derivatives
     test_compute_internal_force_jacobian(results);
     test_compute_internal_couple_jacobian(results);
+    
+    //!Test of the instance of the model in the material library
+    test_micromorphic_material_library(results);
 
     //Close the results file
     results.close();
