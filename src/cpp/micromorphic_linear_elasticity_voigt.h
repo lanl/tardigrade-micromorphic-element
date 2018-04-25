@@ -56,7 +56,7 @@ namespace micro_material{
                                 const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
                                 const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
                                 Vector_9 &cauchy, Vector_9 &s, Vector_27 &m, std::vector<Eigen::VectorXd> &ADD_TERMS);
-                                
+
             void evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
                                 const double (&grad_u)[3][3],           const double (&phi)[9],
                                 const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
