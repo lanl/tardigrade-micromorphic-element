@@ -1,0 +1,34 @@
+#Compiler option
+CC=COMPILER_COMMAND
+
+#Standard option
+STD=-std=gnu++11
+
+#Compiler flags
+CFLAGS=-I. -O3 -fpic
+
+#Include Eigen Library
+EIGEN = -I EIGEN_LOCATION
+
+#Object files to produce
+OBJ = balance_equations.o deformation_measures.o
+
+#Debugging flag
+DBG = 
+
+#Terminate after N errors
+ERRORFLG=-fmax-errors=5
+
+all: libmicrobalance.so
+
+libmicrobalance.so: $(OBJ)
+	$(CC) $(STD) -shared -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+balance_equations.o: balance_equations.h balance_equations.cpp
+	$(CC) $(STD) -o $@ -c balance_equations.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+deformation_measures.o: deformation_measures.h deformation_measures.cpp
+	$(CC) $(STD) -o $@ -c deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+clean:
+	rm *o libmicrobalance.so
