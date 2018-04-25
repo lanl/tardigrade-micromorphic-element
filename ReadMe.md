@@ -40,6 +40,7 @@ A second implementation which is more general and designed for use in
 the simulation code MOOSE can be built from code available in /src/cpp
  using the command
 > `make makefile_libmicromat`
+
 This produces a shared library of micromorphic material models which 
 can be linked to when compiling the MOOSE application "tardigrade" 
 which is the implementation of micromorphic continuum mechanics.
@@ -51,7 +52,9 @@ built in the makefile.
 ** Upcoming work **
 
 - Improve documentation
-- Add dynamics to the MOOSE implementation 
+- Add computation of micro-gyration tensor
+- Add plasticity models
+- Add viscoelastic models
 
 ** Description of directories **
 
