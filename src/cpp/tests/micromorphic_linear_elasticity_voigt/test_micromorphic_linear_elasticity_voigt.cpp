@@ -25,6 +25,45 @@ typedef std::chrono::high_resolution_clock Clock;
 #include<micromorphic_linear_elasticity_voigt.h>
 #include<micromorphic_material_library.h>
 
+bool compare_std_vectors(const std::vector<double> v1, const std::vector<double> v2, double tol = 1e-6){
+    /*!
+    =============================
+    |    compare_std_vectors    |
+    =============================
+
+    Compare two standard vectors to make sure their values are close
+
+    */
+
+    if(v1.size() != v2.size()){return false;}
+    else{
+        for (int i=0; i<v1.size(); i++){
+            if(1e-6<fabs(v1[i]-v2[i])){return false;}
+        }
+    }
+
+    return true;
+}
+
+bool compare_matrix(const std::vector<std::vector<double>> m1, const std::vector<std::vector<double>> m2, double tol = 1e-6){
+    /*!
+    ========================
+    |    compare_matrix    |
+    ========================
+
+    Compare matrices formed of std::vectors
+
+    */
+
+    if(m1.size() != m2.size()){return false;}
+    else{
+        for (int i=0; i<m1.size(); i++){
+            if(!compare_std_vectors(m1[i],m2[i])){return false;}
+        }
+    }
+    return true;
+}
+
 void voigt_3x3(const Matrix_3x3 &A, Vector_9 &v){
     /*!===================
        |    voigt_3x3    |
@@ -7561,6 +7600,22 @@ int test_micromorphic_material_library(std::ofstream &results){
     Matrix_27x9  _DmDgrad_u;
     Matrix_27x9  _DmDphi;
     Matrix_27x27 _DmDgrad_phi;
+
+    //Vector output
+    std::vector<double> _cauchy_v;
+    std::vector<double> _s_v;
+    std::vector<double> _m_v;
+
+    std::vector<std::vector<double>> _DcauchyDgrad_u_v;
+    std::vector<std::vector<double>> _DcauchyDphi_v;
+    std::vector<std::vector<double>> _DcauchyDgrad_phi_v;
+    std::vector<std::vector<double>> _DsDgrad_u_v;
+    std::vector<std::vector<double>> _DsDphi_v;
+    std::vector<std::vector<double>> _DsDgrad_phi_v;
+    std::vector<std::vector<double>> _DmDgrad_u_v;
+    std::vector<std::vector<double>> _DmDphi_v;
+    std::vector<std::vector<double>> _DmDgrad_phi_v;
+
     
     std::vector<double> time;
     time.resize(2);
@@ -7575,6 +7630,9 @@ int test_micromorphic_material_library(std::ofstream &results){
     std::vector<std::vector<double>> ADD_grad_DOF;
     std::vector<Eigen::VectorXd> ADD_TERMS;
     std::vector<Eigen::MatrixXd> ADD_JACOBIANS;
+
+    std::vector<std::vector<double>>              ADD_TERMS_v;
+    std::vector<std::vector<std::vector<double>>> ADD_JACOBIANS_v;
     
     //Compare the result from the stress calculation alone
     material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
@@ -7586,6 +7644,22 @@ int test_micromorphic_material_library(std::ofstream &results){
     tot_result *= s.isApprox(_s);
     tot_result *= m.isApprox(_m);
     
+    //Compare the result from the vector form of the stress calculation alone
+    material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
+                             _cauchy_v, _s_v, _m_v, ADD_TERMS_v);
+
+    for (int i=0; i<9; i++){
+        tot_result *= 1e-6>fabs(cauchy[i]-_cauchy_v[i]);
+    }
+
+    for (int i=0; i<9; i++){
+        tot_result *= 1e-6>fabs(s[i]-_s_v[i]);
+    }
+
+    for (int i=0; i<27; i++){
+        tot_result *= 1e-6>fabs(m[i]-_m_v[i]);
+    }
+
     //Compare the results from the jacobian calculation.
     material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
                              _cauchy, _s, _m,
@@ -7609,6 +7683,82 @@ int test_micromorphic_material_library(std::ofstream &results){
     tot_result *= DmDgrad_u.isApprox(_DmDgrad_u);
     tot_result *= dmdchi.isApprox(_DmDphi); //d(x)dchi = D(x)Dphi
     tot_result *= DmDgrad_phi.isApprox(_DmDgrad_phi);
+
+    //Compare the result from the vector form of the jacobian calculation
+    material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
+                             _cauchy_v, _s_v, _m_v,
+                             _DcauchyDgrad_u_v, _DcauchyDphi_v,  _DcauchyDgrad_phi_v,
+                             _DsDgrad_u_v,      _DsDphi_v,       _DsDgrad_phi_v,
+                             _DmDgrad_u_v,      _DmDphi_v,       _DmDgrad_phi_v,
+                             ADD_TERMS_v,       ADD_JACOBIANS_v);
+
+    for (int i=0; i<9; i++){
+        tot_result *= 1e-6>fabs(cauchy[i]-_cauchy_v[i]);
+    }
+
+    for (int i=0; i<9; i++){
+        tot_result *= 1e-6>fabs(s[i]-_s_v[i]);
+    }
+
+    for (int i=0; i<27; i++){
+        tot_result *= 1e-6>fabs(m[i]-_m_v[i]);
+    }
+
+    for (int i=0; i<9; i++){
+        for (int j=0; j<9; j++){
+            tot_result *= 1e-6>fabs(DcauchyDgrad_u(i,j) - _DcauchyDgrad_u_v[i][j]);
+        }
+    }
+
+    for (int i=0; i<9; i++){
+        for (int j=0; j<9; j++){
+            tot_result *= 1e-6>fabs(dcauchydchi(i,j) - _DcauchyDphi_v[i][j]);
+        }
+    }
+
+    for (int i=0; i<9; i++){
+        for (int j=0; j<27; j++){
+            tot_result *= 1e-6>fabs(DcauchyDgrad_phi(i,j) - _DcauchyDgrad_phi_v[i][j]);
+        }
+    }
+
+    for (int i=0; i<9; i++){
+        for (int j=0; j<9; j++){
+            tot_result *= 1e-6>fabs(DsDgrad_u(i,j) - _DsDgrad_u_v[i][j]);
+        }
+    }
+
+    for (int i=0; i<9; i++){
+        for (int j=0; j<9; j++){
+            tot_result *= 1e-6>fabs(dsdchi(i,j) - _DsDphi_v[i][j]);
+        }
+    }
+
+    for (int i=0; i<9; i++){
+        for (int j=0; j<27; j++){
+            tot_result *= 1e-6>fabs(DsDgrad_phi(i,j) - _DsDgrad_phi_v[i][j]);
+        }
+    }
+
+    for (int i=0; i<27; i++){
+        for (int j=0; j<9; j++){
+            tot_result *= 1e-6>fabs(DmDgrad_u(i,j) - _DmDgrad_u_v[i][j]);
+        }
+    }
+    
+    for (int i=0; i<27; i++){
+        for (int j=0; j<9; j++){
+            tot_result *= 1e-6>fabs(dmdchi(i,j) - _DmDphi_v[i][j]);
+        }
+    }
+    
+    for (int i=0; i<27; i++){
+        for (int j=0; j<27; j++){
+            tot_result *= 1e-6>fabs(DmDgrad_phi(i,j) - _DmDgrad_phi_v[i][j]);
+        }
+    }
+
+
 
     if (tot_result){
         results << "test_micromorphic_material_library & True\\\\\n\\hline\n";
