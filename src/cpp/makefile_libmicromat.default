@@ -23,7 +23,7 @@ ERRORFLG=-fmax-errors=5
 all: libmicromat.so
 
 libmicromat.so: $(OBJ)
-	$(CC) $(STD) -shared -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+	$(CC) $(STD) -shared -Wl,-soname,libmicromat.so.1 -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 micromorphic_material_library.o: micromorphic_material_library.h micromorphic_material_library.cpp
 	$(CC) $(STD) -o $@ -c micromorphic_material_library.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)

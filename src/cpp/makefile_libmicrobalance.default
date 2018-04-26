@@ -22,7 +22,7 @@ ERRORFLG=-fmax-errors=5
 all: libmicrobalance.so
 
 libmicrobalance.so: $(OBJ)
-	$(CC) $(STD) -shared -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+	$(CC) $(STD) -shared -Wl,-soname,libmicrobalance.so.1 -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 balance_equations.o: balance_equations.h balance_equations.cpp
 	$(CC) $(STD) -o $@ -c balance_equations.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
