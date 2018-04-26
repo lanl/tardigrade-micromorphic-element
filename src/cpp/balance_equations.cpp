@@ -757,9 +757,9 @@ namespace balance_equations{
         map_vector_to_eigen(DmDgrad_phi, _DmDgrad_phi);
 
         compute_internal_couple_jacobian(i, j, dof_num, N, dNdx, eta, detadx,
-                                         DcauchyDgrad_u, DcauchyDphi, DcauchyDgrad_phi,
-                                         DsDgrad_u,      DsDphi,      DsDgrad_phi,
-                                         DmDgrad_u,      DmDphi,      DmDgrad_phi,
+                                         _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                         _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                         _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
                                          DcintDU_ijA);
         return;
     }
