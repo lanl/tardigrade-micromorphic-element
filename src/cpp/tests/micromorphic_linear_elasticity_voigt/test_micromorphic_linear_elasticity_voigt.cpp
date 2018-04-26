@@ -7666,6 +7666,31 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
+    int sot_to_voigt_map[3][3];
+    deformation_measures::get_sot_to_voigt_map(sot_to_voigt_map);
+
+    double __r_ijA;
+    int Ihat;
+
+    for (int i=0; i<3; i++){
+
+        for (int j=0; j<3; j++){
+            Ihat = sot_to_voigt_map[i][j];
+
+            for (int dof_num=0; dof_num<12; dof_num++){
+
+                balance_equations::compute_internal_couple_jacobian(i,j,dof_num, N, dNdx, eta, detadx,
+                                                                    _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                                    _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                                                    _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                                                    __r_ijA);
+                __r[Ihat][dof_num] = __r_ijA;
+            }
+        }
+    }
+    balance_equations::map_vector_to_eigen(__r, _r);
+    tot_result *= r.isApprox(_r,1e-6);
+
     if (tot_result){
         results << "test_compute_internal_couple_jacobian & True\\\\\n\\hline\n";
     }
