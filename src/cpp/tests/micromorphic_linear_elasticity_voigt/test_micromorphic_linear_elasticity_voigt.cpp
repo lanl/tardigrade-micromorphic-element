@@ -7150,6 +7150,12 @@ int test_compute_internal_force(std::ofstream &results){
     balance_equations::compute_internal_force(dNdx, cauchy_vec, _r);
     for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
 
+    for (int i=0; i<3; i++){balance_equations::compute_internal_force(i, dNdx, cauchy, _r[i]);}
+    for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    for (int i=0; i<3; i++){balance_equations::compute_internal_force(i, dNdx, cauchy_vec, _r[i]);}
+    for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
     if (tot_result){
         results << "test_compute_internal_force & True\\\\\n\\hline\n";
     }
@@ -7231,8 +7237,28 @@ int test_compute_internal_couple(std::ofstream &results){
     for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
 
     balance_equations::compute_internal_couple(N, dNdx, cauchy_vec, s_vec, m_vec, _r);
-
     for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    Matrix_3x3 _r_mat;
+    double _r_ij;
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            balance_equations::compute_internal_couple(i, j, N, dNdx, cauchy, s, m, _r_ij);
+            _r_mat(i,j) = _r_ij;
+        }
+    }
+    Vector_9 __r;
+    deformation_measures::voigt_3x3_tensor(_r_mat, __r);
+    tot_result *= r.isApprox(__r);
+
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            balance_equations::compute_internal_couple(i, j, N, dNdx, cauchy_vec, s_vec, m_vec, _r_ij);
+            _r_mat(i,j) = _r_ij;
+        }
+    }
+    deformation_measures::voigt_3x3_tensor(_r_mat, __r);
+    tot_result *= r.isApprox(__r);
 
     if (tot_result){
         results << "test_compute_internal_couple & True\\\\\n\\hline\n";
