@@ -84,6 +84,12 @@ namespace balance_equations{
                                           const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
                                           const Matrix_27x9 &DmDgrad_u,      const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
                                           double &DcintDU_ijA);
+
+    void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                          const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
+                                          const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
+                                          std::vector<std::vector<double>> &DcintDU);
     
     //The jacobians of u and phi w.r.t. the DOF vector
     void construct_dgrad_udU(const double (&detadx)[3], SpMat &dgrad_udU);    
@@ -91,6 +97,28 @@ namespace balance_equations{
     void construct_dphidU(const double &eta, SpMat &dphidU);
     
     void construct_dgrad_phidU(const double (&detadx)[3], SpMat &dgrad_phidU);
+
+    void map_eigen_to_vector(const Vector_9  &V,       std::vector<double> &v);
+    void map_eigen_to_vector(const Vector_27 &V,       std::vector<double> &v);
+    void map_eigen_to_vector(const Eigen::VectorXd &V, std::vector<double> &v);
+    void map_eigen_to_vector(const Matrix_9x9   &M,    std::vector<std::vector<double>> &v);
+    void map_eigen_to_vector(const Matrix_9x27  &M,    std::vector<std::vector<double>> &v);
+    void map_eigen_to_vector(const Matrix_27x9  &M,    std::vector<std::vector<double>> &v);
+    void map_eigen_to_vector(const Matrix_27x27 &M,    std::vector<std::vector<double>> &v);
+    void map_eigen_to_vector(const Matrix_3x12  &M,    std::vector<std::vector<double>> &v);
+    void map_eigen_to_vector(const Matrix_9x12  &M,    std::vector<std::vector<double>> &v);
+    void map_eigen_to_vector(const Eigen::MatrixXd &M, std::vector<std::vector<double>> &v);
+
+    void map_vector_to_eigen(const std::vector<double> &v, Vector_9  &V      );
+    void map_vector_to_eigen(const std::vector<double> &v, Vector_27 &V      );
+    void map_vector_to_eigen(const std::vector<double> &v, Eigen::VectorXd &V);
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_9x9      &M);
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_9x27     &M);
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_27x9     &M);
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_27x27    &M);
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_3x12     &M);
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_9x12     &M);
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Eigen::MatrixXd &M);
 }
 
 #endif
