@@ -1,10 +1,11 @@
 /*!============================================================================
    |                                                                          |
-   |                      test_deformation_measures.cpp                       |
+   |              test_micromorphic_linear_elasticity_voigt.cpp               |
    |                                                                          |
    ----------------------------------------------------------------------------
-   | The unit test file for deformation_measures.h/cpp. This file tests the   |
-   | classes and functions defined in deformation_measures.h/cpp.             |
+   | The unit test file for micromorphic_linear_elasticity_voigt.h/cpp. This  |
+   | file tests the classes and functions defined in                          |
+   | micromorphic_linear_elasticity_voigt.h/cpp.                              |
    |                                                                          |
    | Generated files:                                                         |
    |    results.tex:  A LaTeX file which contains the results as they will be |
@@ -7103,6 +7104,147 @@ int test_compute_total_derivatives_DmDgrad_phi(std::ofstream &results){
     return 1;
 }
 
+int test_compute_internal_force(std::ofstream &results){
+    /*!
+    =====================================
+    |    test_compute_internal_force    |
+    =====================================
+
+    Test the computation of the internal force. 
+
+    */
+
+    double  r[3]; //The expected result
+    double _r[3]; //The function output
+
+    //Define the test function
+    double dNdx[3];
+    define_dNdx(dNdx);
+
+    //Define the stress tensor as an eigen matrix
+    Vector_9 cauchy;
+    define_cauchy(cauchy);
+
+    //Define the stress tensor as a std::vector
+    std::vector<double> cauchy_vec;
+    balance_equations::map_eigen_to_vector(cauchy,cauchy_vec);
+
+    //Define the stress tensor as a matrix
+    Matrix_3x3 cauchy_mat;
+    deformation_measures::undo_voigt_3x3_tensor(cauchy,cauchy_mat);
+
+    //Compute the expected value of the internal force
+    for (int i=0; i<3; i++){
+        r[i] = 0;
+        for (int j=0; j<3; j++){
+            r[i] -= dNdx[j]*cauchy_mat(j,i);
+        }
+    }
+
+    //Compute the value from the function
+    balance_equations::compute_internal_force(dNdx, cauchy, _r);
+    bool tot_result = true;
+
+    for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    balance_equations::compute_internal_force(dNdx, cauchy_vec, _r);
+    for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    if (tot_result){
+        results << "test_compute_internal_force & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_internal_force & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_internal_couple(std::ofstream &results){
+    /*!
+    ======================================
+    |    test_compute_internal_couple    |
+    ======================================
+
+    Test the computation of the internal force. 
+
+    */
+
+    Vector_9  r;    //The expected result
+    double   _r[9]; //The function output
+
+    //Define the test function
+    double N;
+    define_N(N);
+
+    double dNdx[3];
+    define_dNdx(dNdx);
+
+    //Define the stress tensors as an eigen matrix
+    Vector_9 cauchy;
+    define_cauchy(cauchy);
+
+    Vector_9 s;
+    define_s(s);
+
+    Vector_27 m;
+    define_m(m);
+
+    //Define the stress tensor as a std::vector
+    std::vector<double> cauchy_vec;
+    balance_equations::map_eigen_to_vector(cauchy,cauchy_vec);
+
+    std::vector<double> s_vec;
+    balance_equations::map_eigen_to_vector(s,s_vec);
+
+    std::vector<double> m_vec;
+    balance_equations::map_eigen_to_vector(m,m_vec);
+
+    //Define the stress tensors as a matrix
+    Matrix_3x3 cauchy_mat;
+    deformation_measures::undo_voigt_3x3_tensor(cauchy,cauchy_mat);
+
+    Matrix_3x3 s_mat;
+    deformation_measures::undo_voigt_3x3_tensor(s,s_mat);
+
+    Matrix_3x9 m_mat;
+    deformation_measures::undo_voigt_3x9_tensor(m,m_mat);
+
+    //Compute the expected value of the internal couple
+    deformation_measures::voigt_3x3_tensor( N*(cauchy_mat - s_mat), r);
+
+    Eigen::Vector3d dNdx_vec;
+    for (int i=0; i<3; i++){dNdx_vec[i] = dNdx[i];}
+
+    Vector_9 divm;
+    divm = dNdx_vec.transpose()*m_mat;
+    divm.row(3).swap(divm.row(6));
+    divm.row(4).swap(divm.row(7));
+    divm.row(5).swap(divm.row(8));
+
+    r -= divm;
+
+    //Compute the value of the function
+    balance_equations::compute_internal_couple(N, dNdx, cauchy, s, m, _r);
+
+    bool tot_result = true;
+    for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    balance_equations::compute_internal_couple(N, dNdx, cauchy_vec, s_vec, m_vec, _r);
+
+    for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    if (tot_result){
+        results << "test_compute_internal_couple & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_internal_couple & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+
 int test_compute_internal_force_jacobian(std::ofstream &results){
     /*!==============================================
     |    test_compute_internal_force_jacobian    |
@@ -7261,12 +7403,25 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     balance_equations::compute_internal_force_jacobian(N, dNdx, eta, detadx, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi, _r);
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
-    
+
     //std::cout << " r:\n" <<  r << "\n";
     //std::cout << "_r:\n" << _r << "\n";
-    
+
     bool tot_result = r.isApprox(_r,1e-6);
+
+    //Compute the jacobian using a vector form    
+    std::vector<std::vector<double>> _DcauchyDgrad_u;
+    std::vector<std::vector<double>> _DcauchyDphi;
+    std::vector<std::vector<double>> _DcauchyDgrad_phi;
+    std::vector<std::vector<double>> __r;
     
+    balance_equations::map_eigen_to_vector(DcauchyDgrad_u,   _DcauchyDgrad_u);
+    balance_equations::map_eigen_to_vector(dcauchydchi,      _DcauchyDphi);
+    balance_equations::map_eigen_to_vector(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+    balance_equations::compute_internal_force_jacobian(N, dNdx, eta, detadx, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, __r);
+    balance_equations::map_vector_to_eigen(__r, _r);
+    tot_result *= r.isApprox(_r,1e-6);
+
     if (tot_result){
         results << "test_compute_internal_force_jacobian & True\\\\\n\\hline\n";
     }
@@ -7442,6 +7597,49 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     
     bool tot_result = r.isApprox(_r,1e-6);
     
+    //Compute the jacobian using a vector form
+    std::vector<double> _cauchy;
+    std::vector<double> _s;
+    std::vector<double> _m;
+ 
+    std::vector<std::vector<double>> _DcauchyDgrad_u;
+    std::vector<std::vector<double>> _DcauchyDphi;
+    std::vector<std::vector<double>> _DcauchyDgrad_phi;
+
+    std::vector<std::vector<double>> _DsDgrad_u;
+    std::vector<std::vector<double>> _DsDphi;
+    std::vector<std::vector<double>> _DsDgrad_phi;
+
+    std::vector<std::vector<double>> _DmDgrad_u;
+    std::vector<std::vector<double>> _DmDphi;
+    std::vector<std::vector<double>> _DmDgrad_phi;
+
+    std::vector<std::vector<double>> __r;
+    
+    balance_equations::map_eigen_to_vector(cauchy, _cauchy);
+    balance_equations::map_eigen_to_vector(s, _s);
+    balance_equations::map_eigen_to_vector(m, _m);
+
+    balance_equations::map_eigen_to_vector(DcauchyDgrad_u,   _DcauchyDgrad_u);
+    balance_equations::map_eigen_to_vector(dcauchydchi,      _DcauchyDphi);
+    balance_equations::map_eigen_to_vector(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+
+    balance_equations::map_eigen_to_vector(DsDgrad_u,   _DsDgrad_u);
+    balance_equations::map_eigen_to_vector(dsdchi,      _DsDphi);
+    balance_equations::map_eigen_to_vector(DsDgrad_phi, _DsDgrad_phi);
+
+    balance_equations::map_eigen_to_vector(DmDgrad_u,   _DmDgrad_u);
+    balance_equations::map_eigen_to_vector(dmdchi,      _DmDphi);
+    balance_equations::map_eigen_to_vector(DmDgrad_phi, _DmDgrad_phi);
+
+    balance_equations::compute_internal_couple_jacobian(N, dNdx, eta, detadx,
+                                                        _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                        _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                                        _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                                        __r);
+    balance_equations::map_vector_to_eigen(__r, _r);
+    tot_result *= r.isApprox(_r,1e-6);
+
     if (tot_result){
         results << "test_compute_internal_couple_jacobian & True\\\\\n\\hline\n";
     }
@@ -7842,6 +8040,10 @@ int main(){
     test_compute_total_derivatives_DcauchyDgrad_phi(results);
     test_compute_total_derivatives_DsDgrad_phi(results);
     test_compute_total_derivatives_DmDgrad_phi(results);
+
+    //!Test the computation of the internal force
+    test_compute_internal_force(results);
+    test_compute_internal_couple(results);
     
     //!Test of the computation of the balance equation derivatives
     test_compute_internal_force_jacobian(results);
