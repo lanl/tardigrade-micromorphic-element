@@ -36,6 +36,23 @@ namespace balance_equations{
 
         return;
     }
+
+    void compute_internal_force(const double (&dNdx)[3], const std::vector<double> &cauchy, double (&fint)[3]){
+        /*!================================
+        |    compute_internal_force    |
+        ================================
+
+        Compute the internal force given the gradient 
+        of the shape function and the cauchy stress on 
+        one of the components.
+
+        */
+        Vector_9 _cauchy;
+        map_vector_to_eigen(cauchy,_cauchy);
+        compute_internal_force(dNdx, _cauchy, fint);        
+
+        return;
+    }
     
     void compute_internal_force(const int &i, const double (&dNdx)[3], const Vector_9 &cauchy, double &fint_i){
         /*!================================
@@ -60,6 +77,24 @@ namespace balance_equations{
         else{
             std::cout << "Error: index beyond appropriate range.\n";
         }
+
+        return;
+    }
+
+    void compute_internal_force(const int &i, const double (&dNdx)[3], const std::vector<double> &cauchy, double &fint_i){
+        /*!================================
+        |    compute_internal_force    |
+        ================================
+
+        Compute the internal force given the gradient 
+        of the shape function and the cauchy stress on 
+        one of the components.
+
+        */
+
+        Vector_9 _cauchy;
+        map_vector_to_eigen(cauchy,_cauchy);
+        compute_internal_force(i, dNdx, _cauchy, fint_i);        
 
         return;
     }
@@ -151,6 +186,28 @@ namespace balance_equations{
         return;
     }
     
+    void compute_internal_couple(const double &N, const double (&dNdx)[3], const std::vector<double> &cauchy, const std::vector<double> &s, const std::vector<double> &m, double (&cint)[9]){
+        /*!=================================
+        |    compute_internal_couple    |
+        =================================
+
+        Compute the internal couple for all 
+        indices.
+
+        */
+
+        Vector_9  _cauchy;
+        Vector_9  _s;
+        Vector_27 _m;
+        
+        map_vector_to_eigen(cauchy,_cauchy);
+        map_vector_to_eigen(s,_s);
+        map_vector_to_eigen(m,_m);
+        compute_internal_couple(N, dNdx, _cauchy, _s, _m, cint);
+        
+        return;
+    }
+
     void compute_internal_couple(const int &i, const int &j, const double &N, const double (&dNdx)[3], const Vector_9 &cauchy, const Vector_9 &s, const Vector_27 &m, double &cint_ij){
         /*!=================================
         |    compute_internal_couple    |
@@ -194,6 +251,29 @@ namespace balance_equations{
         
         return;
     }
+
+    void compute_internal_couple(const int &i, const int &j, const double &N, const double (&dNdx)[3], const std::vector<double> &cauchy, const std::vector<double> &s, const std::vector<double> &m, double &cint_ij){
+        /*!=================================
+        |    compute_internal_couple    |
+        =================================
+
+        Compute the internal couple at a given 
+        component pair.
+
+        */
+
+        Vector_9  _cauchy;
+        Vector_9  _s;
+        Vector_27 _m;
+        
+        map_vector_to_eigen(cauchy,_cauchy);
+        map_vector_to_eigen(s,_s);
+        map_vector_to_eigen(m,_m);
+        compute_internal_couple(i, j, N, dNdx, _cauchy, _s, _m, cint_ij);
+
+        return;
+    }
+
     
     void compute_body_couple(const double &N, const double &density, const double (&l)[9], double (&cb)[9]){
         /*!=============================
@@ -353,7 +433,35 @@ namespace balance_equations{
         DfintDU.row(2) = -(dNdx[0]*DcauchyDU.row(4) + dNdx[1]*DcauchyDU.row(3) + dNdx[2]*DcauchyDU.row(2));
         
     }
-    
+
+
+    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                         const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi,
+                                         const std::vector<std::vector<double>> &DcauchyDgrad_phi, std::vector<std::vector<double>> &DfintDU){
+        /*!=========================================
+        |    compute_internal_force_jacobian    |
+        =========================================
+        
+        Compute the jacobian of the internal force.
+        
+        */
+
+        Matrix_9x9  _DcauchyDgrad_u;
+        Matrix_9x9  _DcauchyDphi;
+        Matrix_9x27 _DcauchyDgrad_phi;
+        Matrix_3x12 _DfintDU;
+
+        map_vector_to_eigen(DcauchyDgrad_u,   _DcauchyDgrad_u);
+        map_vector_to_eigen(DcauchyDphi,      _DcauchyDphi);
+        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+        
+        compute_internal_force_jacobian(N, dNdx, eta, detadx, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, _DfintDU);
+
+        map_eigen_to_vector(_DfintDU, DfintDU);
+
+        return;
+    }
+
     void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, double &DfintDU_iA){
         /*!=========================================
         |    compute_internal_force_jacobian    |
@@ -405,6 +513,30 @@ namespace balance_equations{
             std::cout << "Error: Index out of range\n";
         }
         
+        return;
+    }
+
+    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                         const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi,
+                                         const std::vector<std::vector<double>> &DcauchyDgrad_phi, double &DfintDU_iA){
+        /*!=========================================
+        |    compute_internal_force_jacobian    |
+        =========================================
+        
+        Compute the jacobian of the internal force.
+        
+        */
+
+        Matrix_9x9  _DcauchyDgrad_u;
+        Matrix_9x9  _DcauchyDphi;
+        Matrix_9x27 _DcauchyDgrad_phi;
+
+        map_vector_to_eigen(DcauchyDgrad_u,   _DcauchyDgrad_u);
+        map_vector_to_eigen(DcauchyDphi,      _DcauchyDphi);
+        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+        
+        compute_internal_force_jacobian(i, dof_num, N, dNdx, eta, detadx, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, DfintDU_iA);
+
         return;
     }
     
@@ -528,6 +660,109 @@ namespace balance_equations{
     
     }
     
+    void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                          const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
+                                          const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
+                                          std::vector<std::vector<double>> &DcintDU){
+        /*!==========================================
+        |    compute_internal_couple_jacobian    |
+        ==========================================
+        
+        Compute the jacobian of the internal body couple.
+        
+        */
+
+        Matrix_9x9   _DcauchyDgrad_u;
+        Matrix_9x9   _DcauchyDphi;
+        Matrix_9x27  _DcauchyDgrad_phi;
+
+        Matrix_9x9   _DsDgrad_u;
+        Matrix_9x9   _DsDphi;
+        Matrix_9x27  _DsDgrad_phi;
+        
+        Matrix_27x9  _DmDgrad_u;
+        Matrix_27x9  _DmDphi;
+        Matrix_27x27 _DmDgrad_phi;
+
+        Matrix_9x12  _DcintDU;
+
+        map_vector_to_eigen(DcauchyDgrad_u,   _DcauchyDgrad_u);
+        map_vector_to_eigen(DcauchyDphi,      _DcauchyDphi);
+        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+
+        map_vector_to_eigen(DsDgrad_u,   _DsDgrad_u);
+        map_vector_to_eigen(DsDphi,      _DsDphi);
+        map_vector_to_eigen(DsDgrad_phi, _DsDgrad_phi);
+
+        map_vector_to_eigen(DmDgrad_u,   _DmDgrad_u);
+        map_vector_to_eigen(DmDphi,      _DmDphi);
+        map_vector_to_eigen(DmDgrad_phi, _DmDgrad_phi);
+
+        compute_internal_couple_jacobian(N, dNdx, eta, detadx,
+                                         _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                         _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                         _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                         _DcintDU);
+
+        map_eigen_to_vector(_DcintDU, DcintDU);
+        return;
+    }
+
+    void compute_internal_couple_jacobian(const int &i, const int &j, const int &dof_num, const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                          const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
+                                          const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
+                                          double &DcintDU_ijA){
+
+        /*!
+        ==========================================
+        |    compute_internal_couple_jacobian    |
+        ==========================================
+
+        Compute the jacobian of the internal body couple.
+        
+        The degrees of freedom are organized:
+        
+        dif_num:   0   1    2       3       4       5       6       7       8       9      10      11 
+        DOF:     u_1 u_2, u_3, phi_11, phi_22, phi_33, phi_23, phi_13, phi_12, phi_32, phi_31, phi_21 
+        
+        and the jacobian is organized
+        
+        f_{i}{dof_num}
+        
+        */
+        Matrix_9x9   _DcauchyDgrad_u;
+        Matrix_9x9   _DcauchyDphi;
+        Matrix_9x27  _DcauchyDgrad_phi;
+
+        Matrix_9x9   _DsDgrad_u;
+        Matrix_9x9   _DsDphi;
+        Matrix_9x27  _DsDgrad_phi;
+        
+        Matrix_27x9  _DmDgrad_u;
+        Matrix_27x9  _DmDphi;
+        Matrix_27x27 _DmDgrad_phi;
+
+        map_vector_to_eigen(DcauchyDgrad_u,   _DcauchyDgrad_u);
+        map_vector_to_eigen(DcauchyDphi,      _DcauchyDphi);
+        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+
+        map_vector_to_eigen(DsDgrad_u,   _DsDgrad_u);
+        map_vector_to_eigen(DsDphi,      _DsDphi);
+        map_vector_to_eigen(DsDgrad_phi, _DsDgrad_phi);
+
+        map_vector_to_eigen(DmDgrad_u,   _DmDgrad_u);
+        map_vector_to_eigen(DmDphi,      _DmDphi);
+        map_vector_to_eigen(DmDgrad_phi, _DmDgrad_phi);
+
+        compute_internal_couple_jacobian(i, j, dof_num, N, dNdx, eta, detadx,
+                                         _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                         _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                         _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                         DcintDU_ijA);
+        return;
+    }
     void construct_dgrad_udU(const double (&detadx)[3], SpMat &dgrad_udU){
         /*!==========================
         |    construct_dgrad_udU    |
@@ -634,4 +869,524 @@ namespace balance_equations{
 
         return;
     }
+
+    void map_eigen_to_vector(const Vector_9 &V, std::vector<double> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+
+        int A = V.size();
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){v[i] = V[i];}
+
+        return;
+    }
+
+    void map_eigen_to_vector(const Vector_27 &V, std::vector<double> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+
+        int A = V.size();
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){v[i] = V[i];}
+
+        return;
+    }
+
+    void map_eigen_to_vector(const Eigen::VectorXd &V, std::vector<double> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+
+        int A = V.size();
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){v[i] = V[i];}
+
+        return;
+    }
+
+   void map_eigen_to_vector(const Matrix_9x9 &M, std::vector<std::vector<double>> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){
+            if(v[i].size()<B){v[i].resize(B);}
+            for (int j=0; j<B; j++){
+                v[i][j] = M(i,j);
+            }
+        }
+
+        return;
+    }
+
+    void map_eigen_to_vector(const Matrix_9x27 &M, std::vector<std::vector<double>> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){
+            if(v[i].size()<B){v[i].resize(B);}
+            for (int j=0; j<B; j++){
+                v[i][j] = M(i,j);
+            }
+        }
+
+        return;
+    }
+
+    void map_eigen_to_vector(const Matrix_27x9 &M, std::vector<std::vector<double>> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){
+            if(v[i].size()<B){v[i].resize(B);}
+            for (int j=0; j<B; j++){
+                v[i][j] = M(i,j);
+            }
+        }
+
+        return;
+    }
+
+    void map_eigen_to_vector(const Matrix_27x27 &M, std::vector<std::vector<double>> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){
+            if(v[i].size()<B){v[i].resize(B);}
+            for (int j=0; j<B; j++){
+                v[i][j] = M(i,j);
+            }
+        }
+
+        return;
+    }
+
+    void map_eigen_to_vector(const Matrix_3x12 &M, std::vector<std::vector<double>> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){
+            if(v[i].size()<B){v[i].resize(B);}
+            for (int j=0; j<B; j++){
+                v[i][j] = M(i,j);
+            }
+        }
+
+        return;
+    }
+
+    void map_eigen_to_vector(const Matrix_9x12 &M, std::vector<std::vector<double>> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){
+            if(v[i].size()<B){v[i].resize(B);}
+            for (int j=0; j<B; j++){
+                v[i][j] = M(i,j);
+            }
+        }
+
+        return;
+    }
+
+    void map_eigen_to_vector(const Eigen::MatrixXd &M, std::vector<std::vector<double>> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (int i=0; i<A; i++){
+            if(v[i].size()<B){v[i].resize(B);}
+            for (int j=0; j<B; j++){
+                v[i][j] = M(i,j);
+            }
+        }
+
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<double> &v, Vector_9 &V){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = V.size();
+        int a = v.size();
+
+        if (A != a){std::cout << "Error: Vectors are of different sizes!\n";}
+        for (int i=0; i<a; i++){
+            V[i] = v[i];
+        }
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<double> &v, Vector_27 &V){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = V.size();
+        int a = v.size();
+
+        if (A != a){std::cout << "Error: Vectors are of different sizes!\n";}
+        for (int i=0; i<a; i++){
+            V[i] = v[i];
+        }
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<double> &v, Eigen::VectorXd &V){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = V.size();
+        int a = v.size();
+
+        if (A != a){std::cout << "Error: Vectors are of different sizes!\n";}
+        for (int i=0; i<a; i++){
+            V[i] = v[i];
+        }
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_3x12 &M){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a != A){
+            std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+        }
+
+        for (int i=0; i<a; i++){
+            if(v[i].size() != B){
+                std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+            }
+            for (int j=0; j<v[i].size(); j++){
+                M(i,j) = v[i][j];
+            }
+        }
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_9x12 &M){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a != A){
+            std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+        }
+
+        for (int i=0; i<a; i++){
+            if(v[i].size() != B){
+                std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+            }
+            for (int j=0; j<v[i].size(); j++){
+                M(i,j) = v[i][j];
+            }
+        }
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_9x9 &M){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a != A){
+            std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+        }
+
+        for (int i=0; i<a; i++){
+            if(v[i].size() != B){
+                std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+            }
+            for (int j=0; j<v[i].size(); j++){
+                M(i,j) = v[i][j];
+            }
+        }
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_9x27 &M){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a != A){
+            std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+        }
+
+        for (int i=0; i<a; i++){
+            if(v[i].size() != B){
+                std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+            }
+            for (int j=0; j<v[i].size(); j++){
+                M(i,j) = v[i][j];
+            }
+        }
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_27x9 &M){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a != A){
+            std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+        }
+
+        for (int i=0; i<a; i++){
+            if(v[i].size() != B){
+                std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+            }
+            for (int j=0; j<v[i].size(); j++){
+                M(i,j) = v[i][j];
+            }
+        }
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_27x27 &M){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a != A){
+            std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+        }
+
+        for (int i=0; i<a; i++){
+            if(v[i].size() != B){
+                std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+            }
+            for (int j=0; j<v[i].size(); j++){
+                M(i,j) = v[i][j];
+            }
+        }
+        return;
+    }
+
+
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Eigen::MatrixXd &M){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        int A = M.rows();
+        int B = M.cols();
+
+        int a = v.size();
+
+        if(a != A){
+            std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+        }
+
+        for (int i=0; i<a; i++){
+            if(v[i].size() != B){
+                std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+            }
+            for (int j=0; j<v[i].size(); j++){
+                M(i,j) = v[i][j];
+            }
+        }
+        return;
+    }
+
 }

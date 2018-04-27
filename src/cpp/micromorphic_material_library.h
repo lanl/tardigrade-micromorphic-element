@@ -60,7 +60,7 @@ namespace micromorphic_material_library{
                             const double (&grad_u)[3][3],           const double (&phi)[9],
                             const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
                             const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                            std::vector<double> &cauchy,                       std::vector<double> &s, std::vector<double> &m,
+                            std::vector<double> &cauchy,                      std::vector<double> &s,                        std::vector<double> &m,
                             std::vector<std::vector<double>> &DcauchyDgrad_u, std::vector<std::vector<double>> &DcauchyDphi, std::vector<std::vector<double>> &DcauchyDgrad_phi,
                             std::vector<std::vector<double>> &DsDgrad_u,      std::vector<std::vector<double>> &DsDphi,      std::vector<std::vector<double>> &DsDgrad_phi,
                             std::vector<std::vector<double>> &DmDgrad_u,      std::vector<std::vector<double>> &DmDphi,      std::vector<std::vector<double>> &DmDgrad_phi,
