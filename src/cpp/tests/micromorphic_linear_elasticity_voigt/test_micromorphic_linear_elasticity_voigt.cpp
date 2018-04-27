@@ -2896,11 +2896,16 @@ int test_compute_A_voigt(std::ofstream &results){
 
     SpMat  A( 9, 9); //The expected result
     SpMat _A( 9, 9); //The result from the function
+    Matrix_9x9 _A_alt; //The alternative calculation.
 
     define_A(A);     //Set the expected result
     micro_material::compute_A_voigt(0.191519450379, 0.62210877104, _A);
+    micro_material::compute_A_voigt(0.191519450379, 0.62210877104, _A_alt);
 
     bool tot_result = A.isApprox(_A);
+    Matrix_9x9 A_dense;
+    A_dense = A;
+    tot_result *= A_dense.isApprox(_A_alt);
 
     if (tot_result){
         results << "test_compute_A_voigt & True\\\\\n\\hline\n";
@@ -2924,13 +2929,20 @@ int test_compute_B_voigt(std::ofstream &results){
 
     SpMat  B( 9, 9); //The expected result
     SpMat _B( 9, 9); //The result from the function
+    Matrix_9x9 _B_alt; //The alternative calculation
 
     define_B(B);     //Set the expected result
     micro_material::compute_B_voigt(0.4377277390071145, 0.7799758081188035,
                                     0.2725926052826416, 0.2764642551430967,
                                     0.7853585837137692, _B);
+    micro_material::compute_B_voigt(0.4377277390071145, 0.7799758081188035,
+                                    0.2725926052826416, 0.2764642551430967,
+                                    0.7853585837137692, _B_alt);
 
     bool tot_result = B.isApprox(_B);
+    Matrix_9x9 B_dense;
+    B_dense = B;
+    tot_result *= B_dense.isApprox(_B_alt);
 
     if (tot_result){
         results << "test_compute_B_voigt & True\\\\\n\\hline\n";
@@ -2954,6 +2966,7 @@ int test_compute_C_voigt(std::ofstream &results){
 
     SpMat  C(27,27); //The expected result
     SpMat _C(27,27); //The result from the function
+    Matrix_27x27 _C_alt; //The alternative calculation
 
     define_C(C);     //Set the expected result
     micro_material::compute_C_voigt(0.8018721775350193, 0.9581393536837052,
@@ -2962,8 +2975,17 @@ int test_compute_C_voigt(std::ofstream &results){
                                     0.7127020269829002, 0.37025075479039493,
                                     0.5611961860656249, 0.5030831653078097,
                                     0.013768449590682241, _C);
+    micro_material::compute_C_voigt(0.8018721775350193, 0.9581393536837052,
+                                    0.8759326347420947, 0.35781726995786667,
+                                    0.5009951255234587, 0.6834629351721363,
+                                    0.7127020269829002, 0.37025075479039493,
+                                    0.5611961860656249, 0.5030831653078097,
+                                    0.013768449590682241, _C_alt);
 
     bool tot_result = C.isApprox(_C);
+    Matrix_27x27 C_dense;
+    C_dense = C;
+    tot_result *= C_dense.isApprox(_C_alt);
 
     if (tot_result){
         results << "test_compute_C_voigt & True\\\\\n\\hline\n";
@@ -2987,11 +3009,16 @@ int test_compute_D_voigt(std::ofstream &results){
 
     SpMat  D( 9, 9); //The expected result
     SpMat _D( 9, 9); //The result from the function
+    Matrix_9x9 _D_alt; //The alternative calculation
 
     define_D(D);     //Set the expected result
     micro_material::compute_D_voigt(0.2764642551430967, 0.7853585837137692, _D);
+    micro_material::compute_D_voigt(0.2764642551430967, 0.7853585837137692, _D_alt);
 
     bool tot_result = D.isApprox(_D);
+    Matrix_9x9 D_dense;
+    D_dense = D;
+    tot_result *= D_dense.isApprox(_D_alt);
 
     if (tot_result){
         results << "test_compute_D_voigt & True\\\\\n\\hline\n";
@@ -3228,6 +3255,25 @@ int test_compute_dPK2dRCG(std::ofstream &results){
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     bool tot_result = dPK2dRCG.isApprox(_dPK2dRCG,1e-6);
+
+    Matrix_9x9   A_dense;
+    Matrix_9x9   B_dense;
+    Matrix_27x27 C_dense;
+    Matrix_9x9   D_dense;
+
+    A_dense = A;
+    B_dense = B;
+    C_dense = C;
+    D_dense = D;
+
+    t0 = Clock::now();
+    micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
+                                     E, E_micro, E_voigt, E_micro_voigt,
+                                     A_dense, B_dense, C_dense, D_dense, _dPK2dRCG);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+
+    tot_result *= dPK2dRCG.isApprox(_dPK2dRCG,1e-6);
     
     if (tot_result){
         results << "test_compute_dPK2dRCG & True\\\\\n\\hline\n";
@@ -3338,6 +3384,26 @@ int test_compute_dSIGMAdRCG(std::ofstream &results){
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     bool tot_result = dSIGMAdRCG.isApprox(_dSIGMAdRCG,1e-6);
+
+    Matrix_9x9   A_dense;
+    Matrix_9x9   B_dense;
+    Matrix_27x27 C_dense;
+    Matrix_9x9   D_dense;
+
+    A_dense = A;
+    B_dense = B;
+    C_dense = C;
+    D_dense = D;
+
+    t0 = Clock::now();
+    micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
+                                     E, E_micro, E_voigt, E_micro_voigt,
+                                     A_dense, B_dense, C_dense, D_dense, terms, dPK2dRCG);
+    micro_material::compute_dSIGMAdRCG(terms, _dSIGMAdRCG);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+
+    tot_result *= dSIGMAdRCG.isApprox(_dSIGMAdRCG,1e-6);
     
     if (tot_result){
         results << "test_compute_dSIGMAdRCG & True\\\\\n\\hline\n";
@@ -3444,8 +3510,26 @@ int test_compute_dPK2dPsi(std::ofstream &results){
                                      B, D, _dPK2dPsi);
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
-    
+
     bool tot_result = dPK2dPsi.isApprox(_dPK2dPsi,1e-6);
+
+    Matrix_9x9   A_dense;
+    Matrix_9x9   B_dense;
+    Matrix_27x27 C_dense;
+    Matrix_9x9   D_dense;
+
+    A_dense = A;
+    B_dense = B;
+    C_dense = C;
+    D_dense = D;
+
+    t0 = Clock::now();
+    micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
+                                     B_dense, D_dense, _dPK2dPsi);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+
+    tot_result *= dPK2dPsi.isApprox(_dPK2dPsi,1e-6);
     
     if (tot_result){
         results << "test_compute_dPK2dPsi & True\\\\\n\\hline\n";
@@ -3557,7 +3641,26 @@ int test_compute_dSIGMAdPsi(std::ofstream &results){
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     bool tot_result = dSIGMAdPsi.isApprox(_dSIGMAdPsi,1e-6);
+
+    Matrix_9x9   A_dense;
+    Matrix_9x9   B_dense;
+    Matrix_27x27 C_dense;
+    Matrix_9x9   D_dense;
+
+    A_dense = A;
+    B_dense = B;
+    C_dense = C;
+    D_dense = D;
+
+    t0 = Clock::now();
+    micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
+                                     B_dense, D_dense, terms, dPK2dPsi);
+    micro_material::compute_dSIGMAdPsi(terms, _dSIGMAdPsi);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
+    tot_result *= dSIGMAdPsi.isApprox(_dSIGMAdPsi,1e-6);
+
     if (tot_result){
         results << "test_compute_dSIGMAdPsi & True\\\\\n\\hline\n";
     }
@@ -3822,7 +3925,7 @@ int test_compute_dMdGamma(std::ofstream &results){
     for (int i=0; i<27; i++){x0[i] = Gamma0_vec(i);}
     
     //Initialize the finite difference operator
-    std::cout << "\ndSIGMAdGamma\n";
+    std::cout << "\ndMdGamma\n";
     std::cout << "Finite Difference vs. Analytic Jacobian\n";
     auto t0 = Clock::now();
     finite_difference::FiniteDifference fd;

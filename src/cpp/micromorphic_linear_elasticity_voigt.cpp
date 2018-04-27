@@ -148,16 +148,16 @@ namespace micro_material{
                    dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
                    dMdF,     dMdchi,     dMdgrad_chi);
                    
-        assert(14==15);
+        //assert(14==15);
         deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
 
-        assert(15==16);
+        //assert(15==16);
         
         deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s,   m,
                                                                      dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
                                                                      dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, DcauchyDphi, dcauchydgrad_chi,
                                                                      dsdF,   DsDphi,   dsdgrad_chi,   dmdF,      DmDphi,      dmdgrad_chi);
-        assert(16==17);                                                                    
+        //assert(16==17);                                                                    
         Matrix_3x9 _grad_phi;
         Vector_27  _grad_phi_v;
         Matrix_3x3 eye = Matrix_3x3::Identity();
@@ -166,7 +166,7 @@ namespace micro_material{
         deformation_measures::compute_total_derivatives(F, _grad_phi_v,
                                                         dcauchydF,      dcauchydgrad_chi, dsdF,      dsdgrad_chi, dmdF,      dmdgrad_chi,
                                                         DcauchyDgrad_u, DcauchyDgrad_phi, DsDgrad_u, DsDgrad_phi, DmDgrad_u, DmDgrad_phi);
-        assert(17==18);
+        //assert(17==18);
         return;
     }
     
@@ -216,10 +216,15 @@ namespace micro_material{
         double tau11   = params[17];
 
         //Initialize the stiffness matrices
-        SpMat A( 9, 9);
-        SpMat B( 9, 9);
-        SpMat C(27,27);
-        SpMat D( 9, 9);
+        //SpMat A( 9, 9);
+        //SpMat B( 9, 9);
+        //SpMat C(27,27);
+        //SpMat D( 9, 9);
+
+        Matrix_9x9   A;
+        Matrix_9x9   B;
+        Matrix_27x27 C;
+        Matrix_9x9   D;
 
         //Populate the stiffness matrices
         compute_A_voigt(lambda,mu,A);
@@ -319,15 +324,10 @@ namespace micro_material{
         //assert(101==102);
         //Populate the stiffness matrices
         compute_A_voigt(lambda,mu,A);
-        assert(101==-102);
         compute_B_voigt(eta,kappa,nu,sigma,tau,B);
-        assert(102==103);
         compute_C_voigt(tau1,tau2,tau3, tau4, tau5,tau6,
                         tau7,tau8,tau9,tau10,tau11,C);
-        assert(103==104);
         compute_D_voigt(sigma,tau,D);
-
-        assert(104==105);
 
         //Compute the deformation measures
         Matrix_3x3 RCG; //The right cauchy green deformation tensor
@@ -407,6 +407,8 @@ namespace micro_material{
         SpMat dGammadgrad_chi(27,27);
 
         deformation_measures::compute_dRCGdF(F,dRCGdF);
+
+        //assert(-300==-301);
         
         deformation_measures::compute_dPsidF(chi,dPsidF);
         deformation_measures::compute_dPsidchi(F,dPsidchi);
@@ -503,7 +505,6 @@ namespace micro_material{
         A(8,5) = mu;
         A(8,8) = mu;
 
-        assert(1004==1005);
         return;
     }
     

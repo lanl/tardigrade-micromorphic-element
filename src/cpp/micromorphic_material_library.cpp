@@ -119,40 +119,40 @@ namespace micromorphic_material_library {
                        _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
                        _ADD_TERMS,      _ADD_JACOBIANS);
 
-        assert(0==1);
+        //assert(0==1);
 
         //Populate the stress outputs
         map_eigen_to_vector(_cauchy,cauchy);
         map_eigen_to_vector(_s,s);
         map_eigen_to_vector(_m,m);
 
-        assert(1==2);
+        //assert(1==2);
 
         //Populate the jacobian outputs
         map_eigen_to_vector(_DcauchyDgrad_u,   DcauchyDgrad_u);
         map_eigen_to_vector(_DcauchyDphi,      DcauchyDphi);
         map_eigen_to_vector(_DcauchyDgrad_phi, DcauchyDgrad_phi);
 
-        assert(2==3);
+        //assert(2==3);
 
         map_eigen_to_vector(_DsDgrad_u,   DsDgrad_u);
         map_eigen_to_vector(_DsDphi,      DsDphi);
         map_eigen_to_vector(_DsDgrad_phi, DsDgrad_phi);
 
-        assert(3==4);
+        //assert(3==4);
 
         map_eigen_to_vector(_DmDgrad_u,   DmDgrad_u);
         map_eigen_to_vector(_DmDphi,      DmDphi);
         map_eigen_to_vector(_DmDgrad_phi, DmDgrad_phi);
 
-        assert(4==5);
+        //assert(4==5);
         ADD_TERMS.resize(_ADD_TERMS.size());
         for (int i=0; i<_ADD_TERMS.size(); i++){map_eigen_to_vector(_ADD_TERMS[i], ADD_TERMS[i]);}
 
         ADD_JACOBIANS.resize(_ADD_JACOBIANS.size());
         for (int i=0; i<_ADD_JACOBIANS.size(); i++){map_eigen_to_vector(_ADD_JACOBIANS[i], ADD_JACOBIANS[i]);}
 
-        assert(5==6);
+        //assert(5==6);
 
         return;
     }

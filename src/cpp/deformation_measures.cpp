@@ -4402,6 +4402,66 @@ namespace deformation_measures
         return;
     }
     
+    void compute_dRCGdF(const Matrix_3x3 &F, Matrix_9x9 &dRCGdF){
+        /*!=====================
+        |    compute_dRCGdF    |
+        ========================
+        
+        Compute the derivative of the right 
+        cauchy green deformation tensor w.r.t. F.
+        
+        */
+
+        dRCGdF = Matrix_9x9::Zero();
+
+        dRCGdF( 0, 0) = 2*F(0,0);
+        dRCGdF( 0, 7) = 2*F(2,0);
+        dRCGdF( 0, 8) = 2*F(1,0);
+        dRCGdF( 1, 1) = 2*F(1,1);
+        dRCGdF( 1, 5) = 2*F(0,1);
+        dRCGdF( 1, 6) = 2*F(2,1);
+        dRCGdF( 2, 2) = 2*F(2,2);
+        dRCGdF( 2, 3) = 2*F(1,2);
+        dRCGdF( 2, 4) = 2*F(0,2);
+        dRCGdF( 3, 1) = F(1,2);
+        dRCGdF( 3, 2) = F(2,1);
+        dRCGdF( 3, 3) = F(1,1);
+        dRCGdF( 3, 4) = F(0,1);
+        dRCGdF( 3, 5) = F(0,2);
+        dRCGdF( 3, 6) = F(2,2);
+        dRCGdF( 4, 0) = F(0,2);
+        dRCGdF( 4, 2) = F(2,0);
+        dRCGdF( 4, 3) = F(1,0);
+        dRCGdF( 4, 4) = F(0,0);
+        dRCGdF( 4, 7) = F(2,2);
+        dRCGdF( 4, 8) = F(1,2);
+        dRCGdF( 5, 0) = F(0,1);
+        dRCGdF( 5, 1) = F(1,0);
+        dRCGdF( 5, 5) = F(0,0);
+        dRCGdF( 5, 6) = F(2,0);
+        dRCGdF( 5, 7) = F(2,1);
+        dRCGdF( 5, 8) = F(1,1);
+        dRCGdF( 6, 1) = F(1,2);
+        dRCGdF( 6, 2) = F(2,1);
+        dRCGdF( 6, 3) = F(1,1);
+        dRCGdF( 6, 4) = F(0,1);
+        dRCGdF( 6, 5) = F(0,2);
+        dRCGdF( 6, 6) = F(2,2);
+        dRCGdF( 7, 0) = F(0,2);
+        dRCGdF( 7, 2) = F(2,0);
+        dRCGdF( 7, 3) = F(1,0);
+        dRCGdF( 7, 4) = F(0,0);
+        dRCGdF( 7, 7) = F(2,2);
+        dRCGdF( 7, 8) = F(1,2);
+        dRCGdF( 8, 0) = F(0,1);
+        dRCGdF( 8, 1) = F(1,0);
+        dRCGdF( 8, 5) = F(0,0);
+        dRCGdF( 8, 6) = F(2,0);
+        dRCGdF( 8, 7) = F(2,1);
+        dRCGdF( 8, 8) = F(1,1);
+
+        return;
+    }
     void compute_dPsidF(const Matrix_3x3 &chi, SpMat &dPsidF){
         /*!========================
         |    compute_dPsidF    |
@@ -4459,6 +4519,48 @@ namespace deformation_measures
         return;
     }
     
+    void compute_dPsidF(const Matrix_3x3 &chi, Matrix_9x9 &dPsidF){
+        /*!========================
+        |    compute_dPsidF    |
+        ========================
+        
+        Compute the derivative of psi w.r.t. F
+        
+        */
+
+        dPsidF = Matrix_9x9::Zero();
+
+        dPsidF( 0, 0) = chi(0,0);
+        dPsidF( 0, 7) = chi(2,0);
+        dPsidF( 0, 8) = chi(1,0);
+        dPsidF( 1, 1) = chi(1,1);
+        dPsidF( 1, 5) = chi(0,1);
+        dPsidF( 1, 6) = chi(2,1);
+        dPsidF( 2, 2) = chi(2,2);
+        dPsidF( 2, 3) = chi(1,2);
+        dPsidF( 2, 4) = chi(0,2);
+        dPsidF( 3, 1) = chi(1,2);
+        dPsidF( 3, 5) = chi(0,2);
+        dPsidF( 3, 6) = chi(2,2);
+        dPsidF( 4, 0) = chi(0,2);
+        dPsidF( 4, 7) = chi(2,2);
+        dPsidF( 4, 8) = chi(1,2);
+        dPsidF( 5, 0) = chi(0,1);
+        dPsidF( 5, 7) = chi(2,1);
+        dPsidF( 5, 8) = chi(1,1);
+        dPsidF( 6, 2) = chi(2,1);
+        dPsidF( 6, 3) = chi(1,1);
+        dPsidF( 6, 4) = chi(0,1);
+        dPsidF( 7, 2) = chi(2,0);
+        dPsidF( 7, 3) = chi(1,0);
+        dPsidF( 7, 4) = chi(0,0);
+        dPsidF( 8, 1) = chi(1,0);
+        dPsidF( 8, 5) = chi(0,0);
+        dPsidF( 8, 6) = chi(2,0);
+
+        return;
+    }
+
     void compute_dGammadF(const Vector_27 &grad_chi, SpMat &dGammadF){
         /*!==========================
         |    compute_dGammadF    |
@@ -4587,6 +4689,103 @@ namespace deformation_measures
         dGammadF.setFromTriplets(tripletList.begin(), tripletList.end());
         return;
     }
+
+
+    void compute_dGammadF(const Vector_27 &grad_chi, Matrix_27x9 &dGammadF){
+        /*!==========================
+        |    compute_dGammadF    |
+        ==========================
+        
+        Compute the derivative of gamma w.r.t. F.
+        
+        */
+
+        dGammadF = Matrix_27x9::Zero();
+
+        dGammadF(0,0) = grad_chi(0,0);
+        dGammadF(0,7) = grad_chi(18,0);
+        dGammadF(0,8) = grad_chi(9,0);
+        dGammadF(1,0) = grad_chi(1,0);
+        dGammadF(1,7) = grad_chi(19,0);
+        dGammadF(1,8) = grad_chi(10,0);
+        dGammadF(2,0) = grad_chi(2,0);
+        dGammadF(2,7) = grad_chi(20,0);
+        dGammadF(2,8) = grad_chi(11,0);
+        dGammadF(3,0) = grad_chi(3,0);
+        dGammadF(3,7) = grad_chi(21,0);
+        dGammadF(3,8) = grad_chi(12,0);
+        dGammadF(4,0) = grad_chi(4,0);
+        dGammadF(4,7) = grad_chi(22,0);
+        dGammadF(4,8) = grad_chi(13,0);
+        dGammadF(5,0) = grad_chi(5,0);
+        dGammadF(5,7) = grad_chi(23,0);
+        dGammadF(5,8) = grad_chi(14,0);
+        dGammadF(6,0) = grad_chi(6,0);
+        dGammadF(6,7) = grad_chi(24,0);
+        dGammadF(6,8) = grad_chi(15,0);
+        dGammadF(7,0) = grad_chi(7,0);
+        dGammadF(7,7) = grad_chi(25,0);
+        dGammadF(7,8) = grad_chi(16,0);
+        dGammadF(8,0) = grad_chi(8,0);
+        dGammadF(8,7) = grad_chi(26,0);
+        dGammadF(8,8) = grad_chi(17,0);
+        dGammadF(9,1) = grad_chi(9,0);
+        dGammadF(9,5) = grad_chi(0,0);
+        dGammadF(9,6) = grad_chi(18,0);
+        dGammadF(10,1) = grad_chi(10,0);
+        dGammadF(10,5) = grad_chi(1,0);
+        dGammadF(10,6) = grad_chi(19,0);
+        dGammadF(11,1) = grad_chi(11,0);
+        dGammadF(11,5) = grad_chi(2,0);
+        dGammadF(11,6) = grad_chi(20,0);
+        dGammadF(12,1) = grad_chi(12,0);
+        dGammadF(12,5) = grad_chi(3,0);
+        dGammadF(12,6) = grad_chi(21,0);
+        dGammadF(13,1) = grad_chi(13,0);
+        dGammadF(13,5) = grad_chi(4,0);
+        dGammadF(13,6) = grad_chi(22,0);
+        dGammadF(14,1) = grad_chi(14,0);
+        dGammadF(14,5) = grad_chi(5,0);
+        dGammadF(14,6) = grad_chi(23,0);
+        dGammadF(15,1) = grad_chi(15,0);
+        dGammadF(15,5) = grad_chi(6,0);
+        dGammadF(15,6) = grad_chi(24,0);
+        dGammadF(16,1) = grad_chi(16,0);
+        dGammadF(16,5) = grad_chi(7,0);
+        dGammadF(16,6) = grad_chi(25,0);
+        dGammadF(17,1) = grad_chi(17,0);
+        dGammadF(17,5) = grad_chi(8,0);
+        dGammadF(17,6) = grad_chi(26,0);
+        dGammadF(18,2) = grad_chi(18,0);
+        dGammadF(18,3) = grad_chi(9,0);
+        dGammadF(18,4) = grad_chi(0,0);
+        dGammadF(19,2) = grad_chi(19,0);
+        dGammadF(19,3) = grad_chi(10,0);
+        dGammadF(19,4) = grad_chi(1,0);
+        dGammadF(20,2) = grad_chi(20,0);
+        dGammadF(20,3) = grad_chi(11,0);
+        dGammadF(20,4) = grad_chi(2,0);
+        dGammadF(21,2) = grad_chi(21,0);
+        dGammadF(21,3) = grad_chi(12,0);
+        dGammadF(21,4) = grad_chi(3,0);
+        dGammadF(22,2) = grad_chi(22,0);
+        dGammadF(22,3) = grad_chi(13,0);
+        dGammadF(22,4) = grad_chi(4,0);
+        dGammadF(23,2) = grad_chi(23,0);
+        dGammadF(23,3) = grad_chi(14,0);
+        dGammadF(23,4) = grad_chi(5,0);
+        dGammadF(24,2) = grad_chi(24,0);
+        dGammadF(24,3) = grad_chi(15,0);
+        dGammadF(24,4) = grad_chi(6,0);
+        dGammadF(25,2) = grad_chi(25,0);
+        dGammadF(25,3) = grad_chi(16,0);
+        dGammadF(25,4) = grad_chi(7,0);
+        dGammadF(26,2) = grad_chi(26,0);
+        dGammadF(26,3) = grad_chi(17,0);
+        dGammadF(26,4) = grad_chi(8,0);        
+
+        return;
+    }
     
     void compute_dPsidchi(const Matrix_3x3 &F, SpMat &dPsidchi){
         /*!==========================
@@ -4645,6 +4844,48 @@ namespace deformation_measures
         return;
     }
     
+    void compute_dPsidchi(const Matrix_3x3 &F, Matrix_9x9 &dPsidchi){
+        /*!==========================
+        |    compute_dPsidchi    |
+        ==========================
+        
+        Compute the derivative of Psi with respect to chi.
+        
+        */
+
+        dPsidchi = Matrix_9x9::Zero();
+
+        dPsidchi(0,0) = F(0,0);
+        dPsidchi(0,7) = F(2,0);
+        dPsidchi(0,8) = F(1,0);
+        dPsidchi(1,1) = F(1,1);
+        dPsidchi(1,5) = F(0,1);
+        dPsidchi(1,6) = F(2,1);
+        dPsidchi(2,2) = F(2,2);
+        dPsidchi(2,3) = F(1,2);
+        dPsidchi(2,4) = F(0,2);
+        dPsidchi(3,2) = F(2,1);
+        dPsidchi(3,3) = F(1,1);
+        dPsidchi(3,4) = F(0,1);
+        dPsidchi(4,2) = F(2,0);
+        dPsidchi(4,3) = F(1,0);
+        dPsidchi(4,4) = F(0,0);
+        dPsidchi(5,1) = F(1,0);
+        dPsidchi(5,5) = F(0,0);
+        dPsidchi(5,6) = F(2,0);
+        dPsidchi(6,1) = F(1,2);
+        dPsidchi(6,5) = F(0,2);
+        dPsidchi(6,6) = F(2,2);
+        dPsidchi(7,0) = F(0,2);
+        dPsidchi(7,7) = F(2,2);
+        dPsidchi(7,8) = F(1,2);
+        dPsidchi(8,0) = F(0,1);
+        dPsidchi(8,7) = F(2,1);
+        dPsidchi(8,8) = F(1,1);
+
+        return;
+    }
+
     void compute_dGammadgrad_chi(const Matrix_3x3 &F, SpMat &dGammadgrad_chi){
         /*!=================================
         |    compute_dGammadgrad_chi    |
@@ -4761,6 +5002,107 @@ namespace deformation_measures
         return;
     }
     
+    void compute_dGammadgrad_chi(const Matrix_3x3 &F, Matrix_27x27 &dGammadgrad_chi){
+        /*!=================================
+        |    compute_dGammadgrad_chi    |
+        =================================
+        
+        Computes the gradient of gamma w.r.t. the gradient 
+        of chi.
+        
+        NOTE: The gradient of chi is assumed to be in the reference
+              configuration. This means Gamma is defined as
+              
+              Gamma_IJK = F_iI chi_iJ,K
+        */
+
+        dGammadgrad_chi = Matrix_27x27::Zero();
+
+        dGammadgrad_chi(0,0) = F(0,0);
+        dGammadgrad_chi(0,9) = F(1,0);
+        dGammadgrad_chi(0,18) = F(2,0);
+        dGammadgrad_chi(1,1) = F(0,0);
+        dGammadgrad_chi(1,10) = F(1,0);
+        dGammadgrad_chi(1,19) = F(2,0);
+        dGammadgrad_chi(2,2) = F(0,0);
+        dGammadgrad_chi(2,11) = F(1,0);
+        dGammadgrad_chi(2,20) = F(2,0);
+        dGammadgrad_chi(3,3) = F(0,0);
+        dGammadgrad_chi(3,12) = F(1,0);
+        dGammadgrad_chi(3,21) = F(2,0);
+        dGammadgrad_chi(4,4) = F(0,0);
+        dGammadgrad_chi(4,13) = F(1,0);
+        dGammadgrad_chi(4,22) = F(2,0);
+        dGammadgrad_chi(5,5) = F(0,0);
+        dGammadgrad_chi(5,14) = F(1,0);
+        dGammadgrad_chi(5,23) = F(2,0);
+        dGammadgrad_chi(6,6) = F(0,0);
+        dGammadgrad_chi(6,15) = F(1,0);
+        dGammadgrad_chi(6,24) = F(2,0);
+        dGammadgrad_chi(7,7) = F(0,0);
+        dGammadgrad_chi(7,16) = F(1,0);
+        dGammadgrad_chi(7,25) = F(2,0);
+        dGammadgrad_chi(8,8) = F(0,0);
+        dGammadgrad_chi(8,17) = F(1,0);
+        dGammadgrad_chi(8,26) = F(2,0);
+        dGammadgrad_chi(9,0) = F(0,1);
+        dGammadgrad_chi(9,9) = F(1,1);
+        dGammadgrad_chi(9,18) = F(2,1);
+        dGammadgrad_chi(10,1) = F(0,1);
+        dGammadgrad_chi(10,10) = F(1,1);
+        dGammadgrad_chi(10,19) = F(2,1);
+        dGammadgrad_chi(11,2) = F(0,1);
+        dGammadgrad_chi(11,11) = F(1,1);
+        dGammadgrad_chi(11,20) = F(2,1);
+        dGammadgrad_chi(12,3) = F(0,1);
+        dGammadgrad_chi(12,12) = F(1,1);
+        dGammadgrad_chi(12,21) = F(2,1);
+        dGammadgrad_chi(13,4) = F(0,1);
+        dGammadgrad_chi(13,13) = F(1,1);
+        dGammadgrad_chi(13,22) = F(2,1);
+        dGammadgrad_chi(14,5) = F(0,1);
+        dGammadgrad_chi(14,14) = F(1,1);
+        dGammadgrad_chi(14,23) = F(2,1);
+        dGammadgrad_chi(15,6) = F(0,1);
+        dGammadgrad_chi(15,15) = F(1,1);
+        dGammadgrad_chi(15,24) = F(2,1);
+        dGammadgrad_chi(16,7) = F(0,1);
+        dGammadgrad_chi(16,16) = F(1,1);
+        dGammadgrad_chi(16,25) = F(2,1);
+        dGammadgrad_chi(17,8) = F(0,1);
+        dGammadgrad_chi(17,17) = F(1,1);
+        dGammadgrad_chi(17,26) = F(2,1);
+        dGammadgrad_chi(18,0) = F(0,2);
+        dGammadgrad_chi(18,9) = F(1,2);
+        dGammadgrad_chi(18,18) = F(2,2);
+        dGammadgrad_chi(19,1) = F(0,2);
+        dGammadgrad_chi(19,10) = F(1,2);
+        dGammadgrad_chi(19,19) = F(2,2);
+        dGammadgrad_chi(20,2) = F(0,2);
+        dGammadgrad_chi(20,11) = F(1,2);
+        dGammadgrad_chi(20,20) = F(2,2);
+        dGammadgrad_chi(21,3) = F(0,2);
+        dGammadgrad_chi(21,12) = F(1,2);
+        dGammadgrad_chi(21,21) = F(2,2);
+        dGammadgrad_chi(22,4) = F(0,2);
+        dGammadgrad_chi(22,13) = F(1,2);
+        dGammadgrad_chi(22,22) = F(2,2);
+        dGammadgrad_chi(23,5) = F(0,2);
+        dGammadgrad_chi(23,14) = F(1,2);
+        dGammadgrad_chi(23,23) = F(2,2);
+        dGammadgrad_chi(24,6) = F(0,2);
+        dGammadgrad_chi(24,15) = F(1,2);
+        dGammadgrad_chi(24,24) = F(2,2);
+        dGammadgrad_chi(25,7) = F(0,2);
+        dGammadgrad_chi(25,16) = F(1,2);
+        dGammadgrad_chi(25,25) = F(2,2);
+        dGammadgrad_chi(26,8) = F(0,2);
+        dGammadgrad_chi(26,17) = F(1,2);
+        dGammadgrad_chi(26,26) = F(2,2);
+
+        return;
+    }
+
     void compute_dAinvdA(const Matrix_3x3 &Ainv, Matrix_9x9 &dAinvdA){
         /*!=========================
         |    compute_dAinvdA    |
@@ -4978,6 +5320,104 @@ namespace deformation_measures
         return;
     }
     
+    void compute_dgrad_chidgrad_phi(const Matrix_3x3 &F, Matrix_27x27 &dgrad_chidgrad_phi){
+        /*!====================================
+        |    compute_dgrad_chidgrad_phi    |
+        ====================================
+        
+        Compute the gradient of the gradient of chi w.r.t. the gradient of phi.
+        
+        Note: We assume that grad_phi is a gradient of phi in the current configuration.
+        
+        */
+
+        dgrad_chidgrad_phi = Matrix_27x27::Zero();
+
+        dgrad_chidgrad_phi(0,0) = F(0,0);
+        dgrad_chidgrad_phi(0,4) = F(2,0);
+        dgrad_chidgrad_phi(0,5) = F(1,0);
+        dgrad_chidgrad_phi(1,1) = F(1,1);
+        dgrad_chidgrad_phi(1,3) = F(2,1);
+        dgrad_chidgrad_phi(1,8) = F(0,1);
+        dgrad_chidgrad_phi(2,2) = F(2,2);
+        dgrad_chidgrad_phi(2,6) = F(1,2);
+        dgrad_chidgrad_phi(2,7) = F(0,2);
+        dgrad_chidgrad_phi(3,1) = F(1,2);
+        dgrad_chidgrad_phi(3,3) = F(2,2);
+        dgrad_chidgrad_phi(3,8) = F(0,2);
+        dgrad_chidgrad_phi(4,0) = F(0,2);
+        dgrad_chidgrad_phi(4,4) = F(2,2);
+        dgrad_chidgrad_phi(4,5) = F(1,2);
+        dgrad_chidgrad_phi(5,0) = F(0,1);
+        dgrad_chidgrad_phi(5,4) = F(2,1);
+        dgrad_chidgrad_phi(5,5) = F(1,1);
+        dgrad_chidgrad_phi(6,2) = F(2,1);
+        dgrad_chidgrad_phi(6,6) = F(1,1);
+        dgrad_chidgrad_phi(6,7) = F(0,1);
+        dgrad_chidgrad_phi(7,2) = F(2,0);
+        dgrad_chidgrad_phi(7,6) = F(1,0);
+        dgrad_chidgrad_phi(7,7) = F(0,0);
+        dgrad_chidgrad_phi(8,1) = F(1,0);
+        dgrad_chidgrad_phi(8,3) = F(2,0);
+        dgrad_chidgrad_phi(8,8) = F(0,0);
+        dgrad_chidgrad_phi(9,9) = F(0,0);
+        dgrad_chidgrad_phi(9,13) = F(2,0);
+        dgrad_chidgrad_phi(9,14) = F(1,0);
+        dgrad_chidgrad_phi(10,10) = F(1,1);
+        dgrad_chidgrad_phi(10,12) = F(2,1);
+        dgrad_chidgrad_phi(10,17) = F(0,1);
+        dgrad_chidgrad_phi(11,11) = F(2,2);
+        dgrad_chidgrad_phi(11,15) = F(1,2);
+        dgrad_chidgrad_phi(11,16) = F(0,2);
+        dgrad_chidgrad_phi(12,10) = F(1,2);
+        dgrad_chidgrad_phi(12,12) = F(2,2);
+        dgrad_chidgrad_phi(12,17) = F(0,2);
+        dgrad_chidgrad_phi(13,9) = F(0,2);
+        dgrad_chidgrad_phi(13,13) = F(2,2);
+        dgrad_chidgrad_phi(13,14) = F(1,2);
+        dgrad_chidgrad_phi(14,9) = F(0,1);
+        dgrad_chidgrad_phi(14,13) = F(2,1);
+        dgrad_chidgrad_phi(14,14) = F(1,1);
+        dgrad_chidgrad_phi(15,11) = F(2,1);
+        dgrad_chidgrad_phi(15,15) = F(1,1);
+        dgrad_chidgrad_phi(15,16) = F(0,1);
+        dgrad_chidgrad_phi(16,11) = F(2,0);
+        dgrad_chidgrad_phi(16,15) = F(1,0);
+        dgrad_chidgrad_phi(16,16) = F(0,0);
+        dgrad_chidgrad_phi(17,10) = F(1,0);
+        dgrad_chidgrad_phi(17,12) = F(2,0);
+        dgrad_chidgrad_phi(17,17) = F(0,0);
+        dgrad_chidgrad_phi(18,18) = F(0,0);
+        dgrad_chidgrad_phi(18,22) = F(2,0);
+        dgrad_chidgrad_phi(18,23) = F(1,0);
+        dgrad_chidgrad_phi(19,19) = F(1,1);
+        dgrad_chidgrad_phi(19,21) = F(2,1);
+        dgrad_chidgrad_phi(19,26) = F(0,1);
+        dgrad_chidgrad_phi(20,20) = F(2,2);
+        dgrad_chidgrad_phi(20,24) = F(1,2);
+        dgrad_chidgrad_phi(20,25) = F(0,2);
+        dgrad_chidgrad_phi(21,19) = F(1,2);
+        dgrad_chidgrad_phi(21,21) = F(2,2);
+        dgrad_chidgrad_phi(21,26) = F(0,2);
+        dgrad_chidgrad_phi(22,18) = F(0,2);
+        dgrad_chidgrad_phi(22,22) = F(2,2);
+        dgrad_chidgrad_phi(22,23) = F(1,2);
+        dgrad_chidgrad_phi(23,18) = F(0,1);
+        dgrad_chidgrad_phi(23,22) = F(2,1);
+        dgrad_chidgrad_phi(23,23) = F(1,1);
+        dgrad_chidgrad_phi(24,20) = F(2,1);
+        dgrad_chidgrad_phi(24,24) = F(1,1);
+        dgrad_chidgrad_phi(24,25) = F(0,1);
+        dgrad_chidgrad_phi(25,20) = F(2,0);
+        dgrad_chidgrad_phi(25,24) = F(1,0);
+        dgrad_chidgrad_phi(25,25) = F(0,0);
+        dgrad_chidgrad_phi(26,19) = F(1,0);
+        dgrad_chidgrad_phi(26,21) = F(2,0);
+        dgrad_chidgrad_phi(26,26) = F(0,0);
+
+        return;
+    }
+
     void compute_dgrad_chidF(const Vector_27 &grad_phi, SpMat &dgrad_chidF){
         /*!=============================
         |    compute_dgrad_chidF    |
@@ -5108,6 +5548,104 @@ namespace deformation_measures
         return;
     }
     
+    void compute_dgrad_chidF(const Vector_27 &grad_phi, Matrix_27x9 &dgrad_chidF){
+        /*!=============================
+        |    compute_dgrad_chidF    |
+        =============================
+        
+        Compute the gradient of grad_chi w.r.t. the deformation gradient.
+        
+        Note: We assume that grad_phi is a gradient of phi in the current configuration
+        
+        */
+
+        dgrad_chidF = Matrix_27x9::Zero();
+
+        dgrad_chidF(0,0) = grad_phi(0,0);
+        dgrad_chidF(0,7) = grad_phi(4,0);
+        dgrad_chidF(0,8) = grad_phi(5,0);
+        dgrad_chidF(1,1) = grad_phi(1,0);
+        dgrad_chidF(1,5) = grad_phi(8,0);
+        dgrad_chidF(1,6) = grad_phi(3,0);
+        dgrad_chidF(2,2) = grad_phi(2,0);
+        dgrad_chidF(2,3) = grad_phi(6,0);
+        dgrad_chidF(2,4) = grad_phi(7,0);
+        dgrad_chidF(3,2) = grad_phi(3,0);
+        dgrad_chidF(3,3) = grad_phi(1,0);
+        dgrad_chidF(3,4) = grad_phi(8,0);
+        dgrad_chidF(4,2) = grad_phi(4,0);
+        dgrad_chidF(4,3) = grad_phi(5,0);
+        dgrad_chidF(4,4) = grad_phi(0,0);
+        dgrad_chidF(5,1) = grad_phi(5,0);
+        dgrad_chidF(5,5) = grad_phi(0,0);
+        dgrad_chidF(5,6) = grad_phi(4,0);
+        dgrad_chidF(6,1) = grad_phi(6,0);
+        dgrad_chidF(6,5) = grad_phi(7,0);
+        dgrad_chidF(6,6) = grad_phi(2,0);
+        dgrad_chidF(7,0) = grad_phi(7,0);
+        dgrad_chidF(7,7) = grad_phi(2,0);
+        dgrad_chidF(7,8) = grad_phi(6,0);
+        dgrad_chidF(8,0) = grad_phi(8,0);
+        dgrad_chidF(8,7) = grad_phi(3,0);
+        dgrad_chidF(8,8) = grad_phi(1,0);
+        dgrad_chidF(9,0) = grad_phi(9,0);
+        dgrad_chidF(9,7) = grad_phi(13,0);
+        dgrad_chidF(9,8) = grad_phi(14,0);
+        dgrad_chidF(10,1) = grad_phi(10,0);
+        dgrad_chidF(10,5) = grad_phi(17,0);
+        dgrad_chidF(10,6) = grad_phi(12,0);
+        dgrad_chidF(11,2) = grad_phi(11,0);
+        dgrad_chidF(11,3) = grad_phi(15,0);
+        dgrad_chidF(11,4) = grad_phi(16,0);
+        dgrad_chidF(12,2) = grad_phi(12,0);
+        dgrad_chidF(12,3) = grad_phi(10,0);
+        dgrad_chidF(12,4) = grad_phi(17,0);
+        dgrad_chidF(13,2) = grad_phi(13,0);
+        dgrad_chidF(13,3) = grad_phi(14,0);
+        dgrad_chidF(13,4) = grad_phi(9,0);
+        dgrad_chidF(14,1) = grad_phi(14,0);
+        dgrad_chidF(14,5) = grad_phi(9,0);
+        dgrad_chidF(14,6) = grad_phi(13,0);
+        dgrad_chidF(15,1) = grad_phi(15,0);
+        dgrad_chidF(15,5) = grad_phi(16,0);
+        dgrad_chidF(15,6) = grad_phi(11,0);
+        dgrad_chidF(16,0) = grad_phi(16,0);
+        dgrad_chidF(16,7) = grad_phi(11,0);
+        dgrad_chidF(16,8) = grad_phi(15,0);
+        dgrad_chidF(17,0) = grad_phi(17,0);
+        dgrad_chidF(17,7) = grad_phi(12,0);
+        dgrad_chidF(17,8) = grad_phi(10,0);
+        dgrad_chidF(18,0) = grad_phi(18,0);
+        dgrad_chidF(18,7) = grad_phi(22,0);
+        dgrad_chidF(18,8) = grad_phi(23,0);
+        dgrad_chidF(19,1) = grad_phi(19,0);
+        dgrad_chidF(19,5) = grad_phi(26,0);
+        dgrad_chidF(19,6) = grad_phi(21,0);
+        dgrad_chidF(20,2) = grad_phi(20,0);
+        dgrad_chidF(20,3) = grad_phi(24,0);
+        dgrad_chidF(20,4) = grad_phi(25,0);
+        dgrad_chidF(21,2) = grad_phi(21,0);
+        dgrad_chidF(21,3) = grad_phi(19,0);
+        dgrad_chidF(21,4) = grad_phi(26,0);
+        dgrad_chidF(22,2) = grad_phi(22,0);
+        dgrad_chidF(22,3) = grad_phi(23,0);
+        dgrad_chidF(22,4) = grad_phi(18,0);
+        dgrad_chidF(23,1) = grad_phi(23,0);
+        dgrad_chidF(23,5) = grad_phi(18,0);
+        dgrad_chidF(23,6) = grad_phi(22,0);
+        dgrad_chidF(24,1) = grad_phi(24,0);
+        dgrad_chidF(24,5) = grad_phi(25,0);
+        dgrad_chidF(24,6) = grad_phi(20,0);
+        dgrad_chidF(25,0) = grad_phi(25,0);
+        dgrad_chidF(25,7) = grad_phi(20,0);
+        dgrad_chidF(25,8) = grad_phi(24,0);
+        dgrad_chidF(26,0) = grad_phi(26,0);
+        dgrad_chidF(26,7) = grad_phi(21,0);
+        dgrad_chidF(26,8) = grad_phi(19,0);
+
+        return;
+    }
+
     void compute_dFdgrad_u(const Matrix_3x3 &F, Matrix_9x9 &dFdgrad_u){
         /*!============================
         |    commpute_dFdgrad_u    |

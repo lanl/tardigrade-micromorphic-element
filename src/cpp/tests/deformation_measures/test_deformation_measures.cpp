@@ -1721,7 +1721,7 @@ int test_compute_dRCGdF(std::ofstream &results){
     Matrix_9x9 dRCGdF; //The expected result
     std::vector< std::vector<double> > dRCGdF_vec; //Output from the finite_difference
     SpMat _dRCGdF(9,9); //The function result
-    
+    Matrix_9x9 _dRCGdF_alt; //The alternative result
     
     //Define the required fundamental measures
     Matrix_3x3 F0;
@@ -1752,6 +1752,9 @@ int test_compute_dRCGdF(std::ofstream &results){
     
     Matrix_9x9 _dRCGdF_dense = _dRCGdF;
     bool tot_result = dRCGdF.isApprox(_dRCGdF_dense,1e-6);
+
+    deformation_measures::compute_dRCGdF(F0,_dRCGdF_alt);
+    tot_result *= dRCGdF.isApprox(_dRCGdF_alt,1e-6);
     
     if (tot_result){
         results << "test_compute_dRCGdF & True\\\\\n\\hline\n";
@@ -1776,7 +1779,7 @@ int test_compute_dPsidF(std::ofstream &results){
     Matrix_9x9 dPsidF; //The expected result
     std::vector< std::vector<double> > dPsidF_vec; //Output from the finite_difference
     SpMat _dPsidF(9,9); //The function result
-    
+    Matrix_9x9 _dPsidF_alt;  //The alternative result
     
     //Define the required fundamental measures
     Matrix_3x3 F0;
@@ -1809,6 +1812,9 @@ int test_compute_dPsidF(std::ofstream &results){
     
     Matrix_9x9 _dPsidF_dense = _dPsidF;
     bool tot_result = dPsidF.isApprox(_dPsidF_dense,1e-6);
+
+    deformation_measures::compute_dPsidF(chi,_dPsidF_alt);
+    tot_result *= dPsidF.isApprox(_dPsidF_alt,1e-6);
     
     if (tot_result){
         results << "test_compute_dPsidF & True\\\\\n\\hline\n";
@@ -1833,6 +1839,7 @@ int test_compute_dPsidchi(std::ofstream &results){
     Matrix_9x9 dPsidchi; //The expected result
     std::vector< std::vector<double> > dPsidchi_vec; //Output from the finite_difference
     SpMat _dPsidchi(9,9); //The function result
+    Matrix_9x9 _dPsidchi_alt; //The alternative function result
     
     
     //Define the required fundamental measures
@@ -1866,6 +1873,9 @@ int test_compute_dPsidchi(std::ofstream &results){
     
     Matrix_9x9 _dPsidchi_dense = _dPsidchi;
     bool tot_result = dPsidchi.isApprox(_dPsidchi_dense,1e-6);
+
+    deformation_measures::compute_dPsidchi(F,_dPsidchi_alt);
+    tot_result *= dPsidchi.isApprox(_dPsidchi_alt,1e-6);
     
     if (tot_result){
         results << "test_compute_dPsidchi & True\\\\\n\\hline\n";
@@ -1890,7 +1900,7 @@ int test_compute_dGammadF(std::ofstream &results){
     Matrix_27x9 dGammadF; //The expected result
     std::vector< std::vector<double> > dGammadF_vec; //Output from the finite_difference
     SpMat _dGammadF(27,9); //The function result
-    
+    Matrix_27x9 _dGammadF_alt; //The alternative result
     
     //Define the required fundamental measures
     Matrix_3x3 F0;
@@ -1925,6 +1935,9 @@ int test_compute_dGammadF(std::ofstream &results){
     
     Matrix_27x9 _dGammadF_dense = _dGammadF;
     bool tot_result = dGammadF.isApprox(_dGammadF_dense,1e-6);
+
+    deformation_measures::compute_dGammadF(grad_chi_voigt,_dGammadF_alt);
+    tot_result *= dGammadF.isApprox(_dGammadF_alt,1e-6);
     
     if (tot_result){
         results << "test_compute_dGammadF & True\\\\\n\\hline\n";
@@ -1949,7 +1962,7 @@ int test_compute_dGammadgrad_chi(std::ofstream &results){
     Matrix_27x27 dGammadgrad_chi; //The expected result
     std::vector< std::vector<double> > dGammadgrad_chi_vec; //Output from the finite_difference
     SpMat _dGammadgrad_chi(27,27); //The function result
-    
+    Matrix_27x27 _dGammadgrad_chi_alt; //The alternative result
     
     //Define the required fundamental measures
     Matrix_3x3 F;
@@ -1984,6 +1997,9 @@ int test_compute_dGammadgrad_chi(std::ofstream &results){
     
     Matrix_27x27 _dGammadgrad_chi_dense = _dGammadgrad_chi;
     bool tot_result = dGammadgrad_chi.isApprox(_dGammadgrad_chi_dense,1e-6);
+
+    deformation_measures::compute_dGammadgrad_chi(F,_dGammadgrad_chi_alt);
+    tot_result *= dGammadgrad_chi.isApprox(_dGammadgrad_chi_alt,1e-6);
     
     if (tot_result){
         results << "test_compute_dGammadgrad_chi & True\\\\\n\\hline\n";
@@ -2010,7 +2026,7 @@ int test_compute_dgrad_chidgrad_phi(std::ofstream &results){
     Matrix_27x27 dgrad_chidgrad_phi; //The expected result
     std::vector< std::vector<double> > dgrad_chidgrad_phi_vec; //Output from the finite_difference
     SpMat _dgrad_chidgrad_phi(27,27); //The function result
-    
+    Matrix_27x27 _dgrad_chidgrad_phi_alt; //The alternative result
     
     //Define the required fundamental measures
     Matrix_3x3 F;
@@ -2054,6 +2070,9 @@ int test_compute_dgrad_chidgrad_phi(std::ofstream &results){
     
     Matrix_27x27 _dgrad_chidgrad_phi_dense = _dgrad_chidgrad_phi;
     bool tot_result = dgrad_chidgrad_phi.isApprox(_dgrad_chidgrad_phi_dense,1e-6);
+
+    deformation_measures::compute_dgrad_chidgrad_phi(F,_dgrad_chidgrad_phi_alt);
+    tot_result *= dgrad_chidgrad_phi.isApprox(_dgrad_chidgrad_phi_alt,1e-6);
     
     if (tot_result){
         results << "test_compute_dgrad_chidgrad_phi & True\\\\\n\\hline\n";
@@ -2080,6 +2099,7 @@ int test_compute_dgrad_chidF(std::ofstream &results){
     Matrix_27x9 dgrad_chidF; //The expected result
     std::vector< std::vector<double> > dgrad_chidF_vec; //Output from the finite_difference
     SpMat _dgrad_chidF(27,9); //The function result
+    Matrix_27x9 _dgrad_chidF_alt; //The alternative result
     
     
     //Define the required fundamental measures
@@ -2127,6 +2147,9 @@ int test_compute_dgrad_chidF(std::ofstream &results){
     
     Matrix_27x9 _dgrad_chidF_dense = _dgrad_chidF;
     bool tot_result = dgrad_chidF.isApprox(_dgrad_chidF_dense,1e-6);
+
+    deformation_measures::compute_dgrad_chidF(grad_phi_voigt,_dgrad_chidF_alt);
+    tot_result *= dgrad_chidF.isApprox(_dgrad_chidF_alt,1e-6);
     
     if (tot_result){
         results << "test_compute_dgrad_chidF & True\\\\\n\\hline\n";

@@ -92,20 +92,34 @@ namespace deformation_measures
     //w.r.t. the fundamental deformation measures
     void compute_dRCGdF(const Matrix_3x3 &F, SpMat &dRCGdF);
     
+    void compute_dRCGdF(const Matrix_3x3 &F, Matrix_9x9 &dRCGdF);
+
     void compute_dPsidF(const Matrix_3x3 &chi, SpMat &dPsidF);
 
+    void compute_dPsidF(const Matrix_3x3 &chi, Matrix_9x9 &dPsidF);
+
     void compute_dGammadF(const Vector_27 &grad_chi, SpMat &dGammadF);
+
+    void compute_dGammadF(const Vector_27 &grad_chi, Matrix_27x9 &dGammadF);
     
     void compute_dPsidchi(const Matrix_3x3 &F, SpMat &dPsidchi);
     
+    void compute_dPsidchi(const Matrix_3x3 &F, Matrix_9x9 &dPsidchi);
+
     void compute_dGammadgrad_chi(const Matrix_3x3 &F, SpMat &dGammadgrad_chi);
     
+    void compute_dGammadgrad_chi(const Matrix_3x3 &F, Matrix_27x27 &dGammadgrad_chi);
+
     //Compute the gradients of grad_chi with respect to the deformation gradient and 
     //the gradient of phi w.r.t. the current coordinates.
     void compute_dgrad_chidgrad_phi(const Matrix_3x3 &F, SpMat &dgrad_chidgrad_phi);
     
+    void compute_dgrad_chidgrad_phi(const Matrix_3x3 &F, Matrix_27x27 &dgrad_chidgrad_phi);
+
     void compute_dgrad_chidF(const Vector_27 &grad_phi, SpMat &dgrad_chidF);
     
+    void compute_dgrad_chidF(const Vector_27 &grad_phi, Matrix_27x9 &dgrad_chidF);
+
     void compute_dFdgrad_u(const Matrix_3x3 &F, Matrix_9x9 &dFdgrad_u);
     
     void compute_dAinvdA(const Matrix_3x3 &A, Matrix_9x9 &dAinvdA);
