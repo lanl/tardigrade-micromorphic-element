@@ -15,8 +15,6 @@
 =====================================================================
 */
 
-#include <chrono>
-#include <thread>
 #include "micromorphic_material_library.h"
 
 namespace micromorphic_material_library {
@@ -110,7 +108,6 @@ namespace micromorphic_material_library {
 
         //Evaluate the model
         std::cout << "temporary matrices created\n";
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         //assert(-1==0);
         evaluate_model(time,    fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
                        _cauchy,                      _s, _m,
