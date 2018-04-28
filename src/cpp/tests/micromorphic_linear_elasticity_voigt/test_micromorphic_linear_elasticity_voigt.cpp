@@ -3768,6 +3768,24 @@ int test_compute_dPK2dGamma(std::ofstream &results){
     
     bool tot_result = dPK2dGamma.isApprox(_dPK2dGamma,1e-6);
     
+    Matrix_9x9   A_dense;
+    Matrix_9x9   B_dense;
+    Matrix_27x27 C_dense;
+    Matrix_9x9   D_dense;
+
+    A_dense = A;
+    B_dense = B;
+    C_dense = C;
+    D_dense = D;
+    
+    //Evaluate the function
+    t0 = Clock::now();
+    micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C_dense, _dPK2dGamma);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    tot_result *= dPK2dGamma.isApprox(_dPK2dGamma,1e-6);
+    
     if (tot_result){
         results << "test_compute_dPK2dGamma & True\\\\\n\\hline\n";
     }
@@ -3877,6 +3895,25 @@ int test_compute_dSIGMAdGamma(std::ofstream &results){
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     bool tot_result = dSIGMAdGamma.isApprox(_dSIGMAdGamma,1e-6);
+    
+    Matrix_9x9   A_dense;
+    Matrix_9x9   B_dense;
+    Matrix_27x27 C_dense;
+    Matrix_9x9   D_dense;
+
+    A_dense = A;
+    B_dense = B;
+    C_dense = C;
+    D_dense = D;
+    
+    //Evaluate the function
+    t0 = Clock::now();
+    micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C, dPK2dGamma);
+    micro_material::compute_dSIGMAdGamma(terms, _dSIGMAdGamma);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    tot_result *= dSIGMAdGamma.isApprox(_dSIGMAdGamma,1e-6);
     
     if (tot_result){
         results << "test_compute_dSIGMAdGamma & True\\\\\n\\hline\n";
