@@ -9390,8 +9390,13 @@ namespace deformation_measures
         */        
 
         //Define the partial derivatives of grad_chi
-        SpMat dgrad_chidF(27,9);
-        SpMat dgrad_chidgrad_phi(27,27);
+        //Note: Removing sparse matrices because of problems with 
+        //      MOOSE.
+        //SpMat dgrad_chidF(27,9);
+        //SpMat dgrad_chidgrad_phi(27,27);
+
+        Matrix_27x9  dgrad_chidF;
+        Matrix_27x27 dgrad_chidgrad_phi;
         
         //Define the derivative of the deformation gradient w.r.t. the gradient of u w.r.t. the local coordinates.
         Matrix_9x9 dFdgrad_u;

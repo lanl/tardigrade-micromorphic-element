@@ -143,6 +143,8 @@ namespace micro_material{
         Matrix_27x9  dmdF;
         Matrix_27x27 dmdgrad_chi;
 
+        //assert(13==14);
+
         get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
                    dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
                    dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
@@ -398,18 +400,19 @@ namespace micro_material{
         compute_dMdGamma(Matrix_27x27(C), dMdGamma);
         
         //Gradients of the derived measures
-        SpMat dRCGdF(9,9);
+        //Note: Replaced sparse matricies with dense matrices
+        //      This is not the most efficient but it seems required
+        //      for use in MOOSE.
+        Matrix_9x9   dRCGdF;
         
-        SpMat dPsidF(9,9);
-        SpMat dPsidchi(9,9);
+        Matrix_9x9   dPsidF;
+        Matrix_9x9   dPsidchi;
         
-        SpMat dGammadF(27,9);
-        SpMat dGammadgrad_chi(27,27);
+        Matrix_27x9  dGammadF;
+        Matrix_27x27 dGammadgrad_chi;
 
         deformation_measures::compute_dRCGdF(F,dRCGdF);
 
-        //assert(-300==-301);
-        
         deformation_measures::compute_dPsidF(chi,dPsidF);
         deformation_measures::compute_dPsidchi(F,dPsidchi);
         
@@ -418,7 +421,7 @@ namespace micro_material{
         
         deformation_measures::compute_dGammadF(grad_chi_voigt,dGammadF);
         deformation_measures::compute_dGammadgrad_chi(F, dGammadgrad_chi);
-        
+
         //Compute the jacobians of the stresses w.r.t. the fundamental deformation measures.
         dPK2dF   = dPK2dRCG*dRCGdF   + dPK2dPsi*dPsidF   + dPK2dGamma*dGammadF;
         dSIGMAdF = dSIGMAdRCG*dRCGdF + dSIGMAdPsi*dPsidF + dSIGMAdGamma*dGammadF;

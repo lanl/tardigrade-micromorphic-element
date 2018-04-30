@@ -84,7 +84,7 @@ namespace micromorphic_material_library {
 
         */
 
-        std::cout << "In evaluate_model";
+        //std::cout << "In evaluate_model";
 
         //Create temporary matrices and vectors
         Vector_9  _cauchy;
@@ -107,7 +107,7 @@ namespace micromorphic_material_library {
         std::vector<Eigen::MatrixXd> _ADD_JACOBIANS;
 
         //Evaluate the model
-        std::cout << "temporary matrices created\n";
+        //std::cout << "temporary matrices created\n";
         //assert(-1==0);
         evaluate_model(time,    fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
                        _cauchy,                      _s, _m,
