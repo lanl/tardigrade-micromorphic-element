@@ -1,0 +1,11 @@
+*
+!/**/
+!*.*
+*.pyc
+*.pdf
+*.aux
+*.nav
+*.snm
+*.toc
+*.bbl
+.ipynb_checkpoints*
