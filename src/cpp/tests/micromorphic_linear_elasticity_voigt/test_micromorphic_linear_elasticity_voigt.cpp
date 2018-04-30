@@ -65,6 +65,36 @@ bool compare_matrix(const std::vector<std::vector<double>> m1, const std::vector
     return true;
 }
 
+void print_vector(const std::vector<double> V){
+    /*!
+    ======================
+    |    print_vector    |
+    ======================
+
+    Print a std::vector
+    */
+
+    for (int i=0; i<V.size(); i++){
+        std::cout << V[i] << " ";
+    }
+    std::cout << "\n";
+}
+
+void print_matrix(const std::vector<std::vector<double>> &M){
+    /*!
+    ======================
+    |    print_matrix    |
+    ======================
+
+    Print a matrix stored in std::vectors
+
+    */
+
+    for (int i=0; i<M.size(); i++){
+        print_vector(M[i]);
+    }
+}
+
 void voigt_3x3(const Matrix_3x3 &A, Vector_9 &v){
     /*!===================
        |    voigt_3x3    |
@@ -260,6 +290,7 @@ void define_parameters(double (&params)[18]){
     params[15] = 0.561196186066;
     params[16] = 0.503083165308;
     params[17] = 0.0137684495907;
+
     return;
 }
 
