@@ -415,10 +415,17 @@ namespace balance_equations{
         */
         
         //Compute required DOF jacobians
-        SpMat dgrad_udU(9,12);
-        SpMat dphidU(9,12);
-        SpMat dgrad_phidU(27,12);
+        //Note: Removing sparse matrices because there 
+        //      is a segmentation fault when being created 
+        //      while in a moose run.
+        //SpMat dgrad_udU(9,12);
+        //SpMat dphidU(9,12);
+        //SpMat dgrad_phidU(27,12);
         
+        Matrix_9x12  dgrad_udU;
+        Matrix_9x12  dphidU;
+        Matrix_27x12 dgrad_phidU;
+
         construct_dgrad_udU(detadx, dgrad_udU);
         construct_dphidU(eta, dphidU);
         construct_dgrad_phidU(detadx, dgrad_phidU);
@@ -481,9 +488,16 @@ namespace balance_equations{
         */
         
         //Compute required DOF jacobians
-        SpMat _dgrad_udU(9,12);
-        SpMat _dphidU(9,12);
-        SpMat _dgrad_phidU(27,12);
+        //Note: Removing sparse matrices because there 
+        //      is a segmentation fault when being created 
+        //      while in a moose run.
+        //SpMat _dgrad_udU(9,12);
+        //SpMat _dphidU(9,12);
+        //SpMat _dgrad_phidU(27,12);
+
+        Matrix_9x12  _dgrad_udU;
+        Matrix_9x12  _dphidU;
+        Matrix_27x12 _dgrad_phidU;
         
         construct_dgrad_udU(detadx, _dgrad_udU);
         construct_dphidU(eta, _dphidU);
@@ -554,9 +568,16 @@ namespace balance_equations{
         */
         
         //Compute required DOF jacobians
-        SpMat dgrad_udU(9,12);
-        SpMat dphidU(9,12);
-        SpMat dgrad_phidU(27,12);
+        //Note: Removing sparse matrices because there 
+        //      is a segmentation fault when being created 
+        //      while in a moose run.
+        //SpMat dgrad_udU(9,12);
+        //SpMat dphidU(9,12);
+        //SpMat dgrad_phidU(27,12);
+        
+        Matrix_9x12  dgrad_udU;
+        Matrix_9x12  dphidU;
+        Matrix_27x12 dgrad_phidU;
         
         construct_dgrad_udU(detadx, dgrad_udU);
         construct_dphidU(eta, dphidU);
@@ -614,9 +635,16 @@ namespace balance_equations{
         */
         
         //Compute required DOF jacobians
-        SpMat _dgrad_udU(9,12);
-        SpMat _dphidU(9,12);
-        SpMat _dgrad_phidU(27,12);
+        //Note: Removing sparse matrices because there 
+        //      is a segmentation fault when being created 
+        //      while in a moose run.
+        //SpMat _dgrad_udU(9,12);
+        //SpMat _dphidU(9,12);
+        //SpMat _dgrad_phidU(27,12);
+
+        Matrix_9x12  _dgrad_udU;
+        Matrix_9x12  _dphidU;
+        Matrix_27x12 _dgrad_phidU;
         
         construct_dgrad_udU(detadx, _dgrad_udU);
         construct_dphidU(eta, _dphidU);
@@ -792,6 +820,32 @@ namespace balance_equations{
 
         return;
     }
+
+    void construct_dgrad_udU(const double (&detadx)[3], Matrix_9x12 &dgrad_udU){
+        /*!==========================
+        |    construct_dgrad_udU    |
+        =============================
+        
+        Construct the derivative of the gradient of u w.r.t. the DOF vector.
+        
+        dgrad_udU is a 9x12 matrix
+        
+        */
+
+        dgrad_udU = Matrix_9x12::Zero();
+
+        dgrad_udU(0,0) = detadx[0];
+        dgrad_udU(5,0) = detadx[1];
+        dgrad_udU(4,0) = detadx[2];
+        dgrad_udU(8,1) = detadx[0];
+        dgrad_udU(1,1) = detadx[1];
+        dgrad_udU(3,1) = detadx[2];
+        dgrad_udU(7,2) = detadx[0];
+        dgrad_udU(6,2) = detadx[1];
+        dgrad_udU(2,2) = detadx[2];
+
+        return;
+    }
     
     void construct_dphidU(const double &eta, SpMat &dphidU){
         /*!==========================
@@ -823,6 +877,32 @@ namespace balance_equations{
         return;
     }
     
+    void construct_dphidU(const double &eta, Matrix_9x12 &dphidU){
+        /*!==========================
+        |    construct_dphidU    |
+        ==========================
+        
+        Construct the jacobian of phi_iI w.r.t. the degree of freedom vector.
+        
+        dphidU is a 9x12 matrix
+        
+        */
+
+        dphidU = Matrix_9x12::Zero();
+
+        dphidU( 0, 3) = eta;
+        dphidU( 5, 8) = eta;
+        dphidU( 4, 7) = eta;
+        dphidU( 8,11) = eta;
+        dphidU( 1, 4) = eta;
+        dphidU( 3, 6) = eta;
+        dphidU( 7,10) = eta;
+        dphidU( 6, 9) = eta;
+        dphidU( 2, 5) = eta;
+
+        return;
+    }
+
     void construct_dgrad_phidU(const double (&detadx)[3], SpMat &dgrad_phidU){
         /*!===============================
         |    construct_dgrad_phidU    |
@@ -830,7 +910,7 @@ namespace balance_equations{
         
         Construct the jacobian of phi_iI,l w.r.t. the degree of freedom vector.
         
-        dphidU is a 27x12 matrix
+        dgrad_phidU is a 27x12 matrix
         
         */
         
@@ -866,6 +946,50 @@ namespace balance_equations{
         tripletList.push_back(T(20, 5,detadx[2]));
         
         dgrad_phidU.setFromTriplets(tripletList.begin(), tripletList.end());
+
+        return;
+    }
+
+    void construct_dgrad_phidU(const double (&detadx)[3], Matrix_27x12 &dgrad_phidU){
+        /*!===============================
+        |    construct_dgrad_phidU    |
+        ===============================
+        
+        Construct the jacobian of phi_iI,l w.r.t. the degree of freedom vector.
+        
+        dgrad_phidU is a 27x12 matrix
+        
+        */
+
+        dgrad_phidU = Matrix_27x12::Zero();
+
+        dgrad_phidU( 0, 3) = detadx[0];
+        dgrad_phidU( 5, 3) = detadx[1];
+        dgrad_phidU( 4, 3) = detadx[2];
+        dgrad_phidU( 9,11) = detadx[0];
+        dgrad_phidU(14,11) = detadx[1];
+        dgrad_phidU(13,11) = detadx[2];
+        dgrad_phidU(18,10) = detadx[0];
+        dgrad_phidU(23,10) = detadx[1];
+        dgrad_phidU(22,10) = detadx[2];
+        dgrad_phidU( 8, 8) = detadx[0];
+        dgrad_phidU( 1, 8) = detadx[1];
+        dgrad_phidU( 3, 8) = detadx[2];
+        dgrad_phidU(17, 4) = detadx[0];
+        dgrad_phidU(10, 4) = detadx[1];
+        dgrad_phidU(12, 4) = detadx[2];
+        dgrad_phidU(26, 9) = detadx[0];
+        dgrad_phidU(19, 9) = detadx[1];
+        dgrad_phidU(21, 9) = detadx[2];
+        dgrad_phidU( 7, 7) = detadx[0];
+        dgrad_phidU( 6, 7) = detadx[1];
+        dgrad_phidU( 2, 7) = detadx[2];
+        dgrad_phidU(16, 6) = detadx[0];
+        dgrad_phidU(15, 6) = detadx[1];
+        dgrad_phidU(11, 6) = detadx[2];
+        dgrad_phidU(25, 5) = detadx[0];
+        dgrad_phidU(24, 5) = detadx[1];
+        dgrad_phidU(20, 5) = detadx[2];
 
         return;
     }

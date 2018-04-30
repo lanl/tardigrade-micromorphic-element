@@ -1429,6 +1429,9 @@ int test_construct_dgrad_udU(std::ofstream &results){
     //std::cout << "_r:\n" << _r << "\n";
     
     bool tot_result = r.isApprox(_r,1e-6);
+
+    balance_equations::construct_dgrad_udU(detadx, _r);
+    tot_result *= r.isApprox(_r,1e-6);
     
     if (tot_result){
         results << "test_construct_dgrad_udU & True\\\\\n\\hline\n";
@@ -1480,6 +1483,9 @@ int test_construct_dphidU(std::ofstream &results){
     //std::cout << "_r:\n" << _r << "\n";
     
     bool tot_result = r.isApprox(_r,1e-6);
+
+    balance_equations::construct_dphidU(eta,_r);
+    tot_result *= r.isApprox(_r,1e-6);
     
     if (tot_result){
         results << "test_construct_dphidU & True\\\\\n\\hline\n";
@@ -1531,6 +1537,10 @@ int test_construct_dgrad_phidU(std::ofstream &results){
     //std::cout << "_r:\n" << _r << "\n";
     
     bool tot_result = r.isApprox(_r,1e-6);
+
+    balance_equations::construct_dgrad_phidU(detadx,_r);
+
+    tot_result *= r.isApprox(_r,1e-6);
     
     if (tot_result){
         results << "test_construct_dgrad_phidU & True\\\\\n\\hline\n";
