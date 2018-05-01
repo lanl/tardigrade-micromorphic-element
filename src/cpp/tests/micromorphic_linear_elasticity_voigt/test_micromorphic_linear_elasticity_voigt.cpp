@@ -95,6 +95,66 @@ void print_matrix(const std::vector<std::vector<double>> &M){
     }
 }
 
+void define_grad_u_MOOSE(double (&grad_u)[3][3]){
+    /*!
+    =============================
+    |    define_grad_u_MOOSE    |
+    =============================
+
+    Define the gradient of u for comparison to outputs from MOOSE.
+    */
+
+    for (int i=0; i<3; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_u[i][j] = 0.;
+
+        }
+
+    }
+}
+
+void define_phi_MOOSE(double (&phi)[9]){
+    /*!
+    ==========================
+    |    define_phi_MOOSE    |
+    ==========================
+
+    Define phi for comparision to outputs from MOOSE.
+    */
+
+    phi[0] = -2.3;
+    phi[1] =  0.124;
+    phi[2] =  7.2;
+    phi[3] = -8.2;
+    phi[4] =  0.28;
+    phi[5] =  7.21;
+    phi[6] =  2.1;
+    phi[7] = -9.2;
+    phi[8] =  3.1;
+}
+
+void define_grad_phi_data_MOOSE(double (&grad_phi_data)[9][3]){
+    /*!
+    =============================
+    |    define_grad_u_MOOSE    |
+    =============================
+
+    Define the gradient of u for comparison to outputs from MOOSE.
+    */
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data[i][j] = 0.;
+
+        }
+
+    }
+}
+
 void voigt_3x3(const Matrix_3x3 &A, Vector_9 &v){
     /*!===================
        |    voigt_3x3    |
@@ -262,7 +322,7 @@ void define_m(Vector_27 &m){
          -165.24571159030918, -239.6065692494737,  -201.04091236148963;
 }
 
-void define_parameters(double (&params)[18]){
+void define_parameters(double (&params)[18],bool MOOSE=false){
     /*!========================
     |    define_parameters    |
     ===========================
@@ -290,6 +350,28 @@ void define_parameters(double (&params)[18]){
     params[15] = 0.561196186066;
     params[16] = 0.503083165308;
     params[17] = 0.0137684495907;
+
+
+    if(MOOSE){
+    params[ 0] =  8e9;
+    params[ 1] =  11e9;
+    params[ 2] =  2e9;
+    params[ 3] =  1.538e9;
+    params[ 4] = -1e9;
+    params[ 5] = -1.39e9;
+    params[ 6] = -2.11e9;
+    params[ 7] =  0.;
+    params[ 8] =  0.;
+    params[ 9] =  0.;
+    params[10] =  0.;
+    params[11] =  0.;
+    params[12] =  0.;
+    params[13] =  0.769e6;
+    params[14] =  0.;
+    params[15] =  0.;
+    params[16] =  0.;
+    params[17] =  0.;
+    }
 
     return;
 }
@@ -652,7 +734,8 @@ void define_N(double &N){
     
     */
     
-    N = 0.261;
+    //N = 0.261;
+    N = 0.490563;
     return;
 }
 
@@ -665,9 +748,13 @@ void define_dNdx(double (&dNdx)[3]){
     to be used.
     */
     
-    dNdx[0] =  1.42;
-    dNdx[1] =  0.271;
-    dNdx[2] = -2.31;
+//    dNdx[0] =  1.42;
+//    dNdx[1] =  0.271;
+//    dNdx[2] = -2.31;
+
+    dNdx[0] = -0.622008;
+    dNdx[1] = -0.622008;
+    dNdx[2] = -0.622008;
     return;
 }
 
@@ -680,7 +767,8 @@ void define_eta(double &eta){
 
     */
 
-    eta = 0.826;
+//    eta = 0.826;
+    eta = 0.490563;
     return;
 }
 
@@ -693,9 +781,13 @@ void define_detadx(double (&detadx)[3]){
 
     */
 
-    detadx[0] = 0.172;
-    detadx[1] = 3.121;
-    detadx[2] = 0.761;
+//    detadx[0] = 0.172;
+//    detadx[1] = 3.121;
+//    detadx[2] = 0.761;
+
+    detadx[0] = -0.622008;
+    detadx[1] = -0.622008;
+    detadx[2] = -0.622008;
     return;
 }
 
@@ -2761,7 +2853,7 @@ std::vector<double> parse_balance_of_linear_momentum_U(std::vector<double> U){
     grad_u[2][1] = U[2]*detadx[1];
     grad_u[2][0] = U[2]*detadx[0];
     grad_u[1][0] = U[1]*detadx[0];
-    
+
     double phi[9];
     for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
     
@@ -2772,7 +2864,7 @@ std::vector<double> parse_balance_of_linear_momentum_U(std::vector<double> U){
             grad_phi_data[I-3][j] = U[I]*detadx[j];
         }
     }
-    
+
     //The required values for the material model
     //Assign required values
     Matrix_3x3 F;
@@ -2855,7 +2947,7 @@ std::vector<double> parse_balance_of_first_moment_of_momentum_U(std::vector<doub
     grad_u[2][1] = U[2]*detadx[1];
     grad_u[2][0] = U[2]*detadx[0];
     grad_u[1][0] = U[1]*detadx[0];
-    
+
     double phi[9];
     for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
     
@@ -7442,7 +7534,7 @@ int test_compute_internal_couple(std::ofstream &results){
 }
 
 
-int test_compute_internal_force_jacobian(std::ofstream &results){
+int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false){
     /*!==============================================
     |    test_compute_internal_force_jacobian    |
     ==============================================
@@ -7505,9 +7597,25 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     grad_u[2][1] = U[2]*detadx[1];
     grad_u[2][0] = U[2]*detadx[0];
     grad_u[1][0] = U[1]*detadx[0];
+
+    if(MOOSE){define_grad_u_MOOSE(grad_u);}
+
+//    std::cout << "grad_u:\n";
+//    for (int i=0; i<3; i++){
+//        for (int j=0; j<3; j++){
+//            std::cout << grad_u[i][j] << " ";
+//        }
+//        std::cout << "\n";
+//    }
     
     double phi[9];
     for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
+
+    if(MOOSE){define_phi_MOOSE(phi);}
+
+//    std::cout << "phi:\n";
+//    for (int i=0; i<9; i++){std::cout << phi[i] << " ";}
+//    std::cout << "\n";
     
     double grad_phi_data[9][3];
     
@@ -7516,6 +7624,17 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
             grad_phi_data[I-3][j] = U[I]*detadx[j];
         }
     }
+
+    if(MOOSE){define_grad_phi_data_MOOSE(grad_phi_data);}
+
+//    std::cout << "grad_phi_data:\n";
+//    for (int i=0; i<9; i++){
+//        for (int j=0; j<3; j++){
+//            std::cout << grad_phi_data[i][j] << " ";
+//        }
+//        std::cout << "\n";
+//    }
+//    std::cout << "\n";
     
     //The required values for the material model
     //Assign required values
@@ -7564,7 +7683,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     Matrix_27x9  DmDgrad_u;
     Matrix_27x27 DmDgrad_phi;
     
-    define_parameters(params);
+    define_parameters(params,MOOSE=MOOSE);
     
     t0 = Clock::now();
     deformation_measures::get_deformation_gradient(grad_u, F);
@@ -7619,6 +7738,19 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
+//    std::cout << "test_compute_internal_force_jacobian:\n";
+//    std::cout << "cauchy:\n" << cauchy << "\n";
+//    std::cout << "DcauchyDgrad_u:\n";
+//    print_matrix(_DcauchyDgrad_u);
+//    std::cout << "DcauchyDphi:\n";
+//    print_matrix(_DcauchyDphi);
+//    std::cout << "DcauchyDgrad_phi:\n";
+//    print_matrix(_DcauchyDgrad_phi);
+//
+//    std::cout << "r:\n" << r << "\n";
+//    std::cout << "_r:\n";
+//    print_matrix(__r);
+
     if (tot_result){
         results << "test_compute_internal_force_jacobian & True\\\\\n\\hline\n";
     }
@@ -7627,7 +7759,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
     }
 }
 
-int test_compute_internal_couple_jacobian(std::ofstream &results){
+int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=false){
     /*!===============================================
     |    test_compute_internal_couple_jacobian    |
     ===============================================
@@ -7689,9 +7821,13 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     grad_u[2][1] = U[2]*detadx[1];
     grad_u[2][0] = U[2]*detadx[0];
     grad_u[1][0] = U[1]*detadx[0];
+
+    if(MOOSE){define_grad_u_MOOSE(grad_u);}
     
     double phi[9];
     for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
+
+    if(MOOSE){define_phi_MOOSE(phi);}
     
     double grad_phi_data[9][3];
     
@@ -7700,6 +7836,8 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
             grad_phi_data[I-3][j] = U[I]*detadx[j];
         }
     }
+
+    if(MOOSE){define_grad_phi_data_MOOSE(grad_phi_data);}
     
     //The required values for the material model
     //Assign required values
@@ -7748,7 +7886,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     Matrix_27x9  DmDgrad_u;
     Matrix_27x27 DmDgrad_phi;
     
-    define_parameters(params);
+    define_parameters(params,MOOSE);
     
     t0 = Clock::now();
     deformation_measures::get_deformation_gradient(grad_u, F);
@@ -7861,6 +7999,18 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     }
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
+
+//    std::cout << "test_compute_internal_couple_jacobian:\n";
+//    std::cout << "DcauchyDgrad_u:\n";
+//    print_matrix(_DcauchyDgrad_u);
+//    std::cout << "DcauchyDphi:\n";
+//    print_matrix(_DcauchyDphi);
+//    std::cout << "DcauchyDgrad_phi:\n";
+//    print_matrix(_DcauchyDgrad_phi);
+//
+//    std::cout << "r:\n" << r << "\n";
+//    std::cout << "_r:\n";
+//    print_matrix(__r);
 
     if (tot_result){
         results << "test_compute_internal_couple_jacobian & True\\\\\n\\hline\n";
@@ -8087,7 +8237,7 @@ int test_micromorphic_material_library(std::ofstream &results){
                              _DsDgrad_u,      _DsDphi,       _DsDgrad_phi,
                              _DmDgrad_u,      _DmDphi,       _DmDgrad_phi,
                              ADD_TERMS,       ADD_JACOBIANS);
-    
+
     tot_result *= cauchy.isApprox(_cauchy);
     tot_result *= s.isApprox(_s);
     tot_result *= m.isApprox(_m);
