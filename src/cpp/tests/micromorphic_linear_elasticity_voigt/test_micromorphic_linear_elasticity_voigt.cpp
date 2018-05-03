@@ -360,17 +360,17 @@ void define_parameters(double (&params)[18],bool MOOSE=false){
     params[ 4] = -1e9;
     params[ 5] = -1.39e9;
     params[ 6] = -2.11e9;
-    params[ 7] =  0.;
-    params[ 8] =  0.;
-    params[ 9] =  0.;
-    params[10] =  0.;
-    params[11] =  0.;
-    params[12] =  0.;
+    params[ 7] =  0.271e6;
+    params[ 8] =  0.721e6;
+    params[ 9] =  0.188e6;
+    params[10] =  0.827e6;
+    params[11] =  0.625e6;
+    params[12] =  0.562e6;
     params[13] =  0.769e6;
-    params[14] =  0.;
-    params[15] =  0.;
-    params[16] =  0.;
-    params[17] =  0.;
+    params[14] =  0.224e6;
+    params[15] =  0.441e6;
+    params[16] =  0.981e6;
+    params[17] =  0.126e6;
     }
 
     return;
@@ -734,12 +734,12 @@ void define_N(double &N){
     
     */
     
-    //N = 0.261;
-    N = 0.490563;
+    N = 0.261;
+    //N = 0.490563;
     return;
 }
 
-void define_dNdx(double (&dNdx)[3]){
+void define_dNdx(double (&dNdx)[3], bool MOOSE = false){
     /*!=====================
     |    define_dNdx    |
     =====================
@@ -748,13 +748,13 @@ void define_dNdx(double (&dNdx)[3]){
     to be used.
     */
     
-//    dNdx[0] =  1.42;
-//    dNdx[1] =  0.271;
-//    dNdx[2] = -2.31;
+    dNdx[0] =  1.42;
+    dNdx[1] =  0.271;
+    dNdx[2] = -2.31;
 
-    dNdx[0] = -0.622008;
-    dNdx[1] = -0.622008;
-    dNdx[2] = -0.622008;
+//    dNdx[0] = -0.622008;
+//    dNdx[1] = -0.622008;
+//    dNdx[2] = -0.622008;
     return;
 }
 
@@ -767,8 +767,8 @@ void define_eta(double &eta){
 
     */
 
-//    eta = 0.826;
-    eta = 0.490563;
+    eta = 0.826;
+//    eta = 0.490563;
     return;
 }
 
@@ -781,13 +781,13 @@ void define_detadx(double (&detadx)[3]){
 
     */
 
-//    detadx[0] = 0.172;
-//    detadx[1] = 3.121;
-//    detadx[2] = 0.761;
+    detadx[0] = 0.172;
+    detadx[1] = 3.121;
+    detadx[2] = 0.761;
 
-    detadx[0] = -0.622008;
-    detadx[1] = -0.622008;
-    detadx[2] = -0.622008;
+//    detadx[0] = -0.622008;
+//    detadx[1] = -0.622008;
+//    detadx[2] = -0.622008;
     return;
 }
 
@@ -2886,7 +2886,7 @@ std::vector<double> parse_balance_of_linear_momentum_U(std::vector<double> U){
     Vector_27 m;
     
     
-    define_parameters(params);
+    define_parameters(params,false); //TODO: remove true!
     
     deformation_measures::get_deformation_gradient(grad_u, F);
     
@@ -2980,7 +2980,7 @@ std::vector<double> parse_balance_of_first_moment_of_momentum_U(std::vector<doub
     Vector_27 m;
     
     
-    define_parameters(params);
+    define_parameters(params,false); //TODO: set to false!
     
     deformation_measures::get_deformation_gradient(grad_u, F);
     
@@ -7493,6 +7493,8 @@ int test_compute_internal_couple(std::ofstream &results){
 
     r -= divm;
 
+    r = -r;
+
     //Compute the value of the function
     balance_equations::compute_internal_couple(N, dNdx, cauchy, s, m, _r);
 
@@ -7598,8 +7600,8 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     grad_u[2][0] = U[2]*detadx[0];
     grad_u[1][0] = U[1]*detadx[0];
 
-    if(MOOSE){define_grad_u_MOOSE(grad_u);}
-
+//    if(MOOSE){define_grad_u_MOOSE(grad_u);}
+//
 //    std::cout << "grad_u:\n";
 //    for (int i=0; i<3; i++){
 //        for (int j=0; j<3; j++){
@@ -7611,8 +7613,8 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     double phi[9];
     for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
 
-    if(MOOSE){define_phi_MOOSE(phi);}
-
+//    if(MOOSE){define_phi_MOOSE(phi);}
+//
 //    std::cout << "phi:\n";
 //    for (int i=0; i<9; i++){std::cout << phi[i] << " ";}
 //    std::cout << "\n";
@@ -7625,8 +7627,8 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
         }
     }
 
-    if(MOOSE){define_grad_phi_data_MOOSE(grad_phi_data);}
-
+//    if(MOOSE){define_grad_phi_data_MOOSE(grad_phi_data);}
+//
 //    std::cout << "grad_phi_data:\n";
 //    for (int i=0; i<9; i++){
 //        for (int j=0; j<3; j++){
@@ -7738,7 +7740,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
-//    std::cout << "test_compute_internal_force_jacobian:\n";
+    std::cout << "test_compute_internal_force_jacobian:\n";
 //    std::cout << "cauchy:\n" << cauchy << "\n";
 //    std::cout << "DcauchyDgrad_u:\n";
 //    print_matrix(_DcauchyDgrad_u);
@@ -7822,12 +7824,12 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     grad_u[2][0] = U[2]*detadx[0];
     grad_u[1][0] = U[1]*detadx[0];
 
-    if(MOOSE){define_grad_u_MOOSE(grad_u);}
+//    if(MOOSE){define_grad_u_MOOSE(grad_u);}
     
     double phi[9];
     for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
 
-    if(MOOSE){define_phi_MOOSE(phi);}
+//    if(MOOSE){define_phi_MOOSE(phi);}
     
     double grad_phi_data[9][3];
     
@@ -7837,7 +7839,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
         }
     }
 
-    if(MOOSE){define_grad_phi_data_MOOSE(grad_phi_data);}
+//    if(MOOSE){define_grad_phi_data_MOOSE(grad_phi_data);}
     
     //The required values for the material model
     //Assign required values
@@ -8000,7 +8002,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
-//    std::cout << "test_compute_internal_couple_jacobian:\n";
+    std::cout << "test_compute_internal_couple_jacobian:\n";
 //    std::cout << "DcauchyDgrad_u:\n";
 //    print_matrix(_DcauchyDgrad_u);
 //    std::cout << "DcauchyDphi:\n";
@@ -8008,9 +8010,9 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
 //    std::cout << "DcauchyDgrad_phi:\n";
 //    print_matrix(_DcauchyDgrad_phi);
 //
-//    std::cout << "r:\n" << r << "\n";
-//    std::cout << "_r:\n";
-//    print_matrix(__r);
+    std::cout << "r:\n" << r << "\n";
+    std::cout << "_r:\n";
+    print_matrix(__r);
 
     if (tot_result){
         results << "test_compute_internal_couple_jacobian & True\\\\\n\\hline\n";
