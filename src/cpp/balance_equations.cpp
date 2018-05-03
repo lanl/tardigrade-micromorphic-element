@@ -173,15 +173,15 @@ namespace balance_equations{
 
         */
         
-        cint[0] = N*(cauchy[0] - s[0]) - (dNdx[0]*m[0]+dNdx[1]*m[9]+dNdx[2]*m[18]);
-        cint[1] = N*(cauchy[1] - s[1]) - (dNdx[0]*m[1]+dNdx[1]*m[10]+dNdx[2]*m[19]);
-        cint[2] = N*(cauchy[2] - s[2]) - (dNdx[0]*m[2]+dNdx[1]*m[11]+dNdx[2]*m[20]);
-        cint[3] = N*(cauchy[3] - s[3]) - (dNdx[0]*m[6]+dNdx[1]*m[15]+dNdx[2]*m[24]);
-        cint[4] = N*(cauchy[4] - s[4]) - (dNdx[0]*m[7]+dNdx[1]*m[16]+dNdx[2]*m[25]);
-        cint[5] = N*(cauchy[5] - s[5]) - (dNdx[0]*m[8]+dNdx[1]*m[17]+dNdx[2]*m[26]);
-        cint[6] = N*(cauchy[6] - s[6]) - (dNdx[0]*m[3]+dNdx[1]*m[12]+dNdx[2]*m[21]);
-        cint[7] = N*(cauchy[7] - s[7]) - (dNdx[0]*m[4]+dNdx[1]*m[13]+dNdx[2]*m[22]);
-        cint[8] = N*(cauchy[8] - s[8]) - (dNdx[0]*m[5]+dNdx[1]*m[14]+dNdx[2]*m[23]);
+        cint[0] = -(N*(cauchy[0] - s[0]) - (dNdx[0]*m[0]+dNdx[1]*m[9]+dNdx[2]*m[18]));
+        cint[1] = -(N*(cauchy[1] - s[1]) - (dNdx[0]*m[1]+dNdx[1]*m[10]+dNdx[2]*m[19]));
+        cint[2] = -(N*(cauchy[2] - s[2]) - (dNdx[0]*m[2]+dNdx[1]*m[11]+dNdx[2]*m[20]));
+        cint[3] = -(N*(cauchy[3] - s[3]) - (dNdx[0]*m[6]+dNdx[1]*m[15]+dNdx[2]*m[24]));
+        cint[4] = -(N*(cauchy[4] - s[4]) - (dNdx[0]*m[7]+dNdx[1]*m[16]+dNdx[2]*m[25]));
+        cint[5] = -(N*(cauchy[5] - s[5]) - (dNdx[0]*m[8]+dNdx[1]*m[17]+dNdx[2]*m[26]));
+        cint[6] = -(N*(cauchy[6] - s[6]) - (dNdx[0]*m[3]+dNdx[1]*m[12]+dNdx[2]*m[21]));
+        cint[7] = -(N*(cauchy[7] - s[7]) - (dNdx[0]*m[4]+dNdx[1]*m[13]+dNdx[2]*m[22]));
+        cint[8] = -(N*(cauchy[8] - s[8]) - (dNdx[0]*m[5]+dNdx[1]*m[14]+dNdx[2]*m[23]));
         
         return;
     }
@@ -219,31 +219,31 @@ namespace balance_equations{
         */
         
         if ( ( i == 0 ) && ( j == 0 ) ){
-            cint_ij = N*(cauchy[0] - s[0]) - (dNdx[0]*m[0]+dNdx[1]*m[ 9]+dNdx[2]*m[18]);
+            cint_ij = -(N*(cauchy[0] - s[0]) - (dNdx[0]*m[0]+dNdx[1]*m[ 9]+dNdx[2]*m[18]));
         }
         else if ( ( i == 1 ) && ( j == 1 ) ){
-            cint_ij = N*(cauchy[1] - s[1]) - (dNdx[0]*m[1]+dNdx[1]*m[10]+dNdx[2]*m[19]);
+            cint_ij = -(N*(cauchy[1] - s[1]) - (dNdx[0]*m[1]+dNdx[1]*m[10]+dNdx[2]*m[19]));
         }
         else if ( ( i == 2 ) && ( j == 2 ) ){
-            cint_ij = N*(cauchy[2] - s[2]) - (dNdx[0]*m[2]+dNdx[1]*m[11]+dNdx[2]*m[20]);
+            cint_ij = -(N*(cauchy[2] - s[2]) - (dNdx[0]*m[2]+dNdx[1]*m[11]+dNdx[2]*m[20]));
         }
         else if ( ( i == 1 ) && ( j == 2 ) ){
-            cint_ij = N*(cauchy[3] - s[3]) - (dNdx[0]*m[6]+dNdx[1]*m[15]+dNdx[2]*m[24]);
+            cint_ij = -(N*(cauchy[3] - s[3]) - (dNdx[0]*m[6]+dNdx[1]*m[15]+dNdx[2]*m[24]));
         }
         else if ( ( i == 0 ) && ( j == 2 ) ){
-            cint_ij = N*(cauchy[4] - s[4]) - (dNdx[0]*m[7]+dNdx[1]*m[16]+dNdx[2]*m[25]);
+            cint_ij = -(N*(cauchy[4] - s[4]) - (dNdx[0]*m[7]+dNdx[1]*m[16]+dNdx[2]*m[25]));
         }
         else if ( ( i == 0 ) && ( j == 1 ) ){
-            cint_ij = N*(cauchy[5] - s[5]) - (dNdx[0]*m[8]+dNdx[1]*m[17]+dNdx[2]*m[26]);
+            cint_ij = -(N*(cauchy[5] - s[5]) - (dNdx[0]*m[8]+dNdx[1]*m[17]+dNdx[2]*m[26]));
         }
         else if ( ( i == 2 ) && ( j == 1 ) ){
-            cint_ij = N*(cauchy[6] - s[6]) - (dNdx[0]*m[3]+dNdx[1]*m[12]+dNdx[2]*m[21]);
+            cint_ij = -(N*(cauchy[6] - s[6]) - (dNdx[0]*m[3]+dNdx[1]*m[12]+dNdx[2]*m[21]));
         }
         else if ( ( i == 2 ) && ( j == 0 ) ){
-            cint_ij = N*(cauchy[7] - s[7]) - (dNdx[0]*m[4]+dNdx[1]*m[13]+dNdx[2]*m[22]);
+            cint_ij = -(N*(cauchy[7] - s[7]) - (dNdx[0]*m[4]+dNdx[1]*m[13]+dNdx[2]*m[22]));
         }
         else if ( ( i == 1 ) && ( j == 0 ) ){
-            cint_ij = N*(cauchy[8] - s[8]) - (dNdx[0]*m[5]+dNdx[1]*m[14]+dNdx[2]*m[23]);
+            cint_ij = -(N*(cauchy[8] - s[8]) - (dNdx[0]*m[5]+dNdx[1]*m[14]+dNdx[2]*m[23]));
         }
         else{
             std::cout << "Error: Index out of range\n";
@@ -608,7 +608,7 @@ namespace balance_equations{
             divm.row(i) = dNdx[0]*DmDU.row(0+i) + dNdx[1]*DmDU.row(9+i) + dNdx[2]*DmDU.row(18+i);
         }
         
-        DcintDU = N*(DcauchyDU - DsDU) - divm;
+        DcintDU = -(N*(DcauchyDU - DsDU) - divm);
     
     }
     
@@ -684,7 +684,7 @@ namespace balance_equations{
                    +( dNdx[0]*DmDphi.row(0+Jhat)      + dNdx[1]*DmDphi.row(9+Jhat)      + dNdx[2]*DmDphi.row(18+Jhat)     ).dot(dphidU.col(dof_num))
                    +( dNdx[0]*DmDgrad_phi.row(0+Jhat) + dNdx[1]*DmDgrad_phi.row(9+Jhat) + dNdx[2]*DmDgrad_phi.row(18+Jhat)).dot(dgrad_phidU.col(dof_num));
         
-        DcintDU_ijA = N*(DcauchyDU_ijA - DsDU_ijA) - divm_ijA;
+        DcintDU_ijA = -(N*(DcauchyDU_ijA - DsDU_ijA) - divm_ijA);
     
     }
     
