@@ -3652,11 +3652,16 @@ int test_compute_dPK2dPsi(std::ofstream &results){
     deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
     
     //Evaluate the function
-    t0 = Clock::now();
-    micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
-                                     B, D, _dPK2dPsi);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    int n = 10000;
+    double _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
+                                         B, D, _dPK2dPsi);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian: " << _t << "\n";
 
     bool tot_result = dPK2dPsi.isApprox(_dPK2dPsi,1e-6);
 
@@ -3670,11 +3675,16 @@ int test_compute_dPK2dPsi(std::ofstream &results){
     C_dense = C;
     D_dense = D;
 
-    t0 = Clock::now();
-    micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
-                                     B_dense, D_dense, _dPK2dPsi);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    _t = 0;
+
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
+                                         B_dense, D_dense, _dPK2dPsi);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian (dense): " << _t << "\n";
 
     tot_result *= dPK2dPsi.isApprox(_dPK2dPsi,1e-6);
     
@@ -3780,12 +3790,17 @@ int test_compute_dSIGMAdPsi(std::ofstream &results){
     //Evaluate the function
     Matrix_9x9 dPK2dPsi;
     Matrix_9x9 terms[2];
-    t0 = Clock::now();
-    micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
-                                     B, D, terms, dPK2dPsi);
-    micro_material::compute_dSIGMAdPsi(terms, _dSIGMAdPsi);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    int n = 10000;
+    double _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
+                                         B, D, terms, dPK2dPsi);
+        micro_material::compute_dSIGMAdPsi(terms, _dSIGMAdPsi);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian: " << _t << "\n";
     
     bool tot_result = dSIGMAdPsi.isApprox(_dSIGMAdPsi,1e-6);
 
@@ -3799,12 +3814,16 @@ int test_compute_dSIGMAdPsi(std::ofstream &results){
     C_dense = C;
     D_dense = D;
 
-    t0 = Clock::now();
-    micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
-                                     B_dense, D_dense, terms, dPK2dPsi);
-    micro_material::compute_dSIGMAdPsi(terms, _dSIGMAdPsi);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
+                                         B_dense, D_dense, terms, dPK2dPsi);
+        micro_material::compute_dSIGMAdPsi(terms, _dSIGMAdPsi);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian (dense): " << _t << "\n";
     
     tot_result *= dSIGMAdPsi.isApprox(_dSIGMAdPsi,1e-6);
 
@@ -3908,10 +3927,16 @@ int test_compute_dPK2dGamma(std::ofstream &results){
     deformation_measures::voigt_3x9_tensor(Gamma0,Gamma_voigt);
     
     //Evaluate the function
-    t0 = Clock::now();
-    micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C, _dPK2dGamma);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    int n = 10000;
+    double _t = 0;
+    _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C, _dPK2dGamma);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian: " << _t << "\n";
     
     bool tot_result = dPK2dGamma.isApprox(_dPK2dGamma,1e-6);
     
@@ -3926,10 +3951,14 @@ int test_compute_dPK2dGamma(std::ofstream &results){
     D_dense = D;
     
     //Evaluate the function
-    t0 = Clock::now();
-    micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C_dense, _dPK2dGamma);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C_dense, _dPK2dGamma);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian (dense): " << _t << "\n";
     
     tot_result *= dPK2dGamma.isApprox(_dPK2dGamma,1e-6);
     
@@ -4035,11 +4064,17 @@ int test_compute_dSIGMAdGamma(std::ofstream &results){
     //Evaluate the function
     Matrix_9x27 dPK2dGamma;
     Matrix_9x27 terms[2];
-    t0 = Clock::now();
-    micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C, terms, dPK2dGamma);
-    micro_material::compute_dSIGMAdGamma(terms, _dSIGMAdGamma);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    int n = 10000;
+    double _t = 0;
+    _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C, terms, dPK2dGamma);
+        micro_material::compute_dSIGMAdGamma(terms, _dSIGMAdGamma);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian: " << _t << "\n";
     
     bool tot_result = dSIGMAdGamma.isApprox(_dSIGMAdGamma,1e-6);
     
@@ -4054,11 +4089,15 @@ int test_compute_dSIGMAdGamma(std::ofstream &results){
     D_dense = D;
     
     //Evaluate the function
-    t0 = Clock::now();
-    micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C, dPK2dGamma);
-    micro_material::compute_dSIGMAdGamma(terms, _dSIGMAdGamma);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dGamma(RCG.inverse(), Gamma0, Gamma_voigt, C, dPK2dGamma);
+        micro_material::compute_dSIGMAdGamma(terms, _dSIGMAdGamma);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian: " << _t << "\n";
     
     tot_result *= dSIGMAdGamma.isApprox(_dSIGMAdGamma,1e-6);
     
@@ -4133,10 +4172,16 @@ int test_compute_dMdGamma(std::ofstream &results){
     define_C(C);
     
     //Evaluate the function
-    t0 = Clock::now();
-    micro_material::compute_dMdGamma(Matrix_27x27(C), _dMdGamma);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    int n = 10000;
+    double _t = 0;
+    _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dMdGamma(Matrix_27x27(C), _dMdGamma);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian: " << _t << "\n";
     
     bool tot_result = dMdGamma.isApprox(_dMdGamma,1e-6);
     
@@ -4232,15 +4277,21 @@ int test_compute_dPK2dF(std::ofstream &results){
     define_chi(chi);
     define_grad_phi(grad_chi); //Note: grad_phi == grad_chi
     
-    t0 = Clock::now();
-    micro_material::get_stress(t,        dt,         params,  
-                               F0,       chi,        grad_chi,
-                               SDVS,     PK2,        SIGMA,    M,
-                               _dPK2dF,  dPK2dchi,   dPK2dgrad_chi,
-                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
-                               dMdF,     dMdchi,     dMdgrad_chi);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    int n = 10000;
+    double _t = 0;
+    _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::get_stress(t,        dt,         params,  
+                                   F0,       chi,        grad_chi,
+                                   SDVS,     PK2,        SIGMA,    M,
+                                   _dPK2dF,  dPK2dchi,   dPK2dgrad_chi,
+                                   dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                                   dMdF,     dMdchi,     dMdgrad_chi);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << _t << "\n";
     
     bool tot_result = dPK2dF.isApprox(_dPK2dF,1e-6);
     
@@ -4718,7 +4769,7 @@ int test_compute_dSIGMAdgrad_chi(std::ofstream &results){
     for (int i=0; i<27; i++){x0[i] = grad_chi0_vec(i);}
     
     //Initialize the finite difference operator
-    std::cout << "\ndSIGMAdgrad_chih\n";
+    std::cout << "\ndSIGMAdgrad_chi\n";
     std::cout << "Finite Difference vs. Analytic Jacobian\n";
     auto t0 = Clock::now();
     finite_difference::FiniteDifference fd;
@@ -5194,23 +5245,28 @@ int test_compute_dcauchydF(std::ofstream &results){
     define_parameters(params);
     define_chi(chi);
     define_grad_phi(grad_chi); //Note: grad_phi == grad_chi
-    
-    t0 = Clock::now();
-    micro_material::get_stress(t,        dt,         params,  
-                               F,        chi,        grad_chi,
-                               SDVS,     PK2,        SIGMA,    M,
-                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
-                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
-                               dMdF,     dMdchi,     dMdgrad_chi);
-    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
-    deformation_measures::map_jacobians_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m,
-                                                dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi, dMdF, dMdchi, dMdgrad_chi,
-                                                _dcauchydF, dcauchydchi, dcauchydgrad_chi,
-                                                      dsdF,      dsdchi,      dsdgrad_chi,
-                                                      dmdF,      dmdchi,      dmdgrad_chi);
 
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    int n = 10000;
+    double _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::get_stress(t,        dt,         params,  
+                                   F,        chi,        grad_chi,
+                                   SDVS,     PK2,        SIGMA,    M,
+                                   dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                                   dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                                   dMdF,     dMdchi,     dMdgrad_chi);
+        deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+        deformation_measures::map_jacobians_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m,
+                                                    dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi, dMdF, dMdchi, dMdgrad_chi,
+                                                    _dcauchydF, dcauchydchi, dcauchydgrad_chi,
+                                                          dsdF,      dsdchi,      dsdgrad_chi,
+                                                          dmdF,      dmdchi,      dmdgrad_chi);
+
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << _t << "\n";
 
     //std::cout << " dcauchydF:\n" <<  dcauchydF << "\n";
     //std::cout << "_dcauchydF:\n" << _dcauchydF << "\n";
