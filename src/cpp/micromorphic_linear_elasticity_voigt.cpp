@@ -2979,22 +2979,35 @@ namespace micro_material{
         dSIGMAdRCG = terms[0];
         
         Matrix_9x9 temp;
+
+        temp = terms[1] + terms[2] + terms[3]; //TODO: Just use two terms. No need for four
+        dSIGMAdRCG        += temp;
+        dSIGMAdRCG.row(0) += temp.row(0);
+        dSIGMAdRCG.row(1) += temp.row(1);
+        dSIGMAdRCG.row(2) += temp.row(2);
         
-        for (int i=1; i<4; i++){
-            temp = terms[i];
-            
-            temp.row(0) *= 2;
-            temp.row(1) *= 2;
-            temp.row(2) *= 2;
-            temp.row(3) += terms[i].row(6);
-            temp.row(4) += terms[i].row(7);
-            temp.row(5) += terms[i].row(8);
-            temp.row(6) += terms[i].row(3);
-            temp.row(7) += terms[i].row(4);
-            temp.row(8) += terms[i].row(5);
-            
-            dSIGMAdRCG += temp;
-        }
+        dSIGMAdRCG.row(3) += temp.row(6);
+        dSIGMAdRCG.row(4) += temp.row(7);
+        dSIGMAdRCG.row(5) += temp.row(8);
+        dSIGMAdRCG.row(6) += temp.row(3);
+        dSIGMAdRCG.row(7) += temp.row(4);
+        dSIGMAdRCG.row(8) += temp.row(5);
+ 
+//        for (int i=1; i<4; i++){
+//            temp = terms[i];
+//            
+//            temp.row(0) *= 2;
+//            temp.row(1) *= 2;
+//            temp.row(2) *= 2;
+//            temp.row(3) += terms[i].row(6);
+//            temp.row(4) += terms[i].row(7);
+//            temp.row(5) += terms[i].row(8);
+//            temp.row(6) += terms[i].row(3);
+//            temp.row(7) += terms[i].row(4);
+//            temp.row(8) += terms[i].row(5);
+//            
+//            dSIGMAdRCG += temp;
+//        }
         return;
     }
     
