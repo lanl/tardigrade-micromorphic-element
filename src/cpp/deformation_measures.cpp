@@ -627,7 +627,7 @@ namespace deformation_measures
                 }
             }
         }
-        else if (index == 3){
+        else if (index == 2){
             for (int i=0; i<3; i++){
                 for (int j=0; j<3; j++){
                     Ihat = sot_to_voigt_map[i][j];
@@ -645,7 +645,7 @@ namespace deformation_measures
                 }
             }
         }
-        else if (index == 4){
+        else if (index == 3){
             for (int i=0; i<3; i++){
                 for (int j=0; j<3; j++){
                     Ihat = sot_to_voigt_map[i][j];
