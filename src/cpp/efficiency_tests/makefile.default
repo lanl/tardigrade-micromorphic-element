@@ -5,7 +5,7 @@ CC=COMPILER_COMMAND
 STD=-std=gnu++11
 
 #Compiler flags
-CFLAGS=-I. -O1
+CFLAGS=-I. -O3
 
 #Include Eigen Library
 EIGEN = -I EIGEN_LOCATION
@@ -13,12 +13,12 @@ EIGEN = -I EIGEN_LOCATION
 #Debugging flag
 DBG = -ggdb
 
-all: tensor_multiplication
+all: run_test
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 
-tensor_multiplication: 
+run_test: tensor_multiplication.cpp 
 	$(CC) $(STD) -o $@ tensor_multiplication.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 clean:
-	rm *o tensor_multiplication
+	rm *o run_test
