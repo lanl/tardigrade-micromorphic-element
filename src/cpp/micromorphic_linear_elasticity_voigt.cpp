@@ -376,8 +376,8 @@ namespace micro_material{
         Matrix_27x27 dMdGamma; //Note: other gradients are zero for M in this form.
         
         //Terms to speed up computation.
-        Matrix_9x9  dPK2dRCGterms[4];
-        Matrix_9x9  dPK2dPsiterms[3];
+        Matrix_9x9  dPK2dRCGterms[2];
+        Matrix_9x9  dPK2dPsiterms[2];
         Matrix_9x27 dPK2dGammaterms[2];
         
         //Gradients of the PK2 stress
@@ -1317,7 +1317,7 @@ namespace micro_material{
 
     void compute_dPK2dRCG(const Matrix_3x3 &RCG, const Matrix_3x3 &RCGinv, const Matrix_3x9 &Gamma, const Vector_27 &Gamma_voigt,
                           const Matrix_3x3 &E, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
-                          const SpMat &A,      const SpMat &B,        const SpMat &C,  const SpMat &D, Matrix_9x9 (&terms)[4], Matrix_9x9 &dPK2dRCG){
+                          const SpMat &A,      const SpMat &B,        const SpMat &C,  const SpMat &D, Matrix_9x9 (&terms)[2], Matrix_9x9 &dPK2dRCG){
         /*!==========================
         |    compute_dPK2dRCG    |
         ==========================
@@ -1333,6 +1333,7 @@ namespace micro_material{
         Matrix_3x3 T1;
         Matrix_9x9 T2;
         Matrix_3x9 T3;
+        Matrix_9x9 temp;
         
         Matrix_9x9 dRCGinvdRCG;
         deformation_measures::compute_dAinvdA(RCGinv,dRCGinvdRCG);
@@ -1347,22 +1348,24 @@ namespace micro_material{
         //Compute term3
         V1 = (B*E_micro_voigt+D*E_voigt);
         deformation_measures::undo_voigt_3x3_tensor(V1,T1);
-        deformation_measures::dot_2ot_4ot(1,0,T1*(E_micro+Matrix_3x3::Identity()).transpose(),dRCGinvdRCG,terms[2]);
-        
+        deformation_measures::dot_2ot_4ot(1,0,T1*(E_micro+Matrix_3x3::Identity()).transpose(),dRCGinvdRCG,temp);
+        terms[1] += temp;        
+
         //Compute term4
         deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,T3);
         T1 = T3*Gamma.transpose();
-        deformation_measures::dot_2ot_4ot(1,0,T1,dRCGinvdRCG,terms[3]);
-        
+        deformation_measures::dot_2ot_4ot(1,0,T1,dRCGinvdRCG,temp);
+        terms[1] += temp;        
+
         //Assemble the derivative
-        dPK2dRCG = (terms[0] + terms[1] + terms[2] + terms[3]);
+        dPK2dRCG = (terms[0] + terms[1]);
         
         return;
     }
     
     void compute_dPK2dRCG(const Matrix_3x3 &RCG, const Matrix_3x3 &RCGinv,  const Matrix_3x9 &Gamma, const Vector_27 &Gamma_voigt,
                           const Matrix_3x3 &E,   const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
-                          const Matrix_9x9 &A,   const Matrix_9x9 &B,       const Matrix_27x27 &C,   const Matrix_9x9 &D, Matrix_9x9 (&terms)[4], Matrix_9x9 &dPK2dRCG){
+                          const Matrix_9x9 &A,   const Matrix_9x9 &B,       const Matrix_27x27 &C,   const Matrix_9x9 &D, Matrix_9x9 (&terms)[2], Matrix_9x9 &dPK2dRCG){
         /*!==========================
         |    compute_dPK2dRCG    |
         ==========================
@@ -1378,6 +1381,7 @@ namespace micro_material{
         Matrix_3x3 T1;
         Matrix_9x9 T2;
         Matrix_3x9 T3;
+        Matrix_9x9 temp;
         
         Matrix_9x9 dRCGinvdRCG;
         deformation_measures::compute_dAinvdA(RCGinv,dRCGinvdRCG);
@@ -1392,15 +1396,17 @@ namespace micro_material{
         //Compute term3
         V1 = (B*E_micro_voigt+D*E_voigt);
         deformation_measures::undo_voigt_3x3_tensor(V1,T1);
-        deformation_measures::dot_2ot_4ot(1,0,T1*(E_micro+Matrix_3x3::Identity()).transpose(),dRCGinvdRCG,terms[2]);
+        deformation_measures::dot_2ot_4ot(1,0,T1*(E_micro+Matrix_3x3::Identity()).transpose(),dRCGinvdRCG,temp);
+        terms[1] += temp;
         
         //Compute term4
         deformation_measures::undo_voigt_3x9_tensor(C*Gamma_voigt,T3);
         T1 = T3*Gamma.transpose();
-        deformation_measures::dot_2ot_4ot(1,0,T1,dRCGinvdRCG,terms[3]);
+        deformation_measures::dot_2ot_4ot(1,0,T1,dRCGinvdRCG,temp);
+        terms[1] += temp;
         
         //Assemble the derivative
-        dPK2dRCG = (terms[0] + terms[1] + terms[2] + terms[3]);
+        dPK2dRCG = (terms[0] + terms[1]);
         
         return;
     }
@@ -1474,7 +1480,7 @@ namespace micro_material{
     }
 
     void compute_dPK2dPsi(const Matrix_3x3 &RCGinv, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
-                          const SpMat &B, const SpMat &D, Matrix_9x9 (&terms)[3], Matrix_9x9 &dPK2dPsi){
+                          const SpMat &B, const SpMat &D, Matrix_9x9 (&terms)[2], Matrix_9x9 &dPK2dPsi){
         /*!==========================
         |    compute_dPK2dPsi    |
         ==========================
@@ -1502,15 +1508,15 @@ namespace micro_material{
         V1 = B*E_micro_voigt + D*E_voigt;
         deformation_measures::undo_voigt_3x3_tensor(V1,T1);
         deformation_measures::two_sot_to_fot(2,T1,RCGinv,T2);
-        terms[2] = T2;
+        terms[1] += T2;
         
-        dPK2dPsi = terms[0] + terms[1] + terms[2];
+        dPK2dPsi = terms[0] + terms[1];
         
         return;
     }
     
     void compute_dPK2dPsi(const Matrix_3x3 &RCGinv, const Matrix_3x3 &E_micro, const Vector_9 &E_voigt, const Vector_9 &E_micro_voigt,
-                          const Matrix_9x9 &B,      const Matrix_9x9 &D,       Matrix_9x9 (&terms)[3],  Matrix_9x9 &dPK2dPsi){
+                          const Matrix_9x9 &B,      const Matrix_9x9 &D,       Matrix_9x9 (&terms)[2],  Matrix_9x9 &dPK2dPsi){
         /*!==========================
         |    compute_dPK2dPsi    |
         ==========================
@@ -1538,9 +1544,9 @@ namespace micro_material{
         V1 = B*E_micro_voigt + D*E_voigt;
         deformation_measures::undo_voigt_3x3_tensor(V1,T1);
         deformation_measures::two_sot_to_fot(2,T1,RCGinv,T2);
-        terms[2] = T2;
+        terms[1] += T2;
         
-        dPK2dPsi = terms[0] + terms[1] + terms[2];
+        dPK2dPsi = terms[0] + terms[1];
         
         return;
     }
@@ -2962,7 +2968,7 @@ namespace micro_material{
         dPK2dGamma = terms[0] + terms[1];
     }
 
-    void compute_dSIGMAdRCG(Matrix_9x9 (&terms)[4], Matrix_9x9 &dSIGMAdRCG){
+    void compute_dSIGMAdRCG(Matrix_9x9 (&terms)[2], Matrix_9x9 &dSIGMAdRCG){
         /*!=========================
         |    compute_dSIGMAdRCG    |
         ============================
@@ -2978,20 +2984,17 @@ namespace micro_material{
         
         dSIGMAdRCG = terms[0];
         
-        Matrix_9x9 temp;
-
-        temp = terms[1] + terms[2] + terms[3]; //TODO: Just use two terms. No need for four
-        dSIGMAdRCG        += temp;
-        dSIGMAdRCG.row(0) += temp.row(0);
-        dSIGMAdRCG.row(1) += temp.row(1);
-        dSIGMAdRCG.row(2) += temp.row(2);
+        dSIGMAdRCG        += terms[1];
+        dSIGMAdRCG.row(0) += terms[1].row(0);
+        dSIGMAdRCG.row(1) += terms[1].row(1);
+        dSIGMAdRCG.row(2) += terms[1].row(2);
         
-        dSIGMAdRCG.row(3) += temp.row(6);
-        dSIGMAdRCG.row(4) += temp.row(7);
-        dSIGMAdRCG.row(5) += temp.row(8);
-        dSIGMAdRCG.row(6) += temp.row(3);
-        dSIGMAdRCG.row(7) += temp.row(4);
-        dSIGMAdRCG.row(8) += temp.row(5);
+        dSIGMAdRCG.row(3) += terms[1].row(6);
+        dSIGMAdRCG.row(4) += terms[1].row(7);
+        dSIGMAdRCG.row(5) += terms[1].row(8);
+        dSIGMAdRCG.row(6) += terms[1].row(3);
+        dSIGMAdRCG.row(7) += terms[1].row(4);
+        dSIGMAdRCG.row(8) += terms[1].row(5);
  
 //        for (int i=1; i<4; i++){
 //            temp = terms[i];
@@ -3011,7 +3014,7 @@ namespace micro_material{
         return;
     }
     
-    void compute_dSIGMAdPsi(Matrix_9x9 (&terms)[3], Matrix_9x9 &dSIGMAdPsi){
+    void compute_dSIGMAdPsi(Matrix_9x9 (&terms)[2], Matrix_9x9 &dSIGMAdPsi){
         /*!============================
         |    compute_dSIGMAdPsi    |
         ============================
@@ -3025,26 +3028,35 @@ namespace micro_material{
         
         */
         
-        dSIGMAdPsi = terms[0];
+        dSIGMAdPsi = terms[0]+terms[1];
         
-        Matrix_9x9 temp;
+        dSIGMAdPsi.row(0) += terms[1].row(0);
+        dSIGMAdPsi.row(1) += terms[1].row(1);
+        dSIGMAdPsi.row(2) += terms[1].row(2);
         
-        for (int i=1; i<3; i++){
-            temp = terms[i];
-            
-            temp.row(0) *= 2;
-            temp.row(1) *= 2;
-            temp.row(2) *= 2;
-            
-            temp.row(3) += terms[i].row(6);
-            temp.row(4) += terms[i].row(7);
-            temp.row(5) += terms[i].row(8);
-            temp.row(6) += terms[i].row(3);
-            temp.row(7) += terms[i].row(4);
-            temp.row(8) += terms[i].row(5);
-            
-            dSIGMAdPsi += temp;
-        }
+        dSIGMAdPsi.row(3) += terms[1].row(6);
+        dSIGMAdPsi.row(4) += terms[1].row(7);
+        dSIGMAdPsi.row(5) += terms[1].row(8);
+        dSIGMAdPsi.row(6) += terms[1].row(3);
+        dSIGMAdPsi.row(7) += terms[1].row(4);
+        dSIGMAdPsi.row(8) += terms[1].row(5);
+        
+//        for (int i=1; i<3; i++){
+//            temp = terms[i];
+//            
+//            temp.row(0) *= 2;
+//            temp.row(1) *= 2;
+//            temp.row(2) *= 2;
+//            
+//            temp.row(3) += terms[i].row(6);
+//            temp.row(4) += terms[i].row(7);
+//            temp.row(5) += terms[i].row(8);
+//            temp.row(6) += terms[i].row(3);
+//            temp.row(7) += terms[i].row(4);
+//            temp.row(8) += terms[i].row(5);
+//            
+//            dSIGMAdPsi += temp;
+//        }
         return;
     }
     
