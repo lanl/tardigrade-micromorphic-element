@@ -3370,12 +3370,19 @@ int test_compute_dPK2dRCG(std::ofstream &results){
     deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
     
     //Evaluate the function
-    t0 = Clock::now();
-    micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
-                                     E, E_micro, E_voigt, E_micro_voigt,
-                                     A, B, C, D, _dPK2dRCG);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    int n = 10000;
+    float _t = 0; 
+
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
+                                         E, E_micro, E_voigt, E_micro_voigt,
+                                         A, B, C, D, _dPK2dRCG);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+
+    }
+    std::cout << "Analytic Jacobian: " << _t << "\n";
     
     bool tot_result = dPK2dRCG.isApprox(_dPK2dRCG,1e-6);
 
@@ -3389,12 +3396,18 @@ int test_compute_dPK2dRCG(std::ofstream &results){
     C_dense = C;
     D_dense = D;
 
-    t0 = Clock::now();
-    micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
-                                     E, E_micro, E_voigt, E_micro_voigt,
-                                     A_dense, B_dense, C_dense, D_dense, _dPK2dRCG);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    _t = 0; 
+
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
+                                         E, E_micro, E_voigt, E_micro_voigt,
+                                         A_dense, B_dense, C_dense, D_dense, _dPK2dRCG);
+        t1 = Clock::now();
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+
+    }
+    std::cout << "Analytic Jacobian (dense): " << _t << "\n";
 
     tot_result *= dPK2dRCG.isApprox(_dPK2dRCG,1e-6);
     
@@ -3498,13 +3511,19 @@ int test_compute_dSIGMAdRCG(std::ofstream &results){
     //Evaluate the function
     Matrix_9x9 terms[4];
     Matrix_9x9 dPK2dRCG;
-    t0 = Clock::now();
-    micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
-                                     E, E_micro, E_voigt, E_micro_voigt,
-                                     A, B, C, D, terms, dPK2dRCG);
-    micro_material::compute_dSIGMAdRCG(terms, _dSIGMAdRCG);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    int n = 10000;
+    double _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
+                                         E, E_micro, E_voigt, E_micro_voigt,
+                                         A, B, C, D, terms, dPK2dRCG);
+        micro_material::compute_dSIGMAdRCG(terms, _dSIGMAdRCG);
+        t1 = Clock::now();
+
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian: " << _t << "\n";
     
     bool tot_result = dSIGMAdRCG.isApprox(_dSIGMAdRCG,1e-6);
 
@@ -3518,13 +3537,18 @@ int test_compute_dSIGMAdRCG(std::ofstream &results){
     C_dense = C;
     D_dense = D;
 
-    t0 = Clock::now();
-    micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
-                                     E, E_micro, E_voigt, E_micro_voigt,
-                                     A_dense, B_dense, C_dense, D_dense, terms, dPK2dRCG);
-    micro_material::compute_dSIGMAdRCG(terms, _dSIGMAdRCG);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (dense): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    _t = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        micro_material::compute_dPK2dRCG(RCG0, RCG0.inverse(), Gamma, Gamma_voigt,
+                                         E, E_micro, E_voigt, E_micro_voigt,
+                                         A_dense, B_dense, C_dense, D_dense, terms, dPK2dRCG);
+        micro_material::compute_dSIGMAdRCG(terms, _dSIGMAdRCG);
+        t1 = Clock::now();
+
+        _t += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian (dense): " << _t << "\n";
 
     tot_result *= dSIGMAdRCG.isApprox(_dSIGMAdRCG,1e-6);
     
