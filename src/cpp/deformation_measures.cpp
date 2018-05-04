@@ -376,30 +376,6 @@ namespace deformation_measures
 
         return;
     }
-    
-    constexpr int[3][3] get_sot_to_voigt_map(){
-        /*!==============================
-        |    get_sot_to_voigt_map    |
-        ==============================
-
-        Get the second order tensor to voigt map.
-
-        */
-        
-        int sot_to_voigt_map[3][3];
-
-        sot_to_voigt_map[0][0] = 0;
-        sot_to_voigt_map[1][1] = 1;
-        sot_to_voigt_map[2][2] = 2;
-        sot_to_voigt_map[1][2] = 3;
-        sot_to_voigt_map[0][2] = 4;
-        sot_to_voigt_map[0][1] = 5;
-        sot_to_voigt_map[2][1] = 6;
-        sot_to_voigt_map[2][0] = 7;
-        sot_to_voigt_map[1][0] = 8;
-
-        return sot_to_voigt_map;
-    }
 
     void get_tot_to_voigt_map(int (&tot_to_voigt_map)[3][3][3]){
         /*!==============================
@@ -410,8 +386,9 @@ namespace deformation_measures
 
         */
 
-        int sot_to_voigt_map[3][3];
-        get_sot_to_voigt_map(sot_to_voigt_map);
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
 
         for (int i=0; i<3; i++){
 
@@ -428,36 +405,6 @@ namespace deformation_measures
         }
 
         return;
-    }
-    
-    constexpr int[3][3][3] get_tot_to_voigt_map(){
-        /*!==============================
-        |    get_tot_to_voigt_map    |
-        ==============================
-
-        Get the third order tensor to voigt map.
-
-        */
-
-        int tot_to_voigt_map[3][3][3];
-        int sot_to_voigt_map[3][3];
-        get_sot_to_voigt_map(sot_to_voigt_map);
-
-        for (int i=0; i<3; i++){
-
-            for (int j=0; j<3; j++){
-
-                for (int k=0; k<3; k++){
-
-                    tot_to_voigt_map[i][j][k] = sot_to_voigt_map[j][k] + 9*i;
-
-                }
-
-            }
-
-        }
-
-        return tot_to_voigt_map;
     }
     
     void undo_voigt_3x3_tensor(const Vector_9 &v, Matrix_3x3 &A){
@@ -610,7 +557,7 @@ namespace deformation_measures
         
     }
     
-    void dot_2ot_4ot(const int &i, const int &mode, const Matrix_3x3 &sot, const Matrix_9x9 &fot, Matrix_9x9 &result){
+    void dot_2ot_4ot(const int &index, const int &mode, const Matrix_3x3 &sot, const Matrix_9x9 &fot, Matrix_9x9 &result){
         /*!==================
         |    dot_2ot_4ot    |
         =====================
@@ -634,432 +581,87 @@ namespace deformation_measures
         result_ijkl = sot_jm fot_imkl
         
         */
-        //Extract the second order tensor
-        double sot11 = sot(0,0);
-        double sot12 = sot(0,1);
-        double sot13 = sot(0,2);
-        double sot21 = sot(1,0);
-        double sot22 = sot(1,1);
-        double sot23 = sot(1,2);
-        double sot31 = sot(2,0);
-        double sot32 = sot(2,1);
-        double sot33 = sot(2,2);
 
-        //Extract the fourth order tensor
-        double fot1111 = fot(0,0);
-        double fot1112 = fot(0,5);
-        double fot1113 = fot(0,4);
-        double fot1121 = fot(0,8);
-        double fot1122 = fot(0,1);
-        double fot1123 = fot(0,3);
-        double fot1131 = fot(0,7);
-        double fot1132 = fot(0,6);
-        double fot1133 = fot(0,2);
-        double fot1211 = fot(5,0);
-        double fot1212 = fot(5,5);
-        double fot1213 = fot(5,4);
-        double fot1221 = fot(5,8);
-        double fot1222 = fot(5,1);
-        double fot1223 = fot(5,3);
-        double fot1231 = fot(5,7);
-        double fot1232 = fot(5,6);
-        double fot1233 = fot(5,2);
-        double fot1311 = fot(4,0);
-        double fot1312 = fot(4,5);
-        double fot1313 = fot(4,4);
-        double fot1321 = fot(4,8);
-        double fot1322 = fot(4,1);
-        double fot1323 = fot(4,3);
-        double fot1331 = fot(4,7);
-        double fot1332 = fot(4,6);
-        double fot1333 = fot(4,2);
-        double fot2111 = fot(8,0);
-        double fot2112 = fot(8,5);
-        double fot2113 = fot(8,4);
-        double fot2121 = fot(8,8);
-        double fot2122 = fot(8,1);
-        double fot2123 = fot(8,3);
-        double fot2131 = fot(8,7);
-        double fot2132 = fot(8,6);
-        double fot2133 = fot(8,2);
-        double fot2211 = fot(1,0);
-        double fot2212 = fot(1,5);
-        double fot2213 = fot(1,4);
-        double fot2221 = fot(1,8);
-        double fot2222 = fot(1,1);
-        double fot2223 = fot(1,3);
-        double fot2231 = fot(1,7);
-        double fot2232 = fot(1,6);
-        double fot2233 = fot(1,2);
-        double fot2311 = fot(3,0);
-        double fot2312 = fot(3,5);
-        double fot2313 = fot(3,4);
-        double fot2321 = fot(3,8);
-        double fot2322 = fot(3,1);
-        double fot2323 = fot(3,3);
-        double fot2331 = fot(3,7);
-        double fot2332 = fot(3,6);
-        double fot2333 = fot(3,2);
-        double fot3111 = fot(7,0);
-        double fot3112 = fot(7,5);
-        double fot3113 = fot(7,4);
-        double fot3121 = fot(7,8);
-        double fot3122 = fot(7,1);
-        double fot3123 = fot(7,3);
-        double fot3131 = fot(7,7);
-        double fot3132 = fot(7,6);
-        double fot3133 = fot(7,2);
-        double fot3211 = fot(6,0);
-        double fot3212 = fot(6,5);
-        double fot3213 = fot(6,4);
-        double fot3221 = fot(6,8);
-        double fot3222 = fot(6,1);
-        double fot3223 = fot(6,3);
-        double fot3231 = fot(6,7);
-        double fot3232 = fot(6,6);
-        double fot3233 = fot(6,2);
-        double fot3311 = fot(2,0);
-        double fot3312 = fot(2,5);
-        double fot3313 = fot(2,4);
-        double fot3321 = fot(2,8);
-        double fot3322 = fot(2,1);
-        double fot3323 = fot(2,3);
-        double fot3331 = fot(2,7);
-        double fot3332 = fot(2,6);
-        double fot3333 = fot(2,2);
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
 
-        //Compute the dot product
-        if (i==0){
-                result(0,0) = fot1111*sot11 + fot2111*sot12 + fot3111*sot13;
-                result(0,1) = fot1122*sot11 + fot2122*sot12 + fot3122*sot13;
-                result(0,2) = fot1133*sot11 + fot2133*sot12 + fot3133*sot13;
-                result(0,3) = fot1123*sot11 + fot2123*sot12 + fot3123*sot13;
-                result(0,4) = fot1113*sot11 + fot2113*sot12 + fot3113*sot13;
-                result(0,5) = fot1112*sot11 + fot2112*sot12 + fot3112*sot13;
-                result(0,6) = fot1132*sot11 + fot2132*sot12 + fot3132*sot13;
-                result(0,7) = fot1131*sot11 + fot2131*sot12 + fot3131*sot13;
-                result(0,8) = fot1121*sot11 + fot2121*sot12 + fot3121*sot13;
-                result(1,0) = fot1211*sot21 + fot2211*sot22 + fot3211*sot23;
-                result(1,1) = fot1222*sot21 + fot2222*sot22 + fot3222*sot23;
-                result(1,2) = fot1233*sot21 + fot2233*sot22 + fot3233*sot23;
-                result(1,3) = fot1223*sot21 + fot2223*sot22 + fot3223*sot23;
-                result(1,4) = fot1213*sot21 + fot2213*sot22 + fot3213*sot23;
-                result(1,5) = fot1212*sot21 + fot2212*sot22 + fot3212*sot23;
-                result(1,6) = fot1232*sot21 + fot2232*sot22 + fot3232*sot23;
-                result(1,7) = fot1231*sot21 + fot2231*sot22 + fot3231*sot23;
-                result(1,8) = fot1221*sot21 + fot2221*sot22 + fot3221*sot23;
-                result(2,0) = fot1311*sot31 + fot2311*sot32 + fot3311*sot33;
-                result(2,1) = fot1322*sot31 + fot2322*sot32 + fot3322*sot33;
-                result(2,2) = fot1333*sot31 + fot2333*sot32 + fot3333*sot33;
-                result(2,3) = fot1323*sot31 + fot2323*sot32 + fot3323*sot33;
-                result(2,4) = fot1313*sot31 + fot2313*sot32 + fot3313*sot33;
-                result(2,5) = fot1312*sot31 + fot2312*sot32 + fot3312*sot33;
-                result(2,6) = fot1332*sot31 + fot2332*sot32 + fot3332*sot33;
-                result(2,7) = fot1331*sot31 + fot2331*sot32 + fot3331*sot33;
-                result(2,8) = fot1321*sot31 + fot2321*sot32 + fot3321*sot33;
-                result(3,0) = fot1311*sot21 + fot2311*sot22 + fot3311*sot23;
-                result(3,1) = fot1322*sot21 + fot2322*sot22 + fot3322*sot23;
-                result(3,2) = fot1333*sot21 + fot2333*sot22 + fot3333*sot23;
-                result(3,3) = fot1323*sot21 + fot2323*sot22 + fot3323*sot23;
-                result(3,4) = fot1313*sot21 + fot2313*sot22 + fot3313*sot23;
-                result(3,5) = fot1312*sot21 + fot2312*sot22 + fot3312*sot23;
-                result(3,6) = fot1332*sot21 + fot2332*sot22 + fot3332*sot23;
-                result(3,7) = fot1331*sot21 + fot2331*sot22 + fot3331*sot23;
-                result(3,8) = fot1321*sot21 + fot2321*sot22 + fot3321*sot23;
-                result(4,0) = fot1311*sot11 + fot2311*sot12 + fot3311*sot13;
-                result(4,1) = fot1322*sot11 + fot2322*sot12 + fot3322*sot13;
-                result(4,2) = fot1333*sot11 + fot2333*sot12 + fot3333*sot13;
-                result(4,3) = fot1323*sot11 + fot2323*sot12 + fot3323*sot13;
-                result(4,4) = fot1313*sot11 + fot2313*sot12 + fot3313*sot13;
-                result(4,5) = fot1312*sot11 + fot2312*sot12 + fot3312*sot13;
-                result(4,6) = fot1332*sot11 + fot2332*sot12 + fot3332*sot13;
-                result(4,7) = fot1331*sot11 + fot2331*sot12 + fot3331*sot13;
-                result(4,8) = fot1321*sot11 + fot2321*sot12 + fot3321*sot13;
-                result(5,0) = fot1211*sot11 + fot2211*sot12 + fot3211*sot13;
-                result(5,1) = fot1222*sot11 + fot2222*sot12 + fot3222*sot13;
-                result(5,2) = fot1233*sot11 + fot2233*sot12 + fot3233*sot13;
-                result(5,3) = fot1223*sot11 + fot2223*sot12 + fot3223*sot13;
-                result(5,4) = fot1213*sot11 + fot2213*sot12 + fot3213*sot13;
-                result(5,5) = fot1212*sot11 + fot2212*sot12 + fot3212*sot13;
-                result(5,6) = fot1232*sot11 + fot2232*sot12 + fot3232*sot13;
-                result(5,7) = fot1231*sot11 + fot2231*sot12 + fot3231*sot13;
-                result(5,8) = fot1221*sot11 + fot2221*sot12 + fot3221*sot13;
-                result(6,0) = fot1211*sot31 + fot2211*sot32 + fot3211*sot33;
-                result(6,1) = fot1222*sot31 + fot2222*sot32 + fot3222*sot33;
-                result(6,2) = fot1233*sot31 + fot2233*sot32 + fot3233*sot33;
-                result(6,3) = fot1223*sot31 + fot2223*sot32 + fot3223*sot33;
-                result(6,4) = fot1213*sot31 + fot2213*sot32 + fot3213*sot33;
-                result(6,5) = fot1212*sot31 + fot2212*sot32 + fot3212*sot33;
-                result(6,6) = fot1232*sot31 + fot2232*sot32 + fot3232*sot33;
-                result(6,7) = fot1231*sot31 + fot2231*sot32 + fot3231*sot33;
-                result(6,8) = fot1221*sot31 + fot2221*sot32 + fot3221*sot33;
-                result(7,0) = fot1111*sot31 + fot2111*sot32 + fot3111*sot33;
-                result(7,1) = fot1122*sot31 + fot2122*sot32 + fot3122*sot33;
-                result(7,2) = fot1133*sot31 + fot2133*sot32 + fot3133*sot33;
-                result(7,3) = fot1123*sot31 + fot2123*sot32 + fot3123*sot33;
-                result(7,4) = fot1113*sot31 + fot2113*sot32 + fot3113*sot33;
-                result(7,5) = fot1112*sot31 + fot2112*sot32 + fot3112*sot33;
-                result(7,6) = fot1132*sot31 + fot2132*sot32 + fot3132*sot33;
-                result(7,7) = fot1131*sot31 + fot2131*sot32 + fot3131*sot33;
-                result(7,8) = fot1121*sot31 + fot2121*sot32 + fot3121*sot33;
-                result(8,0) = fot1111*sot21 + fot2111*sot22 + fot3111*sot23;
-                result(8,1) = fot1122*sot21 + fot2122*sot22 + fot3122*sot23;
-                result(8,2) = fot1133*sot21 + fot2133*sot22 + fot3133*sot23;
-                result(8,3) = fot1123*sot21 + fot2123*sot22 + fot3123*sot23;
-                result(8,4) = fot1113*sot21 + fot2113*sot22 + fot3113*sot23;
-                result(8,5) = fot1112*sot21 + fot2112*sot22 + fot3112*sot23;
-                result(8,6) = fot1132*sot21 + fot2132*sot22 + fot3132*sot23;
-                result(8,7) = fot1131*sot21 + fot2131*sot22 + fot3131*sot23;
-                result(8,8) = fot1121*sot21 + fot2121*sot22 + fot3121*sot23;
+        result = Matrix_9x9::Zero();
+
+        int Ihat;
+        int Jhat;
+        int Khat;
+        int Lhat;
+
+        if(index == 0){
+            for (int i=0; i<3; i++){
+                for (int j=0; j<3; j++){
+                    Ihat = sot_to_voigt_map[i][j];
+                    for (int k=0; k<3; k++){
+                        for (int l=0; l<3; l++){
+                            Jhat = sot_to_voigt_map[k][l];
+
+                            for (int m=0; m<3; m++){
+                                Khat = sot_to_voigt_map[m][j];
+                                result(Ihat,Jhat) += sot(i,m)*fot(Khat,Jhat);
+                            }
+                        }
+                    }
+                }
+            }
         }
-        else if(i==1){
-                result(0,0) = fot1111*sot11 + fot1211*sot12 + fot1311*sot13;
-                result(0,1) = fot1122*sot11 + fot1222*sot12 + fot1322*sot13;
-                result(0,2) = fot1133*sot11 + fot1233*sot12 + fot1333*sot13;
-                result(0,3) = fot1123*sot11 + fot1223*sot12 + fot1323*sot13;
-                result(0,4) = fot1113*sot11 + fot1213*sot12 + fot1313*sot13;
-                result(0,5) = fot1112*sot11 + fot1212*sot12 + fot1312*sot13;
-                result(0,6) = fot1132*sot11 + fot1232*sot12 + fot1332*sot13;
-                result(0,7) = fot1131*sot11 + fot1231*sot12 + fot1331*sot13;
-                result(0,8) = fot1121*sot11 + fot1221*sot12 + fot1321*sot13;
-                result(1,0) = fot2111*sot21 + fot2211*sot22 + fot2311*sot23;
-                result(1,1) = fot2122*sot21 + fot2222*sot22 + fot2322*sot23;
-                result(1,2) = fot2133*sot21 + fot2233*sot22 + fot2333*sot23;
-                result(1,3) = fot2123*sot21 + fot2223*sot22 + fot2323*sot23;
-                result(1,4) = fot2113*sot21 + fot2213*sot22 + fot2313*sot23;
-                result(1,5) = fot2112*sot21 + fot2212*sot22 + fot2312*sot23;
-                result(1,6) = fot2132*sot21 + fot2232*sot22 + fot2332*sot23;
-                result(1,7) = fot2131*sot21 + fot2231*sot22 + fot2331*sot23;
-                result(1,8) = fot2121*sot21 + fot2221*sot22 + fot2321*sot23;
-                result(2,0) = fot3111*sot31 + fot3211*sot32 + fot3311*sot33;
-                result(2,1) = fot3122*sot31 + fot3222*sot32 + fot3322*sot33;
-                result(2,2) = fot3133*sot31 + fot3233*sot32 + fot3333*sot33;
-                result(2,3) = fot3123*sot31 + fot3223*sot32 + fot3323*sot33;
-                result(2,4) = fot3113*sot31 + fot3213*sot32 + fot3313*sot33;
-                result(2,5) = fot3112*sot31 + fot3212*sot32 + fot3312*sot33;
-                result(2,6) = fot3132*sot31 + fot3232*sot32 + fot3332*sot33;
-                result(2,7) = fot3131*sot31 + fot3231*sot32 + fot3331*sot33;
-                result(2,8) = fot3121*sot31 + fot3221*sot32 + fot3321*sot33;
-                result(3,0) = fot3111*sot21 + fot3211*sot22 + fot3311*sot23;
-                result(3,1) = fot3122*sot21 + fot3222*sot22 + fot3322*sot23;
-                result(3,2) = fot3133*sot21 + fot3233*sot22 + fot3333*sot23;
-                result(3,3) = fot3123*sot21 + fot3223*sot22 + fot3323*sot23;
-                result(3,4) = fot3113*sot21 + fot3213*sot22 + fot3313*sot23;
-                result(3,5) = fot3112*sot21 + fot3212*sot22 + fot3312*sot23;
-                result(3,6) = fot3132*sot21 + fot3232*sot22 + fot3332*sot23;
-                result(3,7) = fot3131*sot21 + fot3231*sot22 + fot3331*sot23;
-                result(3,8) = fot3121*sot21 + fot3221*sot22 + fot3321*sot23;
-                result(4,0) = fot3111*sot11 + fot3211*sot12 + fot3311*sot13;
-                result(4,1) = fot3122*sot11 + fot3222*sot12 + fot3322*sot13;
-                result(4,2) = fot3133*sot11 + fot3233*sot12 + fot3333*sot13;
-                result(4,3) = fot3123*sot11 + fot3223*sot12 + fot3323*sot13;
-                result(4,4) = fot3113*sot11 + fot3213*sot12 + fot3313*sot13;
-                result(4,5) = fot3112*sot11 + fot3212*sot12 + fot3312*sot13;
-                result(4,6) = fot3132*sot11 + fot3232*sot12 + fot3332*sot13;
-                result(4,7) = fot3131*sot11 + fot3231*sot12 + fot3331*sot13;
-                result(4,8) = fot3121*sot11 + fot3221*sot12 + fot3321*sot13;
-                result(5,0) = fot2111*sot11 + fot2211*sot12 + fot2311*sot13;
-                result(5,1) = fot2122*sot11 + fot2222*sot12 + fot2322*sot13;
-                result(5,2) = fot2133*sot11 + fot2233*sot12 + fot2333*sot13;
-                result(5,3) = fot2123*sot11 + fot2223*sot12 + fot2323*sot13;
-                result(5,4) = fot2113*sot11 + fot2213*sot12 + fot2313*sot13;
-                result(5,5) = fot2112*sot11 + fot2212*sot12 + fot2312*sot13;
-                result(5,6) = fot2132*sot11 + fot2232*sot12 + fot2332*sot13;
-                result(5,7) = fot2131*sot11 + fot2231*sot12 + fot2331*sot13;
-                result(5,8) = fot2121*sot11 + fot2221*sot12 + fot2321*sot13;
-                result(6,0) = fot2111*sot31 + fot2211*sot32 + fot2311*sot33;
-                result(6,1) = fot2122*sot31 + fot2222*sot32 + fot2322*sot33;
-                result(6,2) = fot2133*sot31 + fot2233*sot32 + fot2333*sot33;
-                result(6,3) = fot2123*sot31 + fot2223*sot32 + fot2323*sot33;
-                result(6,4) = fot2113*sot31 + fot2213*sot32 + fot2313*sot33;
-                result(6,5) = fot2112*sot31 + fot2212*sot32 + fot2312*sot33;
-                result(6,6) = fot2132*sot31 + fot2232*sot32 + fot2332*sot33;
-                result(6,7) = fot2131*sot31 + fot2231*sot32 + fot2331*sot33;
-                result(6,8) = fot2121*sot31 + fot2221*sot32 + fot2321*sot33;
-                result(7,0) = fot1111*sot31 + fot1211*sot32 + fot1311*sot33;
-                result(7,1) = fot1122*sot31 + fot1222*sot32 + fot1322*sot33;
-                result(7,2) = fot1133*sot31 + fot1233*sot32 + fot1333*sot33;
-                result(7,3) = fot1123*sot31 + fot1223*sot32 + fot1323*sot33;
-                result(7,4) = fot1113*sot31 + fot1213*sot32 + fot1313*sot33;
-                result(7,5) = fot1112*sot31 + fot1212*sot32 + fot1312*sot33;
-                result(7,6) = fot1132*sot31 + fot1232*sot32 + fot1332*sot33;
-                result(7,7) = fot1131*sot31 + fot1231*sot32 + fot1331*sot33;
-                result(7,8) = fot1121*sot31 + fot1221*sot32 + fot1321*sot33;
-                result(8,0) = fot1111*sot21 + fot1211*sot22 + fot1311*sot23;
-                result(8,1) = fot1122*sot21 + fot1222*sot22 + fot1322*sot23;
-                result(8,2) = fot1133*sot21 + fot1233*sot22 + fot1333*sot23;
-                result(8,3) = fot1123*sot21 + fot1223*sot22 + fot1323*sot23;
-                result(8,4) = fot1113*sot21 + fot1213*sot22 + fot1313*sot23;
-                result(8,5) = fot1112*sot21 + fot1212*sot22 + fot1312*sot23;
-                result(8,6) = fot1132*sot21 + fot1232*sot22 + fot1332*sot23;
-                result(8,7) = fot1131*sot21 + fot1231*sot22 + fot1331*sot23;
-                result(8,8) = fot1121*sot21 + fot1221*sot22 + fot1321*sot23;
+        else if (index == 1){
+            for (int i=0; i<3; i++){
+                for (int j=0; j<3; j++){
+                    Ihat = sot_to_voigt_map[i][j];
+                    for (int k=0; k<3; k++){
+                        for (int l=0; l<3; l++){
+                            Jhat = sot_to_voigt_map[k][l];
+
+                            for (int m=0; m<3; m++){
+                                Khat = sot_to_voigt_map[j][m];
+                                result(Ihat,Jhat) += sot(i,m)*fot(Khat,Jhat);
+                            }
+                        }
+                    }
+                }
+            }
         }
-        else if(i==2){
-                result(0,0) = fot1111*sot11 + fot1121*sot12 + fot1131*sot13;
-                result(0,1) = fot1212*sot11 + fot1222*sot12 + fot1232*sot13;
-                result(0,2) = fot1313*sot11 + fot1323*sot12 + fot1333*sot13;
-                result(0,3) = fot1213*sot11 + fot1223*sot12 + fot1233*sot13;
-                result(0,4) = fot1113*sot11 + fot1123*sot12 + fot1133*sot13;
-                result(0,5) = fot1112*sot11 + fot1122*sot12 + fot1132*sot13;
-                result(0,6) = fot1312*sot11 + fot1322*sot12 + fot1332*sot13;
-                result(0,7) = fot1311*sot11 + fot1321*sot12 + fot1331*sot13;
-                result(0,8) = fot1211*sot11 + fot1221*sot12 + fot1231*sot13;
-                result(1,0) = fot2111*sot21 + fot2121*sot22 + fot2131*sot23;
-                result(1,1) = fot2212*sot21 + fot2222*sot22 + fot2232*sot23;
-                result(1,2) = fot2313*sot21 + fot2323*sot22 + fot2333*sot23;
-                result(1,3) = fot2213*sot21 + fot2223*sot22 + fot2233*sot23;
-                result(1,4) = fot2113*sot21 + fot2123*sot22 + fot2133*sot23;
-                result(1,5) = fot2112*sot21 + fot2122*sot22 + fot2132*sot23;
-                result(1,6) = fot2312*sot21 + fot2322*sot22 + fot2332*sot23;
-                result(1,7) = fot2311*sot21 + fot2321*sot22 + fot2331*sot23;
-                result(1,8) = fot2211*sot21 + fot2221*sot22 + fot2231*sot23;
-                result(2,0) = fot3111*sot31 + fot3121*sot32 + fot3131*sot33;
-                result(2,1) = fot3212*sot31 + fot3222*sot32 + fot3232*sot33;
-                result(2,2) = fot3313*sot31 + fot3323*sot32 + fot3333*sot33;
-                result(2,3) = fot3213*sot31 + fot3223*sot32 + fot3233*sot33;
-                result(2,4) = fot3113*sot31 + fot3123*sot32 + fot3133*sot33;
-                result(2,5) = fot3112*sot31 + fot3122*sot32 + fot3132*sot33;
-                result(2,6) = fot3312*sot31 + fot3322*sot32 + fot3332*sot33;
-                result(2,7) = fot3311*sot31 + fot3321*sot32 + fot3331*sot33;
-                result(2,8) = fot3211*sot31 + fot3221*sot32 + fot3231*sot33;
-                result(3,0) = fot3111*sot21 + fot3121*sot22 + fot3131*sot23;
-                result(3,1) = fot3212*sot21 + fot3222*sot22 + fot3232*sot23;
-                result(3,2) = fot3313*sot21 + fot3323*sot22 + fot3333*sot23;
-                result(3,3) = fot3213*sot21 + fot3223*sot22 + fot3233*sot23;
-                result(3,4) = fot3113*sot21 + fot3123*sot22 + fot3133*sot23;
-                result(3,5) = fot3112*sot21 + fot3122*sot22 + fot3132*sot23;
-                result(3,6) = fot3312*sot21 + fot3322*sot22 + fot3332*sot23;
-                result(3,7) = fot3311*sot21 + fot3321*sot22 + fot3331*sot23;
-                result(3,8) = fot3211*sot21 + fot3221*sot22 + fot3231*sot23;
-                result(4,0) = fot3111*sot11 + fot3121*sot12 + fot3131*sot13;
-                result(4,1) = fot3212*sot11 + fot3222*sot12 + fot3232*sot13;
-                result(4,2) = fot3313*sot11 + fot3323*sot12 + fot3333*sot13;
-                result(4,3) = fot3213*sot11 + fot3223*sot12 + fot3233*sot13;
-                result(4,4) = fot3113*sot11 + fot3123*sot12 + fot3133*sot13;
-                result(4,5) = fot3112*sot11 + fot3122*sot12 + fot3132*sot13;
-                result(4,6) = fot3312*sot11 + fot3322*sot12 + fot3332*sot13;
-                result(4,7) = fot3311*sot11 + fot3321*sot12 + fot3331*sot13;
-                result(4,8) = fot3211*sot11 + fot3221*sot12 + fot3231*sot13;
-                result(5,0) = fot2111*sot11 + fot2121*sot12 + fot2131*sot13;
-                result(5,1) = fot2212*sot11 + fot2222*sot12 + fot2232*sot13;
-                result(5,2) = fot2313*sot11 + fot2323*sot12 + fot2333*sot13;
-                result(5,3) = fot2213*sot11 + fot2223*sot12 + fot2233*sot13;
-                result(5,4) = fot2113*sot11 + fot2123*sot12 + fot2133*sot13;
-                result(5,5) = fot2112*sot11 + fot2122*sot12 + fot2132*sot13;
-                result(5,6) = fot2312*sot11 + fot2322*sot12 + fot2332*sot13;
-                result(5,7) = fot2311*sot11 + fot2321*sot12 + fot2331*sot13;
-                result(5,8) = fot2211*sot11 + fot2221*sot12 + fot2231*sot13;
-                result(6,0) = fot2111*sot31 + fot2121*sot32 + fot2131*sot33;
-                result(6,1) = fot2212*sot31 + fot2222*sot32 + fot2232*sot33;
-                result(6,2) = fot2313*sot31 + fot2323*sot32 + fot2333*sot33;
-                result(6,3) = fot2213*sot31 + fot2223*sot32 + fot2233*sot33;
-                result(6,4) = fot2113*sot31 + fot2123*sot32 + fot2133*sot33;
-                result(6,5) = fot2112*sot31 + fot2122*sot32 + fot2132*sot33;
-                result(6,6) = fot2312*sot31 + fot2322*sot32 + fot2332*sot33;
-                result(6,7) = fot2311*sot31 + fot2321*sot32 + fot2331*sot33;
-                result(6,8) = fot2211*sot31 + fot2221*sot32 + fot2231*sot33;
-                result(7,0) = fot1111*sot31 + fot1121*sot32 + fot1131*sot33;
-                result(7,1) = fot1212*sot31 + fot1222*sot32 + fot1232*sot33;
-                result(7,2) = fot1313*sot31 + fot1323*sot32 + fot1333*sot33;
-                result(7,3) = fot1213*sot31 + fot1223*sot32 + fot1233*sot33;
-                result(7,4) = fot1113*sot31 + fot1123*sot32 + fot1133*sot33;
-                result(7,5) = fot1112*sot31 + fot1122*sot32 + fot1132*sot33;
-                result(7,6) = fot1312*sot31 + fot1322*sot32 + fot1332*sot33;
-                result(7,7) = fot1311*sot31 + fot1321*sot32 + fot1331*sot33;
-                result(7,8) = fot1211*sot31 + fot1221*sot32 + fot1231*sot33;
-                result(8,0) = fot1111*sot21 + fot1121*sot22 + fot1131*sot23;
-                result(8,1) = fot1212*sot21 + fot1222*sot22 + fot1232*sot23;
-                result(8,2) = fot1313*sot21 + fot1323*sot22 + fot1333*sot23;
-                result(8,3) = fot1213*sot21 + fot1223*sot22 + fot1233*sot23;
-                result(8,4) = fot1113*sot21 + fot1123*sot22 + fot1133*sot23;
-                result(8,5) = fot1112*sot21 + fot1122*sot22 + fot1132*sot23;
-                result(8,6) = fot1312*sot21 + fot1322*sot22 + fot1332*sot23;
-                result(8,7) = fot1311*sot21 + fot1321*sot22 + fot1331*sot23;
-                result(8,8) = fot1211*sot21 + fot1221*sot22 + fot1231*sot23;
+        else if (index == 3){
+            for (int i=0; i<3; i++){
+                for (int j=0; j<3; j++){
+                    Ihat = sot_to_voigt_map[i][j];
+                    for (int k=0; k<3; k++){
+                        Khat = sot_to_voigt_map[j][k];
+                        for (int l=0; l<3; l++){
+                            Jhat = sot_to_voigt_map[k][l];
+
+                            for (int m=0; m<3; m++){
+                                Lhat = sot_to_voigt_map[m][l];
+                                result(Ihat,Jhat) += sot(i,m)*fot(Khat,Lhat);
+                            }
+                        }
+                    }
+                }
+            }
         }
-        else if(i==3){
-                result(0,0) = fot1111*sot11 + fot1112*sot12 + fot1113*sot13;
-                result(0,1) = fot1221*sot11 + fot1222*sot12 + fot1223*sot13;
-                result(0,2) = fot1331*sot11 + fot1332*sot12 + fot1333*sot13;
-                result(0,3) = fot1231*sot11 + fot1232*sot12 + fot1233*sot13;
-                result(0,4) = fot1131*sot11 + fot1132*sot12 + fot1133*sot13;
-                result(0,5) = fot1121*sot11 + fot1122*sot12 + fot1123*sot13;
-                result(0,6) = fot1321*sot11 + fot1322*sot12 + fot1323*sot13;
-                result(0,7) = fot1311*sot11 + fot1312*sot12 + fot1313*sot13;
-                result(0,8) = fot1211*sot11 + fot1212*sot12 + fot1213*sot13;
-                result(1,0) = fot2111*sot21 + fot2112*sot22 + fot2113*sot23;
-                result(1,1) = fot2221*sot21 + fot2222*sot22 + fot2223*sot23;
-                result(1,2) = fot2331*sot21 + fot2332*sot22 + fot2333*sot23;
-                result(1,3) = fot2231*sot21 + fot2232*sot22 + fot2233*sot23;
-                result(1,4) = fot2131*sot21 + fot2132*sot22 + fot2133*sot23;
-                result(1,5) = fot2121*sot21 + fot2122*sot22 + fot2123*sot23;
-                result(1,6) = fot2321*sot21 + fot2322*sot22 + fot2323*sot23;
-                result(1,7) = fot2311*sot21 + fot2312*sot22 + fot2313*sot23;
-                result(1,8) = fot2211*sot21 + fot2212*sot22 + fot2213*sot23;
-                result(2,0) = fot3111*sot31 + fot3112*sot32 + fot3113*sot33;
-                result(2,1) = fot3221*sot31 + fot3222*sot32 + fot3223*sot33;
-                result(2,2) = fot3331*sot31 + fot3332*sot32 + fot3333*sot33;
-                result(2,3) = fot3231*sot31 + fot3232*sot32 + fot3233*sot33;
-                result(2,4) = fot3131*sot31 + fot3132*sot32 + fot3133*sot33;
-                result(2,5) = fot3121*sot31 + fot3122*sot32 + fot3123*sot33;
-                result(2,6) = fot3321*sot31 + fot3322*sot32 + fot3323*sot33;
-                result(2,7) = fot3311*sot31 + fot3312*sot32 + fot3313*sot33;
-                result(2,8) = fot3211*sot31 + fot3212*sot32 + fot3213*sot33;
-                result(3,0) = fot3111*sot21 + fot3112*sot22 + fot3113*sot23;
-                result(3,1) = fot3221*sot21 + fot3222*sot22 + fot3223*sot23;
-                result(3,2) = fot3331*sot21 + fot3332*sot22 + fot3333*sot23;
-                result(3,3) = fot3231*sot21 + fot3232*sot22 + fot3233*sot23;
-                result(3,4) = fot3131*sot21 + fot3132*sot22 + fot3133*sot23;
-                result(3,5) = fot3121*sot21 + fot3122*sot22 + fot3123*sot23;
-                result(3,6) = fot3321*sot21 + fot3322*sot22 + fot3323*sot23;
-                result(3,7) = fot3311*sot21 + fot3312*sot22 + fot3313*sot23;
-                result(3,8) = fot3211*sot21 + fot3212*sot22 + fot3213*sot23;
-                result(4,0) = fot3111*sot11 + fot3112*sot12 + fot3113*sot13;
-                result(4,1) = fot3221*sot11 + fot3222*sot12 + fot3223*sot13;
-                result(4,2) = fot3331*sot11 + fot3332*sot12 + fot3333*sot13;
-                result(4,3) = fot3231*sot11 + fot3232*sot12 + fot3233*sot13;
-                result(4,4) = fot3131*sot11 + fot3132*sot12 + fot3133*sot13;
-                result(4,5) = fot3121*sot11 + fot3122*sot12 + fot3123*sot13;
-                result(4,6) = fot3321*sot11 + fot3322*sot12 + fot3323*sot13;
-                result(4,7) = fot3311*sot11 + fot3312*sot12 + fot3313*sot13;
-                result(4,8) = fot3211*sot11 + fot3212*sot12 + fot3213*sot13;
-                result(5,0) = fot2111*sot11 + fot2112*sot12 + fot2113*sot13;
-                result(5,1) = fot2221*sot11 + fot2222*sot12 + fot2223*sot13;
-                result(5,2) = fot2331*sot11 + fot2332*sot12 + fot2333*sot13;
-                result(5,3) = fot2231*sot11 + fot2232*sot12 + fot2233*sot13;
-                result(5,4) = fot2131*sot11 + fot2132*sot12 + fot2133*sot13;
-                result(5,5) = fot2121*sot11 + fot2122*sot12 + fot2123*sot13;
-                result(5,6) = fot2321*sot11 + fot2322*sot12 + fot2323*sot13;
-                result(5,7) = fot2311*sot11 + fot2312*sot12 + fot2313*sot13;
-                result(5,8) = fot2211*sot11 + fot2212*sot12 + fot2213*sot13;
-                result(6,0) = fot2111*sot31 + fot2112*sot32 + fot2113*sot33;
-                result(6,1) = fot2221*sot31 + fot2222*sot32 + fot2223*sot33;
-                result(6,2) = fot2331*sot31 + fot2332*sot32 + fot2333*sot33;
-                result(6,3) = fot2231*sot31 + fot2232*sot32 + fot2233*sot33;
-                result(6,4) = fot2131*sot31 + fot2132*sot32 + fot2133*sot33;
-                result(6,5) = fot2121*sot31 + fot2122*sot32 + fot2123*sot33;
-                result(6,6) = fot2321*sot31 + fot2322*sot32 + fot2323*sot33;
-                result(6,7) = fot2311*sot31 + fot2312*sot32 + fot2313*sot33;
-                result(6,8) = fot2211*sot31 + fot2212*sot32 + fot2213*sot33;
-                result(7,0) = fot1111*sot31 + fot1112*sot32 + fot1113*sot33;
-                result(7,1) = fot1221*sot31 + fot1222*sot32 + fot1223*sot33;
-                result(7,2) = fot1331*sot31 + fot1332*sot32 + fot1333*sot33;
-                result(7,3) = fot1231*sot31 + fot1232*sot32 + fot1233*sot33;
-                result(7,4) = fot1131*sot31 + fot1132*sot32 + fot1133*sot33;
-                result(7,5) = fot1121*sot31 + fot1122*sot32 + fot1123*sot33;
-                result(7,6) = fot1321*sot31 + fot1322*sot32 + fot1323*sot33;
-                result(7,7) = fot1311*sot31 + fot1312*sot32 + fot1313*sot33;
-                result(7,8) = fot1211*sot31 + fot1212*sot32 + fot1213*sot33;
-                result(8,0) = fot1111*sot21 + fot1112*sot22 + fot1113*sot23;
-                result(8,1) = fot1221*sot21 + fot1222*sot22 + fot1223*sot23;
-                result(8,2) = fot1331*sot21 + fot1332*sot22 + fot1333*sot23;
-                result(8,3) = fot1231*sot21 + fot1232*sot22 + fot1233*sot23;
-                result(8,4) = fot1131*sot21 + fot1132*sot22 + fot1133*sot23;
-                result(8,5) = fot1121*sot21 + fot1122*sot22 + fot1123*sot23;
-                result(8,6) = fot1321*sot21 + fot1322*sot22 + fot1323*sot23;
-                result(8,7) = fot1311*sot21 + fot1312*sot22 + fot1313*sot23;
-                result(8,8) = fot1211*sot21 + fot1212*sot22 + fot1213*sot23;
+        else if (index == 4){
+            for (int i=0; i<3; i++){
+                for (int j=0; j<3; j++){
+                    Ihat = sot_to_voigt_map[i][j];
+                    for (int k=0; k<3; k++){
+                        Khat = sot_to_voigt_map[j][k];
+                        for (int l=0; l<3; l++){
+                            Jhat = sot_to_voigt_map[k][l];
+
+                            for (int m=0; m<3; m++){
+                                Lhat = sot_to_voigt_map[l][m];
+                                result(Ihat,Jhat) += sot(i,m)*fot(Khat,Lhat);
+                            }
+                        }
+                    }
+                }
+            }
         }
         else {
             std::cout << "Error: Index out of range\n";
