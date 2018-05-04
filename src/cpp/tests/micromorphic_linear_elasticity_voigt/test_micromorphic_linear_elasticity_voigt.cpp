@@ -3509,7 +3509,7 @@ int test_compute_dSIGMAdRCG(std::ofstream &results){
     deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
     
     //Evaluate the function
-    Matrix_9x9 terms[4];
+    Matrix_9x9 terms[2];
     Matrix_9x9 dPK2dRCG;
     int n = 10000;
     double _t = 0;
@@ -3779,7 +3779,7 @@ int test_compute_dSIGMAdPsi(std::ofstream &results){
     
     //Evaluate the function
     Matrix_9x9 dPK2dPsi;
-    Matrix_9x9 terms[3];
+    Matrix_9x9 terms[2];
     t0 = Clock::now();
     micro_material::compute_dPK2dPsi(RCG.inverse(), E_micro, E_voigt, E_micro_voigt,
                                      B, D, terms, dPK2dPsi);
