@@ -1,0 +1,24 @@
+#Compiler option
+CC=COMPILER_COMMAND
+
+#Standard option
+STD=-std=gnu++11
+
+#Compiler flags
+CFLAGS=-I. -O1
+
+#Include Eigen Library
+EIGEN = -I EIGEN_LOCATION
+
+#Debugging flag
+DBG = -ggdb
+
+all: tensor_multiplication
+#Terminate after N errors
+ERRORFLG=-fmax-errors=5
+
+tensor_multiplication: 
+	$(CC) $(STD) -o $@ tensor_multiplication.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+clean:
+	rm *o tensor_multiplication
