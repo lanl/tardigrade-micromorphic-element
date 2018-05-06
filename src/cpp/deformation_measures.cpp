@@ -3713,15 +3713,18 @@ namespace deformation_measures
 
         int Ihat;
         int Jhat;
+        
+        double tmp1;
 
         if (swap == 0){
             for (int i=0; i<3; i++){
                 for (int j=0; j<3; j++){
+                    tmp1 = A(i,j);
                     Ihat = sot_to_voigt_map[i][j];
                     for (int k=0; k<3; k++){
                         for (int l=0; l<3; l++){
                             Jhat = sot_to_voigt_map[k][l];
-                            C(Ihat,Jhat) = A(i,j)*B(k,l);
+                            C(Ihat,Jhat) = tmp1*B(k,l);
                         }
                     }
                 }
@@ -3732,9 +3735,10 @@ namespace deformation_measures
                 for (int j=0; j<3; j++){
                     Ihat = sot_to_voigt_map[i][j];
                     for (int k=0; k<3; k++){
+                        tmp1 = A(k,j);
                         for (int l=0; l<3; l++){
                             Jhat = sot_to_voigt_map[k][l];
-                            C(Ihat,Jhat) = A(k,j)*B(i,l);
+                            C(Ihat,Jhat) = tmp1*B(i,l);
                         }
                     }
                 }
@@ -3745,9 +3749,10 @@ namespace deformation_measures
                 for (int j=0; j<3; j++){
                     Ihat = sot_to_voigt_map[i][j];
                     for (int k=0; k<3; k++){
+                        tmp1 = B(k,j);
                         for (int l=0; l<3; l++){
                             Jhat = sot_to_voigt_map[k][l];
-                            C(Ihat,Jhat) = A(i,l)*B(k,j);
+                            C(Ihat,Jhat) = A(i,l)*tmp1;
                         }
                     }
                 }
@@ -4549,13 +4554,17 @@ namespace deformation_measures
 
         int Ihat;
         int Jhat;
+        
+        double tmp1;
+        
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 Ihat = sot_to_voigt_map[i][j];
                 for (int k=0; k<3; k++){
+                    tmp1 = Ainv(i,k);
                     for (int l=0; l<3; l++){
                         Jhat = sot_to_voigt_map[k][l];
-                        dAinvdA(Ihat,Jhat) = -Ainv(i,k)*Ainv(l,j);
+                        dAinvdA(Ihat,Jhat) = -tmp1*Ainv(l,j);
                     }
                 }
             }
@@ -5154,28 +5163,39 @@ namespace deformation_measures
         int Jhat;
         int Khat;
 
+        double tmp1;
+        double tmp2;
+        double tmp3;
+        
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 Ihat = sot_to_voigt_map[i][j];
                 for (int k=0; k<3; k++){
+                    tmp1 = eye[i][k];
+                    tmp2 = eye[j][k];
                     for (int K=0; K<3; K++){
                         Jhat = sot_to_voigt_map[k][K];
                         dadF(Ihat,Jhat) = -dJdF(k,K)*a[Ihat];
 
-                        for (int J=0; J<3; J++){
-                            Khat = sot_to_voigt_map[K][J];
-                            dadF(Ihat,Jhat) += eye[i][k]*F(j,J)*A(Khat);
+                        if(tmp1>1e-9){
+                            for (int J=0; J<3; J++){
+                                Khat = sot_to_voigt_map[K][J];
+                                dadF(Ihat,Jhat) += F(j,J)*A(Khat);
+                            }
+                        }
+                        
+                        if(tmp2>1e-9){
+                            for (int I=0; I<3; I++){
+                                Khat = sot_to_voigt_map[I][K];
+                                dadF(Ihat,Jhat) += F(i,I)*A(Khat);
+                            }
                         }
 
                         for (int I=0; I<3; I++){
-                            Khat = sot_to_voigt_map[I][K];
-                            dadF(Ihat,Jhat) += eye[j][k]*F(i,I)*A(Khat);
-                        }
-
-                        for (int I=0; I<3; I++){
+                            tmp3 = F(i,I);
                             for (int J=0; J<3; J++){
                                 Khat = sot_to_voigt_map[I][J];
-                                dadF(Ihat,Jhat) += F(i,I)*F(j,J)*dAdF(Khat,Jhat);
+                                dadF(Ihat,Jhat) += tmp3*F(j,J)*dAdF(Khat,Jhat);
                             }
                         }
                     }
@@ -5216,36 +5236,51 @@ namespace deformation_measures
         int Ihat;
         int Jhat;
         int Khat;
+        
+        double tmp1;
+        double tmp2;
+        double tmp3;
+        double tmp4;
 
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 for (int k=0; k<3; k++){
                     Ihat = tot_to_voigt_map[i][j][k];
                     for (int l=0; l<3; l++){
+                        tmp1 = eye[i][l];
+                        tmp2 = eye[j][l];
                         for (int L=0; L<3; L++){
                             Jhat = sot_to_voigt_map[l][L];
                             
                             dadF(Ihat,Jhat) = -dJdF(l,L)*a[Ihat];
 
-                            for (int J=0; J<3; J++){
-                                for (int K=0; K<3; K++){
-                                    Khat = tot_to_voigt_map[L][J][K];
-                                    dadF(Ihat,Jhat) += eye[i][l] * F(j,J) * chi(k,K) * A(Khat);
-                                }
-                            }
-
-                            for (int I=0; I<3; I++){
-                                for (int K=0; K<3; K++){
-                                    Khat = tot_to_voigt_map[I][L][K];
-                                    dadF(Ihat,Jhat) += F(i,I) * eye[j][l] * chi(k,K) * A(Khat);
-                                }
-                            }
-
-                            for (int I=0; I<3; I++){
+                            if(tmp1>1e-9){
                                 for (int J=0; J<3; J++){
+                                    tmp3 = F(j,J);
+                                    for (int K=0; K<3; K++){
+                                        Khat = tot_to_voigt_map[L][J][K];
+                                        dadF(Ihat,Jhat) += tmp3 * chi(k,K) * A(Khat);
+                                    }
+                                }
+                            }
+
+                            if(tmp2>1e-9){
+                                for (int I=0; I<3; I++){
+                                    tmp3 = F(i,I);
+                                    for (int K=0; K<3; K++){
+                                        Khat = tot_to_voigt_map[I][L][K];
+                                        dadF(Ihat,Jhat) += tmp3 * chi(k,K) * A(Khat);
+                                    }
+                                }
+                            }
+
+                            for (int I=0; I<3; I++){
+                                tmp3 = F(i,I);
+                                for (int J=0; J<3; J++){
+                                    tmp4 = F(j,J);
                                     for (int K=0; K<3; K++){
                                         Khat = tot_to_voigt_map[I][J][K];
-                                        dadF(Ihat,Jhat) += F(i,I) * F(j,J) * chi(k,K) * dAdF(Khat,Jhat);
+                                        dadF(Ihat,Jhat) += tmp3 * tmp4 * chi(k,K) * dAdF(Khat,Jhat);
                                     }
                                 }
                             }
@@ -5278,6 +5313,8 @@ namespace deformation_measures
         int Ihat;
         int Jhat;
         int Khat;
+        
+        double tmp1;
 
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
@@ -5287,9 +5324,10 @@ namespace deformation_measures
                         Jhat = sot_to_voigt_map[k][K];
 
                         for (int I=0; I<3; I++){
+                            tmp1 = F(i,I);
                             for (int J=0; J<3; J++){
                                 Khat = sot_to_voigt_map[I][J];
-                                dadchi(Ihat,Jhat) += F(i,I) * F(j,J) * dAdchi(Khat,Jhat);
+                                dadchi(Ihat,Jhat) += tmp1 * F(j,J) * dAdchi(Khat,Jhat);
                             }
                         }
                     }
@@ -5330,6 +5368,9 @@ namespace deformation_measures
 
         dadchi = Matrix_27x9::Zero();
 
+        double tmp1;
+        double tmp2;
+        
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 for (int k=0; k<3; k++){
@@ -5339,17 +5380,20 @@ namespace deformation_measures
                             Jhat = sot_to_voigt_map[l][L];
 
                             for (int I=0; I<3; I++){
+                                tmp1 = F(i,I);
                                 for (int J=0; J<3; J++){
                                     Khat = tot_to_voigt_map[I][J][L];
-                                    dadchi(Ihat,Jhat) += F(i,I) * F(j,J) * eye[k][l] * A(Khat);
+                                    dadchi(Ihat,Jhat) += tmp1 * F(j,J) * eye[k][l] * A(Khat);
                                 }
                             }
 
                             for (int I=0; I<3; I++){
+                                tmp1 = F(i,I);
                                 for (int J=0; J<3; J++){
+                                    tmp2 = F(j,J);
                                     for (int K=0; K<3; K++){
                                         Khat = tot_to_voigt_map[I][J][K];
-                                        dadchi(Ihat,Jhat) += F(i,I) * F(j,J) * chi(k,K) * dAdchi(Khat,Jhat);
+                                        dadchi(Ihat,Jhat) += tmp1 * tmp2 * chi(k,K) * dAdchi(Khat,Jhat);
                                     }
                                 }
                             }
@@ -5390,6 +5434,8 @@ namespace deformation_measures
         int Ihat;
         int Jhat;
         int Khat;
+        
+        double tmp1;
 
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
@@ -5400,9 +5446,10 @@ namespace deformation_measures
                             Jhat = tot_to_voigt_map[k][K][L];
                             
                             for (int I=0; I<3; I++){
+                                tmp1 = F(i,I);
                                 for (int J=0; J<3; J++){
                                     Khat = sot_to_voigt_map[I][J];
-                                    dadgrad_chi(Ihat,Jhat) += F(i,I) * F(j,J) * dAdgrad_chi(Khat,Jhat);
+                                    dadgrad_chi(Ihat,Jhat) += tmp1 * F(j,J) * dAdgrad_chi(Khat,Jhat);
                                 }
                             }
                         }
@@ -5436,6 +5483,9 @@ namespace deformation_measures
         int Ihat;
         int Jhat;
         int Khat;
+        
+        double tmp1;
+        double tmp2;    
 
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
@@ -5446,10 +5496,12 @@ namespace deformation_measures
                             for (int M=0; M<3; M++){
                                 Jhat = tot_to_voigt_map[l][L][M];
                                 for (int I=0; I<3; I++){
+                                    tmp1 = F(i,I);
                                     for (int J=0; J<3; J++){
+                                        tmp2 = F(j,J);
                                         for (int K=0; K<3; K++){
                                             Khat = tot_to_voigt_map[I][J][K];
-                                            dadgrad_chi(Ihat,Jhat) += F(i,I) * F(j,J) * chi(k,K) * dAdgrad_chi(Khat,Jhat);
+                                            dadgrad_chi(Ihat,Jhat) += tmp1 * tmp2 * chi(k,K) * dAdgrad_chi(Khat,Jhat);
                                         }
                                     }
                                 }
