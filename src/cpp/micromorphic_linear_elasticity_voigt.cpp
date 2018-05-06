@@ -1619,15 +1619,18 @@ namespace micro_material{
         int Khat;
         int Lhat;
 
+        double tmp1;
+        
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 Ihat = sot_to_voigt_map[i][j];
                 for (int t=0; t<3; t++){
+                    tmp1 = RCGinv(j,t);
                     for (int u=0; u<3; u++){
                         for (int v=0; v<3; v++){
                             Jhat = tot_to_voigt_map[t][u][v];
                             Khat = tot_to_voigt_map[i][u][v];
-                            term3(Ihat,Jhat) = term1(Khat)*RCGinv(j,t);
+                            term3(Ihat,Jhat) = term1(Khat)*tmp1;
                         }
                     }
                 }
