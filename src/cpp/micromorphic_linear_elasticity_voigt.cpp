@@ -1575,6 +1575,8 @@ namespace micro_material{
         int Khat;
         int Lhat;
 
+        double tmp;
+
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 Ihat = sot_to_voigt_map[i][j];
@@ -1582,14 +1584,16 @@ namespace micro_material{
                     for (int u=0; u<3; u++){
                         for (int v=0; v<3; v++){
                             Jhat = tot_to_voigt_map[t][u][v];
+                            tmp = 0;
 
                             for (int q=0; q<3; q++){
                                 for (int r=0; r<3; r++){
                                     Khat = tot_to_voigt_map[i][q][r];
                                     Lhat = tot_to_voigt_map[j][q][r];
-                                    term2(Ihat,Jhat) += C(Khat,Jhat)*term1(Lhat);
+                                    tmp += C(Khat,Jhat)*term1(Lhat);
                                 }
                             }
+                            term2(Ihat,Jhat) = tmp;
                         }
                     }
                 }
