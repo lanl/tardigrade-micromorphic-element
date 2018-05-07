@@ -38,7 +38,7 @@ bool compare_std_vectors(const std::vector<double> v1, const std::vector<double>
 
     if(v1.size() != v2.size()){return false;}
     else{
-        for (int i=0; i<v1.size(); i++){
+        for (unsigned int i=0; i<v1.size(); i++){
             if(1e-6<fabs(v1[i]-v2[i])){return false;}
         }
     }
@@ -58,7 +58,7 @@ bool compare_matrix(const std::vector<std::vector<double>> m1, const std::vector
 
     if(m1.size() != m2.size()){return false;}
     else{
-        for (int i=0; i<m1.size(); i++){
+        for (unsigned int i=0; i<m1.size(); i++){
             if(!compare_std_vectors(m1[i],m2[i])){return false;}
         }
     }
@@ -74,7 +74,7 @@ void print_vector(const std::vector<double> V){
     Print a std::vector
     */
 
-    for (int i=0; i<V.size(); i++){
+    for (unsigned int i=0; i<V.size(); i++){
         std::cout << V[i] << " ";
     }
     std::cout << "\n";
@@ -90,7 +90,7 @@ void print_matrix(const std::vector<std::vector<double>> &M){
 
     */
 
-    for (int i=0; i<M.size(); i++){
+    for (unsigned int i=0; i<M.size(); i++){
         print_vector(M[i]);
     }
 }
@@ -104,9 +104,9 @@ void define_grad_u_MOOSE(double (&grad_u)[3][3]){
     Define the gradient of u for comparison to outputs from MOOSE.
     */
 
-    for (int i=0; i<3; i++){
+    for (unsigned int i=0; i<3; i++){
 
-        for (int j=0; j<3; j++){
+        for (unsigned int j=0; j<3; j++){
 
             grad_u[i][j] = 0.;
 
@@ -144,9 +144,9 @@ void define_grad_phi_data_MOOSE(double (&grad_phi_data)[9][3]){
     Define the gradient of u for comparison to outputs from MOOSE.
     */
 
-    for (int i=0; i<9; i++){
+    for (unsigned int i=0; i<9; i++){
 
-        for (int j=0; j<3; j++){
+        for (unsigned int j=0; j<3; j++){
 
             grad_phi_data[i][j] = 0.;
 
@@ -842,8 +842,8 @@ std::vector<double> parse_pk2_stress_RCG(std::vector<double> RCGvec){
     Matrix_3x3 RCG;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     Matrix_3x9 grad_chi;
@@ -901,8 +901,8 @@ std::vector<double> parse_symmetric_stress_RCG(std::vector<double> RCGvec){
     Matrix_3x3 RCG;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     Matrix_3x9 grad_chi;
@@ -959,8 +959,8 @@ std::vector<double> parse_pk2_stress_Psi(std::vector<double> Psivec){
     Matrix_3x3 Psi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x9 grad_chi;
     
@@ -1016,8 +1016,8 @@ std::vector<double> parse_symmetric_stress_Psi(std::vector<double> Psivec){
     Matrix_3x3 Psi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x9 grad_chi;
     
@@ -1072,8 +1072,8 @@ std::vector<double> parse_pk2_stress_Gamma(std::vector<double> Gammavec){
     Matrix_3x9 Gamma;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     
@@ -1128,8 +1128,8 @@ std::vector<double> parse_symmetric_stress_Gamma(std::vector<double> Gammavec){
     Matrix_3x9 Gamma;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     
@@ -1184,8 +1184,8 @@ std::vector<double> parse_pk2_stress_F(std::vector<double> Fvec){
     Matrix_3x3 F;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 chi;
     Matrix_3x9 grad_chi;
     
@@ -1243,8 +1243,8 @@ std::vector<double> parse_pk2_stress_chi(std::vector<double> chivec){
     Matrix_3x3 chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x9 grad_chi;
     
@@ -1302,8 +1302,8 @@ std::vector<double> parse_pk2_stress_grad_chi(std::vector<double> grad_chivec){
     Matrix_3x9 grad_chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     
@@ -1361,8 +1361,8 @@ std::vector<double> parse_symmetric_stress_F(std::vector<double> Fvec){
     Matrix_3x3 F;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 chi;
     Matrix_3x9 grad_chi;
     
@@ -1420,8 +1420,8 @@ std::vector<double> parse_symmetric_stress_chi(std::vector<double> chivec){
     Matrix_3x3 chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x9 grad_chi;
     
@@ -1479,8 +1479,8 @@ std::vector<double> parse_symmetric_stress_grad_chi(std::vector<double> grad_chi
     Matrix_3x9 grad_chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     
@@ -1538,8 +1538,8 @@ std::vector<double> parse_higher_order_stress_F(std::vector<double> Fvec){
     Matrix_3x3 F;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x9 grad_chi;
     
     SpMat C(27,27);
@@ -1580,8 +1580,8 @@ std::vector<double> parse_higher_order_stress_chi(std::vector<double> chivec){
     Matrix_3x3 chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x9 grad_chi;
     
@@ -1624,8 +1624,8 @@ std::vector<double> parse_higher_order_stress_grad_chi(std::vector<double> grad_
     Matrix_3x9 grad_chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     
@@ -1697,8 +1697,8 @@ std::vector<double> parse_cauchy_stress_F(std::vector<double> Fvec){
     Matrix_3x3 F;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 chi;
     Matrix_3x9 grad_chi;
     
@@ -1763,8 +1763,8 @@ std::vector<double> parse_cauchy_stress_chi(std::vector<double> chivec){
     Matrix_3x3 chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x9 grad_chi;
     
@@ -1829,8 +1829,8 @@ std::vector<double> parse_cauchy_stress_grad_chi(std::vector<double> grad_chivec
     Matrix_3x9 grad_chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     
@@ -1934,8 +1934,8 @@ std::vector<double> parse_cauchy_stress_grad_u(std::vector<double> grad_uvec){
     deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     
     SpMat A(9,9);
     SpMat B(9,9);
@@ -2017,8 +2017,8 @@ std::vector<double> parse_cauchy_stress_grad_phi(std::vector<double> grad_phivec
     deformation_measures::undo_voigt_3x9_tensor(_grad_phi,grad_chi);
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     
     SpMat A(9,9);
     SpMat B(9,9);
@@ -2076,8 +2076,8 @@ std::vector<double> parse_s_stress_F(std::vector<double> Fvec){
     Matrix_3x3 F;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 chi;
     Matrix_3x9 grad_chi;
     
@@ -2142,8 +2142,8 @@ std::vector<double> parse_s_stress_chi(std::vector<double> chivec){
     Matrix_3x3 chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x9 grad_chi;
     
@@ -2209,8 +2209,8 @@ std::vector<double> parse_s_stress_grad_chi(std::vector<double> grad_chivec){
     Matrix_3x9 grad_chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     
@@ -2316,8 +2316,8 @@ std::vector<double> parse_s_stress_grad_u(std::vector<double> grad_uvec){
     
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     
     SpMat A(9,9);
     SpMat B(9,9);
@@ -2399,8 +2399,8 @@ std::vector<double> parse_s_stress_grad_phi(std::vector<double> grad_phivec){
     deformation_measures::undo_voigt_3x9_tensor(_grad_phi,grad_chi);
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     
     SpMat A(9,9);
     SpMat B(9,9);
@@ -2458,8 +2458,8 @@ std::vector<double> parse_m_stress_F(std::vector<double> Fvec){
     Matrix_3x3 F;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 chi;
     Matrix_3x9 grad_chi;
     
@@ -2517,8 +2517,8 @@ std::vector<double> parse_m_stress_chi(std::vector<double> chivec){
     Matrix_3x3 chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x9 grad_chi;
     
@@ -2576,8 +2576,8 @@ std::vector<double> parse_m_stress_grad_chi(std::vector<double> grad_chivec){
     Matrix_3x9 grad_chi;
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     Matrix_3x3 F;
     Matrix_3x3 chi;
     
@@ -2676,8 +2676,8 @@ std::vector<double> parse_m_stress_grad_u(std::vector<double> grad_uvec){
     
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     
     SpMat A(9,9);
     SpMat B(9,9);
@@ -2691,7 +2691,7 @@ std::vector<double> parse_m_stress_grad_u(std::vector<double> grad_uvec){
     
     Matrix_3x3 RCG;
     deformation_measures::get_right_cauchy_green(F,RCG);
-    Matrix_3x3 RCGinv = RCG.inverse();
+    //Matrix_3x3 RCGinv = RCG.inverse();
 
     Matrix_3x3 Psi   = F.transpose()*chi;
     Matrix_3x9 Gamma = F.transpose()*grad_chi;
@@ -2767,8 +2767,8 @@ std::vector<double> parse_m_stress_grad_phi(std::vector<double> grad_phivec){
     deformation_measures::undo_voigt_3x9_tensor(_grad_phi,grad_chi);
     
     //Define additional required values
-    double t  = 0;
-    double dt = 0;
+    //double t  = 0;
+    //double dt = 0;
     
     SpMat A(9,9);
     SpMat B(9,9);
@@ -2782,7 +2782,7 @@ std::vector<double> parse_m_stress_grad_phi(std::vector<double> grad_phivec){
     
     Matrix_3x3 RCG;
     deformation_measures::get_right_cauchy_green(F,RCG);
-    Matrix_3x3 RCGinv = RCG.inverse();
+    //Matrix_3x3 RCGinv = RCG.inverse();
 
     Matrix_3x3 Psi   = F.transpose()*chi;
     Matrix_3x9 Gamma = F.transpose()*grad_chi;
@@ -3322,15 +3322,15 @@ int test_compute_dPK2dRCG(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dPK2dRCG_vec.size(); i++){
-        for (int j=0; j<dPK2dRCG_vec[i].size(); j++){
+    for (unsigned int i=0; i<dPK2dRCG_vec.size(); i++){
+        for (unsigned int j=0; j<dPK2dRCG_vec[i].size(); j++){
             dPK2dRCG(j,i) = dPK2dRCG_vec[i][j];
         }
     }
     
     //Obtain the required values
-    double     t = 0.;        //The current time value (unneeded)
-    double    dt = 0.;        //The change in time (unneeded)
+    //double     t = 0.;        //The current time value (unneeded)
+    //double    dt = 0.;        //The change in time (unneeded)
     double params[18];        //The material parameters
     Matrix_3x3 F;             //The deformation gradient
     Matrix_3x3 chi;           //The micro-dof
@@ -3461,15 +3461,15 @@ int test_compute_dSIGMAdRCG(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dSIGMAdRCG_vec.size(); i++){
-        for (int j=0; j<dSIGMAdRCG_vec[i].size(); j++){
+    for (unsigned int i=0; i<dSIGMAdRCG_vec.size(); i++){
+        for (unsigned int j=0; j<dSIGMAdRCG_vec[i].size(); j++){
             dSIGMAdRCG(j,i) = dSIGMAdRCG_vec[i][j];
         }
     }
     
     //Obtain the required values
-    double     t = 0.;        //The current time value (unneeded)
-    double    dt = 0.;        //The change in time (unneeded)
+    //double     t = 0.;        //The current time value (unneeded)
+    //double    dt = 0.;        //The change in time (unneeded)
     double params[18];        //The material parameters
     Matrix_3x3 F;             //The deformation gradient
     Matrix_3x3 chi;           //The micro-dof
@@ -3611,15 +3611,15 @@ int test_compute_dPK2dPsi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dPK2dPsi_vec.size(); i++){
-        for (int j=0; j<dPK2dPsi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dPK2dPsi_vec.size(); i++){
+        for (unsigned int j=0; j<dPK2dPsi_vec[i].size(); j++){
             dPK2dPsi(j,i) = dPK2dPsi_vec[i][j];
         }
     }
     
     //Obtain the required values
-    double     t = 0.;        //The current time value (unneeded)
-    double    dt = 0.;        //The change in time (unneeded)
+    //double     t = 0.;        //The current time value (unneeded)
+    //double    dt = 0.;        //The change in time (unneeded)
     double params[18];        //The material parameters
     std::vector<double> SDVS; //The state variables (unneeded)
     Vector_9 PK2;             //The second piola kirchhoff stress
@@ -3747,15 +3747,15 @@ int test_compute_dSIGMAdPsi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dSIGMAdPsi_vec.size(); i++){
-        for (int j=0; j<dSIGMAdPsi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dSIGMAdPsi_vec.size(); i++){
+        for (unsigned int j=0; j<dSIGMAdPsi_vec[i].size(); j++){
             dSIGMAdPsi(j,i) = dSIGMAdPsi_vec[i][j];
         }
     }
     
     //Obtain the required values
-    double     t = 0.;        //The current time value (unneeded)
-    double    dt = 0.;        //The change in time (unneeded)
+    //double     t = 0.;        //The current time value (unneeded)
+    //double    dt = 0.;        //The change in time (unneeded)
     double params[18];        //The material parameters
     std::vector<double> SDVS; //The state variables (unneeded)
     Vector_9 PK2;             //The second piola kirchhoff stress
@@ -3863,7 +3863,7 @@ int test_compute_dPK2dGamma(std::ofstream &results){
     
     //Define the derived deformation measures
     Matrix_3x3 RCG    = F.transpose()*F;
-    Matrix_3x3 Psi    = F.transpose()*chi; //The base point about which to compute the derivative
+    //Matrix_3x3 Psi    = F.transpose()*chi; //The base point about which to compute the derivative
     Matrix_3x9 Gamma0 = F.transpose()*grad_chi;
     
     Vector_27 Gamma0_vec; //The vector form of RCG
@@ -3886,15 +3886,15 @@ int test_compute_dPK2dGamma(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dPK2dGamma_vec.size(); i++){
-        for (int j=0; j<dPK2dGamma_vec[i].size(); j++){
+    for (unsigned int i=0; i<dPK2dGamma_vec.size(); i++){
+        for (unsigned int j=0; j<dPK2dGamma_vec[i].size(); j++){
             dPK2dGamma(j,i) = dPK2dGamma_vec[i][j];
         }
     }
     
     //Obtain the required values
-    double     t = 0.;        //The current time value (unneeded)
-    double    dt = 0.;        //The change in time (unneeded)
+    //double     t = 0.;        //The current time value (unneeded)
+    //double    dt = 0.;        //The change in time (unneeded)
     double params[18];        //The material parameters
     std::vector<double> SDVS; //The state variables (unneeded)
     Vector_9 PK2;             //The second piola kirchhoff stress
@@ -3998,7 +3998,7 @@ int test_compute_dSIGMAdGamma(std::ofstream &results){
     
     //Define the derived deformation measures
     Matrix_3x3 RCG    = F.transpose()*F;
-    Matrix_3x3 Psi    = F.transpose()*chi; //The base point about which to compute the derivative
+    //Matrix_3x3 Psi    = F.transpose()*chi; //The base point about which to compute the derivative
     Matrix_3x9 Gamma0 = F.transpose()*grad_chi;
     
     Vector_27 Gamma0_vec; //The vector form of RCG
@@ -4021,15 +4021,15 @@ int test_compute_dSIGMAdGamma(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dSIGMAdGamma_vec.size(); i++){
-        for (int j=0; j<dSIGMAdGamma_vec[i].size(); j++){
+    for (unsigned int i=0; i<dSIGMAdGamma_vec.size(); i++){
+        for (unsigned int j=0; j<dSIGMAdGamma_vec[i].size(); j++){
             dSIGMAdGamma(j,i) = dSIGMAdGamma_vec[i][j];
         }
     }
     
     //Obtain the required values
-    double     t = 0.;        //The current time value (unneeded)
-    double    dt = 0.;        //The change in time (unneeded)
+    //double     t = 0.;        //The current time value (unneeded)
+    //double    dt = 0.;        //The change in time (unneeded)
     double params[18];        //The material parameters
     std::vector<double> SDVS; //The state variables (unneeded)
     Vector_9 PK2;             //The second piola kirchhoff stress
@@ -4136,8 +4136,8 @@ int test_compute_dMdGamma(std::ofstream &results){
     define_grad_phi(grad_chi);
     
     //Define the derived deformation measures
-    Matrix_3x3 RCG    = F.transpose()*F;
-    Matrix_3x3 Psi    = F.transpose()*chi; //The base point about which to compute the derivative
+    //Matrix_3x3 RCG    = F.transpose()*F;
+    //Matrix_3x3 Psi    = F.transpose()*chi; //The base point about which to compute the derivative
     Matrix_3x9 Gamma0 = F.transpose()*grad_chi;
     
     Vector_27 Gamma0_vec; //The vector form of RCG
@@ -4160,8 +4160,8 @@ int test_compute_dMdGamma(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dMdGamma_vec.size(); i++){
-        for (int j=0; j<dMdGamma_vec[i].size(); j++){
+    for (unsigned int i=0; i<dMdGamma_vec.size(); i++){
+        for (unsigned int j=0; j<dMdGamma_vec[i].size(); j++){
             dMdGamma(j,i) = dMdGamma_vec[i][j];
         }
     }
@@ -4225,7 +4225,7 @@ int test_compute_dPK2dF(std::ofstream &results){
     Vector_9 F0_vec; //The vector form of F
     deformation_measures::voigt_3x3_tensor(F0,F0_vec);
     
-    Matrix_3x3 RCG = F0.transpose()*F0;
+    //Matrix_3x3 RCG = F0.transpose()*F0;
     
     std::vector<double> x0;
     x0.resize(9);
@@ -4244,8 +4244,8 @@ int test_compute_dPK2dF(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dPK2dF_vec.size(); i++){
-        for (int j=0; j<dPK2dF_vec[i].size(); j++){
+    for (unsigned int i=0; i<dPK2dF_vec.size(); i++){
+        for (unsigned int j=0; j<dPK2dF_vec[i].size(); j++){
             dPK2dF(j,i) = dPK2dF_vec[i][j];
         }
     }
@@ -4339,7 +4339,7 @@ int test_compute_dPK2dchi(std::ofstream &results){
     Matrix_3x3 F;
     define_deformation_gradient(F);
     
-    Matrix_3x3 RCG = F.transpose()*F;
+    //Matrix_3x3 RCG = F.transpose()*F;
     
     std::vector<double> x0;
     x0.resize(9);
@@ -4358,8 +4358,8 @@ int test_compute_dPK2dchi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dPK2dchi_vec.size(); i++){
-        for (int j=0; j<dPK2dchi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dPK2dchi_vec.size(); i++){
+        for (unsigned int j=0; j<dPK2dchi_vec[i].size(); j++){
             dPK2dchi(j,i) = dPK2dchi_vec[i][j];
         }
     }
@@ -4448,7 +4448,7 @@ int test_compute_dPK2dgrad_chi(std::ofstream &results){
     Matrix_3x3 F;
     define_deformation_gradient(F);
     
-    Matrix_3x3 RCG = F.transpose()*F;
+    //Matrix_3x3 RCG = F.transpose()*F;
     
     std::vector<double> x0;
     x0.resize(27);
@@ -4467,8 +4467,8 @@ int test_compute_dPK2dgrad_chi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dPK2dgrad_chi_vec.size(); i++){
-        for (int j=0; j<dPK2dgrad_chi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dPK2dgrad_chi_vec.size(); i++){
+        for (unsigned int j=0; j<dPK2dgrad_chi_vec[i].size(); j++){
             dPK2dgrad_chi(j,i) = dPK2dgrad_chi_vec[i][j];
         }
     }
@@ -4550,7 +4550,7 @@ int test_compute_dSIGMAdF(std::ofstream &results){
     Vector_9 F0_vec; //The vector form of F
     deformation_measures::voigt_3x3_tensor(F0,F0_vec);
     
-    Matrix_3x3 RCG = F0.transpose()*F0;
+    //Matrix_3x3 RCG = F0.transpose()*F0;
     
     std::vector<double> x0;
     x0.resize(9);
@@ -4569,8 +4569,8 @@ int test_compute_dSIGMAdF(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dSIGMAdF_vec.size(); i++){
-        for (int j=0; j<dSIGMAdF_vec[i].size(); j++){
+    for (unsigned int i=0; i<dSIGMAdF_vec.size(); i++){
+        for (unsigned int j=0; j<dSIGMAdF_vec[i].size(); j++){
             dSIGMAdF(j,i) = dSIGMAdF_vec[i][j];
         }
     }
@@ -4657,7 +4657,7 @@ int test_compute_dSIGMAdchi(std::ofstream &results){
     
     Matrix_3x3 F;
     define_deformation_gradient(F);
-    Matrix_3x3 RCG = F.transpose()*F;
+    //Matrix_3x3 RCG = F.transpose()*F;
     
     std::vector<double> x0;
     x0.resize(9);
@@ -4676,8 +4676,8 @@ int test_compute_dSIGMAdchi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dSIGMAdchi_vec.size(); i++){
-        for (int j=0; j<dSIGMAdchi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dSIGMAdchi_vec.size(); i++){
+        for (unsigned int j=0; j<dSIGMAdchi_vec[i].size(); j++){
             dSIGMAdchi(j,i) = dSIGMAdchi_vec[i][j];
         }
     }
@@ -4762,7 +4762,7 @@ int test_compute_dSIGMAdgrad_chi(std::ofstream &results){
     
     Matrix_3x3 F;
     define_deformation_gradient(F);
-    Matrix_3x3 RCG = F.transpose()*F;
+    //Matrix_3x3 RCG = F.transpose()*F;
     
     std::vector<double> x0;
     x0.resize(27);
@@ -4781,8 +4781,8 @@ int test_compute_dSIGMAdgrad_chi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dSIGMAdgrad_chi_vec.size(); i++){
-        for (int j=0; j<dSIGMAdgrad_chi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dSIGMAdgrad_chi_vec.size(); i++){
+        for (unsigned int j=0; j<dSIGMAdgrad_chi_vec[i].size(); j++){
             dSIGMAdgrad_chi(j,i) = dSIGMAdgrad_chi_vec[i][j];
         }
     }
@@ -4865,7 +4865,7 @@ int test_compute_dMdF(std::ofstream &results){
     Vector_9 F0_vec; //The vector form of F
     deformation_measures::voigt_3x3_tensor(F0,F0_vec);
     
-    Matrix_3x3 RCG = F0.transpose()*F0;
+    //Matrix_3x3 RCG = F0.transpose()*F0;
     
     std::vector<double> x0;
     x0.resize(9);
@@ -4884,8 +4884,8 @@ int test_compute_dMdF(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dMdF_vec.size(); i++){
-        for (int j=0; j<dMdF_vec[i].size(); j++){
+    for (unsigned int i=0; i<dMdF_vec.size(); i++){
+        for (unsigned int j=0; j<dMdF_vec[i].size(); j++){
             dMdF(j,i) = dMdF_vec[i][j];
         }
     }
@@ -4972,7 +4972,7 @@ int test_compute_dMdchi(std::ofstream &results){
     Vector_9 chi0_vec; //The vector form of F
     deformation_measures::voigt_3x3_tensor(chi0,chi0_vec);
     
-    Matrix_3x3 RCG = F.transpose()*F;
+    //Matrix_3x3 RCG = F.transpose()*F;
     
     std::vector<double> x0;
     x0.resize(9);
@@ -4991,8 +4991,8 @@ int test_compute_dMdchi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dMdchi_vec.size(); i++){
-        for (int j=0; j<dMdchi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dMdchi_vec.size(); i++){
+        for (unsigned int j=0; j<dMdchi_vec[i].size(); j++){
             dMdchi(j,i) = dMdchi_vec[i][j];
         }
     }
@@ -5077,7 +5077,7 @@ int test_compute_dMdgrad_chi(std::ofstream &results){
     Vector_27 grad_chi0_vec; //The vector form of F
     deformation_measures::voigt_3x9_tensor(grad_chi0,grad_chi0_vec);
     
-    Matrix_3x3 RCG = F.transpose()*F;
+    //Matrix_3x3 RCG = F.transpose()*F;
     
     std::vector<double> x0;
     x0.resize(27);
@@ -5096,8 +5096,8 @@ int test_compute_dMdgrad_chi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dMdgrad_chi_vec.size(); i++){
-        for (int j=0; j<dMdgrad_chi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dMdgrad_chi_vec.size(); i++){
+        for (unsigned int j=0; j<dMdgrad_chi_vec[i].size(); j++){
             dMdgrad_chi(j,i) = dMdgrad_chi_vec[i][j];
         }
     }
@@ -5178,7 +5178,7 @@ int test_compute_dcauchydF(std::ofstream &results){
     Vector_9 x0_vec; //The vector form of F
     deformation_measures::voigt_3x3_tensor(F,x0_vec);
     
-    Matrix_3x3 RCG = F.transpose()*F;
+    //Matrix_3x3 RCG = F.transpose()*F;
     
     std::vector<double> x0;
     x0.resize(9);
@@ -5197,8 +5197,8 @@ int test_compute_dcauchydF(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dcauchydF_vec.size(); i++){
-        for (int j=0; j<dcauchydF_vec[i].size(); j++){
+    for (unsigned int i=0; i<dcauchydF_vec.size(); i++){
+        for (unsigned int j=0; j<dcauchydF_vec[i].size(); j++){
             dcauchydF(j,i) = dcauchydF_vec[i][j];
         }
     }
@@ -5313,7 +5313,7 @@ int test_compute_dsdF(std::ofstream &results){
     Vector_9 x0_vec; //The vector form of F
     deformation_measures::voigt_3x3_tensor(F,x0_vec);
     
-    Matrix_3x3 RCG = F.transpose()*F;
+    //Matrix_3x3 RCG = F.transpose()*F;
     
     std::vector<double> x0;
     x0.resize(9);
@@ -5332,8 +5332,8 @@ int test_compute_dsdF(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dsdF_vec.size(); i++){
-        for (int j=0; j<dsdF_vec[i].size(); j++){
+    for (unsigned int i=0; i<dsdF_vec.size(); i++){
+        for (unsigned int j=0; j<dsdF_vec[i].size(); j++){
             dsdF(j,i) = dsdF_vec[i][j];
         }
     }
@@ -5443,7 +5443,7 @@ int test_compute_dmdF(std::ofstream &results){
     Vector_9 x0_vec; //The vector form of F
     deformation_measures::voigt_3x3_tensor(F,x0_vec);
     
-    Matrix_3x3 RCG = F.transpose()*F;
+    //Matrix_3x3 RCG = F.transpose()*F;
     
     std::vector<double> x0;
     x0.resize(9);
@@ -5462,8 +5462,8 @@ int test_compute_dmdF(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dmdF_vec.size(); i++){
-        for (int j=0; j<dmdF_vec[i].size(); j++){
+    for (unsigned int i=0; i<dmdF_vec.size(); i++){
+        for (unsigned int j=0; j<dmdF_vec[i].size(); j++){
             dmdF(j,i) = dmdF_vec[i][j];
         }
     }
@@ -5590,8 +5590,8 @@ int test_compute_dcauchydchi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dcauchydchi_vec.size(); i++){
-        for (int j=0; j<dcauchydchi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dcauchydchi_vec.size(); i++){
+        for (unsigned int j=0; j<dcauchydchi_vec[i].size(); j++){
             dcauchydchi(j,i) = dcauchydchi_vec[i][j];
         }
     }
@@ -5718,8 +5718,8 @@ int test_compute_dsdchi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dsdchi_vec.size(); i++){
-        for (int j=0; j<dsdchi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dsdchi_vec.size(); i++){
+        for (unsigned int j=0; j<dsdchi_vec[i].size(); j++){
             dsdchi(j,i) = dsdchi_vec[i][j];
         }
     }
@@ -5847,8 +5847,8 @@ int test_compute_dmdchi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dmdchi_vec.size(); i++){
-        for (int j=0; j<dmdchi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dmdchi_vec.size(); i++){
+        for (unsigned int j=0; j<dmdchi_vec[i].size(); j++){
             dmdchi(j,i) = dmdchi_vec[i][j];
         }
     }
@@ -5975,8 +5975,8 @@ int test_compute_dcauchydgrad_chi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dcauchydgrad_chi_vec.size(); i++){
-        for (int j=0; j<dcauchydgrad_chi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dcauchydgrad_chi_vec.size(); i++){
+        for (unsigned int j=0; j<dcauchydgrad_chi_vec[i].size(); j++){
             dcauchydgrad_chi(j,i) = dcauchydgrad_chi_vec[i][j];
         }
     }
@@ -6104,8 +6104,8 @@ int test_compute_dsdgrad_chi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dsdgrad_chi_vec.size(); i++){
-        for (int j=0; j<dsdgrad_chi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dsdgrad_chi_vec.size(); i++){
+        for (unsigned int j=0; j<dsdgrad_chi_vec[i].size(); j++){
             dsdgrad_chi(j,i) = dsdgrad_chi_vec[i][j];
         }
     }
@@ -6233,8 +6233,8 @@ int test_compute_dmdgrad_chi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<dmdgrad_chi_vec.size(); i++){
-        for (int j=0; j<dmdgrad_chi_vec[i].size(); j++){
+    for (unsigned int i=0; i<dmdgrad_chi_vec.size(); i++){
+        for (unsigned int j=0; j<dmdgrad_chi_vec[i].size(); j++){
             dmdgrad_chi(j,i) = dmdgrad_chi_vec[i][j];
         }
     }
@@ -6326,7 +6326,7 @@ int test_compute_total_derivatives_DcauchyDgrad_u(std::ofstream &results){
  
     */
     
-    const int mhat = 9;
+    //const int mhat = 9;
     const int nhat = 9;
     
     Matrix_9x9  r; //The expected result
@@ -6399,8 +6399,8 @@ int test_compute_total_derivatives_DcauchyDgrad_u(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<r_vec.size(); i++){
-        for (int j=0; j<r_vec[i].size(); j++){
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
             r(j,i) = r_vec[i][j];
         }
     }
@@ -6517,7 +6517,7 @@ int test_compute_total_derivatives_DsDgrad_u(std::ofstream &results){
  
     */
     
-    const int mhat = 9;
+    //const int mhat = 9;
     const int nhat = 9;
     
     Matrix_9x9  r; //The expected result
@@ -6587,8 +6587,8 @@ int test_compute_total_derivatives_DsDgrad_u(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<r_vec.size(); i++){
-        for (int j=0; j<r_vec[i].size(); j++){
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
             r(j,i) = r_vec[i][j];
         }
     }
@@ -6705,7 +6705,7 @@ int test_compute_total_derivatives_DmDgrad_u(std::ofstream &results){
  
     */
     
-    const int mhat = 27;
+    //const int mhat = 27;
     const int nhat = 9;
     
     Matrix_27x9  r; //The expected result
@@ -6775,8 +6775,8 @@ int test_compute_total_derivatives_DmDgrad_u(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<r_vec.size(); i++){
-        for (int j=0; j<r_vec[i].size(); j++){
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
             r(j,i) = r_vec[i][j];
         }
     }
@@ -6893,7 +6893,7 @@ int test_compute_total_derivatives_DcauchyDgrad_phi(std::ofstream &results){
  
     */
     
-    const int mhat = 9;
+    //const int mhat = 9;
     const int nhat = 27;
     
     Matrix_9x27  r; //The expected result
@@ -6968,8 +6968,8 @@ int test_compute_total_derivatives_DcauchyDgrad_phi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<r_vec.size(); i++){
-        for (int j=0; j<r_vec[i].size(); j++){
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
             r(j,i) = r_vec[i][j];
         }
     }
@@ -7081,7 +7081,7 @@ int test_compute_total_derivatives_DsDgrad_phi(std::ofstream &results){
  
     */
     
-    const int mhat = 9;
+    //const int mhat = 9;
     const int nhat = 27;
     
     Matrix_9x27  r; //The expected result
@@ -7156,8 +7156,8 @@ int test_compute_total_derivatives_DsDgrad_phi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<r_vec.size(); i++){
-        for (int j=0; j<r_vec[i].size(); j++){
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
             r(j,i) = r_vec[i][j];
         }
     }
@@ -7270,7 +7270,7 @@ int test_compute_total_derivatives_DmDgrad_phi(std::ofstream &results){
  
     */
     
-    const int mhat = 27;
+    //const int mhat = 27;
     const int nhat = 27;
     
     Matrix_27x27  r; //The expected result
@@ -7345,8 +7345,8 @@ int test_compute_total_derivatives_DmDgrad_phi(std::ofstream &results){
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
     //Populate the expected result for easy comparison.
-    for (int i=0; i<r_vec.size(); i++){
-        for (int j=0; j<r_vec[i].size(); j++){
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
             r(j,i) = r_vec[i][j];
         }
     }
@@ -7661,8 +7661,8 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     t1 = Clock::now();
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
-    for (int i=0; i<r_vec.size(); i++){
-        for (int j=0; j<r_vec[i].size(); j++){
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
             r(j,i) = r_vec[i][j];
         }
     }
@@ -7820,6 +7820,19 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
+    //Test the computation of the jacobian in a component-wise fashion
+    double tmp;
+    for (int i=0; i<3; i++){
+        for (int j=0; j<12; j++){
+            balance_equations::compute_internal_force_jacobian(i,j,N,dNdx,eta,detadx,_DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, tmp);
+            __r[i][j] = tmp;
+        }
+    }
+    balance_equations::map_vector_to_eigen(__r, _r);
+    std::cout << "__r:\n";
+    print_matrix(__r);
+    tot_result *= r.isApprox(_r,1e-6);
+
     std::cout << "test_compute_internal_force_jacobian:\n";
 //    std::cout << "cauchy:\n" << cauchy << "\n";
 //    std::cout << "DcauchyDgrad_u:\n";
@@ -7829,7 +7842,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
 //    std::cout << "DcauchyDgrad_phi:\n";
 //    print_matrix(_DcauchyDgrad_phi);
 //
-//    std::cout << "r:\n" << r << "\n";
+    std::cout << "r:\n" << r << "\n";
 //    std::cout << "_r:\n";
 //    print_matrix(__r);
 
@@ -7839,6 +7852,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     else {
         results << "test_compute_internal_force_jacobian & False\\\\\n\\hline\n";
     }
+    return 0;
 }
 
 int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=false){
@@ -7885,8 +7899,8 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     t1 = Clock::now();
     std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
-    for (int i=0; i<r_vec.size(); i++){
-        for (int j=0; j<r_vec[i].size(); j++){
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
             r(j,i) = r_vec[i][j];
         }
     }
@@ -8100,6 +8114,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     else {
         results << "test_compute_internal_couple_jacobian & False\\\\\n\\hline\n";
     }
+    return 0;
 }
 
 int test_micromorphic_material_library(std::ofstream &results){
@@ -8418,6 +8433,7 @@ int test_micromorphic_material_library(std::ofstream &results){
     else {
         results << "test_micromorphic_material_library & False\\\\\n\\hline\n";
     }
+    return 0;
 }
 
 int main(){
