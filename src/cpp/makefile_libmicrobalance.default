@@ -19,9 +19,9 @@ DBG =
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 
-all: libmicrobalance.so
+all: libmicrobalance.so.1
 
-libmicrobalance.so: $(OBJ)
+libmicrobalance.so.1: $(OBJ)
 	$(CC) $(STD) -shared -Wl,-soname,libmicrobalance.so.1 -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 balance_equations.o: balance_equations.h balance_equations.cpp
@@ -31,4 +31,4 @@ deformation_measures.o: deformation_measures.h deformation_measures.cpp
 	$(CC) $(STD) -o $@ -c deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 clean:
-	rm *o libmicrobalance.so
+	rm *o libmicrobalance.so.1

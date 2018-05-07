@@ -20,9 +20,9 @@ DBG =
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 
-all: libmicromat.so
+all: libmicromat.so.1
 
-libmicromat.so: $(OBJ)
+libmicromat.so.1: $(OBJ)
 	$(CC) $(STD) -shared -Wl,-soname,libmicromat.so.1 -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 micromorphic_material_library.o: micromorphic_material_library.h micromorphic_material_library.cpp
@@ -39,4 +39,4 @@ micromorphic_linear_elasticity_voigt.o: micromorphic_linear_elasticity_voigt.h m
 	$(CC) $(STD) -o $@ -c micromorphic_linear_elasticity_voigt.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 clean:
-	rm *o libmicromat.so
+	rm *o libmicromat.so.1
