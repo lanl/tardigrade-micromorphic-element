@@ -38,16 +38,13 @@ to restrictions on the degrees of freedom.
 
 A second implementation which is more general and designed for use in 
 the simulation code MOOSE can be built from code available in /src/cpp
- using the command
-> `make makefile_libmicromat`
+ using the commands
+> `make -f makefile_libmicromat`
+> `make -f makefile_libmicrobalance`
 
-This produces a shared library of micromorphic material models which 
+This produces two shared librarys of micromorphic material models which 
 can be linked to when compiling the MOOSE application "tardigrade" 
 which is the implementation of micromorphic continuum mechanics.
-
-Note that this produces a kenel structure which uses the linear elastic 
-material model but can use other material models by changing which is 
-built in the makefile.
 
 ** Upcoming work **
 
@@ -117,6 +114,10 @@ A full test of the code can be executed with the command
 where "python" is the call to the python 2.7 installation. This will run the unittest module 
 which will execute the test functions in the code. The -v option allows more information to 
 be printed to the screen. This is useful to understand which tests are being executed.
+
+The code is also intended to generate the documentation. Currently, this is prevented because 
+the LaTeX file generation is not particularly safe and can create errors. This will be 
+investigated more soon.
 
 ** CPP Code **
 
