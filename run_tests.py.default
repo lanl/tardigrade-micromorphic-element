@@ -46,7 +46,7 @@ class TestHarness(object):
               "| These tests are of lower level     |\n"+\
               "| functions which can be verified    |\n"+\
               "| best individually and depend only  |\n"+\
-              "| a limit and well known set of      |\n"+\
+              "| a limited and well known set of    |\n"+\
               "| functions.                         |\n"+\
               "======================================\n"
         
@@ -70,9 +70,12 @@ class TestHarness(object):
               "======================================\n"
         
         for f in self.regression_tests:
+            #sys.stdout = self.orig_stdout
+            #proc = subprocess.Popen([os.path.join(os.getcwd(),"driver"),f])
             try:
                 sys.stdout = self.orig_stdout                           #Change the output to the screen instead of the results file
                 print("running subprocess: "+ " ".join([os.path.join(os.getcwd(),"driver"),f])) #Run the finite element model indicated
+                proc = subprocess.Popen([os.path.join(os.getcwd(),"driver"),f])
                 proc.wait()
                 (stdout, stderr) = proc.communicate()
 
