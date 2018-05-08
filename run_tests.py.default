@@ -59,7 +59,7 @@ class TestHarness(object):
             print(stderr)
             raise IOError
 
-        os.chdir(os.owd)
+        os.chdir(self.owd)
 
         print "======================================\n"+\
               "|                                    |\n"+\
