@@ -660,8 +660,8 @@ namespace balance_equations{
         Matrix_9x12 dphidU       = _dphidU;
         Matrix_27x12 dgrad_phidU = _dgrad_phidU;
         
-        int Ihat;
-        int Jhat;
+        int Ihat = 0;
+        int Jhat = 0;
         if( i==0 && j==0){Ihat = Jhat = 0;}
         else if( i==1 && j==1){Ihat = Jhat = 1;}
         else if( i==2 && j==2){Ihat = Jhat = 2;}
@@ -671,6 +671,10 @@ namespace balance_equations{
         else if( i==2 && j==1){Ihat = 6; Jhat = 3;}
         else if( i==2 && j==0){Ihat = 7; Jhat = 4;}
         else if( i==1 && j==0){Ihat = 8; Jhat = 5;}
+        else {
+            std::cout << "Error: (i,j) = ("<<i<<","<<j<<") not recognized.";
+            assert(-1==-2);
+        }
         
         //Compute required term from DcauchyDU;
         double DcauchyDU_ijA;
