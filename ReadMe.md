@@ -40,6 +40,7 @@ A second implementation which is more general and designed for use in
 the simulation code MOOSE can be built from code available in /src/cpp
  using the commands
 > `make -f makefile_libmicromat`
+
 > `make -f makefile_libmicrobalance`
 
 This produces two shared librarys of micromorphic material models which 
