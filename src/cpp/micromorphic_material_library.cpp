@@ -59,7 +59,7 @@ namespace micromorphic_material_library {
 
         //Populate the additional terms
         ADD_TERMS.resize(_ADD_TERMS.size());
-        for (int i=0; i<_ADD_TERMS.size(); i++){map_eigen_to_vector(_ADD_TERMS[i], ADD_TERMS[i]);}
+        for (unsigned int i=0; i<_ADD_TERMS.size(); i++){map_eigen_to_vector(_ADD_TERMS[i], ADD_TERMS[i]);}
 
     }
 
@@ -144,10 +144,10 @@ namespace micromorphic_material_library {
 
         //assert(4==5);
         ADD_TERMS.resize(_ADD_TERMS.size());
-        for (int i=0; i<_ADD_TERMS.size(); i++){map_eigen_to_vector(_ADD_TERMS[i], ADD_TERMS[i]);}
+        for (unsigned int i=0; i<_ADD_TERMS.size(); i++){map_eigen_to_vector(_ADD_TERMS[i], ADD_TERMS[i]);}
 
         ADD_JACOBIANS.resize(_ADD_JACOBIANS.size());
-        for (int i=0; i<_ADD_JACOBIANS.size(); i++){map_eigen_to_vector(_ADD_JACOBIANS[i], ADD_JACOBIANS[i]);}
+        for (unsigned int i=0; i<_ADD_JACOBIANS.size(); i++){map_eigen_to_vector(_ADD_JACOBIANS[i], ADD_JACOBIANS[i]);}
 
         //assert(5==6);
 
@@ -164,12 +164,12 @@ namespace micromorphic_material_library {
 
         */
 
-        int A = V.size();
-        int a = v.size();
+        unsigned int A = V.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){v[i] = V[i];}
+        for (unsigned int i=0; i<A; i++){v[i] = V[i];}
 
         return;
     }
@@ -184,12 +184,12 @@ namespace micromorphic_material_library {
 
         */
 
-        int A = V.size();
-        int a = v.size();
+        unsigned int A = V.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){v[i] = V[i];}
+        for (unsigned int i=0; i<A; i++){v[i] = V[i];}
 
         return;
     }
@@ -204,12 +204,12 @@ namespace micromorphic_material_library {
 
         */
 
-        int A = V.size();
-        int a = v.size();
+        unsigned int A = V.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){v[i] = V[i];}
+        for (unsigned int i=0; i<A; i++){v[i] = V[i];}
 
         return;
     }
@@ -224,16 +224,16 @@ namespace micromorphic_material_library {
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -251,16 +251,16 @@ namespace micromorphic_material_library {
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -278,16 +278,16 @@ namespace micromorphic_material_library {
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -304,16 +304,16 @@ namespace micromorphic_material_library {
         Map an eigen matrix to a standard vector.
 
         */
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -331,16 +331,16 @@ namespace micromorphic_material_library {
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }

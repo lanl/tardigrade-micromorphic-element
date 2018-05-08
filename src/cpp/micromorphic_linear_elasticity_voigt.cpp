@@ -1621,7 +1621,7 @@ namespace micro_material{
         int Ihat;
         int Jhat;
         int Khat;
-        int Lhat;
+        //int Lhat;
 
         double tmp1;
         

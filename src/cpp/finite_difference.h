@@ -83,15 +83,15 @@ namespace finite_difference{
                 
                 std::vector< double > xi(h_vec.size(),0.); //!The perturbed value of x0
                 double Ci     = 0;                         //!The corresponding coefficient value
-                double deltah = 0;                         //!The corresponding deltah multiplier value
+                //double deltah = 0;                         //!The corresponding deltah multiplier value
                 
-                for(int i=0; i<deltah_multiplier.size(); i++){
+                for(unsigned int i=0; i<deltah_multiplier.size(); i++){
                     Ci     = coefficients[i];            //Update the current coefficient value
                     
                     if(fabs(Ci)>C_tol){
                         
                         //Update xi
-                        for(int j=0; j<h_vec.size(); j++){xi[j] = x0[j]+deltah_multiplier[i]*h_vec[j];}
+                        for(unsigned int j=0; j<h_vec.size(); j++){xi[j] = x0[j]+deltah_multiplier[i]*h_vec[j];}
                         
                         //Compute the value of the result
                         result = fxn(xi);
@@ -100,12 +100,12 @@ namespace finite_difference{
                         if(solution.size()==0){solution.resize(result.size()); solution = std::vector<double>(result.size(),0.);}
                         
                         //Add the contribution of the current perturbation to the solution
-                        for(int j=0; j<result.size(); j++){solution[j] += Ci*result[j];}
+                        for(unsigned int j=0; j<result.size(); j++){solution[j] += Ci*result[j];}
                     }
                 }
                 
                 //Divide the solution vector by the denomenator factor
-                for(int i=0; i<solution.size(); i++){solution[i] = solution[i]/h_den;}
+                for(unsigned int i=0; i<solution.size(); i++){solution[i] = solution[i]/h_den;}
                 
                 return solution;
             }
@@ -127,7 +127,7 @@ namespace finite_difference{
                 int indx = 0;
                 
                 //Compute the gradient
-                for(int i=0; i<x0.size(); i++){
+                for(unsigned int i=0; i<x0.size(); i++){
                     h_vec[i] = h; //Update the perturbation vector
                     if(i>0){
                         h_vec[i-1] = 0;
@@ -156,7 +156,7 @@ namespace finite_difference{
                 */
                 
                 double val = 0;
-                for(int i=0; i<V.size(); i++){val += V[i]*V[i];}
+                for(unsigned int i=0; i<V.size(); i++){val += V[i]*V[i];}
                 return sqrt(val);
             }
     };

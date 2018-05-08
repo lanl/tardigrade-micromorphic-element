@@ -76,6 +76,7 @@ namespace balance_equations{
         }
         else{
             std::cout << "Error: index beyond appropriate range.\n";
+            assert(1==0); //TODO: Replace with better error handling
         }
 
         return;
@@ -247,6 +248,7 @@ namespace balance_equations{
         }
         else{
             std::cout << "Error: Index out of range\n";
+            assert(1==2); //TODO: Replace with better error handling
         }
         
         return;
@@ -335,6 +337,7 @@ namespace balance_equations{
         }
         else{
             std::cout << "Error: Index out of range\n";
+            assert(2==3); //TODO: Replace with better error handling
         }
         
         return;
@@ -400,6 +403,7 @@ namespace balance_equations{
         }
         else{
             std::cout << "Error: Index out of range\n";
+            assert(3==4); //TODO: Replace with better error handling
         }
         
         return;
@@ -525,6 +529,7 @@ namespace balance_equations{
         }
         else{
             std::cout << "Error: Index out of range\n";
+            assert(4==5); //TODO: Replace with better error handling
         }
         
         return;
@@ -1064,16 +1069,16 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -1091,16 +1096,16 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -1118,16 +1123,16 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -1144,16 +1149,16 @@ namespace balance_equations{
         Map an eigen matrix to a standard vector.
 
         */
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -1171,16 +1176,16 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -1198,16 +1203,16 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -1225,16 +1230,16 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a<A){v.resize(A);}
 
-        for (int i=0; i<A; i++){
+        for (unsigned int i=0; i<A; i++){
             if(v[i].size()<B){v[i].resize(B);}
-            for (int j=0; j<B; j++){
+            for (unsigned int j=0; j<B; j++){
                 v[i][j] = M(i,j);
             }
         }
@@ -1252,11 +1257,11 @@ namespace balance_equations{
 
         */
 
-        int A = V.size();
-        int a = v.size();
+        unsigned int A = V.size();
+        unsigned int a = v.size();
 
-        if (A != a){std::cout << "Error: Vectors are of different sizes!\n";}
-        for (int i=0; i<a; i++){
+        if (A != a){std::cout << "Error: Vectors are of different sizes!\n";assert(5==6);}
+        for (unsigned int i=0; i<a; i++){
             V[i] = v[i];
         }
         return;
@@ -1272,11 +1277,11 @@ namespace balance_equations{
 
         */
 
-        int A = V.size();
-        int a = v.size();
+        unsigned int A = V.size();
+        unsigned int a = v.size();
 
-        if (A != a){std::cout << "Error: Vectors are of different sizes!\n";}
-        for (int i=0; i<a; i++){
+        if (A != a){std::cout << "Error: Vectors are of different sizes!\n";assert(6==7);}
+        for (unsigned int i=0; i<a; i++){
             V[i] = v[i];
         }
         return;
@@ -1292,11 +1297,11 @@ namespace balance_equations{
 
         */
 
-        int A = V.size();
-        int a = v.size();
+        unsigned int A = V.size();
+        unsigned int a = v.size();
 
-        if (A != a){std::cout << "Error: Vectors are of different sizes!\n";}
-        for (int i=0; i<a; i++){
+        if (A != a){std::cout << "Error: Vectors are of different sizes!\n";assert(7==8);}
+        for (unsigned int i=0; i<a; i++){
             V[i] = v[i];
         }
         return;
@@ -1312,20 +1317,22 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a != A){
             std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+            assert(8==9);
         }
 
-        for (int i=0; i<a; i++){
+        for (unsigned int i=0; i<a; i++){
             if(v[i].size() != B){
                 std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+                assert(9==10);
             }
-            for (int j=0; j<v[i].size(); j++){
+            for (unsigned int j=0; j<v[i].size(); j++){
                 M(i,j) = v[i][j];
             }
         }
@@ -1342,20 +1349,22 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a != A){
             std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+            assert(10==11);
         }
 
-        for (int i=0; i<a; i++){
+        for (unsigned int i=0; i<a; i++){
             if(v[i].size() != B){
                 std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+                assert(11==12);
             }
-            for (int j=0; j<v[i].size(); j++){
+            for (unsigned int j=0; j<v[i].size(); j++){
                 M(i,j) = v[i][j];
             }
         }
@@ -1372,20 +1381,22 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a != A){
             std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+            assert(12==13);
         }
 
-        for (int i=0; i<a; i++){
+        for (unsigned int i=0; i<a; i++){
             if(v[i].size() != B){
                 std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+                assert(13==14);
             }
-            for (int j=0; j<v[i].size(); j++){
+            for (unsigned int j=0; j<v[i].size(); j++){
                 M(i,j) = v[i][j];
             }
         }
@@ -1402,20 +1413,22 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a != A){
             std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+            assert(14==15);
         }
 
-        for (int i=0; i<a; i++){
+        for (unsigned int i=0; i<a; i++){
             if(v[i].size() != B){
                 std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+                assert(15==16);
             }
-            for (int j=0; j<v[i].size(); j++){
+            for (unsigned int j=0; j<v[i].size(); j++){
                 M(i,j) = v[i][j];
             }
         }
@@ -1432,20 +1445,22 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a != A){
             std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+            assert(16==17);
         }
 
-        for (int i=0; i<a; i++){
+        for (unsigned int i=0; i<a; i++){
             if(v[i].size() != B){
                 std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+                assert(17==18);
             }
-            for (int j=0; j<v[i].size(); j++){
+            for (unsigned int j=0; j<v[i].size(); j++){
                 M(i,j) = v[i][j];
             }
         }
@@ -1462,20 +1477,22 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a != A){
             std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+            assert(18==19);
         }
 
-        for (int i=0; i<a; i++){
+        for (unsigned int i=0; i<a; i++){
             if(v[i].size() != B){
                 std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+                assert(19==20);
             }
-            for (int j=0; j<v[i].size(); j++){
+            for (unsigned int j=0; j<v[i].size(); j++){
                 M(i,j) = v[i][j];
             }
         }
@@ -1493,20 +1510,22 @@ namespace balance_equations{
 
         */
 
-        int A = M.rows();
-        int B = M.cols();
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
 
-        int a = v.size();
+        unsigned int a = v.size();
 
         if(a != A){
             std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+            assert(20==21);
         }
 
-        for (int i=0; i<a; i++){
+        for (unsigned int i=0; i<a; i++){
             if(v[i].size() != B){
                 std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+                assert(21==22);
             }
-            for (int j=0; j<v[i].size(); j++){
+            for (unsigned int j=0; j<v[i].size(); j++){
                 M(i,j) = v[i][j];
             }
         }

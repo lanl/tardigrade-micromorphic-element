@@ -5032,7 +5032,7 @@ namespace deformation_measures
         */
         
         
-        Matrix_3x3 Finv = F.inverse();
+        //Matrix_3x3 Finv = F.inverse();
         Matrix_9x9 dFdFinv;
         compute_dAinvdA(F,dFdFinv);
         dFdgrad_u = -dFdFinv;
@@ -5432,9 +5432,9 @@ namespace deformation_measures
         Note that grad_chi is chi_iI,J to the resulting gradient is dadgrad_chi_ijkK,L.
         */
         
-        double eye[3][3] = {{1,0,0},
-                            {0,1,0},
-                            {0,0,1}};
+        //double eye[3][3] = {{1,0,0},
+        //                    {0,1,0},
+        //                    {0,0,1}};
 
         int sot_to_voigt_map[3][3] = {{0,5,4},
                                       {8,1,3},
