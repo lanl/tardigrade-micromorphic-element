@@ -198,7 +198,7 @@ def main_code_block():
 #Main code execution block
 if(__name__=="__main__"):
 
-    sys.stdout = open(results_filename,'w')                   #Reroute the stdout to a file
+    sys.stdout = open(os.path.join(os.getcwd(),results_filename),'w')                   #Reroute the stdout to a file
 
     main_code_block()
 
