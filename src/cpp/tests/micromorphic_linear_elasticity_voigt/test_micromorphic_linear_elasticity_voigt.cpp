@@ -8082,7 +8082,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
-    std::cout << "test_compute_internal_couple_jacobian:\n";
+//    std::cout << "test_compute_internal_couple_jacobian:\n";
 //    std::cout << "DcauchyDgrad_u:\n";
 //    print_matrix(_DcauchyDgrad_u);
 //    std::cout << "DcauchyDphi:\n";
@@ -8090,9 +8090,9 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
 //    std::cout << "DcauchyDgrad_phi:\n";
 //    print_matrix(_DcauchyDgrad_phi);
 //
-    std::cout << "r:\n" << r << "\n";
-    std::cout << "_r:\n";
-    print_matrix(__r);
+//    std::cout << "r:\n" << r << "\n";
+//    std::cout << "_r:\n";
+//    print_matrix(__r);
 
     if (tot_result){
         results << "test_compute_internal_couple_jacobian & True\\\\\n\\hline\n";
