@@ -143,6 +143,7 @@ namespace deformation_measures
                                                 Matrix_27x9 &dmdF,               Matrix_27x9       &dmdchi,      Matrix_27x27       &dmdgrad_chi);
 
     void map_dAdF_to_dadF(const Vector_9 &a,  const Vector_9 &A,  const Matrix_9x9 &dAdF,  const double &J, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, Matrix_9x9 &dadF);
+    void map_dAdF_to_dadF(const double (&a)[9],  const double (&A)[9],  const double (&dAdF)[9][9],  const double &J, const double (&dJdF)[3][3], const double (&F)[3][3], double (&dadF)[3][3]);
     void map_dAdF_to_dadF(const Vector_27& a, const Vector_27 &A, const Matrix_27x9 &dAdF, const double &J, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 &dadF);
     
     void map_dAdchi_to_dadchi(const Matrix_9x9 &dAdchi,  const double &J, const Matrix_3x3 &F, Matrix_9x9 &dadchi);

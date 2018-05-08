@@ -353,24 +353,24 @@ void define_parameters(double (&params)[18],bool MOOSE=false){
 
 
     if(MOOSE){
-    params[ 0] =  8e9;
-    params[ 1] =  11e9;
-    params[ 2] =  2e9;
-    params[ 3] =  1.538e9;
-    params[ 4] = -1e9;
-    params[ 5] = -1.39e9;
-    params[ 6] = -2.11e9;
-    params[ 7] =  0.271e6;
-    params[ 8] =  0.721e6;
-    params[ 9] =  0.188e6;
-    params[10] =  0.827e6;
-    params[11] =  0.625e6;
-    params[12] =  0.562e6;
-    params[13] =  0.769e6;
-    params[14] =  0.224e6;
-    params[15] =  0.441e6;
-    params[16] =  0.981e6;
-    params[17] =  0.126e6;
+    params[ 0] = 29.48e3;
+    params[ 1] = 25.48e3;
+    params[ 2] = 1e3;
+    params[ 3] = 0.4e3;
+    params[ 4] = -1.5e3;
+    params[ 5] = -1.4e3;
+    params[ 6] = -3e3;
+    params[ 7] = 0;
+    params[ 8] = 0;
+    params[ 9] = 0;
+    params[10] = 0;
+    params[11] = 0;
+    params[12] = 0;
+    params[13] = 10e5;
+    params[14] = 0.;
+    params[15] = 0.;
+    params[16] = 0.;
+    params[17] = 0.; 
     }
 
     return;
@@ -7633,7 +7633,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     auto t1 = Clock::now();
     
     //The DOF vector
-    std::vector<double> U = {1.22,2.1,4.1,-2.3,.124,7.2,-8.2,.28,7.21,2.1,-9.2,3.1};
+    std::vector<double> U = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};//{1.22,2.1,4.1,-2.3,.124,7.2,-8.2,.28,7.21,2.1,-9.2,3.1};
     
     //The test function values
     double N;
@@ -7648,6 +7648,8 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
 
     double detadx[3];
     define_detadx(detadx);
+
+    for (int i=0; i<3; i++){dNdx[i] = 0.; detadx[i] = 0.;}
 
     //Compute the numeric values
     std::cout << "\nJacobian of Balance of Linear Momentum\n";
@@ -7843,8 +7845,8 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
 //    print_matrix(_DcauchyDgrad_phi);
 //
     std::cout << "r:\n" << r << "\n";
-//    std::cout << "_r:\n";
-//    print_matrix(__r);
+    std::cout << "_r:\n";
+    print_matrix(__r);
 
     if (tot_result){
         results << "test_compute_internal_force_jacobian & True\\\\\n\\hline\n";
@@ -8096,7 +8098,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
-//    std::cout << "test_compute_internal_couple_jacobian:\n";
+    std::cout << "test_compute_internal_couple_jacobian:\n";
 //    std::cout << "DcauchyDgrad_u:\n";
 //    print_matrix(_DcauchyDgrad_u);
 //    std::cout << "DcauchyDphi:\n";
@@ -8104,9 +8106,9 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
 //    std::cout << "DcauchyDgrad_phi:\n";
 //    print_matrix(_DcauchyDgrad_phi);
 //
-//    std::cout << "r:\n" << r << "\n";
-//    std::cout << "_r:\n";
-//    print_matrix(__r);
+    std::cout << "r:\n" << r << "\n";
+    std::cout << "_r:\n";
+    print_matrix(__r);
 
     if (tot_result){
         results << "test_compute_internal_couple_jacobian & True\\\\\n\\hline\n";
@@ -8516,8 +8518,8 @@ int main(){
     test_compute_internal_couple(results);
     
     //!Test of the computation of the balance equation derivatives
-    test_compute_internal_force_jacobian(results);
-    test_compute_internal_couple_jacobian(results);
+    test_compute_internal_force_jacobian(results,true);
+    test_compute_internal_couple_jacobian(results,true);
     
     //!Test of the instance of the model in the material library
     test_micromorphic_material_library(results);

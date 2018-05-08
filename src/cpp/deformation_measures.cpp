@@ -1167,54 +1167,33 @@ namespace deformation_measures
         
         */
 
-        dRCGdF = Matrix_9x9::Zero();
+        double eye[3][3] = {{1,0,0},
+                            {0,1,0},
+                            {0,0,1}};
 
-        dRCGdF( 0, 0) = 2*F(0,0);
-        dRCGdF( 0, 7) = 2*F(2,0);
-        dRCGdF( 0, 8) = 2*F(1,0);
-        dRCGdF( 1, 1) = 2*F(1,1);
-        dRCGdF( 1, 5) = 2*F(0,1);
-        dRCGdF( 1, 6) = 2*F(2,1);
-        dRCGdF( 2, 2) = 2*F(2,2);
-        dRCGdF( 2, 3) = 2*F(1,2);
-        dRCGdF( 2, 4) = 2*F(0,2);
-        dRCGdF( 3, 1) = F(1,2);
-        dRCGdF( 3, 2) = F(2,1);
-        dRCGdF( 3, 3) = F(1,1);
-        dRCGdF( 3, 4) = F(0,1);
-        dRCGdF( 3, 5) = F(0,2);
-        dRCGdF( 3, 6) = F(2,2);
-        dRCGdF( 4, 0) = F(0,2);
-        dRCGdF( 4, 2) = F(2,0);
-        dRCGdF( 4, 3) = F(1,0);
-        dRCGdF( 4, 4) = F(0,0);
-        dRCGdF( 4, 7) = F(2,2);
-        dRCGdF( 4, 8) = F(1,2);
-        dRCGdF( 5, 0) = F(0,1);
-        dRCGdF( 5, 1) = F(1,0);
-        dRCGdF( 5, 5) = F(0,0);
-        dRCGdF( 5, 6) = F(2,0);
-        dRCGdF( 5, 7) = F(2,1);
-        dRCGdF( 5, 8) = F(1,1);
-        dRCGdF( 6, 1) = F(1,2);
-        dRCGdF( 6, 2) = F(2,1);
-        dRCGdF( 6, 3) = F(1,1);
-        dRCGdF( 6, 4) = F(0,1);
-        dRCGdF( 6, 5) = F(0,2);
-        dRCGdF( 6, 6) = F(2,2);
-        dRCGdF( 7, 0) = F(0,2);
-        dRCGdF( 7, 2) = F(2,0);
-        dRCGdF( 7, 3) = F(1,0);
-        dRCGdF( 7, 4) = F(0,0);
-        dRCGdF( 7, 7) = F(2,2);
-        dRCGdF( 7, 8) = F(1,2);
-        dRCGdF( 8, 0) = F(0,1);
-        dRCGdF( 8, 1) = F(1,0);
-        dRCGdF( 8, 5) = F(0,0);
-        dRCGdF( 8, 6) = F(2,0);
-        dRCGdF( 8, 7) = F(2,1);
-        dRCGdF( 8, 8) = F(1,1);
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
 
+        int Ihat;
+        int Jhat;
+
+        double tmp1;
+        double tmp2;
+
+        for (int I=0; I<3; I++){
+            for (int J=0; J<3; J++){
+                Ihat = sot_to_voigt_map[I][J];
+                for (int k=0; k<3; k++){
+                    tmp1 = F(k,J);
+                    tmp2 = F(k,I);
+                    for (int K=0; K<3; K++){
+                        Jhat = sot_to_voigt_map[k][K];
+                        dRCGdF(Ihat,Jhat) = tmp1 * eye[I][K] + tmp2 * eye[J][K];
+                    }
+                }
+            }
+        }
         return;
     }
     void compute_dPsidF(const Matrix_3x3 &chi, SpMat &dPsidF){
@@ -2527,6 +2506,75 @@ namespace deformation_measures
         return;
     }
 
+    void map_dAdF_to_dadF(const double (&a)[9],  const double (&A)[9],  const double (&dAdF)[9][9],  const double &detF, const double (&dJdF)[3][3], const double (&F)[3][3], double (&dadF)[3][3]){
+        /*!==========================
+        |    map_dAdF_to_dadF    |
+        ==========================
+        
+        Map the jacobian of a stress measure in the reference configuration with respect to the 
+        deformation gradient (either the PK2 stress or the symmetric stress) to the jacobian of 
+        a corresponding stress measure in the current configuration (either the cauchy stress 
+        or the symmetric stress) with respect to the deformation gradient.
+        
+        */
+        
+        double eye[3][3] = {{1,0,0},
+                            {0,1,0},
+                            {0,0,1}};
+
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+
+        int Ihat;
+        int Jhat;
+        int Khat;
+
+        double tmp;
+        double tmp1;
+        double tmp2;
+        double tmp3;
+        
+        for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+                Ihat = sot_to_voigt_map[i][j];
+                for (int k=0; k<3; k++){
+                    tmp1 = eye[i][k];
+                    tmp2 = eye[j][k];
+                    for (int K=0; K<3; K++){
+                        Jhat = sot_to_voigt_map[k][K];
+                        tmp = -dJdF[k][K]*a[Ihat];
+
+                        if(tmp1>1e-9){
+                            for (int J=0; J<3; J++){
+                                Khat = sot_to_voigt_map[K][J];
+                                tmp += F[j][J]*A[Khat];
+                            }
+                        }
+                        
+                        if(tmp2>1e-9){
+                            for (int I=0; I<3; I++){
+                                Khat = sot_to_voigt_map[I][K];
+                                tmp += F[i][I]*A[Khat];
+                            }
+                        }
+
+                        for (int I=0; I<3; I++){
+                            tmp3 = F[i][I];
+                            for (int J=0; J<3; J++){
+                                Khat = sot_to_voigt_map[I][J];
+                                tmp += tmp3*F[j][J]*dAdF[Khat][Jhat];
+                            }
+                        }
+                        dadF[Ihat][Jhat] = tmp/detF;
+                    }
+                }
+            }
+        }
+
+        return;
+    }
+
     void map_dAdF_to_dadF(const Vector_27& a, const Vector_27 &A, const Matrix_27x9 &dAdF, const double &detF, const Matrix_3x3 &dJdF, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 &dadF){
         /*!==========================
         |    map_dAdF_to_dadF    |
@@ -2691,21 +2739,25 @@ namespace deformation_measures
         double tmp;
         double tmp1;
         double tmp2;
-        
+        double tmp3;        
+
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 for (int k=0; k<3; k++){
                     Ihat = tot_to_voigt_map[i][j][k];
                     for (int l=0; l<3; l++){
+                        tmp3 = eye[k][l];
                         for (int L=0; L<3; L++){
                             Jhat = sot_to_voigt_map[l][L];
                             tmp = 0;
 
-                            for (int I=0; I<3; I++){
-                                tmp1 = F(i,I);
-                                for (int J=0; J<3; J++){
-                                    Khat = tot_to_voigt_map[I][J][L];
-                                    tmp += tmp1 * F(j,J) * eye[k][l] * A(Khat);
+                            if(tmp3>1e-6){
+                                for (int I=0; I<3; I++){
+                                    tmp1 = F(i,I);
+                                    for (int J=0; J<3; J++){
+                                        Khat = tot_to_voigt_map[I][J][L];
+                                        tmp += tmp1 * F(j,J) * A(Khat);
+                                    }
                                 }
                             }
 
