@@ -3,7 +3,7 @@
 ######################
 Developed by:
 
-Nathan A. Miller (nathanm@lanl.gov)
+Nathan A. Miller (nami2227@colorado.edu)
 
 
 
