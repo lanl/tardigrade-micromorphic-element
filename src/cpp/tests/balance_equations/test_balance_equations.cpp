@@ -840,7 +840,7 @@ int test_compute_internal_couple(std::ofstream &results){
     deformation_measures::undo_voigt_3x3_tensor(divm,divm_mat);
     
     //Compute the expected value
-    Matrix_3x3 r_mat = N*(cauchy_mat - s_mat) - divm_mat.transpose();
+    Matrix_3x3 r_mat = -(N*(cauchy_mat - s_mat) - divm_mat.transpose());
     Vector_9 r_vec;
     deformation_measures::voigt_3x3_tensor(r_mat,r_vec);
     
@@ -1327,7 +1327,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
     DsDU      = DsDgrad_u*dgrad_udU      + DsDphi*dphidU      + DsDgrad_phi*dgrad_phidU;
     DmDU      = DmDgrad_u*dgrad_udU      + DmDphi*dphidU      + DmDgrad_phi*dgrad_phidU;
     
-    r = N*(DcauchyDU - DsDU);
+    r = -N*(DcauchyDU - DsDU);
     
     int Ihat;
     int Jhat;
@@ -1341,7 +1341,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
                 
                 for (int k=0; k<3; k++){
                     find_tot_index(k,j,i,Jhat);
-                    r(Ihat,alpha) -= dNdx[k]*DmDU(Jhat,alpha);
+                    r(Ihat,alpha) += dNdx[k]*DmDU(Jhat,alpha);
                 }
                 
             }
