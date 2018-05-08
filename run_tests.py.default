@@ -59,8 +59,6 @@ class TestHarness(object):
             print(stderr)
             raise IOError
 
-        os.chdir(self.owd)
-
         print "======================================\n"+\
               "|                                    |\n"+\
               "|        Run regression tests        |\n"+\
@@ -74,7 +72,7 @@ class TestHarness(object):
         for f in self.regression_tests:
             try:
                 sys.stdout = self.orig_stdout                           #Change the output to the screen instead of the results file
-                proc = subprocess.Popen(["driver ",f])                  #Run the finite element model indicated
+                print("running subprocess: "+ " ".join([os.path.join(os.getcwd(),"driver"),f])) #Run the finite element model indicated
                 proc.wait()
                 (stdout, stderr) = proc.communicate()
 
@@ -124,5 +122,6 @@ class TestHarness(object):
         return [item for sublist in l for item in sublist]
         
 if __name__ == '__main__':
-    TestHarness().run_function_tests()
-    TestHarness().generate_report()
+    harness = TestHarness()
+    harness.run_function_tests()
+    harness.generate_report()
