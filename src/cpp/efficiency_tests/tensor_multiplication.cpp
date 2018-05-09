@@ -1,52 +1,9 @@
 #include <Eigen/Dense>
 #include <iostream>
 #include <chrono>
+#include<deformation_measures.h>
+
 typedef std::chrono::high_resolution_clock Clock;
-
-//Global variables
-const double sot_to_voigt[3][3] = {{0, 5, 4},
-                                   {8, 1, 3},
-                                   {7, 6, 2}};
-
-void explicit_loop(const int n, const Eigen::Matrix3d &A, const Eigen::Matrix3d &B, const Eigen::Matrix<double, 9, 9> C, Eigen::Matrix<double, 9, 9> &D){
-    /*
-    =======================
-    |    explicit_loop    |
-    =======================
-    
-    Compute the contraction explicitly.
-    
-    */
-    
-    int I;
-    int J;
-    int M;
-
-    for (int _n=0; _n<n; _n++){
-    
-        for (int i=0; i<3; i++){
-            for (int j=0; j<3; j++){
-                I = sot_to_voigt[i][j];
-            
-                for (int k=0; k<3; k++){
-                    for (int l=0; l<3; l++){
-                        J = sot_to_voigt[k][l];
-                    
-                        D(I,J) = 0.;
-                    
-                        for (int m=0; m<3; m++){
-                            for (int n=0; n<3; n++){
-                                M = sot_to_voigt[m][n];
-                            
-                                D(I,J) += A(i,m)*C(M,J)*B(j,n);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 int main(){
     /*
@@ -58,25 +15,69 @@ int main(){
     relative speeds.
     */
 
+    Matrix_27x27 dMdgrad_chi;
+    double J = 1.2;
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_27x27 dmdgrad_chi;
+
+    dMdgrad_chi = Matrix_27x27::Random();
+    F           = Matrix_3x3::Random();
+    chi         = Matrix_3x3::Random();
+
+    double _dMdgrad_chi[729];
+    double _F[9];
+    double _chi[9];
+    double _dmdgrad_chi[729];
+
+    std::vector<double> __dMdgrad_chi(729);
+    std::vector<double> __F(9);
+    std::vector<double> __chi(9);
+    std::vector<double> __dmdgrad_chi(729);
+
+    for (int i=0; i<27; i++){
+        for (int j=0; j<27; j++){
+            _dMdgrad_chi[27*i + j]  = dMdgrad_chi(i,j);
+            __dmdgrad_chi[27*i + j] = dMdgrad_chi(i,j);
+        }
+    }
+
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _F[3*i + j] = F(i,j);
+            _chi[3*i + j] = chi(i,j);
+
+            __F[3*i + j] = F(i,j);
+            __chi[3*i + j] = chi(i,j);
+        }
+    }
+
     int n = 10000;
-    
-    Eigen::Matrix3d A;
-    A = Eigen::Matrix3d::Random();
-    
-    Eigen::Matrix3d B;
-    B = Eigen::Matrix3d::Random();
-    
-    Eigen::Matrix<double, 9, 9> C;
-    C = Eigen::Matrix<double, 9, 9>::Random();
-    
-    Eigen::Matrix<double, 9, 9> D;
-    
+
     auto t0 = Clock::now();
     auto t1 = Clock::now();
     
     t0 = Clock::now();
-    explicit_loop(n,A,B,C,D);
+    for (int _n=0; _n<n; _n++){
+        deformation_measures::map_dAdgrad_chi_to_dadgrad_chi(dMdgrad_chi, J, F, chi, dmdgrad_chi);
+    }
     t1 = Clock::now();
-    std::cout << "Explicit Loop: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
+    std::cout << "Eigen Matrices: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
+
+    t0 = Clock::now();
+    for (int _n=0; _n<n; _n++){
+        deformation_measures::map_dAdgrad_chi_to_dadgrad_chi(_dMdgrad_chi, J, _F, _chi, _dmdgrad_chi);
+    }
+    t1 = Clock::now();
+    std::cout << "1D Arrays: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
+    
+    t0 = Clock::now();
+    for (int _n=0; _n<n; _n++){
+        deformation_measures::map_dAdgrad_chi_to_dadgrad_chi(__dMdgrad_chi, J, __F, __chi, __dmdgrad_chi);
+    }
+    t1 = Clock::now();
+    std::cout << "1D std::vectors: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
+    
+
     return 1;
 }
