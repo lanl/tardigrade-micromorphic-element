@@ -3054,27 +3054,23 @@ namespace deformation_measures
         double tmp1;
         double tmp2;    
 
+        #pragma omp parallel for collapse(9)
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 for (int k=0; k<3; k++){
-                    Ihat = tot_to_voigt_map[9*i + 3*j + k];
                     for (int l=0; l<3; l++){
                         for (int L=0; L<3; L++){
                             for (int M=0; M<3; M++){
-                                Jhat = tot_to_voigt_map[9*l + 3*L + M];
-                                tmp = 0;
-
                                 for (int I=0; I<3; I++){
-                                    tmp1 = F[3*i + I];
                                     for (int J=0; J<3; J++){
-                                        tmp2 = F[3*j + J];
                                         for (int K=0; K<3; K++){
+                                            Ihat = tot_to_voigt_map[9*i + 3*j + k];
+                                            Jhat = tot_to_voigt_map[9*l + 3*L + M];
                                             Khat = tot_to_voigt_map[9*I + 3*J + K];
-                                            tmp += tmp1 * tmp2 * chi[3*k + K] * dAdgrad_chi[27*Khat + Jhat];
+                                            dadgrad_chi[27*Ihat + Jhat] += (F[3*i + I] * F[3*j + J] * chi[3*k + K] * dAdgrad_chi[27*Khat + Jhat])/detF;
                                         }
                                     }
                                 }
-                                dadgrad_chi[27*Ihat + Jhat] = tmp/detF;
                             }
                         }
                     }
