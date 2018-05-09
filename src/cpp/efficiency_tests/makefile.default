@@ -5,20 +5,28 @@ CC=COMPILER_COMMAND
 STD=-std=gnu++11
 
 #Compiler flags
-CFLAGS=-I. -O3
+CFLAGS=-I. -I../ -O3 -DNDEBUG
 
 #Include Eigen Library
 EIGEN = -I EIGEN_LOCATION
 
 #Debugging flag
-DBG = -ggdb
+DBG = 
 
-all: run_test
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 
-run_test: tensor_multiplication.cpp 
-	$(CC) $(STD) -o $@ tensor_multiplication.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+all: run_test
+
+run_test: run_test.o deformation_measures.o
+	$(CC) $(STD) -o $@ run_test.o deformation_measures.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+run_test.o: tensor_multiplication.cpp ../deformation_measures.h
+	$(CC) $(STD) -o $@ -c tensor_multiplication.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+deformation_measures.o: ../deformation_measures.h ../deformation_measures.cpp
+	$(CC) $(STD) -o $@ -c ../deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 clean:
 	rm *o run_test
+
