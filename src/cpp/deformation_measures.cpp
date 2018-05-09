@@ -715,7 +715,6 @@ namespace deformation_measures
         int Lhat;
 
         double tmp;
-        double tmp1;
 
         if (index == 0){
 

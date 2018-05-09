@@ -7633,8 +7633,9 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     auto t1 = Clock::now();
     
     //The DOF vector
-    std::vector<double> U = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};//{1.22,2.1,4.1,-2.3,.124,7.2,-8.2,.28,7.21,2.1,-9.2,3.1};
-    
+//    std::vector<double> U = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+    std::vector<double> U = {1.22,2.1,4.1,-2.3,.124,7.2,-8.2,.28,7.21,2.1,-9.2,3.1};
+
     //The test function values
     double N;
     define_N(N);
@@ -7649,7 +7650,9 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     double detadx[3];
     define_detadx(detadx);
 
-    for (int i=0; i<3; i++){dNdx[i] = 0.; detadx[i] = 0.;}
+    //for (int i=0; i<3; i++){dNdx[i] = 0.; detadx[i] = 0.;} //TODO: remove!
+    //N   = 1.;
+    //eta = 1.;
 
     //Compute the numeric values
     std::cout << "\nJacobian of Balance of Linear Momentum\n";
@@ -7874,6 +7877,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     auto t1 = Clock::now();
     
     //The DOF vector
+    //std::vector<double> U = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
     std::vector<double> U = {1.22,2.1,4.1,-2.3,.124,7.2,-8.2,.28,7.21,2.1,-9.2,3.1};
     
     //The shape function values
@@ -7888,6 +7892,10 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
 
     double detadx[3];
     define_detadx(detadx);
+
+    //for (int i=0; i<3; i++){dNdx[i] = 0.; detadx[i] = 0.;} //TODO: Remove!
+    //N   = 1.;
+    //eta = 1.;
     
     //Compute the numeric values
     std::cout << "\nJacobian of Balance of First Moment of Momentum\n";
@@ -8518,8 +8526,8 @@ int main(){
     test_compute_internal_couple(results);
     
     //!Test of the computation of the balance equation derivatives
-    test_compute_internal_force_jacobian(results,true);
-    test_compute_internal_couple_jacobian(results,true);
+    test_compute_internal_force_jacobian(results);
+    test_compute_internal_couple_jacobian(results);
     
     //!Test of the instance of the model in the material library
     test_micromorphic_material_library(results);
