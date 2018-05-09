@@ -35,10 +35,16 @@ int main(){
     std::vector<double> __chi(9);
     std::vector<double> __dmdgrad_chi(729);
 
+    std::array<double,729> ___dMdgrad_chi;
+    std::array<double,9>   ___F;
+    std::array<double,9>   ___chi;
+    std::array<double,729> ___dmdgrad_chi;
+
     for (int i=0; i<27; i++){
         for (int j=0; j<27; j++){
-            _dMdgrad_chi[27*i + j]  = dMdgrad_chi(i,j);
-            __dmdgrad_chi[27*i + j] = dMdgrad_chi(i,j);
+            _dMdgrad_chi[27*i + j]   = dMdgrad_chi(i,j);
+            __dMdgrad_chi[27*i + j]  = dMdgrad_chi(i,j);
+            ___dMdgrad_chi[27*i + j] = dMdgrad_chi(i,j);
         }
     }
 
@@ -49,10 +55,13 @@ int main(){
 
             __F[3*i + j] = F(i,j);
             __chi[3*i + j] = chi(i,j);
+
+            ___F[3*i + j] = F(i,j);
+            ___chi[3*i + j] = chi(i,j);
         }
     }
 
-    int n = 10000;
+    int n = 1;
 
     auto t0 = Clock::now();
     auto t1 = Clock::now();
@@ -78,6 +87,12 @@ int main(){
     t1 = Clock::now();
     std::cout << "1D std::vectors: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
     
+    t0 = Clock::now();
+    for (int _n=0; _n<n; _n++){
+        deformation_measures::map_dAdgrad_chi_to_dadgrad_chi(___dMdgrad_chi, J, ___F, ___chi, ___dmdgrad_chi);
+    }
+    t1 = Clock::now();
+    std::cout << "1D std::arrays: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
 
     return 1;
 }
