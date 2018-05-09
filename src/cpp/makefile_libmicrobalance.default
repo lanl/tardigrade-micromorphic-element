@@ -19,7 +19,10 @@ DBG =
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 
-all: libmicrobalance.so.1
+all: libmicrobalance.so
+
+libmicrobalance.so: libmicrobalance.so.1
+	ln -s libmicrobalance.so.1 $@
 
 libmicrobalance.so.1: $(OBJ)
 	$(CC) $(STD) -shared -Wl,-soname,libmicrobalance.so.1 -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)

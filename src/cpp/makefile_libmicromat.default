@@ -20,7 +20,10 @@ DBG =
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
 
-all: libmicromat.so.1
+all: libmicromat.so
+
+libmicromat.so: libmicromat.so.1
+	ln -s libmicromat.so.1 $@
 
 libmicromat.so.1: $(OBJ)
 	$(CC) $(STD) -shared -Wl,-soname,libmicromat.so.1 -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
