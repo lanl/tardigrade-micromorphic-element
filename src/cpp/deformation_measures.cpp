@@ -406,6 +406,34 @@ namespace deformation_measures
 
         return;
     }
+
+    void get_tot_to_voigt_map(int (&tot_to_voigt_map)[27]){
+        /*!==============================
+        |    get_tot_to_voigt_map    |
+        ==============================
+
+        Get the third order tensor to voigt map.
+
+        */
+
+        int sot_to_voigt_map[9] = {0,5,4,8,1,3,7,6,2};
+
+        for (int i=0; i<3; i++){
+
+            for (int j=0; j<3; j++){
+
+                for (int k=0; k<3; k++){
+
+                    tot_to_voigt_map[9*i + 3*j + k] = sot_to_voigt_map[3*j + k] + 9*i;
+
+                }
+
+            }
+
+        }
+
+        return;
+    }
     
     void undo_voigt_3x3_tensor(const Vector_9 &v, Matrix_3x3 &A){
         /*!===============================
@@ -2425,7 +2453,7 @@ namespace deformation_measures
         map_dAdF_to_dadF(s_voigt, SIGMA_voigt, dSIGMAdF, J, dJdF, F, dsdF);
         map_dAdchi_to_dadchi(dSIGMAdchi, J, F, dsdchi);
         map_dAdgrad_chi_to_dadgrad_chi(dSIGMAdgrad_chi, J, F, dsdgrad_chi);
-        
+
         //Map the higher order stress
         map_dAdF_to_dadF(m_voigt, M_voigt, dMdF, J, dJdF, F, chi, dmdF);
         map_dAdchi_to_dadchi(M_voigt, dMdchi, J, F, chi, dmdchi);
@@ -2893,7 +2921,7 @@ namespace deformation_measures
         return;
     }
 
-    void map_dAdgrad_chi_to_dadgrad_chi(const double (&dAdgrad_chi)[27][27], const double &detF, const double (&F)[3][3], const double (&chi)[3][3], double (&dadgrad_chi)[27][27]){
+    void map_dAdgrad_chi_to_dadgrad_chi(const double (&dAdgrad_chi)[729], const double &detF, const double (&F)[9], const double (&chi)[9], double (&dadgrad_chi)[729]){
         /*!========================================
         |    map_dAdgrad_chi_to_dadgrad_chi    |
         ========================================
@@ -2906,7 +2934,7 @@ namespace deformation_measures
         This is for the higher order stress
         */
         
-        int tot_to_voigt_map[3][3][3];
+        int tot_to_voigt_map[27];
         deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
 
         int Ihat;
@@ -2920,24 +2948,79 @@ namespace deformation_measures
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 for (int k=0; k<3; k++){
-                    Ihat = tot_to_voigt_map[i][j][k];
+                    Ihat = tot_to_voigt_map[9*i + 3*j + k];
                     for (int l=0; l<3; l++){
                         for (int L=0; L<3; L++){
                             for (int M=0; M<3; M++){
-                                Jhat = tot_to_voigt_map[l][L][M];
+                                Jhat = tot_to_voigt_map[9*l + 3*L + M];
                                 tmp = 0;
 
                                 for (int I=0; I<3; I++){
-                                    tmp1 = F[i][I];
+                                    tmp1 = F[3*i + I];
                                     for (int J=0; J<3; J++){
-                                        tmp2 = F[j][J];
+                                        tmp2 = F[3*j + J];
                                         for (int K=0; K<3; K++){
-                                            Khat = tot_to_voigt_map[I][J][K];
-                                            tmp += tmp1 * tmp2 * chi[k][K] * dAdgrad_chi[Khat][Jhat];
+                                            Khat = tot_to_voigt_map[9*I + 3*J + K];
+                                            tmp += tmp1 * tmp2 * chi[3*k + K] * dAdgrad_chi[27*Khat + Jhat];
                                         }
                                     }
                                 }
-                                dadgrad_chi[Ihat][Jhat] = tmp/detF;
+                                dadgrad_chi[27*Ihat + Jhat] = tmp/detF;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return;
+    }
+
+    void map_dAdgrad_chi_to_dadgrad_chi(const std::vector<double> &dAdgrad_chi, const double &detF, const std::vector<double> &F, const std::vector<double> &chi, std::vector<double> &dadgrad_chi){
+        /*!========================================
+        |    map_dAdgrad_chi_to_dadgrad_chi    |
+        ========================================
+        
+        Map the gradient of a stress tensor w.r.t. the gradient w.r.t. the reference coordinate X of the micro-deformation tensor 
+        in the reference configuration to the current configuration.
+        
+        Note that grad_chi is chi_iI,J to the resulting gradient is dadgrad_chi_ijklK,L.
+        
+        This is for the higher order stress
+        */
+        
+        int tot_to_voigt_map[27];
+        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
+
+        int Ihat;
+        int Jhat;
+        int Khat;
+        
+        double tmp;
+        double tmp1;
+        double tmp2;    
+
+        for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+                for (int k=0; k<3; k++){
+                    Ihat = tot_to_voigt_map[9*i + 3*j + k];
+                    for (int l=0; l<3; l++){
+                        for (int L=0; L<3; L++){
+                            for (int M=0; M<3; M++){
+                                Jhat = tot_to_voigt_map[9*l + 3*L + M];
+                                tmp = 0;
+
+                                for (int I=0; I<3; I++){
+                                    tmp1 = F[3*i + I];
+                                    for (int J=0; J<3; J++){
+                                        tmp2 = F[3*j + J];
+                                        for (int K=0; K<3; K++){
+                                            Khat = tot_to_voigt_map[9*I + 3*J + K];
+                                            tmp += tmp1 * tmp2 * chi[3*k + K] * dAdgrad_chi[27*Khat + Jhat];
+                                        }
+                                    }
+                                }
+                                dadgrad_chi[27*Ihat + Jhat] = tmp/detF;
                             }
                         }
                     }
