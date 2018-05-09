@@ -150,8 +150,9 @@ namespace deformation_measures
     void map_dAdchi_to_dadchi(const Vector_27 &A, const Matrix_27x9 &dAdchi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x9 &dadchi);
     
     void map_dAdgrad_chi_to_dadgrad_chi(const Matrix_9x27 &dAdgrad_chi,  const double &J, const Matrix_3x3 &F, Matrix_9x27 &dadgrad_chi);
-    void map_dAdgrad_chi_to_dadgrad_chi(const Matrix_27x27 &dAdgrad_chi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x27 &dadgrad_chi);
-    
+    void map_dAdgrad_chi_to_dadgrad_chi(const Matrix_27x27 &dAdgrad_chi, const double &J, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x27 &dadgrad_chi); 
+    void map_dAdgrad_chi_to_dadgrad_chi(const double (&dAdgrad_chi)[27][27], const double &J, const double (&F)[3][3], const double (&chi)[3][3], double (&dadgrad_chi)[27][27]);
+
     void compute_total_derivatives(const Matrix_3x3  &F,         const Vector_27    &grad_phi,
                                    const Matrix_9x9  &dcauchydF, const Matrix_9x27  &dcauchydgrad_chi,
                                    const Matrix_9x9  &dsdF,      const Matrix_9x27  &dsdgrad_chi,

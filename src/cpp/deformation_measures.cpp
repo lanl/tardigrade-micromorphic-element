@@ -2892,6 +2892,61 @@ namespace deformation_measures
         dadgrad_chi /= detF;
         return;
     }
+
+    void map_dAdgrad_chi_to_dadgrad_chi(const double (&dAdgrad_chi)[27][27], const double &detF, const double (&F)[3][3], const double (&chi)[3][3], double (&dadgrad_chi)[27][27]){
+        /*!========================================
+        |    map_dAdgrad_chi_to_dadgrad_chi    |
+        ========================================
+        
+        Map the gradient of a stress tensor w.r.t. the gradient w.r.t. the reference coordinate X of the micro-deformation tensor 
+        in the reference configuration to the current configuration.
+        
+        Note that grad_chi is chi_iI,J to the resulting gradient is dadgrad_chi_ijklK,L.
+        
+        This is for the higher order stress
+        */
+        
+        int tot_to_voigt_map[3][3][3];
+        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
+
+        int Ihat;
+        int Jhat;
+        int Khat;
+        
+        double tmp;
+        double tmp1;
+        double tmp2;    
+
+        for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+                for (int k=0; k<3; k++){
+                    Ihat = tot_to_voigt_map[i][j][k];
+                    for (int l=0; l<3; l++){
+                        for (int L=0; L<3; L++){
+                            for (int M=0; M<3; M++){
+                                Jhat = tot_to_voigt_map[l][L][M];
+                                tmp = 0;
+
+                                for (int I=0; I<3; I++){
+                                    tmp1 = F[i][I];
+                                    for (int J=0; J<3; J++){
+                                        tmp2 = F[j][J];
+                                        for (int K=0; K<3; K++){
+                                            Khat = tot_to_voigt_map[I][J][K];
+                                            tmp += tmp1 * tmp2 * chi[k][K] * dAdgrad_chi[Khat][Jhat];
+                                        }
+                                    }
+                                }
+                                dadgrad_chi[Ihat][Jhat] = tmp/detF;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return;
+    }
     
     void compute_total_derivatives(const Matrix_3x3  &F,         const Vector_27    &grad_phi,
                                    const Matrix_9x9  &dcauchydF, const Matrix_9x27  &dcauchydgrad_chi,
