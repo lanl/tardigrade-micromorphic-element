@@ -1,0 +1,40 @@
+#Compiler option
+CC=COMPILER_COMMAND
+
+#Standard option
+STD=-std=gnu++11
+
+#Compiler flags
+CFLAGS=-I. -I../.. -O3 -flto
+
+#Include Eigen Library
+EIGEN = -I EIGEN_LOCATION
+
+#Terminate after N errors
+ERRORFLG=-fmax-errors=5
+
+#Debugging flag
+DBG = -ggdb
+
+all: profile_code
+
+profile_code: profile_code.o micromorphic_linear_elasticity_voigt.o deformation_measures.o balance_equations.o micromorphic_material_library.o
+	$(CC) $(STD) -o $@ profile_code.o micromorphic_linear_elasticity_voigt.o deformation_measures.o balance_equations.o micromorphic_material_library.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+profile_code.o: profile_code.cpp ../micromorphic_linear_elasticity_voigt.h ../deformation_measures.h ../balance_equations.h ../micromorphic_material_library.h
+	$(CC) $(STD) -o $@ -c profile_code.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+micromorphic_material_library.o: ../micromorphic_material_library.h ../micromorphic_material_library.cpp
+	$(CC) $(STD) -o $@ -c ../micromorphic_material_library.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+micromorphic_linear_elasticity_voigt.o: ../micromorphic_linear_elasticity_voigt.h ../micromorphic_linear_elasticity_voigt.cpp ../deformation_measures.h
+	$(CC) $(STD) -o $@ -c ../micromorphic_linear_elasticity_voigt.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+deformation_measures.o: ../deformation_measures.h ../deformation_measures.cpp
+	$(CC) $(STD) -o $@ -c ../deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+balance_equations.o: ../balance_equations.h ../balance_equations.cpp
+	$(CC) $(STD) -o $@ -c ../balance_equations.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+clean:
+	rm *o profile_code
