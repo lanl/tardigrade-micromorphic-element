@@ -2443,22 +2443,36 @@ namespace deformation_measures
         //Compute the derivative of the jacobian of deformation w.r.t. F
         Matrix_3x3 dJdF;
         compute_ddetAdA(F,dJdF);
-        
-        //Map the cauchy stress
-        map_dAdF_to_dadF(cauchy_voigt, PK2_voigt, dPK2dF, J, dJdF, F, dcauchydF);
-        map_dAdchi_to_dadchi(dPK2dchi, J, F, dcauchydchi);
-        map_dAdgrad_chi_to_dadgrad_chi(dPK2dgrad_chi, J, F, dcauchydgrad_chi);        
-        
-        //Map the symmetric stress
-        map_dAdF_to_dadF(s_voigt, SIGMA_voigt, dSIGMAdF, J, dJdF, F, dsdF);
-        map_dAdchi_to_dadchi(dSIGMAdchi, J, F, dsdchi);
-        map_dAdgrad_chi_to_dadgrad_chi(dSIGMAdgrad_chi, J, F, dsdgrad_chi);
 
-        //Map the higher order stress
-        map_dAdF_to_dadF(m_voigt, M_voigt, dMdF, J, dJdF, F, chi, dmdF);
-        map_dAdchi_to_dadchi(M_voigt, dMdchi, J, F, chi, dmdchi);
-        map_dAdgrad_chi_to_dadgrad_chi(dMdgrad_chi, J, F, chi, dmdgrad_chi);
-        
+        #pragma omp parallel num_threads(4)
+        {        
+        //Map the cauchy stress
+        #pragma omp single nowait
+        {
+            map_dAdF_to_dadF(cauchy_voigt, PK2_voigt, dPK2dF, J, dJdF, F, dcauchydF);
+            map_dAdchi_to_dadchi(dPK2dchi, J, F, dcauchydchi);
+            map_dAdgrad_chi_to_dadgrad_chi(dPK2dgrad_chi, J, F, dcauchydgrad_chi);        
+        }
+        //Map the symmetric stress
+        #pragma omp single nowait
+        {
+            map_dAdF_to_dadF(s_voigt, SIGMA_voigt, dSIGMAdF, J, dJdF, F, dsdF);
+            map_dAdchi_to_dadchi(dSIGMAdchi, J, F, dsdchi);
+            map_dAdgrad_chi_to_dadgrad_chi(dSIGMAdgrad_chi, J, F, dsdgrad_chi);
+        }
+
+        #pragma omp single nowait
+        {
+            //Map the higher order stress
+            map_dAdF_to_dadF(m_voigt, M_voigt, dMdF, J, dJdF, F, chi, dmdF);
+            map_dAdchi_to_dadchi(M_voigt, dMdchi, J, F, chi, dmdchi);
+        }
+        #pragma omp single nowait
+        {
+            map_dAdgrad_chi_to_dadgrad_chi(dMdgrad_chi, J, F, chi, dmdgrad_chi);
+        }
+        }
+
         return;
     }
     
@@ -3054,7 +3068,6 @@ namespace deformation_measures
         double tmp1;
         double tmp2;    
 
-        #pragma omp parallel for collapse(9)
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 for (int k=0; k<3; k++){
