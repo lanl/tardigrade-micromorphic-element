@@ -435,6 +435,36 @@ namespace deformation_measures
         return;
     }
     
+    void get_voigt_to_tot_map(int (&voigt_to_tot_map)[81]){
+        /*!==============================
+        |    get_voigt_to_tot_map    |
+        ==============================
+
+        Get the voigt to third order tensor map.
+
+        */
+
+        int voigt_to_sot_map[18] = {0,0,
+                                    1,1,
+                                    2,2,
+                                    1,2,
+                                    0,2,
+                                    0,1,
+                                    2,1,
+                                    2,0,
+                                    1,0};
+
+        for (int i=0; i<3; i++){
+            for (int j=0; j<9; j++){
+                voigt_to_tot_map[i*27 + 3*j    ] = i;
+                voigt_to_tot_map[i*27 + 3*j + 1] = voigt_to_sot_map[2*j    ];
+                voigt_to_tot_map[i*27 + 3*j + 2] = voigt_to_sot_map[2*j + 1];
+            }
+        }
+
+        return;
+    }
+
     void undo_voigt_3x3_tensor(const Vector_9 &v, Matrix_3x3 &A){
         /*!===============================
            |    undo_voigt_3x3_tensor    |
@@ -2932,6 +2962,54 @@ namespace deformation_measures
         }
 
         dadgrad_chi /= detF;
+        return;
+    }
+
+    void map_dAdgrad_chi_to_dadgrad_chi_alt(const Matrix_27x27 &dAdgrad_chi, const double &detF, const Matrix_3x3 &F, const Matrix_3x3 &chi, Matrix_27x27 &dadgrad_chi){
+        /*!========================================
+        |    map_dAdgrad_chi_to_dadgrad_chi    |
+        ========================================
+        
+        Map the gradient of a stress tensor w.r.t. the gradient w.r.t. the reference coordinate X of the micro-deformation tensor 
+        in the reference configuration to the current configuration.
+        
+        Note that grad_chi is chi_iI,J to the resulting gradient is dadgrad_chi_ijklK,L.
+        
+        This is for the higher order stress
+        */
+
+        int tot_to_voigt_map[27];
+        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);        
+
+        int voigt_to_tot_map[81];
+        deformation_measures::get_voigt_to_tot_map(voigt_to_tot_map);
+
+        int Ihat;
+        int Jhat;
+        int Khat;
+        
+        double tmp;
+        double tmp1;
+        double tmp2;
+
+        for (int Ihat = 0; Ihat < 27; Ihat++){
+            for (int Jhat = 0; Jhat<27; Jhat++){
+                tmp = 0;
+
+                for (int I=0; I<3; I++){
+                    tmp1 = F(voigt_to_tot_map[3*Ihat],I);
+                    for (int J=0; J<3; J++){
+                        tmp2 = F(voigt_to_tot_map[3*Jhat + 1],J);
+                        for (int K=0; K<3; K++){
+                            Khat = tot_to_voigt_map[9*I + 3*J + K];
+                            tmp += tmp1 * tmp2 * chi(voigt_to_tot_map[3*Ihat + 2],K) * dAdgrad_chi(Khat,Jhat);
+                        }
+                    }
+                }
+                dadgrad_chi(Ihat,Jhat) = tmp/detF;
+            }
+        }
+
         return;
     }
 
