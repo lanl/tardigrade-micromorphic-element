@@ -102,7 +102,24 @@ int main(){
             dmdF,         dmdchi,      dmdgrad_chi);
     }
     t1 = Clock::now();
-    std::cout << "Eigen Matrices: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
+    std::cout << "### Map Jacobians ###\n";
+    std::cout << "   Eigen Matrices: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
+
+    t0 = Clock::now();
+    for (int _n = 0; _n<n; _n++){
+        deformation_measures::map_dAdgrad_chi_to_dadgrad_chi(dMdgrad_chi, J, F, chi, dmdgrad_chi); 
+    }
+    t1 = Clock::now();
+    std::cout << "### map_dAdgrad_chi_to_dadgrad_chi ###\n";
+    std::cout << "    Full nested loops: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
+
+    t0 = Clock::now();
+    for (int _n = 0; _n<n; _n++){
+        deformation_measures::map_dAdgrad_chi_to_dadgrad_chi_alt(dMdgrad_chi, J, F, chi, dmdgrad_chi); 
+    }
+    t1 = Clock::now();
+    std::cout << "    Alternative nesting: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n) << "\n";
+
 
     return 1;
 }

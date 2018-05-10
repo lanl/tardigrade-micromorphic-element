@@ -5,7 +5,7 @@ CC=COMPILER_COMMAND
 STD=-std=gnu++11
 
 #Compiler flags
-CFLAGS=-I. -I../.. -O3 -fopenmp
+CFLAGS=-I. -I../.. -O3 -flto
 
 #Include Eigen Library
 EIGEN = -I EIGEN_LOCATION
