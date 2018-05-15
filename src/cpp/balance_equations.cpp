@@ -499,18 +499,13 @@ namespace balance_equations{
         //SpMat _dphidU(9,12);
         //SpMat _dgrad_phidU(27,12);
 
-        Matrix_9x12  _dgrad_udU;
-        Matrix_9x12  _dphidU;
-        Matrix_27x12 _dgrad_phidU;
+        Matrix_9x12  dgrad_udU;
+        Matrix_9x12  dphidU;
+        Matrix_27x12 dgrad_phidU;
         
-        construct_dgrad_udU(detadx, _dgrad_udU);
-        construct_dphidU(eta, _dphidU);
-        construct_dgrad_phidU(detadx, _dgrad_phidU);
-        
-        //TODO: There is probably a more efficient way to do this.
-        Matrix_9x12 dgrad_udU    = _dgrad_udU;
-        Matrix_9x12 dphidU       = _dphidU;
-        Matrix_27x12 dgrad_phidU = _dgrad_phidU;
+        construct_dgrad_udU(detadx, dgrad_udU);
+        construct_dphidU(eta, dphidU);
+        construct_dgrad_phidU(detadx, dgrad_phidU);
         
         if ( i == 0 ){
             DfintDU_iA = -(dNdx[0]*(DcauchyDgrad_u.row(0).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(0).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(0).dot(dgrad_phidU.col(dof_num)))
