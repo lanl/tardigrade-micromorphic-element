@@ -23,6 +23,215 @@ namespace micromorphic_material_library {
     
     //IMaterialRegistrar::~IMaterialRegistrar(){}
 
+
+    void IMaterial::evaluate_model_numeric_gradients(const std::vector<double> &time,        const std::vector<double> (&fparams),
+                                   const double (&grad_u)[3][3],           const double (&phi)[9],
+                                   const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
+                                   const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
+                                   std::vector<double> &cauchy,                      std::vector<double> &s,                        std::vector<double> &m,
+                                   std::vector<std::vector<double>> &DcauchyDgrad_u, std::vector<std::vector<double>> &DcauchyDphi, std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                   std::vector<std::vector<double>> &DsDgrad_u,      std::vector<std::vector<double>> &DsDphi,      std::vector<std::vector<double>> &DsDgrad_phi,
+                                   std::vector<std::vector<double>> &DmDgrad_u,      std::vector<std::vector<double>> &DmDphi,      std::vector<std::vector<double>> &DmDgrad_phi,
+                                   std::vector<std::vector<double>> &ADD_TERMS,      std::vector<std::vector<std::vector<double>>> &ADD_JACOBIANS, double delta){
+        /*!
+        ==========================================
+        |    evaluate_model_numeric_gradients    |
+        ==========================================
+
+        Evaluates the model and computes the numeric gradients of the stress measures w.r.t the degrees of freedom and their gradients.
+
+        TODO: Add gradients of the additional terms.
+
+        */
+
+        //Create temporary matrices and vectors
+        Vector_9  _cauchy;
+        Vector_9  _s;
+        Vector_27 _m;
+
+        std::vector<Eigen::VectorXd> _ADD_TERMS;
+
+        //Evaluate the model at the reference point
+        evaluate_model(time,    fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
+                       _cauchy, _s, _m, _ADD_TERMS);
+
+        //Populate the stress outputs
+        map_eigen_to_vector(_cauchy,cauchy);
+        map_eigen_to_vector(_s,s);
+        map_eigen_to_vector(_m,m);
+
+        //Populate the additional terms
+        ADD_TERMS.resize(_ADD_TERMS.size());
+        for (unsigned int i=0; i<_ADD_TERMS.size(); i++){map_eigen_to_vector(_ADD_TERMS[i], ADD_TERMS[i]);}
+
+        //Form the total vector
+        std::vector<double> U(45);
+
+        //Transfer the reference point for grad_u
+        U[0] = grad_u[0][0];
+        U[1] = grad_u[1][1];
+        U[2] = grad_u[2][2];
+        U[3] = grad_u[1][2];
+        U[4] = grad_u[0][2];
+        U[5] = grad_u[0][1];
+        U[6] = grad_u[2][1];
+        U[7] = grad_u[2][0];
+        U[8] = grad_u[1][0];
+
+        //Transfer the reference point for phi
+        for (int i=0; i<9; i++){
+            U[i+9] = phi[i];
+        }
+
+        //Transfer the reference point for grad_phi
+        int sot_to_voigt_map[3][3]    = {{0,5,4},
+                                         {8,1,3},
+                                         {7,6,2}};
+        int tot_to_voigt_map[3][3][3];
+        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
+        int voigt_to_tot_map[81];
+        deformation_measures::get_voigt_to_tot_map(voigt_to_tot_map);
+
+        for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+                for (int k=0; k<3; k++){
+                    U[tot_to_voigt_map[i][j][k]+18] = grad_phi[sot_to_voigt_map[i][j]][k];
+                }
+            }
+        }
+
+        double _grad_u[3][3];
+        double _phi[9];
+        double _grad_phi[9][3];
+
+        std::vector<std::vector<double>> STRESS_MATRIX(45);
+        for (int I=0; I<45; I++){STRESS_MATRIX[I].resize(45);}
+
+        for (int J=0; J<45; J++){
+
+            //Perturb the state
+            if(J>0){U[J-1] -= delta;}
+            U[J] += delta;
+
+            //Extract the perturbed state
+            _grad_u[0][0] = U[0];
+            _grad_u[1][1] = U[1];
+            _grad_u[2][2] = U[2];
+            _grad_u[1][2] = U[3];
+            _grad_u[0][2] = U[4];
+            _grad_u[0][1] = U[5];
+            _grad_u[2][1] = U[6];
+            _grad_u[2][0] = U[7];
+            _grad_u[1][0] = U[8];
+
+            for (int i=0; i<9; i++){_phi[i] = U[i+9];}
+
+            for (int i=0; i<3; i++){
+                for (int j=0; j<3; j++){
+                    for (int k=0; k<3; k++){
+                        _grad_phi[sot_to_voigt_map[i][j]][k] = U[tot_to_voigt_map[i][j][k]+18];
+                    }
+                }
+            }
+
+            //Evaluate the model
+            evaluate_model(time,    fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
+                           _cauchy, _s, _m, _ADD_TERMS);
+
+            //Extract the response
+            for (int I=0; I<9;  I++){STRESS_MATRIX[I   ][J] = (_cauchy(I) - cauchy[I])/delta;}
+            for (int I=0; I<9;  I++){STRESS_MATRIX[I+9 ][J] = (_s(I)      - s[I])/delta;}
+            for (int I=0; I<27; I++){STRESS_MATRIX[I+18][J] = (_m(I)      - m[I])/delta;}
+
+        }
+
+        //Output the matrix to the terminal
+//        std::cout << "STRESS_MATRIX:\n";
+//        for (int I=0; I<45; I++){
+//            for (int J=0; J<45; J++){
+//                std::cout << STRESS_MATRIX[I][J] << " ";
+//            }
+//            std::cout << "\n";
+//        }
+
+        //Extract the stress jacobians
+        //std::cout << "dcauchydgrad_u\n";
+        DcauchyDgrad_u.resize(9);
+        for (int I=0; I<9; I++){
+            DcauchyDgrad_u[I].resize(9);
+            for (int J=0; J<9; J++){
+                DcauchyDgrad_u[I][J] = STRESS_MATRIX[I][J];
+            }
+        }
+        //std::cout << "dcauchydphi\n";
+        DcauchyDphi.resize(9);
+        for (int I=0; I<9; I++){
+            DcauchyDphi[I].resize(9);
+            for (int J=0; J<9; J++){
+                DcauchyDphi[I][J] = STRESS_MATRIX[I][J+9];
+            }
+        }
+        //std::cout << "dcauchydgrad_phi\n";
+        DcauchyDgrad_phi.resize(9);
+        for (int I=0; I<9; I++){
+            DcauchyDgrad_phi[I].resize(27);
+            for (int J=0; J<27; J++){
+                DcauchyDgrad_phi[I][J] = STRESS_MATRIX[I][J+18];
+            }
+        }
+        //std::cout << "dsdgrad_u\n";
+        DsDgrad_u.resize(9);
+        for (int I=0; I<9; I++){
+            DsDgrad_u[I].resize(9);
+            for (int J=0; J<9; J++){
+                DsDgrad_u[I][J] = STRESS_MATRIX[I+9][J];
+            }
+        }
+        //std::cout << "dsdphi\n";
+        DsDphi.resize(9);
+        for (int I=0; I<9; I++){
+            DsDphi[I].resize(9);
+            for (int J=0; J<9; J++){
+                DsDphi[I][J] = STRESS_MATRIX[I+9][J+9];
+            }
+        }
+        //std::cout << "dsdgrad_phi\n";
+        DsDgrad_phi.resize(9);
+        for (int I=0; I<9; I++){
+            DsDgrad_phi[I].resize(27);
+            for (int J=0; J<27; J++){
+                DsDgrad_phi[I][J] = STRESS_MATRIX[I+9][J+18];
+            }
+        }
+        //std::cout << "dmdgrad_u\n";
+        DmDgrad_u.resize(27);
+        for (int I=0; I<27; I++){
+            DmDgrad_u[I].resize(9);
+            for (int J=0; J<9; J++){
+                DmDgrad_u[I][J] = STRESS_MATRIX[I+18][J];
+            }
+        }
+        //std::cout << "dmdphi\n";
+        DmDphi.resize(27);
+        for (int I=0; I<27; I++){
+            DmDphi[I].resize(9);
+            for (int J=0; J<9; J++){
+                DmDphi[I][J] = STRESS_MATRIX[I+18][J+9];
+            }
+        }
+        //std::cout << "dmdgrad_phi\n";
+        DmDgrad_phi.resize(27);
+        for (int I=0; I<27; I++){
+            DmDgrad_phi[I].resize(27);
+            for (int J=0; J<27; J++){
+                DmDgrad_phi[I][J] = STRESS_MATRIX[I+18][J+18];
+            }
+        }
+
+        return;
+
+    }
+
     void IMaterial::evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
                                    const double (&grad_u)[3][3],           const double (&phi)[9],
                                    const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
