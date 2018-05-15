@@ -119,7 +119,17 @@ namespace micro_material{
         Matrix_3x3 chi;
         Matrix_3x9 grad_chi;
         get_deformation_measures(grad_u, phi, grad_phi, F, chi, grad_chi);
-        
+
+//        std::cout << "grad_u:\n";
+//        for (int i=0; i<3; i++){
+//            for (int j=0; j<3; j++){
+//                std::cout << grad_u[i][j] << " ";
+//            }
+//            std::cout << "\n";
+//        }
+//
+//        std::cout << "F:\n" << F << "\n";
+
         //Compute the stresses and jacobians
         Vector_9  PK2;
         Vector_9  SIGMA;
@@ -354,6 +364,10 @@ namespace micro_material{
         deformation_measures::voigt_3x3_tensor(E,       E_voigt);
         deformation_measures::voigt_3x3_tensor(E_micro, E_micro_voigt);
         deformation_measures::voigt_3x9_tensor(Gamma,   Gamma_voigt);
+
+        //std::cout << "F:\n" << F << "\n";
+        //std::cout << "E_voigt:\n" << E_voigt << "\n";
+        //std::cout << "E_micro_voigt:\n" << E_micro_voigt << "\n";
 
         //Compute the stress measures
         compute_PK2_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma,
