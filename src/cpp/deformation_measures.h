@@ -167,6 +167,14 @@ namespace deformation_measures
                                    Matrix_9x9  &DcauchyDgrad_u,  Matrix_9x27  &DcauchyDgrad_phi,
                                    Matrix_9x9  &DsDgrad_u,       Matrix_9x27  &DsDgrad_phi,
                                    Matrix_27x9 &DmDgrad_u,       Matrix_27x27 &DmDgrad_phi);
+
+    void compute_total_derivatives_reference(const Matrix_3x3  &F,         const Vector_27    &grad_phi,
+                                             const Matrix_9x9  &dPK2dF,    const Matrix_9x27  &dPK2dgrad_chi,
+                                             const Matrix_9x9  &dSIGMAdF,  const Matrix_9x27  &dSIGMAdgrad_chi,
+                                             const Matrix_27x9 &dMdF,      const Matrix_27x27 &dMdgrad_chi,
+                                             Matrix_9x9  &DPK2Dgrad_u,     Matrix_9x27  &DPK2Dgrad_phi,
+                                             Matrix_9x9  &DSIGMADgrad_u,   Matrix_9x27  &DSIGMADgrad_phi,
+                                             Matrix_27x9 &DMDgrad_u,       Matrix_27x27 &DMDgrad_phi);
 }
 
 #endif

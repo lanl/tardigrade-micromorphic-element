@@ -3183,7 +3183,7 @@ namespace deformation_measures
         |    compute_total_derivatives    |
         ===================================
 
-        Compute the total derivatives of the deformation measures w.r.t. the displacement degrees of freedom and their 
+        Compute the total derivatives of the stress measures w.r.t. the displacement degrees of freedom and their 
         gradients.
         
         Note DxDchi = DxDphi because chi = eye + phi
@@ -3218,4 +3218,52 @@ namespace deformation_measures
         
         return;
     }
+
+    void compute_total_derivatives_reference(const Matrix_3x3  &F,        const Vector_27    &grad_phi,
+                                             const Matrix_9x9  &dPK2dF,   const Matrix_9x27  &dPK2dgrad_chi,
+                                             const Matrix_9x9  &dSIGMAdF, const Matrix_9x27  &dSIGMAdgrad_chi,
+                                             const Matrix_27x9 &dMdF,     const Matrix_27x27 &dMdgrad_chi,
+                                             Matrix_9x9  &DPK2Dgrad_u,    Matrix_9x27  &DPK2Dgrad_phi,
+                                             Matrix_9x9  &DSIGMADgrad_u,  Matrix_9x27  &DSIGMADgrad_phi,
+                                             Matrix_27x9 &DMDgrad_u,      Matrix_27x27 &DMDgrad_phi){
+        /*!
+        =============================================
+        |    compute_total_derivatives_reference    |
+        =============================================
+
+        Compute the total derivatives of the stress measures in the reference configuration w.r.t. the displacement degrees of freedom and their 
+        gradients.
+        
+        Note DxDchi = DxDphi because chi = eye + phi
+        
+        */
+
+        //Define the partial derivatives of grad_chi
+        //Note: Removing sparse matrices because of problems with 
+        //      MOOSE.
+        //SpMat dgrad_chidF(27,9);
+        //SpMat dgrad_chidgrad_phi(27,27);
+
+        Matrix_27x9  dgrad_chidF;
+        Matrix_27x27 dgrad_chidgrad_phi;
+
+        //Define the derivative of the deformation gradient w.r.t. the gradient of u w.r.t. the local coordinates.
+        Matrix_9x9 dFdgrad_u;
+        compute_dFdgrad_u(F,dFdgrad_u);
+        compute_dgrad_chidF(grad_phi, dgrad_chidF);
+        compute_dgrad_chidgrad_phi(F,dgrad_chidgrad_phi);
+
+        //Compute the total derivatives w.r.t. the deformation gradient.
+        DPK2Dgrad_u    = (dPK2dF   + dPK2dgrad_chi*dgrad_chidF)*dFdgrad_u;
+        DSIGMADgrad_u  = (dSIGMAdF + dSIGMAdgrad_chi*dgrad_chidF)*dFdgrad_u;
+        DMDgrad_u      = (dMdF     + dMdgrad_chi*dgrad_chidF)*dFdgrad_u;
+
+        //Compute the total derivatives w.r.t. the gradient of the micro-displacement dof.
+        DPK2Dgrad_phi   = dPK2dgrad_chi*dgrad_chidgrad_phi;
+        DSIGMADgrad_phi = dSIGMAdgrad_chi*dgrad_chidgrad_phi;
+        DMDgrad_phi     = dMdgrad_chi*dgrad_chidgrad_phi;
+
+        return;
+    }
+
 }
