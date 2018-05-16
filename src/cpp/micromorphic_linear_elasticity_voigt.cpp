@@ -35,7 +35,8 @@ namespace micro_material{
                                           const double (&grad_u)[3][3],           const double (&phi)[9],
                                           const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
                                           const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                                          Vector_9 &cauchy, Vector_9 &s, Vector_27 &m, std::vector<Eigen::VectorXd> &ADD_TERMS){
+                                          Vector_9 &PK2,    Vector_9 &SIGMA, Vector_27 &M,
+                                          Vector_9 &cauchy, Vector_9 &s,     Vector_27 &m, std::vector<Eigen::VectorXd> &ADD_TERMS){
         /*!
         =======================
         |    evaluate_model   |
@@ -69,10 +70,6 @@ namespace micro_material{
         get_deformation_measures(grad_u, phi, grad_phi, F, chi, grad_chi);
         
         //Compute the stresses
-        Vector_9  PK2;
-        Vector_9  SIGMA;
-        Vector_27 M;
-        
         get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M);
         deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
         
@@ -83,10 +80,11 @@ namespace micro_material{
                                           const double (&grad_u)[3][3],           const double (&phi)[9],
                                           const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
                                           const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
+                                          Vector_9    &PK2,       Vector_9    &SIGMA,       Vector_27    &M,
                                           Vector_9    &cauchy,    Vector_9    &s,           Vector_27    &m,
-                                          Matrix_9x9  &DcauchyDgrad_u, Matrix_9x9  &DcauchyDphi, Matrix_9x27  &DcauchyDgrad_phi,
-                                          Matrix_9x9  &DsDgrad_u,      Matrix_9x9  &DsDphi,      Matrix_9x27  &DsDgrad_phi,
-                                          Matrix_27x9 &DmDgrad_u,      Matrix_27x9 &DmDphi,      Matrix_27x27 &DmDgrad_phi,
+                                          Matrix_9x9  &DPK2Dgrad_u,    Matrix_9x9  &DPK2Dphi,    Matrix_9x27  &DPK2Dgrad_phi,
+                                          Matrix_9x9  &DSIGMADgrad_u,  Matrix_9x9  &DSIGMADphi,  Matrix_9x27  &DSIGMADgrad_phi,
+                                          Matrix_27x9 &DMDgrad_u,      Matrix_27x9 &DMDphi,      Matrix_27x27 &DMDgrad_phi,
                                           std::vector<Eigen::VectorXd> &ADD_TERMS,               std::vector<Eigen::MatrixXd> &ADD_JACOBIANS){
         /*!
         ========================
@@ -131,10 +129,6 @@ namespace micro_material{
 //        std::cout << "F:\n" << F << "\n";
 
         //Compute the stresses and jacobians
-        Vector_9  PK2;
-        Vector_9  SIGMA;
-        Vector_27 M;
-        
         Matrix_9x9   dPK2dF;
         Matrix_9x9   dPK2dchi;
         Matrix_9x27  dPK2dgrad_chi;
@@ -145,39 +139,26 @@ namespace micro_material{
         Matrix_27x9  dMdchi;
         Matrix_27x27 dMdgrad_chi;
         
-        //Note: D(x)Dphi = d(x)dchi
-        Matrix_9x9   dcauchydF;
-        Matrix_9x27  dcauchydgrad_chi;
-        Matrix_9x9   dsdF;
-        Matrix_9x27  dsdgrad_chi;
-        Matrix_27x9  dmdF;
-        Matrix_27x27 dmdgrad_chi;
-
         //assert(13==14);
 
+        //Note: d(x)dchi = D(x)Dphi
         get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
-                   dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
-                   dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
-                   dMdF,     dMdchi,     dMdgrad_chi);
+                   dPK2dF,   DPK2Dphi,   dPK2dgrad_chi,
+                   dSIGMAdF, DSIGMADphi, dSIGMAdgrad_chi,
+                   dMdF,     DMDphi,     dMdgrad_chi);
                    
         //assert(14==15);
         deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
 
-        //assert(15==16);
-        
-        deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s,   m,
-                                                                     dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
-                                                                     dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, DcauchyDphi, dcauchydgrad_chi,
-                                                                     dsdF,   DsDphi,   dsdgrad_chi,   dmdF,      DmDphi,      dmdgrad_chi);
         //assert(16==17);                                                                    
         Matrix_3x9 _grad_phi;
         Vector_27  _grad_phi_v;
         Matrix_3x3 eye = Matrix_3x3::Identity();
         deformation_measures::assemble_grad_chi(grad_phi, eye, _grad_phi); //Put grad_phi into an Eigen Matrix
         deformation_measures::voigt_3x9_tensor(_grad_phi,_grad_phi_v);     //Put grad_phi into voigt notation
-        deformation_measures::compute_total_derivatives(F, _grad_phi_v,
-                                                        dcauchydF,      dcauchydgrad_chi, dsdF,      dsdgrad_chi, dmdF,      dmdgrad_chi,
-                                                        DcauchyDgrad_u, DcauchyDgrad_phi, DsDgrad_u, DsDgrad_phi, DmDgrad_u, DmDgrad_phi);
+        deformation_measures::compute_total_derivatives_reference(F, _grad_phi_v,
+                                                                  dPK2dF,      dPK2dgrad_chi, dSIGMAdF,      dSIGMAdgrad_chi, dMdF,      dMdgrad_chi,
+                                                                  DPK2Dgrad_u, DPK2Dgrad_phi, DSIGMADgrad_u, DSIGMADgrad_phi, DMDgrad_u, DMDgrad_phi);
         //assert(17==18);
         return;
     }
