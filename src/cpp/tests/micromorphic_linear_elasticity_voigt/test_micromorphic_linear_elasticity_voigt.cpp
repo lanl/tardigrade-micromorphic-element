@@ -1346,6 +1346,175 @@ std::vector<double> parse_pk2_stress_grad_chi(std::vector<double> grad_chivec){
     return PK2_vec;
 }
 
+std::vector<double> parse_pk2_stress_grad_u(std::vector<double> grad_uvec){
+    /*!
+    ============================
+    |    parse_pk2_stress_F    |
+    ============================
+    
+    Parse the PK2 stress as a function of the gradient of u in the 
+    current configuration.
+    
+    */
+    
+    //Map the displacement gradient from the incoming vector to an eigen matrix
+    Vector_9 _grad_u;
+    for (int i=0; i<9; i++){_grad_u[i] = grad_uvec[i];}
+    Matrix_3x3 grad_u;
+    
+    deformation_measures::undo_voigt_3x3_tensor(_grad_u, grad_u);
+    
+    double _grad_u_data[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u_data[i][j] = grad_u(i,j);
+        }
+    }
+    
+    Matrix_3x3 F;
+    deformation_measures::get_deformation_gradient(_grad_u_data, F);
+ 
+    Matrix_3x3 chi;
+    define_chi(chi);
+    
+    Matrix_3x9 grad_chi;
+    Eigen::Matrix<double,9,3> grad_phi_data; //The incoming data
+    grad_phi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
+
+    double grad_phi_data_array[9][3]; //The format expected by the function
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data_array[i][j] = grad_phi_data(i,j);
+
+        }
+
+    }
+    
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
+    
+    //Define additional required values
+    //double t  = 0;
+    //double dt = 0;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    Matrix_3x3 RCG;
+    deformation_measures::get_right_cauchy_green(F,RCG);
+    Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 PK2;
+    micro_material::compute_PK2_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, PK2);
+    
+    std::vector<double> pk2_vec;
+    pk2_vec.resize(9);
+    for (int i=0; i<9; i++){pk2_vec[i] = PK2(i);}
+    return pk2_vec;
+}
+
+std::vector<double> parse_pk2_stress_grad_phi(std::vector<double> grad_phivec){
+    /*!
+    ===================================
+    |    parse_pk2_stress_grad_phi    |
+    ===================================
+    
+    Parse the PK2 stress as a function of the gradient of u in the 
+    current configuration.
+    
+    */
+    
+    //Map the gradient of the micro-displacement from the incoming vector to an eigen matrix
+    Vector_27 _grad_phi;
+    for (int i=0; i<27; i++){_grad_phi[i] = grad_phivec[i];}
+    
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    double _grad_u_data[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u_data[i][j] = grad_u(i,j);
+        }
+    }
+    
+    Matrix_3x3 F;
+    deformation_measures::get_deformation_gradient(_grad_u_data, F);
+    
+    Matrix_3x3 chi;
+    define_chi(chi);
+    
+    deformation_measures::perform_right_positive_cyclic_permutation(_grad_phi);
+    Matrix_3x9 grad_phi;
+    Matrix_3x9 grad_chi;
+    deformation_measures::undo_voigt_3x9_tensor(_grad_phi, grad_phi);
+    grad_phi = F.transpose()*grad_phi.eval();
+    deformation_measures::voigt_3x9_tensor(grad_phi,_grad_phi);
+    deformation_measures::perform_left_positive_cyclic_permutation(_grad_phi);
+    deformation_measures::undo_voigt_3x9_tensor(_grad_phi,grad_chi);
+    
+    //Define additional required values
+    //double t  = 0;
+    //double dt = 0;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    Matrix_3x3 RCG;
+    deformation_measures::get_right_cauchy_green(F,RCG);
+    Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 PK2;
+    micro_material::compute_PK2_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, PK2);
+    
+    std::vector<double> pk2_vec;
+    pk2_vec.resize(9);
+    for (int i=0; i<9; i++){pk2_vec[i] = PK2(i);}
+    return pk2_vec;
+}
+
 std::vector<double> parse_symmetric_stress_F(std::vector<double> Fvec){
     /*!==================================
     |    parse_symmetric_stress_F    |
@@ -1523,12 +1692,183 @@ std::vector<double> parse_symmetric_stress_grad_chi(std::vector<double> grad_chi
     return SIGMA_vec;
 }
 
+std::vector<double> parse_symmetric_stress_grad_u(std::vector<double> grad_uvec){
+    /*!
+    =======================================
+    |    parse_symmetric_stress_grad_u    |
+    =======================================
+    
+    Parse the symmetric stress in the reference configuration as a function
+    of the gradient of u in the current configuration.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_9 _grad_u;
+    for (int i=0; i<9; i++){_grad_u[i] = grad_uvec[i];}
+    Matrix_3x3 grad_u;
+    
+    deformation_measures::undo_voigt_3x3_tensor(_grad_u, grad_u);
+    
+    double _grad_u_data[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u_data[i][j] = grad_u(i,j);
+        }
+    }
+    
+    Matrix_3x3 F;
+    deformation_measures::get_deformation_gradient(_grad_u_data, F);
+    
+    Matrix_3x3 chi;
+    define_chi(chi);
+    
+    Matrix_3x9 grad_chi;
+    Eigen::Matrix<double,9,3> grad_phi_data; //The incoming data
+    grad_phi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
+
+    double grad_phi_data_array[9][3]; //The format expected by the function
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data_array[i][j] = grad_phi_data(i,j);
+
+        }
+
+    }
+    
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
+    
+    
+    
+    //Define additional required values
+    //double t  = 0;
+    //double dt = 0;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    Matrix_3x3 RCG;
+    deformation_measures::get_right_cauchy_green(F,RCG);
+    Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 SIGMA;
+    micro_material::compute_symmetric_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, SIGMA);
+    
+    std::vector<double> sigma_vec;
+    sigma_vec.resize(9);
+    for (int i=0; i<9; i++){sigma_vec[i] = SIGMA(i);}
+    return sigma_vec;
+}
+
+std::vector<double> parse_symmetric_stress_grad_phi(std::vector<double> grad_phivec){
+    /*!
+    =========================================
+    |    parse_symmetric_stress_grad_phi    |
+    =========================================
+    
+    Parse the symmetric stress in the reference configuration as a function of the gradient of u in the 
+    current configuration.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_27 _grad_phi;
+    for (int i=0; i<27; i++){_grad_phi[i] = grad_phivec[i];}
+    
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    double _grad_u_data[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u_data[i][j] = grad_u(i,j);
+        }
+    }
+    
+    Matrix_3x3 F;
+    deformation_measures::get_deformation_gradient(_grad_u_data, F);
+    
+    Matrix_3x3 chi;
+    define_chi(chi);
+    
+    deformation_measures::perform_right_positive_cyclic_permutation(_grad_phi);
+    Matrix_3x9 grad_phi;
+    Matrix_3x9 grad_chi;
+    deformation_measures::undo_voigt_3x9_tensor(_grad_phi, grad_phi);
+    grad_phi = F.transpose()*grad_phi.eval();
+    deformation_measures::voigt_3x9_tensor(grad_phi,_grad_phi);
+    deformation_measures::perform_left_positive_cyclic_permutation(_grad_phi);
+    deformation_measures::undo_voigt_3x9_tensor(_grad_phi,grad_chi);
+    
+    //Define additional required values
+    //double t  = 0;
+    //double dt = 0;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    Matrix_3x3 RCG;
+    deformation_measures::get_right_cauchy_green(F,RCG);
+    Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_9 SIGMA;
+    micro_material::compute_symmetric_stress(E_voigt, E_micro_voigt, Gamma_voigt, RCGinv, Psi, Gamma, A, B, C, D, SIGMA);
+    
+    std::vector<double> sigma_vec;
+    sigma_vec.resize(9);
+    for (int i=0; i<9; i++){sigma_vec[i] = SIGMA(i);}
+    return sigma_vec;
+}
+
 std::vector<double> parse_higher_order_stress_F(std::vector<double> Fvec){
     /*!=====================================
     |    parse_higher_order_stress_F    |
     =====================================
     
-    Parse the symmetric stress as a function of the deformation 
+    Parse the higher order stress as a function of the deformation 
     gradient.
     
     */
@@ -1570,7 +1910,7 @@ std::vector<double> parse_higher_order_stress_chi(std::vector<double> chivec){
     |    parse_higher_order_stress_chi    |
     =======================================
     
-    Parse the symmetric stress as a function of the micro-deformation
+    Parse the higher order stress as a function of the micro-deformation
     tensor chi.
     
     */
@@ -1614,7 +1954,7 @@ std::vector<double> parse_higher_order_stress_grad_chi(std::vector<double> grad_
     |    parse_higher_order_stress_grad_chi    |
     ============================================
     
-    Parse the symmetric stress as a function of the gradient of 
+    Parse the higher order stress as a function of the gradient of 
     the micro-deformation tensor chi.
     
     */
@@ -1680,6 +2020,177 @@ std::vector<double> parse_higher_order_stress_gamma(std::vector<double> Gammavec
     M_vec.resize(27);
     for (int i=0; i<27; i++){M_vec[i] = M(i);}
     return M_vec;
+}
+
+std::vector<double> parse_higher_order_stress_grad_u(std::vector<double> grad_uvec){
+    /*!
+    ==========================================
+    |    parse_higher_order_stress_grad_u    |
+    ==========================================
+    
+    Parse the higher order stress in the reference configuration as a function
+    of the gradient of u in the current configuration.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_9 _grad_u;
+    for (int i=0; i<9; i++){_grad_u[i] = grad_uvec[i];}
+    Matrix_3x3 grad_u;
+    
+    deformation_measures::undo_voigt_3x3_tensor(_grad_u, grad_u);
+    
+    double _grad_u_data[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u_data[i][j] = grad_u(i,j);
+        }
+    }
+    
+    Matrix_3x3 F;
+    deformation_measures::get_deformation_gradient(_grad_u_data, F);
+    
+    Matrix_3x3 chi;
+    define_chi(chi);
+    
+    Matrix_3x9 grad_chi;
+    Eigen::Matrix<double,9,3> grad_phi_data; //The incoming data
+    grad_phi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
+
+    double grad_phi_data_array[9][3]; //The format expected by the function
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data_array[i][j] = grad_phi_data(i,j);
+
+        }
+
+    }
+    
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
+    
+    
+    
+    //Define additional required values
+    //double t  = 0;
+    //double dt = 0;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    Matrix_3x3 RCG;
+    deformation_measures::get_right_cauchy_green(F,RCG);
+    //Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_27 M;
+    micro_material::compute_higher_order_stress(Gamma_voigt, C, M);
+    
+    std::vector<double> m_vec;
+    m_vec.resize(27);
+    for (int i=0; i<27; i++){m_vec[i] = M(i);}
+    return m_vec;
+}
+
+std::vector<double> parse_higher_order_stress_grad_phi(std::vector<double> grad_phivec){
+    /*!
+    ============================================
+    |    parse_higher_order_stress_grad_phi    |
+    ============================================
+    
+    Parse the higher order stress in the reference configuration as a function of the gradient of phi in the 
+    current configuration.
+    
+    */
+    
+    //Map the deformation gradient from the incoming vector to an eigen matrix
+    Vector_27 _grad_phi;
+    for (int i=0; i<27; i++){_grad_phi[i] = grad_phivec[i];}
+    
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    double _grad_u_data[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u_data[i][j] = grad_u(i,j);
+        }
+    }
+    
+    Matrix_3x3 F;
+    deformation_measures::get_deformation_gradient(_grad_u_data, F);
+    
+    Matrix_3x3 chi;
+    define_chi(chi);
+    
+    deformation_measures::perform_right_positive_cyclic_permutation(_grad_phi);
+    Matrix_3x9 grad_phi;
+    Matrix_3x9 grad_chi;
+    deformation_measures::undo_voigt_3x9_tensor(_grad_phi, grad_phi);
+    grad_phi = F.transpose()*grad_phi.eval();
+    deformation_measures::voigt_3x9_tensor(grad_phi,_grad_phi);
+    deformation_measures::perform_left_positive_cyclic_permutation(_grad_phi);
+    deformation_measures::undo_voigt_3x9_tensor(_grad_phi,grad_chi);
+    
+    //Define additional required values
+    //double t  = 0;
+    //double dt = 0;
+    
+    SpMat A(9,9);
+    SpMat B(9,9);
+    SpMat C(27,27);
+    SpMat D(9,9);
+    
+    define_A(A);
+    define_B(B);
+    define_C(C);
+    define_D(D);
+    
+    Matrix_3x3 RCG;
+    deformation_measures::get_right_cauchy_green(F,RCG);
+    //Matrix_3x3 RCGinv = RCG.inverse();
+
+    Matrix_3x3 Psi   = F.transpose()*chi;
+    Matrix_3x9 Gamma = F.transpose()*grad_chi;
+    
+    //Compute the required measures
+    Vector_9 E_voigt;
+    Vector_9 E_micro_voigt;
+    Vector_27 Gamma_voigt;
+    deformation_measures::voigt_3x3_tensor(0.5*(RCG - Matrix_3x3::Identity()),E_voigt);
+    deformation_measures::voigt_3x3_tensor(Psi - Matrix_3x3::Identity(),E_micro_voigt);
+    deformation_measures::voigt_3x9_tensor(Gamma,Gamma_voigt);
+    
+    Vector_27 M;
+    micro_material::compute_higher_order_stress(Gamma_voigt, C, M);
+    
+    std::vector<double> m_vec;
+    m_vec.resize(27);
+    for (int i=0; i<27; i++){m_vec[i] = M(i);}
+    return m_vec;
 }
 
 std::vector<double> parse_cauchy_stress_F(std::vector<double> Fvec){
@@ -2856,14 +3367,6 @@ std::vector<double> parse_balance_of_linear_momentum_U(std::vector<double> U){
 
     double phi[9];
     for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
-    
-    double grad_phi_data[9][3];
-    
-    for (int I=3; I<12; I++){
-        for (int j=0; j<3; j++){            
-            grad_phi_data[I-3][j] = U[I]*detadx[j];
-        }
-    }
 
     //The required values for the material model
     //Assign required values
@@ -2889,7 +3392,15 @@ std::vector<double> parse_balance_of_linear_momentum_U(std::vector<double> U){
     define_parameters(params,false); //TODO: remove true!
     
     deformation_measures::get_deformation_gradient(grad_u, F);
+
+    double grad_phi_data[9][3];
     
+    for (int I=3; I<12; I++){
+        for (int j=0; j<3; j++){            
+            grad_phi_data[I-3][j] = U[I]*detadx[j];
+        }
+    }
+ 
     deformation_measures::assemble_chi(phi, chi);
     deformation_measures::assemble_grad_chi(grad_phi_data, F, grad_chi);
     
@@ -7447,6 +7958,1149 @@ int test_compute_total_derivatives_DmDgrad_phi(std::ofstream &results){
     return 1;
 }
 
+int test_compute_total_derivatives_reference_DPK2Dgrad_u(std::ofstream &results){
+    /*!
+    ==============================================================
+    |    test_compute_total_derivatives_reference_DPK2Dgrad_u    |
+    ==============================================================
+ 
+    Test the computation of the total derivatives of the stress 
+    measures w.r.t. the gradients and magnitudes of the degrees of freedom.
+ 
+    testing DPK2Dgrad_u
+ 
+    */
+    
+    //const int mhat = 9;
+    const int nhat = 9;
+    
+    Matrix_9x9  r; //The expected result
+    Matrix_9x9 _r; //The function output
+    
+    //The gradient of the macro-deformation
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    
+    double _grad_u[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u[i][j] = grad_u(i,j);
+        }
+    }
+    
+    //The value of the micro-displacement
+    Matrix_3x3 phi;
+    define_phi(phi);
+    
+    Vector_9 phi_voigt;
+    double _phi[9];
+    deformation_measures::voigt_3x3_tensor(phi,phi_voigt);
+    for (int i=0; i<9; i++){_phi[i] = phi_voigt(i);}
+    
+    
+    //The value of the gradient of the micro-displacement tensor in the current configuration.
+    Eigen::Matrix<double,9,3> grad_phi_data; //The incoming data
+    grad_phi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
+
+    double grad_phi_data_array[9][3]; //The format expected by the function
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data_array[i][j] = grad_phi_data(i,j);
+
+        }
+
+    }
+    
+    Matrix_3x3 F0;
+    define_deformation_gradient(F0);
+    
+    //Define the value to compute the gradient w.r.t.
+    Vector_9 voigt;
+    deformation_measures::voigt_3x3_tensor(grad_u,voigt);
+    
+    //Initialize the finite difference gradient calculator
+    std::vector<double> x0;
+    x0.resize(nhat);
+    
+    for (int i=0; i<nhat; i++){ x0[i] = voigt[i];}
+    
+    std::cout << "\nDPK2Dgrad_u\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_pk2_stress_grad_u, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
+            r(j,i) = r_vec[i][j];
+        }
+    }
+    
+    //Compute the gradient analytically
+    
+    //Assign required values
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    double t  = 0;
+    double dt = 9;
+    double params[18];
+    std::vector<double> SDVS;
+    
+    //Output
+    Vector_9  PK2;
+    Vector_9  SIGMA;
+    Vector_27 M;
+    
+    Vector_9  cauchy;
+    Vector_9  s;
+    Vector_27 m;
+    
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+    
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Vector_27  grad_phi;
+    Matrix_3x9 grad_phi_mat;
+    
+    Matrix_9x9   DPK2Dgrad_u;
+    Matrix_9x27  DPK2Dgrad_phi;
+    Matrix_9x9   DSIGMADgrad_u;
+    Matrix_9x27  DSIGMADgrad_phi;
+    Matrix_27x9  DMDgrad_u;
+    Matrix_27x27 DMDgrad_phi;
+    
+    define_parameters(params);
+    
+    t0 = Clock::now();
+    deformation_measures::get_deformation_gradient(_grad_u, F);
+    
+    deformation_measures::assemble_chi(_phi, chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data_array,Matrix_3x3::Identity(),grad_phi_mat);
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,grad_phi);
+    
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    
+//    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+//                                               
+//    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
+//                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
+//                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
+//                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
+    
+    deformation_measures::compute_total_derivatives_reference(F,             grad_phi,
+                                                              dPK2dF,        dPK2dgrad_chi,
+                                                              dSIGMAdF,      dSIGMAdgrad_chi,
+                                                              dMdF,          dMdgrad_chi,
+                                                              DPK2Dgrad_u,   DPK2Dgrad_phi,
+                                                              DSIGMADgrad_u, DSIGMADgrad_phi,
+                                                              DMDgrad_u,     DMDgrad_phi);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+                              
+    _r = DPK2Dgrad_u;
+    
+    //std::cout << "r:\n"  << r << "\n";
+    //std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_total_derivatives_DPK2Dgrad_u & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_total_derivatives_DPK2Dgrad_u & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_total_derivatives_reference_DSIGMADgrad_u(std::ofstream &results){
+    /*!
+    ================================================================
+    |    test_compute_total_derivatives_reference_DSIGMADgrad_u    |
+    ================================================================
+ 
+    Test the computation of the total derivatives of the stress 
+    measures w.r.t. the gradients and magnitudes of the degrees of freedom.
+ 
+    testing DSIGMADgrad_u
+ 
+    */
+    
+    //const int mhat = 9;
+    const int nhat = 9;
+    
+    Matrix_9x9  r; //The expected result
+    Matrix_9x9 _r; //The function output
+    
+    //The gradient of the macro-deformation
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    
+    double _grad_u[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u[i][j] = grad_u(i,j);
+        }
+    }
+    
+    //The value of the micro-displacement
+    Matrix_3x3 phi;
+    define_phi(phi);
+    
+    Vector_9 phi_voigt;
+    double _phi[9];
+    deformation_measures::voigt_3x3_tensor(phi,phi_voigt);
+    for (int i=0; i<9; i++){_phi[i] = phi_voigt(i);}
+    
+    
+    //The value of the gradient of the micro-displacement tensor in the current configuration.
+    Eigen::Matrix<double,9,3> grad_phi_data; //The incoming data
+    grad_phi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
+
+    double grad_phi_data_array[9][3]; //The format expected by the function
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data_array[i][j] = grad_phi_data(i,j);
+
+        }
+
+    }
+    
+    Matrix_3x3 F0;
+    define_deformation_gradient(F0);
+    
+    //Define the value to compute the gradient w.r.t.
+    Vector_9 voigt;
+    deformation_measures::voigt_3x3_tensor(grad_u,voigt);
+    
+    //Initialize the finite difference gradient calculator
+    std::vector<double> x0;
+    x0.resize(nhat);
+    
+    for (int i=0; i<nhat; i++){ x0[i] = voigt[i];}
+    
+    std::cout << "\nDSIGMADgrad_u\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_symmetric_stress_grad_u, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
+            r(j,i) = r_vec[i][j];
+        }
+    }
+    
+    //Compute the gradient analytically
+    
+    //Assign required values
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    double t  = 0;
+    double dt = 9;
+    double params[18];
+    std::vector<double> SDVS;
+    
+    //Output
+    Vector_9  PK2;
+    Vector_9  SIGMA;
+    Vector_27 M;
+    
+    Vector_9  cauchy;
+    Vector_9  s;
+    Vector_27 m;
+    
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+    
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Vector_27  grad_phi;
+    Matrix_3x9 grad_phi_mat;
+    
+    Matrix_9x9   DPK2Dgrad_u;
+    Matrix_9x27  DPK2Dgrad_phi;
+    Matrix_9x9   DSIGMADgrad_u;
+    Matrix_9x27  DSIGMADgrad_phi;
+    Matrix_27x9  DMDgrad_u;
+    Matrix_27x27 DMDgrad_phi;
+    
+    define_parameters(params);
+    
+    t0 = Clock::now();
+    deformation_measures::get_deformation_gradient(_grad_u, F);
+    
+    deformation_measures::assemble_chi(_phi, chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data_array,Matrix_3x3::Identity(),grad_phi_mat);
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,grad_phi);
+    
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    
+//    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+//                                               
+//    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
+//                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
+//                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
+//                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
+    
+    deformation_measures::compute_total_derivatives_reference(F,             grad_phi,
+                                                              dPK2dF,        dPK2dgrad_chi,
+                                                              dSIGMAdF,      dSIGMAdgrad_chi,
+                                                              dMdF,          dMdgrad_chi,
+                                                              DPK2Dgrad_u,   DPK2Dgrad_phi,
+                                                              DSIGMADgrad_u, DSIGMADgrad_phi,
+                                                              DMDgrad_u,     DMDgrad_phi);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+                              
+    _r = DSIGMADgrad_u;
+    
+    //std::cout << "r:\n"  << r << "\n";
+    //std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_total_derivatives_DSIGMADgrad_u & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_total_derivatives_DSIGMADgrad_u & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_total_derivatives_reference_DMDgrad_u(std::ofstream &results){
+    /*!
+    ==============================================================
+    |    test_compute_total_derivatives_reference_DMDgrad_u    |
+    ==============================================================
+ 
+    Test the computation of the total derivatives of the stress 
+    measures w.r.t. the gradients and magnitudes of the degrees of freedom.
+ 
+    testing DMDgrad_u
+ 
+    */
+    
+    //const int mhat = 9;
+    const int nhat = 9;
+    
+    Matrix_27x9  r; //The expected result
+    Matrix_27x9 _r; //The function output
+    
+    //The gradient of the macro-deformation
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    
+    double _grad_u[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u[i][j] = grad_u(i,j);
+        }
+    }
+    
+    //The value of the micro-displacement
+    Matrix_3x3 phi;
+    define_phi(phi);
+    
+    Vector_9 phi_voigt;
+    double _phi[9];
+    deformation_measures::voigt_3x3_tensor(phi,phi_voigt);
+    for (int i=0; i<9; i++){_phi[i] = phi_voigt(i);}
+    
+    
+    //The value of the gradient of the micro-displacement tensor in the current configuration.
+    Eigen::Matrix<double,9,3> grad_phi_data; //The incoming data
+    grad_phi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
+
+    double grad_phi_data_array[9][3]; //The format expected by the function
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data_array[i][j] = grad_phi_data(i,j);
+
+        }
+
+    }
+    
+    Matrix_3x3 F0;
+    define_deformation_gradient(F0);
+    
+    //Define the value to compute the gradient w.r.t.
+    Vector_9 voigt;
+    deformation_measures::voigt_3x3_tensor(grad_u,voigt);
+    
+    //Initialize the finite difference gradient calculator
+    std::vector<double> x0;
+    x0.resize(nhat);
+    
+    for (int i=0; i<nhat; i++){ x0[i] = voigt[i];}
+    
+    std::cout << "\nDMDgrad_u\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_higher_order_stress_grad_u, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
+            r(j,i) = r_vec[i][j];
+        }
+    }
+    
+    //Compute the gradient analytically
+    
+    //Assign required values
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    double t  = 0;
+    double dt = 9;
+    double params[18];
+    std::vector<double> SDVS;
+    
+    //Output
+    Vector_9  PK2;
+    Vector_9  SIGMA;
+    Vector_27 M;
+    
+    Vector_9  cauchy;
+    Vector_9  s;
+    Vector_27 m;
+    
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+    
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Vector_27  grad_phi;
+    Matrix_3x9 grad_phi_mat;
+    
+    Matrix_9x9   DPK2Dgrad_u;
+    Matrix_9x27  DPK2Dgrad_phi;
+    Matrix_9x9   DSIGMADgrad_u;
+    Matrix_9x27  DSIGMADgrad_phi;
+    Matrix_27x9  DMDgrad_u;
+    Matrix_27x27 DMDgrad_phi;
+    
+    define_parameters(params);
+    
+    t0 = Clock::now();
+    deformation_measures::get_deformation_gradient(_grad_u, F);
+    
+    deformation_measures::assemble_chi(_phi, chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data_array,Matrix_3x3::Identity(),grad_phi_mat);
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,grad_phi);
+    
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    
+//    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+//                                               
+//    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
+//                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
+//                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
+//                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
+    
+    deformation_measures::compute_total_derivatives_reference(F,             grad_phi,
+                                                              dPK2dF,        dPK2dgrad_chi,
+                                                              dSIGMAdF,      dSIGMAdgrad_chi,
+                                                              dMdF,          dMdgrad_chi,
+                                                              DPK2Dgrad_u,   DPK2Dgrad_phi,
+                                                              DSIGMADgrad_u, DSIGMADgrad_phi,
+                                                              DMDgrad_u,     DMDgrad_phi);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+                              
+    _r = DMDgrad_u;
+    
+//    std::cout << "r:\n"  << r << "\n";
+//    std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_total_derivatives_DMDgrad_u & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_total_derivatives_DMDgrad_u & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_total_derivatives_reference_DPK2Dgrad_phi(std::ofstream &results){
+    /*!=============================================================
+    |    test_compute_total_derivatives_reference_DPK2Dgrad_phi    |
+    ================================================================
+ 
+    Test the computation of the total derivatives of the stress 
+    measures in the reference configuration w.r.t. the gradients 
+    and magnitudes of the degrees of freedom.
+ 
+    testing DPK2Dgrad_phi
+ 
+    */
+    
+    //const int mhat = 9;
+    const int nhat = 27;
+    
+    Matrix_9x27  r; //The expected result
+    Matrix_9x27 _r; //The function output
+    
+    //The gradient of the macro-deformation
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    
+    double _grad_u[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u[i][j] = grad_u(i,j);
+        }
+    }
+    
+    //The value of the micro-displacement
+    Matrix_3x3 phi;
+    define_phi(phi);
+    
+    Vector_9 phi_voigt;
+    double _phi[9];
+    deformation_measures::voigt_3x3_tensor(phi,phi_voigt);
+    for (int i=0; i<9; i++){_phi[i] = phi_voigt(i);}
+    
+    
+    //The value of the gradient of the micro-displacement tensor in the current configuration.
+    Vector_27 grad_phi;
+    Eigen::Matrix<double,9,3> grad_phi_data; //The incoming data
+    grad_phi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
+
+    double grad_phi_data_array[9][3]; //The format expected by the function
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data_array[i][j] = grad_phi_data(i,j);
+
+        }
+
+    }
+    
+    Matrix_3x9 grad_phi_mat;
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, Matrix_3x3::Identity(), grad_phi_mat);
+    
+    //Define the value to compute the gradient w.r.t.
+    Vector_27 voigt;
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,voigt);
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,grad_phi);
+    
+    //Initialize the finite difference gradient calculator
+    std::vector<double> x0;
+    x0.resize(nhat);
+    
+    for (int i=0; i<nhat; i++){ x0[i] = voigt[i];}
+    
+    std::cout << "\nDPK2Dgrad_phi\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_pk2_stress_grad_phi, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
+            r(j,i) = r_vec[i][j];
+        }
+    }
+    
+    //Compute the gradient analytically
+    
+    //Assign required values
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    double t  = 0;
+    double dt = 9;
+    double params[18];
+    std::vector<double> SDVS;
+    
+    //Output
+    Vector_9  PK2;
+    Vector_9  SIGMA;
+    Vector_27 M;
+    
+    Vector_9  cauchy;
+    Vector_9  s;
+    Vector_27 m;
+    
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+    
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Matrix_9x9   DPK2Dgrad_u;
+    Matrix_9x27  DPK2Dgrad_phi;
+    Matrix_9x9   DSIGMADgrad_u;
+    Matrix_9x27  DSIGMADgrad_phi;
+    Matrix_27x9  DMDgrad_u;
+    Matrix_27x27 DMDgrad_phi;
+    
+    define_parameters(params);
+    
+    t0 = Clock::now();
+    deformation_measures::get_deformation_gradient(_grad_u, F);
+    
+    deformation_measures::assemble_chi(_phi, chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
+    
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    
+//    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+//                                               
+//    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
+//                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
+//                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
+//                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
+    
+    deformation_measures::compute_total_derivatives_reference(F,             grad_phi,
+                                                              dPK2dF,        dPK2dgrad_chi,
+                                                              dSIGMAdF,      dSIGMAdgrad_chi,
+                                                              dMdF,          dMdgrad_chi,
+                                                              DPK2Dgrad_u,   DPK2Dgrad_phi,
+                                                              DSIGMADgrad_u, DSIGMADgrad_phi,
+                                                              DMDgrad_u,     DMDgrad_phi);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+                              
+    _r = DPK2Dgrad_phi;
+    
+//    std::cout << "r:\n"  << r << "\n";
+//    std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_total_derivatives_DPK2Dgrad_phi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_total_derivatives_DPK2Dgrad_phi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_total_derivatives_reference_DSIGMADgrad_phi(std::ofstream &results){
+    /*!===============================================================
+    |    test_compute_total_derivatives_reference_DSIGMADgrad_phi    |
+    ==================================================================
+ 
+    Test the computation of the total derivatives of the stress 
+    measures in the reference configuration w.r.t. the gradients 
+    and magnitudes of the degrees of freedom.
+ 
+    testing DSIGMADgrad_phi
+ 
+    */
+    
+    //const int mhat = 9;
+    const int nhat = 27;
+    
+    Matrix_9x27  r; //The expected result
+    Matrix_9x27 _r; //The function output
+    
+    //The gradient of the macro-deformation
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    
+    double _grad_u[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u[i][j] = grad_u(i,j);
+        }
+    }
+    
+    //The value of the micro-displacement
+    Matrix_3x3 phi;
+    define_phi(phi);
+    
+    Vector_9 phi_voigt;
+    double _phi[9];
+    deformation_measures::voigt_3x3_tensor(phi,phi_voigt);
+    for (int i=0; i<9; i++){_phi[i] = phi_voigt(i);}
+    
+    
+    //The value of the gradient of the micro-displacement tensor in the current configuration.
+    Vector_27 grad_phi;
+    Eigen::Matrix<double,9,3> grad_phi_data; //The incoming data
+    grad_phi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
+
+    double grad_phi_data_array[9][3]; //The format expected by the function
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data_array[i][j] = grad_phi_data(i,j);
+
+        }
+
+    }
+    
+    Matrix_3x9 grad_phi_mat;
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, Matrix_3x3::Identity(), grad_phi_mat);
+    
+    //Define the value to compute the gradient w.r.t.
+    Vector_27 voigt;
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,voigt);
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,grad_phi);
+    
+    //Initialize the finite difference gradient calculator
+    std::vector<double> x0;
+    x0.resize(nhat);
+    
+    for (int i=0; i<nhat; i++){ x0[i] = voigt[i];}
+    
+    std::cout << "\nDSIGMADgrad_phi\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_symmetric_stress_grad_phi, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
+            r(j,i) = r_vec[i][j];
+        }
+    }
+    
+    //Compute the gradient analytically
+    
+    //Assign required values
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    double t  = 0;
+    double dt = 9;
+    double params[18];
+    std::vector<double> SDVS;
+    
+    //Output
+    Vector_9  PK2;
+    Vector_9  SIGMA;
+    Vector_27 M;
+    
+    Vector_9  cauchy;
+    Vector_9  s;
+    Vector_27 m;
+    
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+    
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Matrix_9x9   DPK2Dgrad_u;
+    Matrix_9x27  DPK2Dgrad_phi;
+    Matrix_9x9   DSIGMADgrad_u;
+    Matrix_9x27  DSIGMADgrad_phi;
+    Matrix_27x9  DMDgrad_u;
+    Matrix_27x27 DMDgrad_phi;
+    
+    define_parameters(params);
+    
+    t0 = Clock::now();
+    deformation_measures::get_deformation_gradient(_grad_u, F);
+    
+    deformation_measures::assemble_chi(_phi, chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
+    
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    
+//    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+//                                               
+//    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
+//                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
+//                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
+//                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
+    
+    deformation_measures::compute_total_derivatives_reference(F,             grad_phi,
+                                                              dPK2dF,        dPK2dgrad_chi,
+                                                              dSIGMAdF,      dSIGMAdgrad_chi,
+                                                              dMdF,          dMdgrad_chi,
+                                                              DPK2Dgrad_u,   DPK2Dgrad_phi,
+                                                              DSIGMADgrad_u, DSIGMADgrad_phi,
+                                                              DMDgrad_u,     DMDgrad_phi);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+                              
+    _r = DSIGMADgrad_phi;
+    
+//    std::cout << "r:\n"  << r << "\n";
+//    std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_total_derivatives_DSIGMADgrad_phi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_total_derivatives_DSIGMADgrad_phi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_total_derivatives_reference_DMDgrad_phi(std::ofstream &results){
+    /*!===========================================================
+    |    test_compute_total_derivatives_reference_DMDgrad_phi    |
+    ==============================================================
+ 
+    Test the computation of the total derivatives of the stress 
+    measures in the reference configuration w.r.t. the gradients 
+    and magnitudes of the degrees of freedom.
+ 
+    testing DMDgrad_phi
+ 
+    */
+    
+    //const int mhat = 9;
+    const int nhat = 27;
+    
+    Matrix_27x27  r; //The expected result
+    Matrix_27x27 _r; //The function output
+    
+    //The gradient of the macro-deformation
+    Matrix_3x3 grad_u;
+    define_grad_u(grad_u);
+    
+    double _grad_u[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            _grad_u[i][j] = grad_u(i,j);
+        }
+    }
+    
+    //The value of the micro-displacement
+    Matrix_3x3 phi;
+    define_phi(phi);
+    
+    Vector_9 phi_voigt;
+    double _phi[9];
+    deformation_measures::voigt_3x3_tensor(phi,phi_voigt);
+    for (int i=0; i<9; i++){_phi[i] = phi_voigt(i);}
+    
+    
+    //The value of the gradient of the micro-displacement tensor in the current configuration.
+    Vector_27 grad_phi;
+    Eigen::Matrix<double,9,3> grad_phi_data; //The incoming data
+    grad_phi_data << 0.53155137,  0.53182759,  0.63440096,  0.09210494,  0.43370117,
+                     0.43086276,  0.31728548,  0.41482621,  0.86630916,  0.4936851 ,
+                     0.42583029,  0.31226122,  0.72244338,  0.32295891,  0.36178866,
+                     0.84943179,  0.72445532,  0.61102351,  0.50183668,  0.62395295,
+                     0.1156184 ,  0.42635131,  0.89338916,  0.94416002,  0.22826323,
+                     0.29371405,  0.63097612;
+
+    double grad_phi_data_array[9][3]; //The format expected by the function
+
+    for (int i=0; i<9; i++){
+
+        for (int j=0; j<3; j++){
+
+            grad_phi_data_array[i][j] = grad_phi_data(i,j);
+
+        }
+
+    }
+    
+    Matrix_3x9 grad_phi_mat;
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, Matrix_3x3::Identity(), grad_phi_mat);
+    
+    //Define the value to compute the gradient w.r.t.
+    Vector_27 voigt;
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,voigt);
+    deformation_measures::voigt_3x9_tensor(grad_phi_mat,grad_phi);
+    
+    //Initialize the finite difference gradient calculator
+    std::vector<double> x0;
+    x0.resize(nhat);
+    
+    for (int i=0; i<nhat; i++){ x0[i] = voigt[i];}
+    
+    std::cout << "\nDSIGMADgrad_phi\n";
+    std::cout << "Finite Difference vs. Analytic Jacobian\n";
+    auto t0 = Clock::now();
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_higher_order_stress_grad_phi, 2, x0 , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    auto t1 = Clock::now();
+    std::cout << "Finite Difference: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    
+    //Populate the expected result for easy comparison.
+    for (unsigned int i=0; i<r_vec.size(); i++){
+        for (unsigned int j=0; j<r_vec[i].size(); j++){
+            r(j,i) = r_vec[i][j];
+        }
+    }
+    
+    //Compute the gradient analytically
+    
+    //Assign required values
+    Matrix_3x3 F;
+    Matrix_3x3 chi;
+    Matrix_3x9 grad_chi;
+    
+    double t  = 0;
+    double dt = 9;
+    double params[18];
+    std::vector<double> SDVS;
+    
+    //Output
+    Vector_9  PK2;
+    Vector_9  SIGMA;
+    Vector_27 M;
+    
+    Vector_9  cauchy;
+    Vector_9  s;
+    Vector_27 m;
+    
+    Matrix_9x9   dPK2dF;
+    Matrix_9x9   dPK2dchi;
+    Matrix_9x27  dPK2dgrad_chi;
+    Matrix_9x9   dSIGMAdF;
+    Matrix_9x9   dSIGMAdchi;
+    Matrix_9x27  dSIGMAdgrad_chi;
+    Matrix_27x9  dMdF;
+    Matrix_27x9  dMdchi;
+    Matrix_27x27 dMdgrad_chi;
+    
+    Matrix_9x9   dcauchydF;
+    Matrix_9x9   dcauchydchi;
+    Matrix_9x27  dcauchydgrad_chi;
+    Matrix_9x9   dsdF;
+    Matrix_9x9   dsdchi;
+    Matrix_9x27  dsdgrad_chi;
+    Matrix_27x9  dmdF;
+    Matrix_27x9  dmdchi;
+    Matrix_27x27 dmdgrad_chi;
+    
+    Matrix_9x9   DPK2Dgrad_u;
+    Matrix_9x27  DPK2Dgrad_phi;
+    Matrix_9x9   DSIGMADgrad_u;
+    Matrix_9x27  DSIGMADgrad_phi;
+    Matrix_27x9  DMDgrad_u;
+    Matrix_27x27 DMDgrad_phi;
+    
+    define_parameters(params);
+    
+    t0 = Clock::now();
+    deformation_measures::get_deformation_gradient(_grad_u, F);
+    
+    deformation_measures::assemble_chi(_phi, chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data_array, F, grad_chi);
+    
+    micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
+                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                               dMdF,     dMdchi,     dMdgrad_chi);
+    
+//    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
+//                                               
+//    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
+//                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
+//                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
+//                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
+    
+    deformation_measures::compute_total_derivatives_reference(F,             grad_phi,
+                                                              dPK2dF,        dPK2dgrad_chi,
+                                                              dSIGMAdF,      dSIGMAdgrad_chi,
+                                                              dMdF,          dMdgrad_chi,
+                                                              DPK2Dgrad_u,   DPK2Dgrad_phi,
+                                                              DSIGMADgrad_u, DSIGMADgrad_phi,
+                                                              DMDgrad_u,     DMDgrad_phi);
+    t1 = Clock::now();
+    std::cout << "Analytic Jacobian (includes all other jacobian and stress calculations): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+                              
+    _r = DMDgrad_phi;
+    
+//    std::cout << "r:\n"  << r << "\n";
+//    std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_compute_total_derivatives_DMDgrad_phi & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_total_derivatives_DMDgrad_phi & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
 int test_compute_internal_force(std::ofstream &results){
     /*!
     =====================================
@@ -7711,21 +9365,11 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
             grad_phi_data[I-3][j] = U[I]*detadx[j];
         }
     }
-
-//    if(MOOSE){define_grad_phi_data_MOOSE(grad_phi_data);}
-//
-//    std::cout << "grad_phi_data:\n";
-//    for (int i=0; i<9; i++){
-//        for (int j=0; j<3; j++){
-//            std::cout << grad_phi_data[i][j] << " ";
-//        }
-//        std::cout << "\n";
-//    }
-//    std::cout << "\n";
     
     //The required values for the material model
     //Assign required values
     Matrix_3x3 F;
+    Matrix_3x3 Finv;
     Matrix_3x3 chi;
     Matrix_3x9 grad_chi;
     
@@ -7752,7 +9396,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     Matrix_27x9  dMdF;
     Matrix_27x9  dMdchi;
     Matrix_27x27 dMdgrad_chi;
-    
+
     Matrix_9x9   dcauchydF;
     Matrix_9x9   dcauchydchi;
     Matrix_9x27  dcauchydgrad_chi;
@@ -7762,7 +9406,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     Matrix_27x9  dmdF;
     Matrix_27x9  dmdchi;
     Matrix_27x27 dmdgrad_chi;
-    
+
     Matrix_9x9   DcauchyDgrad_u;
     Matrix_9x27  DcauchyDgrad_phi;
     Matrix_9x9   DsDgrad_u;
@@ -7774,7 +9418,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     
     t0 = Clock::now();
     deformation_measures::get_deformation_gradient(grad_u, F);
-    
+
     deformation_measures::assemble_chi(phi, chi);
     deformation_measures::assemble_grad_chi(grad_phi_data, F, grad_chi);
     
@@ -7789,12 +9433,12 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
                                dMdF,     dMdchi,     dMdgrad_chi);
     
     deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
-                                               
+    
     deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
                                                                  dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
                                                                  dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
                                                                  dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
-    
+
     deformation_measures::compute_total_derivatives(F,               grad_phi,
                                                     dcauchydF,       dcauchydgrad_chi,
                                                     dsdF,            dsdgrad_chi,
@@ -7802,13 +9446,19 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
                                                     DcauchyDgrad_u,  DcauchyDgrad_phi,
                                                     DsDgrad_u,       DsDgrad_phi,
                                                     DmDgrad_u,       DmDgrad_phi);
+
+    balance_equations::compute_internal_couple_jacobian(N, dNdx, eta, detadx,
+                                                        DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
+                                                        DsDgrad_u,      dsdchi,      DsDgrad_phi,
+                                                        DmDgrad_u,      dmdchi,      DmDgrad_phi,
+                                                        _r);
     
     balance_equations::compute_internal_force_jacobian(N, dNdx, eta, detadx, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi, _r);
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
 
-    //std::cout << " r:\n" <<  r << "\n";
-    //std::cout << "_r:\n" << _r << "\n";
+    std::cout << " r:\n" <<  r << "\n";
+    std::cout << "_r:\n" << _r << "\n";
 
     bool tot_result = r.isApprox(_r,1e-6);
 
@@ -8193,7 +9843,7 @@ int test_micromorphic_material_library(std::ofstream &results){
     Vector_9  PK2;
     Vector_9  SIGMA;
     Vector_27 M;
-    
+
     Vector_9  cauchy;
     Vector_9  s;
     Vector_27 m;
@@ -8217,7 +9867,7 @@ int test_micromorphic_material_library(std::ofstream &results){
     Matrix_27x9  dmdF;
     Matrix_27x9  dmdchi;
     Matrix_27x27 dmdgrad_chi;
-    
+
     Matrix_9x9   DcauchyDgrad_u;
     Matrix_9x27  DcauchyDgrad_phi;
     Matrix_9x9   DsDgrad_u;
@@ -8243,19 +9893,19 @@ int test_micromorphic_material_library(std::ofstream &results){
                                dMdF,     dMdchi,     dMdgrad_chi);
     
     deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
-                                               
+    
     deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
                                                                  dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
                                                                  dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
                                                                  dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
-    
-    deformation_measures::compute_total_derivatives(F,               grad_phi,
-                                                    dcauchydF,       dcauchydgrad_chi,
-                                                    dsdF,            dsdgrad_chi,
-                                                    dmdF,            dmdgrad_chi,
-                                                    DcauchyDgrad_u,  DcauchyDgrad_phi,
-                                                    DsDgrad_u,       DsDgrad_phi,
-                                                    DmDgrad_u,       DmDgrad_phi);
+
+    deformation_measures::compute_total_derivatives(F,              grad_phi,
+                                                    dcauchydF,      dcauchydgrad_chi,
+                                                    dsdF,           dsdgrad_chi,
+                                                    dmdF,           dmdgrad_chi,
+                                                    DcauchyDgrad_u, DcauchyDgrad_phi,
+                                                    DsDgrad_u,      DsDgrad_phi,
+                                                    DmDgrad_u,      DmDgrad_phi);
                                                     
     //Compute the values using the version stored in the material library.
     auto &factory = micromorphic_material_library::MaterialFactory::Instance();
@@ -8263,7 +9913,6 @@ int test_micromorphic_material_library(std::ofstream &results){
     auto material = factory.GetMaterial("LinearElasticity");
     
     //Output
-    
     Vector_9  _cauchy;
     Vector_9  _s;
     Vector_27 _m;
@@ -8312,8 +9961,8 @@ int test_micromorphic_material_library(std::ofstream &results){
     std::vector<std::vector<std::vector<double>>> ADD_JACOBIANS_v;
     
     //Compare the result from the stress calculation alone
-    material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
-                             _cauchy, _s, _m, ADD_TERMS);
+    material->evaluate_model(time, fparams, grad_u, phi,    grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
+                             _cauchy, _s,            _m,   ADD_TERMS);
                              
     bool tot_result = true;
     
@@ -8322,8 +9971,8 @@ int test_micromorphic_material_library(std::ofstream &results){
     tot_result *= m.isApprox(_m);
     
     //Compare the result from the vector form of the stress calculation alone
-    material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
-                             _cauchy_v, _s_v, _m_v, ADD_TERMS_v);
+    material->evaluate_model(time,   fparams,  grad_u, phi,       grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
+                             _cauchy_v, _s_v,          _m_v, ADD_TERMS_v);
 
     for (int i=0; i<9; i++){
         tot_result *= 1e-6>fabs(cauchy[i]-_cauchy_v[i]);
@@ -8340,9 +9989,9 @@ int test_micromorphic_material_library(std::ofstream &results){
     //Compare the results from the jacobian calculation.
     material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
                              _cauchy, _s, _m,
-                             _DcauchyDgrad_u, _DcauchyDphi,  _DcauchyDgrad_phi,
-                             _DsDgrad_u,      _DsDphi,       _DsDgrad_phi,
-                             _DmDgrad_u,      _DmDphi,       _DmDgrad_phi,
+                             _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                             _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                             _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
                              ADD_TERMS,       ADD_JACOBIANS);
 
     tot_result *= cauchy.isApprox(_cauchy);
@@ -8364,10 +10013,10 @@ int test_micromorphic_material_library(std::ofstream &results){
     //Compare the result from the vector form of the jacobian calculation
     material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
                              _cauchy_v, _s_v, _m_v,
-                             _DcauchyDgrad_u_v, _DcauchyDphi_v,  _DcauchyDgrad_phi_v,
-                             _DsDgrad_u_v,      _DsDphi_v,       _DsDgrad_phi_v,
-                             _DmDgrad_u_v,      _DmDphi_v,       _DmDgrad_phi_v,
-                             ADD_TERMS_v,       ADD_JACOBIANS_v);
+                             _DcauchyDgrad_u_v, _DcauchyDphi_v, _DcauchyDgrad_phi_v,
+                             _DsDgrad_u_v,      _DsDphi_v,      _DsDgrad_phi_v,
+                             _DmDgrad_u_v,      _DmDphi_v,     _DmDgrad_phi_v,
+                             ADD_TERMS_v,      ADD_JACOBIANS_v);
 
     for (int i=0; i<9; i++){
         tot_result *= 1e-6>fabs(cauchy[i]-_cauchy_v[i]);
@@ -8513,6 +10162,14 @@ int main(){
     test_compute_dmdgrad_chi(results);
     
     //!Tests of the computation of the total derivatives
+    test_compute_total_derivatives_reference_DPK2Dgrad_u(results);
+    test_compute_total_derivatives_reference_DSIGMADgrad_u(results);
+    test_compute_total_derivatives_reference_DMDgrad_u(results);
+
+    test_compute_total_derivatives_reference_DPK2Dgrad_phi(results);
+    test_compute_total_derivatives_reference_DSIGMADgrad_phi(results);
+    test_compute_total_derivatives_reference_DMDgrad_phi(results);
+
     test_compute_total_derivatives_DcauchyDgrad_u(results);
     test_compute_total_derivatives_DsDgrad_u(results);
     test_compute_total_derivatives_DmDgrad_u(results);
