@@ -1630,14 +1630,43 @@ int test_construct_dgrad_udU_current(std::ofstream &results){
             grad_u[i][j] = eye[i][j] - Finv(i,j);
         }
     }
+
+    //Form detadx
+    double detadx[3] = {0,0,0};
+    for (int i=0; i<3; i++){
+        for (int I=0; I<3; I++){
+            detadx[i] += detadX[I]*Finv(I,i);
+        }
+    }
     
-    balance_equations::construct_dgrad_udU(u,grad_u,detadX,_r);
+    balance_equations::construct_dgrad_udU(Finv,detadx,_r);
     
-    //std::cout << " r:\n" << r << "\n";
-    //std::cout << "_r:\n" << _r << "\n";
+    std::cout << " r:\n" << r << "\n";
+    std::cout << "_r:\n" << _r << "\n";
     
     bool tot_result = r.isApprox(_r,1e-6);
     
+/*    //Attempt alternate method
+    int sot_to_voigt_map[3][3] = {{0,5,4},
+                                  {8,1,3},
+                                  {7,6,2}};
+
+
+    int Ihat;
+    for (int k=0; k<3; k++){
+        for (int i=0; i<3; i++){
+            Ihat = sot_to_voigt_map[k][i];
+            for (int Jhat=0; Jhat<3; Jhat++){
+                _r(Ihat,Jhat) = Finv(k,Jhat)*detadx[i];
+            }
+        }
+    }
+
+    std::cout << "Alternate method\n";
+    std::cout << "_r:\n" << _r << "\n";
+
+    tot_result *= r.isApprox(_r,1e-6);
+*/
     if (tot_result){
         results << "test_construct_dgrad_udU_current & True\\\\\n\\hline\n";
     }
