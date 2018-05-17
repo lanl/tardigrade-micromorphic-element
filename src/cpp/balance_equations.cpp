@@ -974,7 +974,7 @@ namespace balance_equations{
             for (int j=0; j<3; j++){
                 Jhat = sot_to_voigt_map[J][j];
                 Khat = sot_to_voigt_map[j][component];
-                DfintDU_iA += -dNdX[J]*(Finv(J,j) * DcauchyDU(Khat,dof_num) - dgrad_udU(Jhat,dof_num)*cauchy(Khat));
+                DfintDU_iA += -dNdX[J]*(Finv(J,j) * DcauchyDU(Khat,dof_num));// - dgrad_udU(Jhat,dof_num)*cauchy(Khat));
             }
         }
 
