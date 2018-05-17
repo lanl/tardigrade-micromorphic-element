@@ -104,6 +104,25 @@ namespace balance_equations{
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                          Matrix_3x12 &DfintDU);
 
+    void compute_internal_force_jacobian(const int &component,   const int &dof_num,
+                                         const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3], 
+                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const Matrix_3x3 &F,
+                                         const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
+                                         double &DfintDU_iA);
+
+    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], 
+                                         const double (&u)[3], const double (&grad_u)[3][3], const double (&phi)[9], const std::vector<std::vector<double>> &F,
+                                         const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi,
+                                         const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                         std::vector<std::vector<double>> &DfintDU);
+
+    void compute_internal_force_jacobian(const int &component, const int &dof_num,
+                                         const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], 
+                                         const double (&u)[3], const double (&grad_u)[3][3], const double (&phi)[9], const std::vector<std::vector<double>> &F,
+                                         const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi,
+                                         const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                         double &DfintDU_iA);
+
 /*    void compute_internal_couple_jacobian(const double &N,  const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
                                           const double (&u)[3], const double (&grad_u)[3][3], const double (&phi)[9],         const Matrix_3x3  &Finv,
                                           const Matrix_9x9      &DcauchyDgrad_u,              const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
@@ -131,6 +150,7 @@ namespace balance_equations{
     void map_eigen_to_vector(const Vector_9  &V,       std::vector<double> &v);
     void map_eigen_to_vector(const Vector_27 &V,       std::vector<double> &v);
     void map_eigen_to_vector(const Eigen::VectorXd &V, std::vector<double> &v);
+    void map_eigen_to_vector(const Matrix_3x3   &M,    std::vector<std::vector<double>> &v);
     void map_eigen_to_vector(const Matrix_9x9   &M,    std::vector<std::vector<double>> &v);
     void map_eigen_to_vector(const Matrix_9x27  &M,    std::vector<std::vector<double>> &v);
     void map_eigen_to_vector(const Matrix_27x9  &M,    std::vector<std::vector<double>> &v);
@@ -142,6 +162,7 @@ namespace balance_equations{
     void map_vector_to_eigen(const std::vector<double> &v, Vector_9  &V      );
     void map_vector_to_eigen(const std::vector<double> &v, Vector_27 &V      );
     void map_vector_to_eigen(const std::vector<double> &v, Eigen::VectorXd &V);
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_3x3      &M);
     void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_9x9      &M);
     void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_9x27     &M);
     void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_27x9     &M);

@@ -883,13 +883,157 @@ namespace balance_equations{
                         Jhat = sot_to_voigt_map[J][j];
                         Khat = sot_to_voigt_map[j][i];
                         tmp += -dNdX[J]*(Finv(J,j) * DcauchyDU(Khat,Ihat) - dgrad_udU(Jhat,Ihat)*cauchy(Khat));
-//                        tmp += -dNdX[J]*(Finv(J,j) * DcauchyDU(Khat,Ihat));// - dgrad_udU(Jhat,Ihat)*cauchy(Khat));
 
                     }
                 }
                 DfintDU(i,Ihat) = tmp;
             }
         }
+        return;
+    }
+
+    void compute_internal_force_jacobian(const int &component,   const int &dof_num,
+                                         const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
+                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const Matrix_3x3 &F,
+                                         const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
+                                         double &DfintDU_iA){
+        /*!=========================================
+        |    compute_internal_force_jacobian    |
+        =========================================
+        
+        Compute the jacobian of the internal force in the 
+        current configuration.
+
+        */
+        
+        //Compute required DOF jacobians
+        //Note: Removing sparse matrices because there 
+        //      is a segmentation fault when being created 
+        //      while in a moose run.
+        //SpMat dgrad_udU(9,12);
+        //SpMat dphidU(9,12);
+        //SpMat dgrad_phidU(27,12);
+        
+        Matrix_9x12  dgrad_udU;
+        Matrix_9x12  dphidU;
+        Matrix_27x12 dgrad_phidU;
+
+        //Compute the test and interpolation function gradients in the 
+        //reference configuration.
+        double dNdX[3]   = {0,0,0};
+        double detadX[3] = {0,0,0};
+        for (int I=0; I<3; I++){
+            for (int i=0; i<3; i++){
+                dNdX[I] += dNdx[i]*F(i,I);
+                detadX[I] += detadx[i]*F(i,I);
+            }
+        }
+        //Compute the inverse deformation gradient
+        Matrix_3x3 Finv;
+        Finv = F.inverse();
+
+        construct_dgrad_udU(u,grad_u,detadX, dgrad_udU);
+        construct_dphidU(eta, dphidU);
+        construct_dgrad_phidU(phi, Finv, detadX, dgrad_udU, dgrad_phidU);
+
+        //Compute DcauchyDU;
+        Matrix_9x12 DcauchyDU;
+        DcauchyDU = (DcauchyDgrad_u*dgrad_udU + DcauchyDphi*dphidU + DcauchyDgrad_phi*dgrad_phidU);
+        
+        //Compute the divergence of DcauchyDU
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+        
+        //Note: dfintdU = -D/DU(N,j sigma_ji) = -N,J (DFinvdU_JjIhat sigma_ji + Finv_Jj DcauchyDU jiIhat) = -N,J (-Dgrad_udU_JjIhat sigma_ji + Finv_Jj DsigmaDU_jiIhat) 
+
+        int Jhat;
+        int Khat;
+
+        DfintDU_iA = 0;
+
+        for (int J=0; J<3; J++){
+            for (int j=0; j<3; j++){
+                Jhat = sot_to_voigt_map[J][j];
+                Khat = sot_to_voigt_map[j][component];
+                DfintDU_iA += -dNdX[J]*(Finv(J,j) * DcauchyDU(Khat,dof_num) - dgrad_udU(Jhat,dof_num)*cauchy(Khat));
+            }
+        }
+
+        return;
+    }
+
+    void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
+                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const std::vector<std::vector<double>> &F,
+                                         const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, 
+                                         const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                         std::vector<std::vector<double>> &DfintDU){
+        /*!=========================================
+        |    compute_internal_force_jacobian    |
+        =========================================
+        
+        Compute the jacobian of the internal force in the 
+        current configuration.
+
+        */
+
+        //Map the vectors to eigen matrices and vectors
+        Matrix_3x3  _F;
+        Vector_9    _cauchy;
+        Matrix_9x9  _DcauchyDgrad_u;
+        Matrix_9x9  _DcauchyDphi;
+        Matrix_9x27 _DcauchyDgrad_phi;
+        Matrix_3x12 _DfintDU;
+
+        map_vector_to_eigen(               F,                _F);
+        map_vector_to_eigen(          cauchy,           _cauchy);
+        map_vector_to_eigen(  DcauchyDgrad_u,   _DcauchyDgrad_u);
+        map_vector_to_eigen(     DcauchyDphi,      _DcauchyDphi);
+        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+
+        compute_internal_force_jacobian(       N,            dNdx,          eta,            detadx,
+                                               u,          grad_u,          phi,                _F,
+                                         _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                        _DfintDU);
+
+        map_eigen_to_vector(_DfintDU,DfintDU);        
+        return;
+    }
+
+    void compute_internal_force_jacobian(const int &component,   const int &dof_num,
+                                         const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
+                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const std::vector<std::vector<double>> &F,
+                                         const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, 
+                                         const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                         double &DfintDU_iA){
+        /*!=========================================
+        |    compute_internal_force_jacobian    |
+        =========================================
+        
+        Compute the jacobian of the internal force in the 
+        current configuration.
+
+        */
+
+        //Map the vectors to eigen matrices and vectors
+        Matrix_3x3  _F;
+        Vector_9    _cauchy;
+        Matrix_9x9  _DcauchyDgrad_u;
+        Matrix_9x9  _DcauchyDphi;
+        Matrix_9x27 _DcauchyDgrad_phi;
+
+        map_vector_to_eigen(               F,                _F);
+        map_vector_to_eigen(          cauchy,           _cauchy);
+        map_vector_to_eigen(  DcauchyDgrad_u,   _DcauchyDgrad_u);
+        map_vector_to_eigen(     DcauchyDphi,      _DcauchyDphi);
+        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+
+        compute_internal_force_jacobian(  component,         dof_num,
+                                                  N,            dNdx,          eta,            detadx,
+                                                  u,          grad_u,          phi,                _F,
+                                            _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                         DfintDU_iA);
+
         return;
     }
 
@@ -1270,6 +1414,31 @@ namespace balance_equations{
         return;
     }
 
+    void map_eigen_to_vector(const Matrix_3x3 &M, std::vector<std::vector<double>> &v){
+        /*!
+        =============================
+        |    map_eigen_to_vector    |
+        =============================
+
+        Map an eigen matrix to a standard vector.
+        */
+
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
+        unsigned int a = v.size();
+
+        if(a<A){v.resize(A);}
+
+        for (unsigned int i=0; i<A; i++){
+            if(v[i].size()<B){v[i].resize(B);}
+            for (unsigned int j=0; j<B; j++){
+                v[i][j] = M(i,j);
+            }
+        }
+
+        return;
+    }
+
    void map_eigen_to_vector(const Matrix_9x9 &M, std::vector<std::vector<double>> &v){
         /*!
         =============================
@@ -1514,6 +1683,38 @@ namespace balance_equations{
         if (A != a){std::cout << "Error: Vectors are of different sizes!\n";assert(7==8);}
         for (unsigned int i=0; i<a; i++){
             V[i] = v[i];
+        }
+        return;
+    }
+
+    void map_vector_to_eigen(const std::vector<std::vector<double>> &v, Matrix_3x3 &M){
+        /*!
+        =============================
+        |    map_vector_to_eigen    |
+        =============================
+
+        Map a standard vector to an eigen matrix.
+
+        */
+
+        unsigned int A = M.rows();
+        unsigned int B = M.cols();
+
+        unsigned int a = v.size();
+
+        if(a != A){
+            std::cout << "Error: Vector and matrix do not have the same number of rows!\n";
+            assert(8==9);
+        }
+
+        for (unsigned int i=0; i<a; i++){
+            if(v[i].size() != B){
+                std::cout << "Error Vector and matrix do not have the same number of columns!\n";
+                assert(9==10);
+            }
+            for (unsigned int j=0; j<v[i].size(); j++){
+                M(i,j) = v[i][j];
+            }
         }
         return;
     }

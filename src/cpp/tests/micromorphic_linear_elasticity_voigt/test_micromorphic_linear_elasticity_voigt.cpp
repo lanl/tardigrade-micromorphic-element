@@ -9720,7 +9720,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
 //    print_matrix(__r);
     tot_result *= r.isApprox(_r,1e-6);
 
-    std::cout << "test_compute_internal_force_jacobian:\n";
+//    std::cout << "test_compute_internal_force_jacobian:\n";
 //    std::cout << "cauchy:\n" << cauchy << "\n";
 //    std::cout << "DcauchyDgrad_u:\n";
 //    print_matrix(_DcauchyDgrad_u);
@@ -9988,7 +9988,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
-    std::cout << "test_compute_internal_couple_jacobian:\n";
+//    std::cout << "test_compute_internal_couple_jacobian:\n";
 //    std::cout << "DcauchyDgrad_u:\n";
 //    print_matrix(_DcauchyDgrad_u);
 //    std::cout << "DcauchyDphi:\n";
@@ -10474,38 +10474,65 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
 
-    std::cout << " r:\n" <<  r << "\n";
-    std::cout << "_r:\n" << _r << "\n";
+//    std::cout << " r:\n" <<  r << "\n";
+//    std::cout << "_r:\n" << _r << "\n";
 
+    //Compute the jacobian in a component-wise fashion
     bool tot_result = r.isApprox(_r,1e-6);
-/*
-    //Compute the jacobian using a vector form    
+    double tmp;
+
+    for (int i=0; i<3; i++){
+        for (int A=0; A<12; A++){
+            balance_equations::compute_internal_force_jacobian(     i,              A,
+                                                                    N,           dNdx,         eta,           detadx,
+                                                                    u,         grad_u,        _phi,                F,
+                                                               cauchy, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
+                                                               tmp);
+            _r(i,A) = tmp;
+        }
+    }
+
+    tot_result *= r.isApprox(_r,1e-6);
+
+
+    //Compute the jacobian using a vector form of the incoming values
+
+    std::vector<double>              _cauchy;
     std::vector<std::vector<double>> _DcauchyDgrad_u;
     std::vector<std::vector<double>> _DcauchyDphi;
     std::vector<std::vector<double>> _DcauchyDgrad_phi;
+    std::vector<std::vector<double>> _F;
     std::vector<std::vector<double>> __r;
     
+    balance_equations::map_eigen_to_vector(cauchy,           _cauchy);
     balance_equations::map_eigen_to_vector(DcauchyDgrad_u,   _DcauchyDgrad_u);
     balance_equations::map_eigen_to_vector(dcauchydchi,      _DcauchyDphi);
     balance_equations::map_eigen_to_vector(DcauchyDgrad_phi, _DcauchyDgrad_phi);
-    balance_equations::compute_internal_force_jacobian(N, dNdx, eta, detadx, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, __r);
+    balance_equations::map_eigen_to_vector(F,_F);
+    balance_equations::compute_internal_force_jacobian(      N,            dNdx,          eta,            detadx, 
+                                                             u,          grad_u,         _phi,                _F,
+                                                       _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                           __r);
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
     //Test the computation of the jacobian in a component-wise fashion
-    double tmp;
     for (int i=0; i<3; i++){
         for (int j=0; j<12; j++){
-            balance_equations::compute_internal_force_jacobian(i,j,N,dNdx,eta,detadx,_DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, tmp);
+            balance_equations::compute_internal_force_jacobian(      i,               j,
+                                                                     N,            dNdx,          eta,            detadx,
+                                                                     u,          grad_u,         _phi,                _F,
+                                                               _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                                   tmp);
             __r[i][j] = tmp;
         }
     }
     balance_equations::map_vector_to_eigen(__r, _r);
-    std::cout << "__r:\n";
-    print_matrix(__r);
+//    std::cout << "__r:\n";
+//    print_matrix(__r);
     tot_result *= r.isApprox(_r,1e-6);
 
-    std::cout << "test_compute_internal_force_jacobian:\n";
+//    std::cout << "test_compute_internal_force_jacobian:\n";
 //    std::cout << "cauchy:\n" << cauchy << "\n";
 //    std::cout << "DcauchyDgrad_u:\n";
 //    print_matrix(_DcauchyDgrad_u);
@@ -10514,10 +10541,10 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
 //    std::cout << "DcauchyDgrad_phi:\n";
 //    print_matrix(_DcauchyDgrad_phi);
 //
-    std::cout << "r:\n" << r << "\n";
-    std::cout << "_r:\n";
-    print_matrix(__r);
-*/
+//    std::cout << "r:\n" << r << "\n";
+//    std::cout << "_r:\n";
+//    print_matrix(__r);
+
     if (tot_result){
         results << "test_compute_internal_force_jacobian_current & True\\\\\n\\hline\n";
     }
