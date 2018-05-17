@@ -845,11 +845,11 @@ namespace balance_equations{
         //Compute the test and interpolation function gradients in the 
         //reference configuration.
         double dNdX[3]   = {0,0,0};
-        double detadX[3] = {0,0,0};
+//        double detadX[3] = {0,0,0};
         for (int I=0; I<3; I++){
             for (int i=0; i<3; i++){
                 dNdX[I] += dNdx[i]*F(i,I);
-                detadX[I] += detadx[i]*F(i,I);
+//                detadX[I] += detadx[i]*F(i,I);
             }
         }
         //Compute the inverse deformation gradient
@@ -921,11 +921,11 @@ namespace balance_equations{
         //Compute the test and interpolation function gradients in the 
         //reference configuration.
         double dNdX[3]   = {0,0,0};
-        double detadX[3] = {0,0,0};
+//        double detadX[3] = {0,0,0};
         for (int I=0; I<3; I++){
             for (int i=0; i<3; i++){
                 dNdX[I] += dNdx[i]*F(i,I);
-                detadX[I] += detadx[i]*F(i,I);
+//                detadX[I] += detadx[i]*F(i,I);
             }
         }
         //Compute the inverse deformation gradient
@@ -934,7 +934,7 @@ namespace balance_equations{
 
         construct_dgrad_udU(Finv,detadx, dgrad_udU);
         construct_dphidU(eta, dphidU);
-        construct_dgrad_phidU(grad_phi, Finv, detadX, dgrad_phidU);
+        construct_dgrad_phidU(grad_phi, Finv, detadx, dgrad_phidU);
 
         //Compute DcauchyDU;
         Matrix_9x12 DcauchyDU;
