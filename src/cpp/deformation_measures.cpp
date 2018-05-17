@@ -2984,8 +2984,8 @@ namespace deformation_measures
         int voigt_to_tot_map[81];
         deformation_measures::get_voigt_to_tot_map(voigt_to_tot_map);
 
-        int Ihat;
-        int Jhat;
+        //int Ihat;
+        //int Jhat;
         int Khat;
         
         double tmp;
@@ -3142,9 +3142,9 @@ namespace deformation_measures
         int Jhat;
         int Khat;
         
-        double tmp;
-        double tmp1;
-        double tmp2;    
+        //double tmp;
+        //double tmp1;
+        //double tmp2;    
 
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
