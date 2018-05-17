@@ -100,25 +100,25 @@ namespace balance_equations{
 
     //Compute the jacobians of the balance of first moment of momentum (Current configuration)
     void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3], 
-                                         const double (&grad_phi)[9][3],        const Matrix_3x3 &F,
+                                         const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                          Matrix_3x12 &DfintDU);
 
     void compute_internal_force_jacobian(const int &component,   const int &dof_num,
                                          const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3], 
-                                         const double (&grad_phi)[9][3],        const Matrix_3x3 &F,
+                                         const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                          double &DfintDU_iA);
 
     void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], 
-                                         const double (&grad_phi)[9][3], const std::vector<std::vector<double>> &F,
+                                         const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi,
                                          const std::vector<std::vector<double>> &DcauchyDgrad_phi,
                                          std::vector<std::vector<double>> &DfintDU);
 
     void compute_internal_force_jacobian(const int &component, const int &dof_num,
                                          const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], 
-                                         const double (&grad_phi)[9][3], const std::vector<std::vector<double>> &F,
+                                         const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi,
                                          const std::vector<std::vector<double>> &DcauchyDgrad_phi,
                                          double &DfintDU_iA);

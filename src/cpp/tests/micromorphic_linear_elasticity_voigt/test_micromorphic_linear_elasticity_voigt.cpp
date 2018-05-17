@@ -10468,7 +10468,7 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
                                                     DmDgrad_u,       DmDgrad_phi);
 
     balance_equations::compute_internal_force_jacobian(             N,           dNdx,         eta,           detadx,
-                                                        grad_phi_data,              F,
+                                                               grad_u,  grad_phi_data,
                                                                cauchy, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
                                                                    _r);
     t1 = Clock::now();
@@ -10485,7 +10485,7 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
         for (int A=0; A<12; A++){
             balance_equations::compute_internal_force_jacobian(            i,              A,
                                                                            N,           dNdx,         eta,           detadx,
-                                                               grad_phi_data,              F,
+                                                                      grad_u,  grad_phi_data,
                                                                       cauchy, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
                                                                          tmp);
             _r(i,A) = tmp;
@@ -10511,7 +10511,7 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
     balance_equations::map_eigen_to_vector(DcauchyDgrad_phi, _DcauchyDgrad_phi);
     balance_equations::map_eigen_to_vector(F,_F);
     balance_equations::compute_internal_force_jacobian(               N,            dNdx,          eta,            detadx, 
-                                                          grad_phi_data,              _F,
+                                                                 grad_u,   grad_phi_data,
                                                                 _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
                                                                     __r);
     balance_equations::map_vector_to_eigen(__r, _r);
@@ -10523,7 +10523,7 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
         for (int j=0; j<12; j++){
             balance_equations::compute_internal_force_jacobian(              i,               j,
                                                                              N,            dNdx,          eta,            detadx,
-                                                                 grad_phi_data,              _F,
+                                                                        grad_u,   grad_phi_data,
                                                                        _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
                                                                            tmp);
             __r[i][j] = tmp;

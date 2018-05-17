@@ -818,7 +818,7 @@ namespace balance_equations{
     =============================================
     */
     void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
-                                         const double (&grad_phi)[9][3],        const Matrix_3x3 &F,
+                                         const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                          Matrix_3x12 &DfintDU){
         /*!=========================================
@@ -829,6 +829,15 @@ namespace balance_equations{
         current configuration.
 
         */
+
+        //Compute the deformation gradient (grad_u is assumed to be w.r.t. the current configuration)
+        Matrix_3x3 grad_u_mat;
+        for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+                grad_u_mat(i,j) = grad_u[i][j];
+            }
+        }
+        Matrix_3x3 F = (Matrix_3x3::Identity() - grad_u_mat).inverse();
         
         //Compute required DOF jacobians
         //Note: Removing sparse matrices because there 
@@ -894,7 +903,7 @@ namespace balance_equations{
 
     void compute_internal_force_jacobian(const int &component,   const int &dof_num,
                                          const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
-                                         const double (&grad_phi)[9][3],        const Matrix_3x3 &F,
+                                         const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                          double &DfintDU_iA){
         /*!=========================================
@@ -905,6 +914,15 @@ namespace balance_equations{
         current configuration.
 
         */
+
+        //Compute the deformation gradient (grad_u is assumed to be w.r.t. the current configuration)
+        Matrix_3x3 grad_u_mat;
+        for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+                grad_u_mat(i,j) = grad_u[i][j];
+            }
+        }
+        Matrix_3x3 F = (Matrix_3x3::Identity() - grad_u_mat).inverse();
         
         //Compute required DOF jacobians
         //Note: Removing sparse matrices because there 
@@ -964,7 +982,7 @@ namespace balance_equations{
     }
 
     void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
-                                         const double (&grad_phi)[9][3],        const std::vector<std::vector<double>> &F,
+                                         const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, 
                                          const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
                                          std::vector<std::vector<double>> &DfintDU){
@@ -978,21 +996,19 @@ namespace balance_equations{
         */
 
         //Map the vectors to eigen matrices and vectors
-        Matrix_3x3  _F;
         Vector_9    _cauchy;
         Matrix_9x9  _DcauchyDgrad_u;
         Matrix_9x9  _DcauchyDphi;
         Matrix_9x27 _DcauchyDgrad_phi;
         Matrix_3x12 _DfintDU;
 
-        map_vector_to_eigen(               F,                _F);
         map_vector_to_eigen(          cauchy,           _cauchy);
         map_vector_to_eigen(  DcauchyDgrad_u,   _DcauchyDgrad_u);
         map_vector_to_eigen(     DcauchyDphi,      _DcauchyDphi);
         map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
 
         compute_internal_force_jacobian(       N,            dNdx,          eta,            detadx,
-                                        grad_phi,              _F,
+                                          grad_u,        grad_phi,
                                          _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
                                         _DfintDU);
 
@@ -1002,7 +1018,7 @@ namespace balance_equations{
 
     void compute_internal_force_jacobian(const int &component,   const int &dof_num,
                                          const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
-                                         const double (&grad_phi)[9][3],        const std::vector<std::vector<double>> &F,
+                                         const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, 
                                          const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
                                          double &DfintDU_iA){
@@ -1016,13 +1032,11 @@ namespace balance_equations{
         */
 
         //Map the vectors to eigen matrices and vectors
-        Matrix_3x3  _F;
         Vector_9    _cauchy;
         Matrix_9x9  _DcauchyDgrad_u;
         Matrix_9x9  _DcauchyDphi;
         Matrix_9x27 _DcauchyDgrad_phi;
 
-        map_vector_to_eigen(               F,                _F);
         map_vector_to_eigen(          cauchy,           _cauchy);
         map_vector_to_eigen(  DcauchyDgrad_u,   _DcauchyDgrad_u);
         map_vector_to_eigen(     DcauchyDphi,      _DcauchyDphi);
@@ -1030,7 +1044,7 @@ namespace balance_equations{
 
         compute_internal_force_jacobian(  component,         dof_num,
                                                   N,            dNdx,          eta,            detadx,
-                                           grad_phi,              _F,
+                                             grad_u,        grad_phi,
                                             _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
                                          DfintDU_iA);
 
