@@ -64,6 +64,7 @@ namespace balance_equations{
     void compute_kinematic_couple(const int &i, const int &j, const double &N, const double &density, const double (&omega)[9], double &ckin_ij);
     
     //Compute the jacobians of the balance of linear momentum w.r.t. the indicated displacement dof
+    //Note: These seem to be incorrect but are retained to be the foundations for a Total-Lagrangian implementation
     void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, Matrix_3x12 &DfintDU);
     
     void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, double &DfintDU_iA);
@@ -97,6 +98,19 @@ namespace balance_equations{
                                           const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
                                           double &DcintDU_ijA);
 
+    //Compute the jacobians of the balance of first moment of momentum (Current configuration)
+    void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3], 
+                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const Matrix_3x3 &F,
+                                         const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
+                                         Matrix_3x12 &DfintDU);
+
+/*    void compute_internal_couple_jacobian(const double &N,  const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const double (&u)[3], const double (&grad_u)[3][3], const double (&phi)[9],         const Matrix_3x3  &Finv,
+                                          const Matrix_9x9      &DcauchyDgrad_u,              const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
+                                          const Matrix_9x9      &DsDgrad_u,                   const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
+                                          const Matrix_27x9     &DmDgrad_u,                   const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
+                                          Matrix_9x12 &DcintDU);
+*/
     //The jacobians of u and phi w.r.t. the DOF vector (Total-Lagrangian)
     void construct_dgrad_udU(const double (&detadx)[3], SpMat &dgrad_udU);    
 

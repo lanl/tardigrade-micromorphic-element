@@ -415,7 +415,9 @@ namespace balance_equations{
         =========================================
         
         Compute the jacobian of the internal force.
-        
+
+        Note: Currently an incorrect implementation which is retained to be the 
+              foundation of a total-lagrangian implementation.        
         */
         
         //Compute required DOF jacobians
@@ -455,6 +457,8 @@ namespace balance_equations{
         
         Compute the jacobian of the internal force.
         
+        Note: Currently an incorrect implementation which is retained to be the 
+              foundation of a total-lagrangian implementation.        
         */
 
         Matrix_9x9  _DcauchyDgrad_u;
@@ -489,6 +493,8 @@ namespace balance_equations{
         
         f_{i}{dof_num}
         
+        Note: Currently an incorrect implementation which is retained to be the 
+              foundation of a total-lagrangian implementation.        
         */
         
         //Compute required DOF jacobians
@@ -539,6 +545,8 @@ namespace balance_equations{
         
         Compute the jacobian of the internal force.
         
+        Note: Currently an incorrect implementation which is retained to be the 
+              foundation of a total-lagrangian implementation.        
         */
 
         Matrix_9x9  _DcauchyDgrad_u;
@@ -565,6 +573,8 @@ namespace balance_equations{
         
         Compute the jacobian of the internal body couple.
         
+        Note: Currently an incorrect implementation which is retained to be the 
+              foundation of a total-lagrangian implementation.        
         */
         
         //Compute required DOF jacobians
@@ -632,6 +642,8 @@ namespace balance_equations{
         
         f_{i}{dof_num}
         
+        Note: Currently an incorrect implementation which is retained to be the 
+              foundation of a total-lagrangian implementation.        
         */
         
         //Compute required DOF jacobians
@@ -703,6 +715,8 @@ namespace balance_equations{
         
         Compute the jacobian of the internal body couple.
         
+        Note: Currently an incorrect implementation which is retained to be the 
+              foundation of a total-lagrangian implementation.        
         */
 
         Matrix_9x9   _DcauchyDgrad_u;
@@ -763,6 +777,8 @@ namespace balance_equations{
         
         f_{i}{dof_num}
         
+        Note: Currently an incorrect implementation which is retained to be the 
+              foundation of a total-lagrangian implementation.        
         */
         Matrix_9x9   _DcauchyDgrad_u;
         Matrix_9x9   _DcauchyDphi;
@@ -795,6 +811,88 @@ namespace balance_equations{
                                          DcintDU_ijA);
         return;
     }
+
+    /*
+    =============================================
+    |    Jacobians for current configuration    |
+    =============================================
+    */
+    void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
+                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const Matrix_3x3 &F,
+                                         const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
+                                         Matrix_3x12 &DfintDU){
+        /*!=========================================
+        |    compute_internal_force_jacobian    |
+        =========================================
+        
+        Compute the jacobian of the internal force in the 
+        current configuration.
+
+        */
+        
+        //Compute required DOF jacobians
+        //Note: Removing sparse matrices because there 
+        //      is a segmentation fault when being created 
+        //      while in a moose run.
+        //SpMat dgrad_udU(9,12);
+        //SpMat dphidU(9,12);
+        //SpMat dgrad_phidU(27,12);
+        
+        Matrix_9x12  dgrad_udU;
+        Matrix_9x12  dphidU;
+        Matrix_27x12 dgrad_phidU;
+
+        //Compute the test and interpolation function gradients in the 
+        //reference configuration.
+        double dNdX[3]   = {0,0,0};
+        double detadX[3] = {0,0,0};
+        for (int I=0; I<3; I++){
+            for (int i=0; i<3; i++){
+                dNdX[I] += dNdx[i]*F(i,I);
+                detadX[I] += detadx[i]*F(i,I);
+            }
+        }
+        //Compute the inverse deformation gradient
+        Matrix_3x3 Finv;
+        Finv = F.inverse();
+
+        construct_dgrad_udU(u,grad_u,detadX, dgrad_udU);
+        construct_dphidU(eta, dphidU);
+        construct_dgrad_phidU(phi, Finv, detadX, dgrad_udU, dgrad_phidU);
+
+        //Compute DcauchyDU;
+        Matrix_9x12 DcauchyDU;
+        DcauchyDU = (DcauchyDgrad_u*dgrad_udU + DcauchyDphi*dphidU + DcauchyDgrad_phi*dgrad_phidU);
+        
+        //Compute the divergence of DcauchyDU
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+        
+        //Note: dfintdU = -D/DU(N,j sigma_ji) = -N,J (DFinvdU_JjIhat sigma_ji + Finv_Jj DcauchyDU jiIhat) = -N,J (-Dgrad_udU_JjIhat sigma_ji + Finv_Jj DsigmaDU_jiIhat) 
+
+        double tmp;
+        int Jhat;
+        int Khat;
+
+        for (int i=0; i<3; i++){
+            for (int Ihat=0; Ihat<12; Ihat++){
+                tmp = 0;
+                for (int J=0; J<3; J++){
+                    for (int j=0; j<3; j++){
+                        Jhat = sot_to_voigt_map[J][j];
+                        Khat = sot_to_voigt_map[j][i];
+                        tmp += -dNdX[J]*(Finv(J,j) * DcauchyDU(Khat,Ihat) - dgrad_udU(Jhat,Ihat)*cauchy(Khat));
+//                        tmp += -dNdX[J]*(Finv(J,j) * DcauchyDU(Khat,Ihat));// - dgrad_udU(Jhat,Ihat)*cauchy(Khat));
+
+                    }
+                }
+                DfintDU(i,Ihat) = tmp;
+            }
+        }
+        return;
+    }
+
     void construct_dgrad_udU(const double (&detadx)[3], SpMat &dgrad_udU){
         /*!==========================
         |    construct_dgrad_udU    |
