@@ -1052,6 +1052,65 @@ namespace balance_equations{
         }
         return;
     }
+    
+    void construct_dgrad_phidU(const double (&phi)[9], const Matrix_3x3 &Finv, const double (&detadX)[3], const Matrix_9x12 &dgrad_udU, Matrix_27x12 &dgrad_phidU){
+        /*!
+        ===============================
+        |    construct_dgrad_phidU    |
+        ===============================
+        
+        Construct the derivative of the gradient of grad_phi in the current configuration.
+        */
+        
+        dgrad_phidU = Matrix_27x12::Zero();
+        
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+                                  
+        int tot_to_voigt_map[3][3][3];
+        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
+                                  
+        double tmp;
+        double tmp1;
+        int Jhat;
+        int Khat;
+        int Lhat;
+        
+        for (int i=0; i<3; i++){
+            for (int I=0; I<3; I++){
+                Jhat = sot_to_voigt_map[i][I];
+                tmp1 = phi[Jhat];
+                for (int j=0; j<3; j++){
+                    Khat = tot_to_voigt_map[i][I][j];
+                    for (int Ihat=0; Ihat<12; Ihat++){
+                        tmp = 0;
+                        
+                        if(Jhat == (Ihat-3)){
+                        
+                            for (int J=0; J<3; J++){
+                                Lhat = sot_to_voigt_map[J][j];
+                                tmp += detadX[J]*(-dgrad_udU(Lhat,Ihat)*tmp1 + Finv(J,j));
+                            }
+                        
+                        }
+                        else{
+                            
+                            for (int J=0; J<3; J++){
+                                Lhat = sot_to_voigt_map[J][j];
+                                tmp += detadX[J]*(-dgrad_udU(Lhat,Ihat)*tmp1);
+                            }
+                            
+                        }
+                        
+                        
+                        dgrad_phidU(Khat,Ihat) = tmp;
+                    }
+                }
+            }
+        }
+        return;
+    }
 
     void map_eigen_to_vector(const Vector_9 &V, std::vector<double> &v){
         /*!

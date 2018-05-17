@@ -529,7 +529,7 @@ std::vector<double> parse_grad_u_U(std::vector<double> U){
     ========================
     
     Parse the construction of the gradient of u w.r.t. U.
-    
+    in the reference configuration.
     */
     
     double detadx[3];
@@ -546,6 +546,47 @@ std::vector<double> parse_grad_u_U(std::vector<double> U){
     grad_u(2,1) = U[2]*detadx[1];
     grad_u(2,0) = U[2]*detadx[0];
     grad_u(1,0) = U[1]*detadx[0];
+    
+    Vector_9 grad_u_voigt;
+    deformation_measures::voigt_3x3_tensor(grad_u,grad_u_voigt);
+    
+    std::vector<double> result;
+    result.resize(9);
+    for (int i=0; i<9; i++){result[i] = grad_u_voigt(i);}
+    return result;
+}
+
+std::vector<double> parse_grad_u_U_current(std::vector<double> U){
+    /*!
+    ================================
+    |    parse_grad_u_U_current    |
+    ================================
+    
+    Parse the construction of the gradient of u w.r.t. U.
+    in the current configuration.
+    */
+    
+    //Use detadx to define detadX
+    double detadX[3];
+    define_detadx(detadX);
+    
+    Matrix_3x3 dudX;
+    
+    dudX(0,0) = U[0]*detadX[0];
+    dudX(1,1) = U[1]*detadX[1];
+    dudX(2,2) = U[2]*detadX[2];
+    dudX(1,2) = U[1]*detadX[2];
+    dudX(0,2) = U[0]*detadX[2];
+    dudX(0,1) = U[0]*detadX[1];
+    dudX(2,1) = U[2]*detadX[1];
+    dudX(2,0) = U[2]*detadX[0];
+    dudX(1,0) = U[1]*detadX[0];
+    
+    Matrix_3x3 Finv;
+    Finv = (Matrix_3x3::Identity() + dudX).inverse();
+    
+    Matrix_3x3 grad_u;
+    grad_u = dudX*Finv;
     
     Vector_9 grad_u_voigt;
     deformation_measures::voigt_3x3_tensor(grad_u,grad_u_voigt);
@@ -622,6 +663,91 @@ std::vector<double> parse_grad_phi_U(std::vector<double> U){
                 find_sot_index(I,j,Jhat);
                 
                 grad_phi(i,Jhat) = phi(i,I)*detadx[j];
+                
+            }
+        }
+    }
+    
+    Vector_27 grad_phi_voigt;
+    deformation_measures::voigt_3x9_tensor(grad_phi,grad_phi_voigt);
+    
+    std::vector<double> result;
+    result.resize(27);
+    for (int i=0; i<27; i++){result[i] = grad_phi_voigt(i);}
+    return result;
+}
+
+std::vector<double> parse_grad_phi_U_current(std::vector<double> U){
+    /*!
+    ==================================
+    |    parse_grad_phi_U_current    |
+    ==================================
+    
+    Parse the construction of the gradient of phi w.r.t. U in the 
+    current configuration.
+    
+    */
+    
+    //Note we use define_detadX to define detadX
+    double detadX[3];
+    define_detadx(detadX);
+    
+    int Jhat;
+    
+    Matrix_3x3 phi;
+    Matrix_3x9 dphidX;
+    Matrix_3x9 grad_phi;
+    
+    phi(0,0) = U[ 3];
+    phi(1,1) = U[ 4];
+    phi(2,2) = U[ 5];
+    phi(1,2) = U[ 6];
+    phi(0,2) = U[ 7];
+    phi(0,1) = U[ 8];
+    phi(2,1) = U[ 9];
+    phi(2,0) = U[10];
+    phi(1,0) = U[11];
+    
+    for (int i=0; i<3; i++){
+        for (int I=0; I<3; I++){
+            for (int J=0; J<3; J++){
+                find_sot_index(I,J,Jhat);
+                
+                dphidX(i,Jhat) = phi(i,I)*detadX[J];
+                
+            }
+        }
+    }
+    
+    //Construct the inverse deformation gradient
+    Matrix_3x3 dudX;
+    
+    dudX(0,0) = U[0]*detadX[0];
+    dudX(1,1) = U[1]*detadX[1];
+    dudX(2,2) = U[2]*detadX[2];
+    dudX(1,2) = U[1]*detadX[2];
+    dudX(0,2) = U[0]*detadX[2];
+    dudX(0,1) = U[0]*detadX[1];
+    dudX(2,1) = U[2]*detadX[1];
+    dudX(2,0) = U[2]*detadX[0];
+    dudX(1,0) = U[1]*detadX[0];
+    
+    Matrix_3x3 Finv;
+    Finv = (Matrix_3x3::Identity() + dudX).inverse();
+    
+    int Khat;
+    
+    for (int i=0; i<3; i++){
+        for (int I=0; I<3; I++){
+            for (int j=0; j<3; j++){
+                find_sot_index(I,j,Jhat);
+                
+                grad_phi(i,Jhat) = 0.;
+                
+                for (int J=0; J<3; J++){
+                    find_sot_index(I,J,Khat);
+                    grad_phi(i,Jhat) += dphidX(i,Khat)*Finv(J,j);
+                }
                 
             }
         }
@@ -1393,7 +1519,7 @@ int test_construct_dgrad_udU(std::ofstream &results){
     ==================================
     
     Test the construction of the derivative of the gradient of u w.r.t. 
-    the DOF vector.
+    the DOF vector in the reference configuration.
     
     */
     
@@ -1438,6 +1564,85 @@ int test_construct_dgrad_udU(std::ofstream &results){
     }
     else {
         results << "test_construct_dgrad_udU & False\\\\\n\\hline\n";
+    }
+}
+
+int test_construct_dgrad_udU_current(std::ofstream &results){
+    /*!
+    ==========================================
+    |    test_construct_dgrad_udU_current    |
+    ==========================================
+    
+    Test the construction of the derivative of the gradient of u w.r.t. 
+    the DOF vector in the current configuration.
+    
+    */
+    
+    const int m = 9;
+    const int n = 12;
+    
+    Matrix_9x12  r; //The expected output
+    Matrix_9x12 _r; //The function result
+    SpMat       _rsparse(9,12);
+    
+    //Use define_detadx to define detadX
+    double detadX[3];
+    define_detadx(detadX);
+    
+    std::vector<double> U = {1,2,3,4,5,6,7,8,9,10,11,12};
+    
+    //Compute the finite difference
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_grad_u_U_current, 2, U , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    
+    for (int i=0; i<m; i++){
+        for (int j=0; j<n; j++){
+            r(i,j) = r_vec[j][i];
+        }
+    }
+    
+    //Form grad_u
+    Matrix_3x3 dudX;
+    for (int i=0; i<3; i++){
+        for (int I=0; I<3; I++){
+            dudX(i,I) = detadX[I]*U[i];
+        }
+    }
+    
+    //Form the inverse of the deformation gradient
+    Matrix_3x3 Finv;
+    Finv = (Matrix_3x3::Identity() + dudX).inverse();
+    
+    //Extract u
+    double u[3];
+    for (int i=0; i<3; i++){u[i] = U[i];}
+    
+    //Compute grad_u
+    double eye[3][3] = {{1,0,0},
+                        {0,1,0},
+                        {0,0,1}};
+    double grad_u[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            grad_u[i][j] = eye[i][j] - Finv(i,j);
+        }
+    }
+    
+    balance_equations::construct_dgrad_udU(u,grad_u,detadX,_r);
+    
+    //std::cout << " r:\n" << r << "\n";
+    //std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_construct_dgrad_udU_current & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_construct_dgrad_udU_current & False\\\\\n\\hline\n";
     }
 } 
     
@@ -1501,7 +1706,7 @@ int test_construct_dgrad_phidU(std::ofstream &results){
     ====================================
     
     Test the construction of the derivative of the gradient of phi w.r.t. 
-    the DOF vector.
+    the DOF vector in the reference configuration.
     
     */
     
@@ -1550,6 +1755,90 @@ int test_construct_dgrad_phidU(std::ofstream &results){
     }
 } 
 
+int test_construct_dgrad_phidU_current(std::ofstream &results){
+    /*!
+    ============================================
+    |    test_construct_dgrad_phidU_current    |
+    ============================================
+    
+    Test the construction of the derivative of the gradient of phi w.r.t. 
+    the DOF vector in the current configuration.
+    
+    */
+    
+    const int m = 27;
+    const int n = 12;
+    
+    Matrix_27x12  r; //The expected output
+    Matrix_27x12 _r; //The function result
+    SpMat       _rsparse(27,12);
+    
+    //Use define_detadx to define detadX
+    double detadX[3];
+    define_detadx(detadX);
+    
+    std::vector<double> U = {1,2,3,4,5,6,7,8,9,10,11,12};
+    
+    //Compute the finite difference
+    finite_difference::FiniteDifference fd;
+    fd = finite_difference::FiniteDifference(parse_grad_phi_U_current, 2, U , 1e-6);
+    
+    //Compute the numeric gradient
+    std::vector<std::vector<double>> r_vec = fd.numeric_gradient();
+    
+    for (int i=0; i<m; i++){
+        for (int j=0; j<n; j++){
+            r(i,j) = r_vec[j][i];
+        }
+    }
+    
+    //Form grad_u
+    Matrix_3x3 dudX;
+    for (int i=0; i<3; i++){
+        for (int I=0; I<3; I++){
+            dudX(i,I) = detadX[I]*U[i];
+        }
+    }
+    
+    //Form the inverse of the deformation gradient
+    Matrix_3x3 Finv;
+    Finv = (Matrix_3x3::Identity() + dudX).inverse();
+    
+    //Extract u
+    double u[3];
+    for (int i=0; i<3; i++){u[i] = U[i];}
+    
+    double phi[9];
+    for (int i=0; i<9; i++){phi[i] = U[i+3];}
+    
+    //Compute grad_u
+    double eye[3][3] = {{1,0,0},
+                        {0,1,0},
+                        {0,0,1}};
+    double grad_u[3][3];
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            grad_u[i][j] = eye[i][j] - Finv(i,j);
+        }
+    }
+    
+    Matrix_9x12 dgrad_udU;
+    balance_equations::construct_dgrad_udU(u,grad_u,detadX,dgrad_udU);
+    balance_equations::construct_dgrad_phidU(phi,Finv,detadX,dgrad_udU,_r);
+    
+    //std::cout << " r:\n" << r << "\n";
+    //std::cout << "_r:\n" << _r << "\n";
+    
+    bool tot_result = r.isApprox(_r,1e-6);
+    
+    if (tot_result){
+        results << "test_construct_dgrad_phidU_current & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_construct_dgrad_phidU_current & False\\\\\n\\hline\n";
+    }
+} 
+
 int main(){
     /*!==========================
     |         main            |
@@ -1579,8 +1868,10 @@ int main(){
     test_compute_internal_couple_jacobian(results);
     
     test_construct_dgrad_udU(results);
+    test_construct_dgrad_udU_current(results);
     test_construct_dphidU(results);
     test_construct_dgrad_phidU(results);
+    test_construct_dgrad_phidU_current(results);
 
     //Close the results file
     results.close();

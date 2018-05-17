@@ -112,6 +112,7 @@ namespace balance_equations{
     
     //The jacobians of u and phi w.r.t. the DOF vector (Current Configuration)
     void construct_dgrad_udU(const double (&u)[3], const double (&grad_u)[3][3], const double (&detadX)[3], Matrix_9x12 &dgrad_udU);
+    void construct_dgrad_phidU(const double (&phi)[9], const Matrix_3x3 &Finv, const double (&detadX)[3], const Matrix_9x12 &dgrad_udU, Matrix_27x12 &dgrad_phidU);
 
     void map_eigen_to_vector(const Vector_9  &V,       std::vector<double> &v);
     void map_eigen_to_vector(const Vector_27 &V,       std::vector<double> &v);
