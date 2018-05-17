@@ -1641,8 +1641,8 @@ int test_construct_dgrad_udU_current(std::ofstream &results){
     
     balance_equations::construct_dgrad_udU(Finv,detadx,_r);
     
-    std::cout << " r:\n" << r << "\n";
-    std::cout << "_r:\n" << _r << "\n";
+//    std::cout << " r:\n" << r << "\n";
+//    std::cout << "_r:\n" << _r << "\n";
     
     bool tot_result = r.isApprox(_r,1e-6);
     
@@ -1850,13 +1850,28 @@ int test_construct_dgrad_phidU_current(std::ofstream &results){
             grad_u[i][j] = eye[i][j] - Finv(i,j);
         }
     }
+
+    double detadx[3] = {0,0,0};
+    for (int i=0; i<3; i++){
+        for (int I=0; I<3; I++){
+            detadx[i] += detadX[I]*Finv(I,i);
+        }
+    }
     
+    //Compute grad_phi
+    double grad_phi[9][3];
+    for (int i=0; i<9; i++){
+        for (int j=0; j<9; j++){
+            grad_phi[i][j] = U[i+3]*detadx[j];
+        }
+    }
+
+
     Matrix_9x12 dgrad_udU;
-    balance_equations::construct_dgrad_udU(u,grad_u,detadX,dgrad_udU);
-    balance_equations::construct_dgrad_phidU(phi,Finv,detadX,dgrad_udU,_r);
+    balance_equations::construct_dgrad_phidU(grad_phi,Finv,detadx,_r);
     
-    //std::cout << " r:\n" << r << "\n";
-    //std::cout << "_r:\n" << _r << "\n";
+//    std::cout << " r:\n" << r << "\n";
+//    std::cout << "_r:\n" << _r << "\n";
     
     bool tot_result = r.isApprox(_r,1e-6);
     
