@@ -818,7 +818,7 @@ namespace balance_equations{
     =============================================
     */
     void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
-                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const Matrix_3x3 &F,
+                                         const double (&phi)[9],        const Matrix_3x3 &F,
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                          Matrix_3x12 &DfintDU){
         /*!=========================================
@@ -856,7 +856,7 @@ namespace balance_equations{
         Matrix_3x3 Finv;
         Finv = F.inverse();
 
-        construct_dgrad_udU(u,grad_u,detadX, dgrad_udU);
+        construct_dgrad_udU(Finv, detadx, dgrad_udU);
         construct_dphidU(eta, dphidU);
         construct_dgrad_phidU(phi, Finv, detadX, dgrad_udU, dgrad_phidU);
 
@@ -894,7 +894,7 @@ namespace balance_equations{
 
     void compute_internal_force_jacobian(const int &component,   const int &dof_num,
                                          const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
-                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const Matrix_3x3 &F,
+                                         const double (&phi)[9],        const Matrix_3x3 &F,
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                          double &DfintDU_iA){
         /*!=========================================
@@ -932,7 +932,7 @@ namespace balance_equations{
         Matrix_3x3 Finv;
         Finv = F.inverse();
 
-        construct_dgrad_udU(u,grad_u,detadX, dgrad_udU);
+        construct_dgrad_udU(Finv,detadx, dgrad_udU);
         construct_dphidU(eta, dphidU);
         construct_dgrad_phidU(phi, Finv, detadX, dgrad_udU, dgrad_phidU);
 
@@ -964,7 +964,7 @@ namespace balance_equations{
     }
 
     void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
-                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const std::vector<std::vector<double>> &F,
+                                         const double (&phi)[9],        const std::vector<std::vector<double>> &F,
                                          const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, 
                                          const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
                                          std::vector<std::vector<double>> &DfintDU){
@@ -992,7 +992,7 @@ namespace balance_equations{
         map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
 
         compute_internal_force_jacobian(       N,            dNdx,          eta,            detadx,
-                                               u,          grad_u,          phi,                _F,
+                                             phi,              _F,
                                          _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
                                         _DfintDU);
 
@@ -1002,7 +1002,7 @@ namespace balance_equations{
 
     void compute_internal_force_jacobian(const int &component,   const int &dof_num,
                                          const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
-                                         const double (&u)[3],   const double (&grad_u)[3][3],     const double (&phi)[9],        const std::vector<std::vector<double>> &F,
+                                         const double (&phi)[9],        const std::vector<std::vector<double>> &F,
                                          const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, 
                                          const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
                                          double &DfintDU_iA){
@@ -1030,7 +1030,7 @@ namespace balance_equations{
 
         compute_internal_force_jacobian(  component,         dof_num,
                                                   N,            dNdx,          eta,            detadx,
-                                                  u,          grad_u,          phi,                _F,
+                                                phi,              _F,
                                             _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
                                          DfintDU_iA);
 
@@ -1240,7 +1240,7 @@ namespace balance_equations{
         return;
     }
     
-    void construct_dgrad_udU(const double (&u)[3], const double (&grad_u)[3][3], const double (&detadX)[3], Matrix_9x12 &dgrad_udU){
+    void construct_dgrad_udU(const Matrix_3x3 &Finv, const double (&detadx)[3], Matrix_9x12 &dgrad_udU){
         /*!==========================
         |    construct_dgrad_udU    |
         =============================
@@ -1254,44 +1254,22 @@ namespace balance_equations{
         */
         
         dgrad_udU = Matrix_9x12::Zero();
-        
+
         int sot_to_voigt_map[3][3] = {{0,5,4},
                                       {8,1,3},
                                       {7,6,2}};
-        double eye[3][3]         = {{1,0,0},
-                                    {0,1,0},
-                                    {0,0,1}};
-        
-        //Form T and it's inverse
-        Matrix_3x3 T;
-        Matrix_3x3 Tinv;
-        for (int K=0; K<3; K++){
-            for (int L=0; L<3; L++){
-                T(K,L) = eye[K][L] + detadX[K]*u[L];
-            }
-        }
-        Tinv = T.inverse();
-        
-        double tmp;
-        double tmp1;
-        
-        int Jhat;
-        
-        //Form dgrad_udU
-        for (int K=0; K<3; K++){
-            for (int l=0; l<3; l++){
-                Jhat = sot_to_voigt_map[K][l];
-                for (int Ihat=0; Ihat<3; Ihat++){
-                    
-                    tmp  = 0;
-                    tmp1 = Tinv(Ihat,K);
-                    for (int M=0; M<3; M++){
-                        tmp += tmp1*detadX[M]*(eye[M][l] - grad_u[M][l]);
-                    }
-                    dgrad_udU(Jhat,Ihat) = tmp;
+
+
+        int Ihat;
+        for (int k=0; k<3; k++){
+            for (int i=0; i<3; i++){
+                Ihat = sot_to_voigt_map[k][i];
+                for (int Jhat=0; Jhat<3; Jhat++){
+                    dgrad_udU(Ihat,Jhat) = Finv(k,Jhat)*detadx[i];
                 }
             }
         }
+
         return;
     }
     

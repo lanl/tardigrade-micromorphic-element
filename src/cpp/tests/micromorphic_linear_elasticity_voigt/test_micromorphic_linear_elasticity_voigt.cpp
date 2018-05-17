@@ -10221,7 +10221,7 @@ int test_compute_DstressDU_current(std::ofstream &results,bool MOOSE=false){
     Matrix_9x12  dphidU;
     Matrix_27x12 dgrad_phidU;
 
-    balance_equations::construct_dgrad_udU(u,grad_u,detadX, dgrad_udU);
+    balance_equations::construct_dgrad_udU(Finv, detadx, dgrad_udU);
     balance_equations::construct_dphidU(eta, dphidU);
     balance_equations::construct_dgrad_phidU(_phi, Finv, detadX, dgrad_udU, dgrad_phidU);
 
@@ -10468,7 +10468,7 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
                                                     DmDgrad_u,       DmDgrad_phi);
 
     balance_equations::compute_internal_force_jacobian(             N,           dNdx,         eta,           detadx,
-                                                                    u,         grad_u,        _phi,                F,
+                                                                 _phi,              F,
                                                                cauchy, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
                                                                    _r);
     t1 = Clock::now();
@@ -10485,13 +10485,14 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
         for (int A=0; A<12; A++){
             balance_equations::compute_internal_force_jacobian(     i,              A,
                                                                     N,           dNdx,         eta,           detadx,
-                                                                    u,         grad_u,        _phi,                F,
+                                                                 _phi,                F,
                                                                cauchy, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
                                                                tmp);
             _r(i,A) = tmp;
         }
     }
 
+//    std::cout << "_r:\n" << _r << "\n";
     tot_result *= r.isApprox(_r,1e-6);
 
 
@@ -10510,10 +10511,11 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
     balance_equations::map_eigen_to_vector(DcauchyDgrad_phi, _DcauchyDgrad_phi);
     balance_equations::map_eigen_to_vector(F,_F);
     balance_equations::compute_internal_force_jacobian(      N,            dNdx,          eta,            detadx, 
-                                                             u,          grad_u,         _phi,                _F,
+                                                          _phi,                _F,
                                                        _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
                                                            __r);
     balance_equations::map_vector_to_eigen(__r, _r);
+//    std::cout << "_r:\n" << _r << "\n";
     tot_result *= r.isApprox(_r,1e-6);
 
     //Test the computation of the jacobian in a component-wise fashion
@@ -10521,7 +10523,7 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
         for (int j=0; j<12; j++){
             balance_equations::compute_internal_force_jacobian(      i,               j,
                                                                      N,            dNdx,          eta,            detadx,
-                                                                     u,          grad_u,         _phi,                _F,
+                                                                  _phi,              _F,
                                                                _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
                                                                    tmp);
             __r[i][j] = tmp;
