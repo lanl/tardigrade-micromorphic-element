@@ -9447,12 +9447,6 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
                                                     DsDgrad_u,       DsDgrad_phi,
                                                     DmDgrad_u,       DmDgrad_phi);
 
-    balance_equations::compute_internal_couple_jacobian(N, dNdx, eta, detadx,
-                                                        DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
-                                                        DsDgrad_u,      dsdchi,      DsDgrad_phi,
-                                                        DmDgrad_u,      dmdchi,      DmDgrad_phi,
-                                                        _r);
-    
     balance_equations::compute_internal_force_jacobian(N, dNdx, eta, detadx, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi, _r);
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
