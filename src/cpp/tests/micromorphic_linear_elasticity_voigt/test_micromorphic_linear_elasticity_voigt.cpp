@@ -3591,6 +3591,7 @@ std::vector<double> parse_balance_of_linear_momentum_U_current(std::vector<doubl
             detadx[i] += detadX[I]*Finv(I,i);
         }
     }
+    define_dNdx(dNdx); //The terms assocaited with dNdx were not required.
     
     //Expand U
     double grad_u[3][3];
@@ -10342,6 +10343,7 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
             detadx[i] += detadX[I]*Finv(I,i);
         }
     }
+    define_dNdx(dNdx); //The jacobian of this term is not required.
 
     double u[3];
     for (int i=0; i<3; i++){u[i] = U[i];}
@@ -10474,8 +10476,8 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
 
-//    std::cout << " r:\n" <<  r << "\n";
-//    std::cout << "_r:\n" << _r << "\n";
+    std::cout << " r:\n" <<  r << "\n";
+    std::cout << "_r:\n" << _r << "\n";
 
     //Compute the jacobian in a component-wise fashion
     bool tot_result = r.isApprox(_r,1e-6);
@@ -10492,7 +10494,7 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
         }
     }
 
-//    std::cout << "_r:\n" << _r << "\n";
+    std::cout << "_r:\n" << _r << "\n";
     tot_result *= r.isApprox(_r,1e-6);
 
 
@@ -10515,7 +10517,7 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
                                                                 _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
                                                                     __r);
     balance_equations::map_vector_to_eigen(__r, _r);
-//    std::cout << "_r:\n" << _r << "\n";
+    std::cout << "_r:\n" << _r << "\n";
     tot_result *= r.isApprox(_r,1e-6);
 
     //Test the computation of the jacobian in a component-wise fashion
@@ -10530,8 +10532,8 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
         }
     }
     balance_equations::map_vector_to_eigen(__r, _r);
-//    std::cout << "__r:\n";
-//    print_matrix(__r);
+    std::cout << "__r:\n";
+    print_matrix(__r);
     tot_result *= r.isApprox(_r,1e-6);
 
 //    std::cout << "test_compute_internal_force_jacobian:\n";
