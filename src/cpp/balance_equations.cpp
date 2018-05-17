@@ -997,6 +997,61 @@ namespace balance_equations{
 
         return;
     }
+    
+    void construct_dgrad_udU(const double (&u)[3], const double (&grad_u)[3][3], const double (&detadX)[3], Matrix_9x12 &dgrad_udU){
+        /*!==========================
+        |    construct_dgrad_udU    |
+        =============================
+        
+        Construct the derivative of the gradient of u w.r.t. the DOF vector.
+        
+        dgrad_udU is a 9x12 matrix
+        
+        This is for the balance equation in the current configuration.
+        
+        */
+        
+        dgrad_udU = Matrix_9x12::Zero();
+        
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+        double eye[3][3]         = {{1,0,0},
+                                    {0,1,0},
+                                    {0,0,1}};
+        
+        //Form T and it's inverse
+        Matrix_3x3 T;
+        Matrix_3x3 Tinv;
+        for (int K=0; K<3; K++){
+            for (int L=0; L<3; L++){
+                T(K,L) = eye[K][L] + detadX[K]*u[L];
+            }
+        }
+        Tinv = T.inverse();
+        
+        double tmp;
+        double tmp1;
+        
+        int Jhat;
+        
+        //Form dgrad_udU
+        for (int K=0; K<3; K++){
+            for (int l=0; l<3; l++){
+                Jhat = sot_to_voigt_map[K][l];
+                for (int Ihat=0; Ihat<3; Ihat++){
+                    
+                    tmp  = 0;
+                    tmp1 = Tinv(Ihat,K);
+                    for (int M=0; M<3; M++){
+                        tmp += tmp1*detadX[M]*(eye[M][l] - grad_u[M][l]);
+                    }
+                    dgrad_udU(Jhat,Ihat) = tmp;
+                }
+            }
+        }
+        return;
+    }
 
     void map_eigen_to_vector(const Vector_9 &V, std::vector<double> &v){
         /*!

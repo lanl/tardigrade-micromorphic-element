@@ -97,7 +97,7 @@ namespace balance_equations{
                                           const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
                                           double &DcintDU_ijA);
 
-    //The jacobians of u and phi w.r.t. the DOF vector
+    //The jacobians of u and phi w.r.t. the DOF vector (Total-Lagrangian)
     void construct_dgrad_udU(const double (&detadx)[3], SpMat &dgrad_udU);    
 
     void construct_dgrad_udU(const double (&detadx)[3], Matrix_9x12 &dgrad_udU);
@@ -109,6 +109,9 @@ namespace balance_equations{
     void construct_dgrad_phidU(const double (&detadx)[3], SpMat &dgrad_phidU);
 
     void construct_dgrad_phidU(const double (&detadx)[3], Matrix_27x12 &dgrad_phidU);
+    
+    //The jacobians of u and phi w.r.t. the DOF vector (Current Configuration)
+    void construct_dgrad_udU(const double (&u)[3], const double (&grad_u)[3][3], const double (&detadX)[3], Matrix_9x12 &dgrad_udU);
 
     void map_eigen_to_vector(const Vector_9  &V,       std::vector<double> &v);
     void map_eigen_to_vector(const Vector_27 &V,       std::vector<double> &v);
