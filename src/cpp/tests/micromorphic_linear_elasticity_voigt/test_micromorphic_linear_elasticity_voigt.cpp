@@ -3343,27 +3343,27 @@ std::vector<double> parse_balance_of_linear_momentum_U(std::vector<double> U){
     double N;
     define_N(N);
     
-    double dNdx[3];
-    define_dNdx(dNdx);
+    double dNdX[3];
+    define_dNdx(dNdX);
 
     double eta;
     define_eta(eta);
 
-    double detadx[3];
-    define_detadx(detadx);
+    double detadX[3];
+    define_detadx(detadX);
     
     //Expand U
     double grad_u[3][3];
     
-    grad_u[0][0] = U[0]*detadx[0];
-    grad_u[1][1] = U[1]*detadx[1];
-    grad_u[2][2] = U[2]*detadx[2];
-    grad_u[1][2] = U[1]*detadx[2];
-    grad_u[0][2] = U[0]*detadx[2];
-    grad_u[0][1] = U[0]*detadx[1];
-    grad_u[2][1] = U[2]*detadx[1];
-    grad_u[2][0] = U[2]*detadx[0];
-    grad_u[1][0] = U[1]*detadx[0];
+    grad_u[0][0] = U[0]*detadX[0];
+    grad_u[1][1] = U[1]*detadX[1];
+    grad_u[2][2] = U[2]*detadX[2];
+    grad_u[1][2] = U[1]*detadX[2];
+    grad_u[0][2] = U[0]*detadX[2];
+    grad_u[0][1] = U[0]*detadX[1];
+    grad_u[2][1] = U[2]*detadX[1];
+    grad_u[2][0] = U[2]*detadX[0];
+    grad_u[1][0] = U[1]*detadX[0];
 
     double phi[9];
     for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
@@ -3391,18 +3391,18 @@ std::vector<double> parse_balance_of_linear_momentum_U(std::vector<double> U){
     
     define_parameters(params,false); //TODO: remove true!
     
-    deformation_measures::get_deformation_gradient(grad_u, F);
+    deformation_measures::get_deformation_gradient(grad_u, F, false);
 
     double grad_phi_data[9][3];
     
     for (int I=3; I<12; I++){
         for (int j=0; j<3; j++){            
-            grad_phi_data[I-3][j] = U[I]*detadx[j];
+            grad_phi_data[I-3][j] = U[I]*detadX[j];
         }
     }
  
     deformation_measures::assemble_chi(phi, chi);
-    deformation_measures::assemble_grad_chi(grad_phi_data, F, grad_chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data, grad_chi);
     
     Matrix_3x9 grad_phi_mat;
     Vector_27  grad_phi;
@@ -3411,11 +3411,9 @@ std::vector<double> parse_balance_of_linear_momentum_U(std::vector<double> U){
     
     micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M);
     
-    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
-    
     double fint[3];
     
-    balance_equations::compute_internal_force(dNdx, cauchy, fint);
+    balance_equations::compute_internal_force(dNdX, F, PK2, fint);
     
     std::vector<double> result;
     result.resize(3);
@@ -9735,15 +9733,15 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     double N;
     define_N(N);
 
-    double dNdx[3];
-    define_dNdx(dNdx);
+    double dNdX[3];
+    define_dNdx(dNdX);
     
     //The interpolation function values
     double eta;
     define_eta(eta);
 
-    double detadx[3];
-    define_detadx(detadx);
+    double detadX[3];
+    define_detadx(detadX);
 
     //for (int i=0; i<3; i++){dNdx[i] = 0.; detadx[i] = 0.;} //TODO: remove!
     //N   = 1.;
@@ -9770,15 +9768,15 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     //Compute the analytic values
     double grad_u[3][3];
     
-    grad_u[0][0] = U[0]*detadx[0];
-    grad_u[1][1] = U[1]*detadx[1];
-    grad_u[2][2] = U[2]*detadx[2];
-    grad_u[1][2] = U[1]*detadx[2];
-    grad_u[0][2] = U[0]*detadx[2];
-    grad_u[0][1] = U[0]*detadx[1];
-    grad_u[2][1] = U[2]*detadx[1];
-    grad_u[2][0] = U[2]*detadx[0];
-    grad_u[1][0] = U[1]*detadx[0];
+    grad_u[0][0] = U[0]*detadX[0];
+    grad_u[1][1] = U[1]*detadX[1];
+    grad_u[2][2] = U[2]*detadX[2];
+    grad_u[1][2] = U[1]*detadX[2];
+    grad_u[0][2] = U[0]*detadX[2];
+    grad_u[0][1] = U[0]*detadX[1];
+    grad_u[2][1] = U[2]*detadX[1];
+    grad_u[2][0] = U[2]*detadX[0];
+    grad_u[1][0] = U[1]*detadX[0];
 
 //    if(MOOSE){define_grad_u_MOOSE(grad_u);}
 //
@@ -9803,7 +9801,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     
     for (int I=3; I<12; I++){
         for (int j=0; j<3; j++){            
-            grad_phi_data[I-3][j] = U[I]*detadx[j];
+            grad_phi_data[I-3][j] = U[I]*detadX[j];
         }
     }
     
@@ -9838,30 +9836,16 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     Matrix_27x9  dMdchi;
     Matrix_27x27 dMdgrad_chi;
 
-    Matrix_9x9   dcauchydF;
-    Matrix_9x9   dcauchydchi;
-    Matrix_9x27  dcauchydgrad_chi;
-    Matrix_9x9   dsdF;
-    Matrix_9x9   dsdchi;
-    Matrix_9x27  dsdgrad_chi;
-    Matrix_27x9  dmdF;
-    Matrix_27x9  dmdchi;
-    Matrix_27x27 dmdgrad_chi;
-
-    Matrix_9x9   DcauchyDgrad_u;
-    Matrix_9x27  DcauchyDgrad_phi;
-    Matrix_9x9   DsDgrad_u;
-    Matrix_9x27  DsDgrad_phi;
-    Matrix_27x9  DmDgrad_u;
-    Matrix_27x27 DmDgrad_phi;
+    Matrix_9x9   dFdgrad_u;
+    Matrix_9x9   dPK2dgrad_u;
     
     define_parameters(params,MOOSE=MOOSE);
     
     t0 = Clock::now();
-    deformation_measures::get_deformation_gradient(grad_u, F);
+    deformation_measures::get_deformation_gradient(grad_u, F, false);
 
     deformation_measures::assemble_chi(phi, chi);
-    deformation_measures::assemble_grad_chi(grad_phi_data, F, grad_chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data, grad_chi);
     
     Matrix_3x9 grad_phi_mat;
     Vector_27  grad_phi;
@@ -9872,41 +9856,33 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
                                dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
                                dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
                                dMdF,     dMdchi,     dMdgrad_chi);
-    
-    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
-    
-    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
-                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
-                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
-                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
 
-    deformation_measures::compute_total_derivatives(F,               grad_phi,
-                                                    dcauchydF,       dcauchydgrad_chi,
-                                                    dsdF,            dsdgrad_chi,
-                                                    dmdF,            dmdgrad_chi,
-                                                    DcauchyDgrad_u,  DcauchyDgrad_phi,
-                                                    DsDgrad_u,       DsDgrad_phi,
-                                                    DmDgrad_u,       DmDgrad_phi);
+    deformation_measures::compute_dFdgrad_u(F, dFdgrad_u);
+    dPK2dgrad_u = dPK2dF*dFdgrad_u;    
 
-    balance_equations::compute_internal_force_jacobian(N, dNdx, eta, detadx, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi, _r);
+    balance_equations::compute_internal_force_jacobian(N, dNdX, eta, detadX, F, PK2, dPK2dgrad_u, dPK2dchi, dPK2dgrad_chi, _r);
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
 
-//    std::cout << " r:\n" <<  r << "\n";
-//    std::cout << "_r:\n" << _r << "\n";
+    std::cout << " r:\n" <<  r << "\n";
+    std::cout << "_r:\n" << _r << "\n";
 
     bool tot_result = r.isApprox(_r,1e-6);
 
     //Compute the jacobian using a vector form    
-    std::vector<std::vector<double>> _DcauchyDgrad_u;
-    std::vector<std::vector<double>> _DcauchyDphi;
-    std::vector<std::vector<double>> _DcauchyDgrad_phi;
+    std::vector<std::vector<double>> _F;
+    std::vector<double>              _PK2;
+    std::vector<std::vector<double>> _DPK2Dgrad_u;
+    std::vector<std::vector<double>> _DPK2Dphi;
+    std::vector<std::vector<double>> _DPK2Dgrad_phi;
     std::vector<std::vector<double>> __r;
     
-    balance_equations::map_eigen_to_vector(DcauchyDgrad_u,   _DcauchyDgrad_u);
-    balance_equations::map_eigen_to_vector(dcauchydchi,      _DcauchyDphi);
-    balance_equations::map_eigen_to_vector(DcauchyDgrad_phi, _DcauchyDgrad_phi);
-    balance_equations::compute_internal_force_jacobian(N, dNdx, eta, detadx, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, __r);
+    balance_equations::map_eigen_to_vector(F,             _F);
+    balance_equations::map_eigen_to_vector(PK2,           _PK2);
+    balance_equations::map_eigen_to_vector(dPK2dgrad_u,   _DPK2Dgrad_u);
+    balance_equations::map_eigen_to_vector(dPK2dchi,      _DPK2Dphi);
+    balance_equations::map_eigen_to_vector(dPK2dgrad_chi, _DPK2Dgrad_phi);
+    balance_equations::compute_internal_force_jacobian(N, dNdX, eta, detadX, _F, _PK2, _DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, __r);
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
@@ -9914,7 +9890,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     double tmp;
     for (int i=0; i<3; i++){
         for (int j=0; j<12; j++){
-            balance_equations::compute_internal_force_jacobian(i,j,N,dNdx,eta,detadx,_DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, tmp);
+            balance_equations::compute_internal_force_jacobian(i,j,N,dNdX,eta,detadX,_F,_PK2,_DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, tmp);
             __r[i][j] = tmp;
         }
     }
@@ -9937,10 +9913,10 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
 //    print_matrix(__r);
 
     if (tot_result){
-        results << "test_compute_internal_force_jacobian & True\\\\\n\\hline\n";
+        results << "test_compute_internal_force_jacobian_reference & True\\\\\n\\hline\n";
     }
     else {
-        results << "test_compute_internal_force_jacobian & False\\\\\n\\hline\n";
+        results << "test_compute_internal_force_jacobian_reference & False\\\\\n\\hline\n";
     }
     return 0;
 }

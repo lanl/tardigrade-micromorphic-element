@@ -507,7 +507,7 @@ namespace balance_equations{
         return;
     }
     
-    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, Matrix_3x12 &DfintDU){
+    void compute_internal_force_jacobian(const double &N, const double(&dNdX)[3], const double &eta, const double (&detadX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, const Matrix_9x9 &DPK2Dgrad_u, const Matrix_9x9 &DPK2Dphi, const Matrix_9x27 &DPK2Dgrad_phi, Matrix_3x12 &DfintDU){
         /*!=========================================
         |    compute_internal_force_jacobian    |
         =========================================
@@ -530,25 +530,47 @@ namespace balance_equations{
         Matrix_9x12  dphidU;
         Matrix_27x12 dgrad_phidU;
 
-        construct_dgrad_udU(detadx, dgrad_udU);
+        construct_dgrad_udU(detadX, dgrad_udU);
         construct_dphidU(eta, dphidU);
-        construct_dgrad_phidU(detadx, dgrad_phidU);
+        construct_dgrad_phidU(detadX, dgrad_phidU);
 
         //Compute DcauchyDU;
-        Matrix_9x12 DcauchyDU;
-        DcauchyDU = (DcauchyDgrad_u*dgrad_udU + DcauchyDphi*dphidU + DcauchyDgrad_phi*dgrad_phidU);
+        Matrix_9x12 DPK2DU;
+        DPK2DU = (DPK2Dgrad_u*dgrad_udU + DPK2Dphi*dphidU + DPK2Dgrad_phi*dgrad_phidU);
+
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
         
-        //Compute the divergence of DcauchyDU
-        DfintDU.row(0) = -(dNdx[0]*DcauchyDU.row(0) + dNdx[1]*DcauchyDU.row(8) + dNdx[2]*DcauchyDU.row(7));
-        DfintDU.row(1) = -(dNdx[0]*DcauchyDU.row(5) + dNdx[1]*DcauchyDU.row(1) + dNdx[2]*DcauchyDU.row(6));
-        DfintDU.row(2) = -(dNdx[0]*DcauchyDU.row(4) + dNdx[1]*DcauchyDU.row(3) + dNdx[2]*DcauchyDU.row(2));
+        //Must compute DfintDU_jIhat = -dNdX[I]*(DPK2DU_IJIhat F_jJ + PK2_IJ DFDU_jJIhat)
+        //NOTE: DFDU_jJIhat = Dgrad_udU_jJIhat
+
+        double tmp;
+        int Jhat;
+        int Khat;
+
+        for (int j=0; j<3; j++){
+            for (int Ihat=0; Ihat<12; Ihat++){
+                tmp = 0;
+            
+                for (int I=0; I<3; I++){
+                    for (int J=0; J<3; J++){
+                        Jhat = sot_to_voigt_map[I][J];
+                        Khat = sot_to_voigt_map[j][J];
+                        tmp += -dNdX[I]*(DPK2DU(Jhat,Ihat) * F(j,J) + PK2(Jhat)*dgrad_udU(Khat,Ihat));
+                    }
+                }
+                DfintDU(j,Ihat) = tmp;
+
+            }
+        }
         
     }
 
 
-    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3],
-                                         const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi,
-                                         const std::vector<std::vector<double>> &DcauchyDgrad_phi, std::vector<std::vector<double>> &DfintDU){
+    void compute_internal_force_jacobian(const double &N, const double(&dNdX)[3], const double &eta, const double (&detadX)[3], const std::vector<std::vector<double>> &F,
+                                         const std::vector<double> &PK2, const std::vector<std::vector<double>> &DPK2Dgrad_u, const std::vector<std::vector<double>> &DPK2Dphi,
+                                         const std::vector<std::vector<double>> &DPK2Dgrad_phi, std::vector<std::vector<double>> &DfintDU){
         /*!=========================================
         |    compute_internal_force_jacobian    |
         =========================================
@@ -559,23 +581,27 @@ namespace balance_equations{
               foundation of a total-lagrangian implementation.        
         */
 
-        Matrix_9x9  _DcauchyDgrad_u;
-        Matrix_9x9  _DcauchyDphi;
-        Matrix_9x27 _DcauchyDgrad_phi;
+        Matrix_3x3  _F;
+        Vector_9    _PK2;
+        Matrix_9x9  _DPK2Dgrad_u;
+        Matrix_9x9  _DPK2Dphi;
+        Matrix_9x27 _DPK2Dgrad_phi;
         Matrix_3x12 _DfintDU;
 
-        map_vector_to_eigen(DcauchyDgrad_u,   _DcauchyDgrad_u);
-        map_vector_to_eigen(DcauchyDphi,      _DcauchyDphi);
-        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+        map_vector_to_eigen(F,             _F);
+        map_vector_to_eigen(PK2,           _PK2);
+        map_vector_to_eigen(DPK2Dgrad_u,   _DPK2Dgrad_u);
+        map_vector_to_eigen(DPK2Dphi,      _DPK2Dphi);
+        map_vector_to_eigen(DPK2Dgrad_phi, _DPK2Dgrad_phi);
         
-        compute_internal_force_jacobian(N, dNdx, eta, detadx, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, _DfintDU);
+        compute_internal_force_jacobian(N, dNdX, eta, detadX, _F, _PK2, _DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, _DfintDU);
 
         map_eigen_to_vector(_DfintDU, DfintDU);
 
         return;
     }
 
-    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi, double &DfintDU_iA){
+    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdX)[3], const double &eta, const double (&detadX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, const Matrix_9x9 &DPK2Dgrad_u, const Matrix_9x9 &DPK2Dphi, const Matrix_9x27 &DPK2Dgrad_phi, double &DfintDU_iA){
         /*!=========================================
         |    compute_internal_force_jacobian    |
         =========================================
@@ -606,37 +632,42 @@ namespace balance_equations{
         Matrix_9x12  dgrad_udU;
         Matrix_9x12  dphidU;
         Matrix_27x12 dgrad_phidU;
-        
-        construct_dgrad_udU(detadx, dgrad_udU);
+
+        construct_dgrad_udU(detadX, dgrad_udU);
         construct_dphidU(eta, dphidU);
-        construct_dgrad_phidU(detadx, dgrad_phidU);
+        construct_dgrad_phidU(detadX, dgrad_phidU);
+
+        //Compute DcauchyDU;
+        Matrix_9x12 DPK2DU;
+        DPK2DU = (DPK2Dgrad_u*dgrad_udU + DPK2Dphi*dphidU + DPK2Dgrad_phi*dgrad_phidU);
+
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
         
-        if ( i == 0 ){
-            DfintDU_iA = -(dNdx[0]*(DcauchyDgrad_u.row(0).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(0).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(0).dot(dgrad_phidU.col(dof_num)))
-                         + dNdx[1]*(DcauchyDgrad_u.row(8).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(8).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(8).dot(dgrad_phidU.col(dof_num)))
-                         + dNdx[2]*(DcauchyDgrad_u.row(7).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(7).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(7).dot(dgrad_phidU.col(dof_num))));
-        }
-        else if (i == 1){
-            DfintDU_iA = -(dNdx[0]*(DcauchyDgrad_u.row(5).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(5).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(5).dot(dgrad_phidU.col(dof_num)))
-                         + dNdx[1]*(DcauchyDgrad_u.row(1).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(1).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(1).dot(dgrad_phidU.col(dof_num)))
-                         + dNdx[2]*(DcauchyDgrad_u.row(6).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(6).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(6).dot(dgrad_phidU.col(dof_num))));
-        }
-        else if (i == 2){
-            DfintDU_iA = -(dNdx[0]*(DcauchyDgrad_u.row(4).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(4).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(4).dot(dgrad_phidU.col(dof_num)))
-                         + dNdx[1]*(DcauchyDgrad_u.row(3).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(3).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(3).dot(dgrad_phidU.col(dof_num)))
-                         + dNdx[2]*(DcauchyDgrad_u.row(2).dot(dgrad_udU.col(dof_num))+DcauchyDphi.row(2).dot(dphidU.col(dof_num))+DcauchyDgrad_phi.row(2).dot(dgrad_phidU.col(dof_num))));
-        }
-        else{
-            std::cout << "Error: Index out of range\n";
-            assert(4==5); //TODO: Replace with better error handling
+        //Must compute DfintDU_jIhat = -dNdX[I]*(DPK2DU_IJIhat F_jJ + PK2_IJ DFDU_jJIhat)
+        //NOTE: DFDU_jJIhat = Dgrad_udU_jJIhat
+
+        double tmp;
+        int Jhat;
+        int Khat;
+
+        DfintDU_iA = 0;
+            
+        for (int I=0; I<3; I++){
+            for (int J=0; J<3; J++){
+                Jhat = sot_to_voigt_map[I][J];
+                Khat = sot_to_voigt_map[i][J];
+                tmp += -dNdX[I]*(DPK2DU(Jhat,dof_num) * F(i,J) + PK2(Jhat)*dgrad_udU(Khat,dof_num));
+            }
         }
         
         return;
     }
 
-    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3],
-                                         const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi,
-                                         const std::vector<std::vector<double>> &DcauchyDgrad_phi, double &DfintDU_iA){
+    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const std::vector<std::vector<double>> &F,
+                                         const std::vector<double> &PK2, const std::vector<std::vector<double>> &DPK2Dgrad_u, const std::vector<std::vector<double>> &DPK2Dphi,
+                                         const std::vector<std::vector<double>> &DPK2Dgrad_phi, double &DfintDU_iA){
         /*!=========================================
         |    compute_internal_force_jacobian    |
         =========================================
@@ -647,15 +678,19 @@ namespace balance_equations{
               foundation of a total-lagrangian implementation.        
         */
 
-        Matrix_9x9  _DcauchyDgrad_u;
-        Matrix_9x9  _DcauchyDphi;
-        Matrix_9x27 _DcauchyDgrad_phi;
+        Matrix_3x3  _F;
+        Vector_9    _PK2;
+        Matrix_9x9  _DPK2Dgrad_u;
+        Matrix_9x9  _DPK2Dphi;
+        Matrix_9x27 _DPK2Dgrad_phi;
 
-        map_vector_to_eigen(DcauchyDgrad_u,   _DcauchyDgrad_u);
-        map_vector_to_eigen(DcauchyDphi,      _DcauchyDphi);
-        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+        map_vector_to_eigen(F,             _F);
+        map_vector_to_eigen(PK2,           _PK2);
+        map_vector_to_eigen(DPK2Dgrad_u,   _DPK2Dgrad_u);
+        map_vector_to_eigen(DPK2Dphi,      _DPK2Dphi);
+        map_vector_to_eigen(DPK2Dgrad_phi, _DPK2Dgrad_phi);
         
-        compute_internal_force_jacobian(i, dof_num, N, dNdx, eta, detadx, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi, DfintDU_iA);
+        compute_internal_force_jacobian(i, dof_num, N, dNdx, eta, detadx, _F, _PK2, _DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, DfintDU_iA);
 
         return;
     }
