@@ -566,6 +566,18 @@ int test_get_deformation_gradient(std::ofstream &results){
     //Compare the results
     bool tot_result = F.isApprox(_F);
 
+    //Compute the deformation gradient assuming _grad_u is in the reference configuration
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            F(i,j) = _grad_u[i][j];
+        }
+    }
+    for (int i=0; i<3; i++){F(i,i) += 1;}
+
+    deformation_measures::get_deformation_gradient(_grad_u,_F,false);
+
+    tot_result *= F.isApprox(_F);
+
     if (tot_result){
         results << "test_get_deformation_gradient & True\\\\\n\\hline\n";
     }
@@ -654,6 +666,12 @@ int test_assemble_grad_chi(std::ofstream &results){
     deformation_measures::assemble_grad_chi(grad_chi_data_array, F, _grad_chi);
 
     bool tot_result = grad_chi.isApprox(_grad_chi,1e-7);
+
+    //Test the computation if the gradient is w.r.t. the reference coordinates.
+    deformation_measures::assemble_grad_chi(grad_chi_data_array, Matrix_3x3::Identity(), grad_chi);
+    deformation_measures::assemble_grad_chi(grad_chi_data_array, _grad_chi);
+    
+    tot_result *= grad_chi.isApprox(_grad_chi,1e-7);
 
     if (tot_result){
         results << "test_assemble_chi & True\\\\\n\\hline\n";

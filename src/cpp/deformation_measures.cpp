@@ -20,7 +20,7 @@ namespace deformation_measures
 
 {
 
-    void get_deformation_gradient(const double (&_grad_u)[3][3], Matrix_3x3 &F){
+    void get_deformation_gradient(const double (&_grad_u)[3][3], Matrix_3x3 &F, bool iscurrent){
 
         /*!==================================
            |    get_deformation_gradient    |
@@ -36,19 +36,34 @@ namespace deformation_measures
 
         */
 
-        for (int i=0; i<3; i++){
+        if(iscurrent){
 
-            for (int j=0; j<3; j++){
+            for (int i=0; i<3; i++){
 
-                F(i,j) = -_grad_u[i][j];
+                for (int j=0; j<3; j++){
+    
+                    F(i,j) = -_grad_u[i][j];
+    
+                }
 
             }
 
+            for (int i=0; i<3; i++){F(i,i) += 1;}
+
+            F = F.inverse().eval();
         }
 
-        for (int i=0; i<3; i++){F(i,i) += 1;}
+        else{
 
-        F = F.inverse().eval();
+            for (int i=0; i<3; i++){
+                for (int j=0; j<3; j++){
+                    F(i,j) = _grad_u[i][j];
+                }
+            }
+
+            for (int i=0; i<3; i++){F(i,i) += 1;}
+
+        }
 
         return;
     }
@@ -165,6 +180,65 @@ namespace deformation_measures
         grad_chi(2,6) = _grad_phi_map[2][1]; //332
         grad_chi(2,7) = _grad_phi_map[2][0]; //331
         grad_chi(2,8) = _grad_phi_map[6][0]; //321
+
+        return;
+
+    }
+
+    void assemble_grad_chi(const double (&_grad_phi)[9][3], Matrix_3x9 &grad_chi){
+
+        /*!==========================
+          |    assemble_grad_chi    |
+          ===========================
+
+          Assemble the gradient of chi w.r.t. the 
+          reference coordinates.
+
+          _grad_phi is assumed to be organized
+
+          _grad_phi[I][k] = phi_iI,K
+
+          where I is a ``super'' index which has the form
+
+               0  1  2  3  4  5  6  7  8
+          I = 11,22,33,23,13,12,32,31,21
+
+          and k ranges from
+
+              0  1  2
+          k = 1, 2, 3
+
+        */
+
+        grad_chi(0,0) = _grad_phi[0][0]; //111
+        grad_chi(0,1) = _grad_phi[5][1]; //122
+        grad_chi(0,2) = _grad_phi[4][2]; //133
+        grad_chi(0,3) = _grad_phi[5][2]; //123
+        grad_chi(0,4) = _grad_phi[0][2]; //113
+        grad_chi(0,5) = _grad_phi[0][1]; //112
+        grad_chi(0,6) = _grad_phi[4][1]; //132
+        grad_chi(0,7) = _grad_phi[4][0]; //131
+        grad_chi(0,8) = _grad_phi[5][0]; //121
+        
+        grad_chi(1,0) = _grad_phi[8][0]; //211
+        grad_chi(1,1) = _grad_phi[1][1]; //222
+        grad_chi(1,2) = _grad_phi[3][2]; //233
+        grad_chi(1,3) = _grad_phi[1][2]; //223
+        grad_chi(1,4) = _grad_phi[8][2]; //213
+        grad_chi(1,5) = _grad_phi[8][1]; //212
+        grad_chi(1,6) = _grad_phi[3][1]; //232
+        grad_chi(1,7) = _grad_phi[3][0]; //231
+        grad_chi(1,8) = _grad_phi[1][0]; //221
+
+        grad_chi(2,0) = _grad_phi[7][0]; //311
+        grad_chi(2,1) = _grad_phi[6][1]; //322
+        grad_chi(2,2) = _grad_phi[2][2]; //333
+        grad_chi(2,3) = _grad_phi[6][2]; //323
+        grad_chi(2,4) = _grad_phi[7][2]; //313
+        grad_chi(2,5) = _grad_phi[7][1]; //312
+        grad_chi(2,6) = _grad_phi[2][1]; //332
+        grad_chi(2,7) = _grad_phi[2][0]; //331
+        grad_chi(2,8) = _grad_phi[6][0]; //321
 
         return;
 
@@ -3233,6 +3307,8 @@ namespace deformation_measures
 
         Compute the total derivatives of the stress measures in the reference configuration w.r.t. the displacement degrees of freedom and their 
         gradients.
+
+        NOTE: ONLY USE THIS IF grad_chi is being computed in the reference configuration!
         
         Note DxDchi = DxDphi because chi = eye + phi
         
