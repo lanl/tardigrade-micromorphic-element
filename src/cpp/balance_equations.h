@@ -98,7 +98,7 @@ namespace balance_equations{
                                           const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
                                           double &DcintDU_ijA);
 
-    //Compute the jacobians of the balance of first moment of momentum (Current configuration)
+    //Compute the jacobians of the balance of linear momentum (Current configuration)
     void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3], 
                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
@@ -123,13 +123,37 @@ namespace balance_equations{
                                          const std::vector<std::vector<double>> &DcauchyDgrad_phi,
                                          double &DfintDU_iA);
 
-/*    void compute_internal_couple_jacobian(const double &N,  const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
-                                          const double (&u)[3], const double (&grad_u)[3][3], const double (&phi)[9],         const Matrix_3x3  &Finv,
+    //Compute the jacobians of the balance of the first moment of momentum (Current configuration)
+    void compute_internal_couple_jacobian(const double &N,  const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                           const Matrix_9x9      &DcauchyDgrad_u,              const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                           const Matrix_9x9      &DsDgrad_u,                   const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
                                           const Matrix_27x9     &DmDgrad_u,                   const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
                                           Matrix_9x12 &DcintDU);
-*/
+                                          
+    void compute_internal_couple_jacobian(const int &component_i, const int &component_j, const int &dof_num,
+                                          const double &N,  const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
+                                          const Matrix_9x9      &DcauchyDgrad_u,              const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
+                                          const Matrix_9x9      &DsDgrad_u,                   const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
+                                          const Matrix_27x9     &DmDgrad_u,                   const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
+                                          double &DcintDU_ijA);
+                                          
+    void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
+                                          const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                          const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
+                                          const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
+                                          std::vector<std::vector<double>> &DcintDU);
+    
+    void compute_internal_couple_jacobian(const int &i, const int &j, const int &dof_num,
+                                          const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
+                                          const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                          const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
+                                          const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
+                                          double &DcintDU_ijA);
+
     //The jacobians of u and phi w.r.t. the DOF vector (Total-Lagrangian)
     void construct_dgrad_udU(const double (&detadx)[3], SpMat &dgrad_udU);    
 

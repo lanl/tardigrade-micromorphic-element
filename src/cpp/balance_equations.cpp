@@ -1050,6 +1050,285 @@ namespace balance_equations{
 
         return;
     }
+    
+    void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
+                                          const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
+                                          const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
+                                          const Matrix_27x9 &DmDgrad_u,      const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
+                                          Matrix_9x12 &DcintDU){
+        /*!
+        ==========================================
+        |    compute_internal_couple_jacobian    |
+        ==========================================
+        
+        Compute the jacobian of the internal body couple for the 
+        internal couple in the current configuration.        
+        */
+        
+        DcintDU = Matrix_9x12::Zero();
+        
+        //Compute the deformation gradient (grad_u is assumed to be w.r.t. the current configuration)
+        Matrix_3x3 grad_u_mat;
+        for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+                grad_u_mat(i,j) = grad_u[i][j];
+            }
+        }
+        Matrix_3x3 F = (Matrix_3x3::Identity() - grad_u_mat).inverse();
+        
+        //Compute required DOF jacobians
+        //Note: Removing sparse matrices because there 
+        //      is a segmentation fault when being created 
+        //      while in a moose run.
+        //SpMat dgrad_udU(9,12);
+        //SpMat dphidU(9,12);
+        //SpMat dgrad_phidU(27,12);
+        
+        Matrix_9x12  dgrad_udU;
+        Matrix_9x12  dphidU;
+        Matrix_27x12 dgrad_phidU;
+        
+        //Compute the inverse deformation gradient
+        Matrix_3x3 Finv;
+        Finv = F.inverse();
+
+        construct_dgrad_udU(Finv, detadx, dgrad_udU);
+        construct_dphidU(eta, dphidU);
+        construct_dgrad_phidU(grad_phi, Finv, detadx, dgrad_phidU);
+        
+        //Compute DcauchyDU;
+        Matrix_9x12 DcauchyDU;
+        DcauchyDU = (DcauchyDgrad_u*dgrad_udU + DcauchyDphi*dphidU + DcauchyDgrad_phi*dgrad_phidU);
+        
+        //Compute DsDU
+        Matrix_9x12 DsDU;
+        DsDU = (DsDgrad_u*dgrad_udU + DsDphi*dphidU + DsDgrad_phi*dgrad_phidU);
+        
+        //Compute DmDU
+        Matrix_27x12 DmDU;
+        DmDU = (DmDgrad_u*dgrad_udU + DmDphi*dphidU + DmDgrad_phi*dgrad_phidU);
+        
+        //Compute N_,k DmDU_kji,alpha
+        
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+        int tot_to_voigt_map[3][3][3];
+        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
+        
+        Matrix_9x12 DdivmDU;
+        DdivmDU = Matrix_9x12::Zero();
+        
+        int Ihat;
+        int Khat;
+        double tmp;
+        
+        for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+                Ihat = sot_to_voigt_map[i][j];
+                
+                for (int Jhat=0; Jhat<12; Jhat++){
+                    
+                    tmp = 0;
+                    
+                    for (int k=0; k<3; k++){
+                        Khat = tot_to_voigt_map[k][j][i];
+                        tmp += dNdx[k]*DmDU(Khat,Jhat);
+                        
+                    }
+                    
+                    DdivmDU(Ihat,Jhat) = tmp;
+                }
+            }
+        }
+        
+        DcintDU = -(N*(DcauchyDU - DsDU) - DdivmDU);
+        return;
+    }
+    
+    void compute_internal_couple_jacobian(const int &component_i, const int &component_j, const int &dof_num,
+                                          const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
+                                          const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
+                                          const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
+                                          const Matrix_27x9 &DmDgrad_u,      const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
+                                          double &DcintDU_ijA){
+        /*!
+        ==========================================
+        |    compute_internal_couple_jacobian    |
+        ==========================================
+        
+        Compute the jacobian of the internal body couple for the 
+        internal couple in the current configuration.        
+        */
+        
+        //Compute the deformation gradient (grad_u is assumed to be w.r.t. the current configuration)
+        Matrix_3x3 grad_u_mat;
+        for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+                grad_u_mat(i,j) = grad_u[i][j];
+            }
+        }
+        Matrix_3x3 F = (Matrix_3x3::Identity() - grad_u_mat).inverse();
+        
+        //Compute required DOF jacobians
+        //Note: Removing sparse matrices because there 
+        //      is a segmentation fault when being created 
+        //      while in a moose run.
+        //SpMat dgrad_udU(9,12);
+        //SpMat dphidU(9,12);
+        //SpMat dgrad_phidU(27,12);
+        
+        Matrix_9x12  dgrad_udU;
+        Matrix_9x12  dphidU;
+        Matrix_27x12 dgrad_phidU;
+        
+        //Compute the inverse deformation gradient
+        Matrix_3x3 Finv;
+        Finv = F.inverse();
+
+        construct_dgrad_udU(Finv, detadx, dgrad_udU);
+        construct_dphidU(eta, dphidU);
+        construct_dgrad_phidU(grad_phi, Finv, detadx, dgrad_phidU);
+        
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+                                      
+        int Ihat;
+        Ihat = sot_to_voigt_map[component_i][component_j];
+        
+        DcintDU_ijA  = -N*(  DcauchyDgrad_u.row(Ihat).dot(dgrad_udU.col(dof_num))
+                           + DcauchyDphi.row(Ihat).dot(dphidU.col(dof_num))
+                           + DcauchyDgrad_phi.row(Ihat).dot(dgrad_phidU.col(dof_num)));
+        DcintDU_ijA +=  N*(  DsDgrad_u.row(Ihat).dot(dgrad_udU.col(dof_num))
+                           + DsDphi.row(Ihat).dot(dphidU.col(dof_num))
+                           + DsDgrad_phi.row(Ihat).dot(dgrad_phidU.col(dof_num)));
+        
+        //Compute DmDU
+        Matrix_27x12 DmDU;
+        DmDU = (DmDgrad_u*dgrad_udU + DmDphi*dphidU + DmDgrad_phi*dgrad_phidU);
+        
+        //Compute N_,k DmDU_kji,alpha
+        
+        
+        int tot_to_voigt_map[3][3][3];
+        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
+        
+        for (int k=0; k<3; k++){
+            
+            Ihat = tot_to_voigt_map[k][component_j][component_i];
+            DcintDU_ijA += dNdx[k]*(  DmDgrad_u.row(Ihat).dot(dgrad_udU.col(dof_num))
+                                    + DmDphi.row(Ihat).dot(dphidU.col(dof_num))
+                                    + DmDgrad_phi.row(Ihat).dot(dgrad_phidU.col(dof_num)));
+            
+        }
+        
+        return;
+    }
+    
+    void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
+                                          const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                          const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
+                                          const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
+                                          std::vector<std::vector<double>> &DcintDU){
+        /*!
+        ==========================================
+        |    compute_internal_couple_jacobian    |
+        ==========================================
+        
+        Compute the jacobian of the internal body couple for the 
+        internal couple in the current configuration.        
+        */
+        
+        Matrix_9x9   _DcauchyDgrad_u;
+        Matrix_9x9   _DcauchyDphi;
+        Matrix_9x27  _DcauchyDgrad_phi;
+
+        Matrix_9x9   _DsDgrad_u;
+        Matrix_9x9   _DsDphi;
+        Matrix_9x27  _DsDgrad_phi;
+        
+        Matrix_27x9  _DmDgrad_u;
+        Matrix_27x9  _DmDphi;
+        Matrix_27x27 _DmDgrad_phi;
+
+        Matrix_9x12  _DcintDU;
+
+        map_vector_to_eigen(DcauchyDgrad_u,   _DcauchyDgrad_u);
+        map_vector_to_eigen(DcauchyDphi,      _DcauchyDphi);
+        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+
+        map_vector_to_eigen(DsDgrad_u,   _DsDgrad_u);
+        map_vector_to_eigen(DsDphi,      _DsDphi);
+        map_vector_to_eigen(DsDgrad_phi, _DsDgrad_phi);
+
+        map_vector_to_eigen(DmDgrad_u,   _DmDgrad_u);
+        map_vector_to_eigen(DmDphi,      _DmDphi);
+        map_vector_to_eigen(DmDgrad_phi, _DmDgrad_phi);
+
+        compute_internal_couple_jacobian(N, dNdx, eta, detadx,
+                                         grad_u, grad_phi,
+                                         _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                         _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                         _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                         _DcintDU);
+        
+        map_eigen_to_vector(_DcintDU, DcintDU);
+        return;
+    }
+    
+    void compute_internal_couple_jacobian(const int &component_i, const int &component_j, const int &dof_num,
+                                          const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
+                                          const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
+                                          const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
+                                          const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
+                                          double &DcintDU_ijA){
+        /*!
+        ==========================================
+        |    compute_internal_couple_jacobian    |
+        ==========================================
+        
+        Compute the jacobian of the internal body couple for the 
+        internal couple in the current configuration.        
+        */
+        
+        Matrix_9x9   _DcauchyDgrad_u;
+        Matrix_9x9   _DcauchyDphi;
+        Matrix_9x27  _DcauchyDgrad_phi;
+
+        Matrix_9x9   _DsDgrad_u;
+        Matrix_9x9   _DsDphi;
+        Matrix_9x27  _DsDgrad_phi;
+        
+        Matrix_27x9  _DmDgrad_u;
+        Matrix_27x9  _DmDphi;
+        Matrix_27x27 _DmDgrad_phi;
+
+        map_vector_to_eigen(DcauchyDgrad_u,   _DcauchyDgrad_u);
+        map_vector_to_eigen(DcauchyDphi,      _DcauchyDphi);
+        map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+
+        map_vector_to_eigen(DsDgrad_u,   _DsDgrad_u);
+        map_vector_to_eigen(DsDphi,      _DsDphi);
+        map_vector_to_eigen(DsDgrad_phi, _DsDgrad_phi);
+
+        map_vector_to_eigen(DmDgrad_u,   _DmDgrad_u);
+        map_vector_to_eigen(DmDphi,      _DmDphi);
+        map_vector_to_eigen(DmDgrad_phi, _DmDgrad_phi);
+
+        compute_internal_couple_jacobian(component_i, component_j, dof_num,
+                                         N, dNdx, eta, detadx,
+                                         grad_u, grad_phi,
+                                         _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                         _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                         _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                         DcintDU_ijA);
+        return;
+    }
 
     void construct_dgrad_udU(const double (&detadx)[3], SpMat &dgrad_udU){
         /*!==========================
