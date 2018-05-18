@@ -19,6 +19,104 @@
 
 namespace balance_equations{
 
+    void compute_internal_force(const double (&dNdX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, double (&fint)[3]){
+        /*!================================
+        |    compute_internal_force    |
+        ================================
+
+        Compute the internal force given the gradient 
+        of the shape function, the deformation gradient,
+        and the PK2 stress on one of the components.
+
+        Reference configuration.
+        */
+
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+
+        int Ihat;
+
+        for (int i=0; i<3; i++){
+            fint[i] = 0;
+            for (int I=0; I<3; I++){
+                for (int J=0; J<3; J++){
+                    Ihat = sot_to_voigt_map[I][J];
+                    fint[i] += -dNdX[I]*PK2(Ihat)*F(i,J);
+                }
+            }
+        }
+
+        return;
+    }
+
+    void compute_internal_force(const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<double> &PK2, double (&fint)[3]){
+        /*!================================
+        |    compute_internal_force    |
+        ================================
+
+        Compute the internal force given the gradient 
+        of the shape function, the deformation gradient, 
+        and the PK2 stress on one of the components.
+
+        */
+        Matrix_3x3 _F;
+        Vector_9 _PK2;
+        map_vector_to_eigen(F,_F);
+        map_vector_to_eigen(PK2,_PK2);
+        compute_internal_force(dNdX, _F, _PK2, fint);        
+
+        return;
+    }
+    
+    void compute_internal_force(const int &i, const double (&dNdX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, double &fint_i){
+        /*!================================
+        |    compute_internal_force    |
+        ================================
+
+        Compute the internal force given the gradient 
+        of the shape function, the deformation gradient,
+        and the PK2 stress on one of the components.
+
+        */
+
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+
+        int Ihat;
+        
+        fint_i = 0;
+        for (int I=0; I<3; I++){
+            for (int J=0; J<3; J++){
+                Ihat = sot_to_voigt_map[I][J];
+                fint_i += -dNdX[I]*PK2(Ihat)*F(i,J);
+            }
+        }
+
+        return;
+    }
+
+    void compute_internal_force(const int &i, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<double> &PK2, double &fint_i){
+        /*!================================
+        |    compute_internal_force    |
+        ================================
+
+        Compute the internal force given the gradient 
+        of the shape function, the deformation gradient,
+        and the cauchy stress on one of the components.
+
+        */
+
+        Matrix_3x3 _F;
+        map_vector_to_eigen(F,_F);
+        Vector_9 _PK2;
+        map_vector_to_eigen(PK2,_PK2);
+        compute_internal_force(i, dNdX, _F, _PK2, fint_i);        
+
+        return;
+    }
+
     void compute_internal_force(const double (&dNdx)[3], const Vector_9 &cauchy, double (&fint)[3]){
         /*!================================
         |    compute_internal_force    |
@@ -895,6 +993,18 @@ namespace balance_equations{
 
                     }
                 }
+
+//                for (int j=0; j<3; j++){
+//                    Khat = sot_to_voigt_map[j][i];
+//                    tmp += -dNdx[j]*DcauchyDU(Khat,Ihat);
+//                }
+//
+//                if( Ihat < 3){
+//                    for (int j=0; j<3; j++){
+//                        tmp += dNdx[Ihat]*detadx[j]*cauchy(Khat);
+//                    }
+//                }
+                
                 DfintDU(i,Ihat) = tmp;
             }
         }

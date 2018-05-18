@@ -30,6 +30,14 @@ typedef Eigen::Matrix<double,27, 12> Matrix_27x12;
 namespace balance_equations{
 
     //Forces from the balance of linear momentum
+    void compute_internal_force(const double (&dNdX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, double (&fint)[3]);
+
+    void compute_internal_force(const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<double> &PK2, double (&fint)[3]);
+    
+    void compute_internal_force(const int &i, const double (&dNdX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, double &fint_i);
+    
+    void compute_internal_force(const int &i, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<double> &PK2, double &fint_i);
+
     void compute_internal_force(const double (&dNdx)[3], const Vector_9 &cauchy, double (&fint)[3]);
 
     void compute_internal_force(const double (&dNdx)[3], const std::vector<double> &cauchy, double (&fint)[3]);

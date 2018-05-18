@@ -9469,6 +9469,83 @@ int test_compute_internal_force(std::ofstream &results){
     |    test_compute_internal_force    |
     =====================================
 
+    Test the computation of the internal force in the reference configuration. 
+
+    */
+
+    double  r[3]; //The expected result
+    double _r[3]; //The function output
+
+    //Define the test function
+    double dNdX[3];
+    define_dNdx(dNdX);
+
+    //Define the deformation gradient
+    Matrix_3x3 F;
+    define_deformation_gradient(F);
+
+    //Define the stress tensor as an eigen matrix
+    Vector_9 PK2;
+    define_PK2(PK2);
+
+    //Define the deformation gradient as a std::vector
+    std::vector<std::vector<double>> F_vec;
+    balance_equations::map_eigen_to_vector(F,F_vec);
+
+    //Define the stress tensor as a std::vector
+    std::vector<double> PK2_vec;
+    balance_equations::map_eigen_to_vector(PK2,PK2_vec);
+
+    //Define the stress tensor as a matrix
+    Matrix_3x3 PK2_mat;
+    deformation_measures::undo_voigt_3x3_tensor(PK2,PK2_mat);
+
+    //Compute the expected value of the internal force
+    int sot_to_voigt_map[3][3] = {{0,5,4},
+                                  {8,1,3},
+                                  {7,6,2}};
+    int Ihat;
+    for (int j=0; j<3; j++){
+        r[j] = 0;
+        for (int I=0; I<3; I++){
+            for (int J=0; J<3; J++){
+                Ihat = sot_to_voigt_map[I][J];
+                r[j] -= dNdX[I]*PK2(Ihat)*F(j,J);
+            }
+        }
+    }
+
+    //Compute the value from the function
+    balance_equations::compute_internal_force(dNdX, F, PK2, _r);
+    bool tot_result = true;
+
+    for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    balance_equations::compute_internal_force(dNdX, F_vec, PK2_vec, _r);
+    for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    for (int i=0; i<3; i++){balance_equations::compute_internal_force(i, dNdX, F, PK2, _r[i]);}
+    for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    for (int i=0; i<3; i++){balance_equations::compute_internal_force(i, dNdX, F_vec, PK2_vec, _r[i]);}
+    for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+
+    if (tot_result){
+        results << "test_compute_internal_force_reference & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_internal_force_reference & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
+int test_compute_internal_force_current(std::ofstream &results){
+    /*!
+    =============================================
+    |    test_compute_internal_force_current    |
+    =============================================
+
     Test the computation of the internal force. 
 
     */
@@ -9516,20 +9593,20 @@ int test_compute_internal_force(std::ofstream &results){
     for (int i=0; i<3; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
 
     if (tot_result){
-        results << "test_compute_internal_force & True\\\\\n\\hline\n";
+        results << "test_compute_internal_force_current & True\\\\\n\\hline\n";
     }
     else {
-        results << "test_compute_internal_force & False\\\\\n\\hline\n";
+        results << "test_compute_internal_force_current & False\\\\\n\\hline\n";
     }
 
     return 1;
 }
 
-int test_compute_internal_couple(std::ofstream &results){
+int test_compute_internal_couple_current(std::ofstream &results){
     /*!
-    ======================================
-    |    test_compute_internal_couple    |
-    ======================================
+    ==============================================
+    |    test_compute_internal_couple_current    |
+    ==============================================
 
     Test the computation of the internal force. 
 
@@ -9622,10 +9699,10 @@ int test_compute_internal_couple(std::ofstream &results){
     tot_result *= r.isApprox(__r);
 
     if (tot_result){
-        results << "test_compute_internal_couple & True\\\\\n\\hline\n";
+        results << "test_compute_internal_couple_current & True\\\\\n\\hline\n";
     }
     else {
-        results << "test_compute_internal_couple & False\\\\\n\\hline\n";
+        results << "test_compute_internal_couple_current & False\\\\\n\\hline\n";
     }
 
     return 1;
@@ -9638,6 +9715,8 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     ==============================================
     
     Test the computation of the jacobian associated with the internal force.
+
+    Reference configuration.
     
     */
     
@@ -11390,8 +11469,13 @@ int main(){
     test_compute_total_derivatives_DmDgrad_phi(results);
 
     //!Test the computation of the internal force
+    //!in the reference configuraton
     test_compute_internal_force(results);
-    test_compute_internal_couple(results);
+
+    //!Test the computation of the internal force
+    //!in the current configuration
+    test_compute_internal_force_current(results);
+    test_compute_internal_couple_current(results);
     
     //!Test of the computation of the balance equation derivatives
     //!for the reference configuration
