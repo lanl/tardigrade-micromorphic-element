@@ -49,6 +49,14 @@ namespace micromorphic_material_library {
         Vector_9  _s;
         Vector_27 _m;
 
+        Vector_9  _cauchy_p;
+        Vector_9  _s_p;
+        Vector_27 _m_p;
+
+        Vector_9  _cauchy_n;
+        Vector_9  _s_n;
+        Vector_27 _m_n;
+
         std::vector<Eigen::VectorXd> _ADD_TERMS;
 
         //Evaluate the model at the reference point
@@ -109,8 +117,7 @@ namespace micromorphic_material_library {
 
         for (int J=0; J<45; J++){
 
-            //Perturb the state
-            if(J>0){U[J-1] -= delta;}
+            //Perturb the state in the positive direction
             U[J] += delta;
 
             //Extract the perturbed state
@@ -134,14 +141,44 @@ namespace micromorphic_material_library {
                 }
             }
 
-            //Evaluate the model
-            evaluate_model(time,    fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                           _cauchy, _s, _m, _ADD_TERMS);
+            //Evaluate the model (positive shift)
+            evaluate_model(time,      fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
+                           _cauchy_p, _s_p,     _m_p,    _ADD_TERMS);
+
+            //Perturb the state in the positive direction
+            U[J] -= 2*delta;
+
+            //Extract the perturbed state
+            _grad_u[0][0] = U[0];
+            _grad_u[1][1] = U[1];
+            _grad_u[2][2] = U[2];
+            _grad_u[1][2] = U[3];
+            _grad_u[0][2] = U[4];
+            _grad_u[0][1] = U[5];
+            _grad_u[2][1] = U[6];
+            _grad_u[2][0] = U[7];
+            _grad_u[1][0] = U[8];
+
+            for (int i=0; i<9; i++){_phi[i] = U[i+9];}
+
+            for (int i=0; i<3; i++){
+                for (int j=0; j<3; j++){
+                    for (int k=0; k<3; k++){
+                        _grad_phi[sot_to_voigt_map[i][j]][k] = U[tot_to_voigt_map[i][j][k]+18];
+                    }
+                }
+            }
+
+            //Evaluate the model (positive shift)
+            evaluate_model(time,      fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
+                           _cauchy_n, _s_n,     _m_n,    _ADD_TERMS);
 
             //Extract the response
-            for (int I=0; I<9;  I++){STRESS_MATRIX[I   ][J] = (_cauchy(I) - cauchy[I])/delta;}
-            for (int I=0; I<9;  I++){STRESS_MATRIX[I+9 ][J] = (_s(I)      - s[I])/delta;}
-            for (int I=0; I<27; I++){STRESS_MATRIX[I+18][J] = (_m(I)      - m[I])/delta;}
+            for (int I=0; I<9;  I++){STRESS_MATRIX[I   ][J] = 0.5*(_cauchy_p(I) - _cauchy_n[I])/delta;}
+            for (int I=0; I<9;  I++){STRESS_MATRIX[I+9 ][J] = 0.5*(_s_p(I)      - _s_n[I])/delta;}
+            for (int I=0; I<27; I++){STRESS_MATRIX[I+18][J] = 0.5*(_m_p(I)      - _m_n[I])/delta;}
+
+            U[J] += delta;
 
         }
 

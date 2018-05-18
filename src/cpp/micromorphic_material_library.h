@@ -74,7 +74,7 @@ namespace micromorphic_material_library{
                                               std::vector<std::vector<double>> &DcauchyDgrad_u, std::vector<std::vector<double>> &DcauchyDphi, std::vector<std::vector<double>> &DcauchyDgrad_phi,
                                               std::vector<std::vector<double>> &DsDgrad_u,      std::vector<std::vector<double>> &DsDphi,      std::vector<std::vector<double>> &DsDgrad_phi,
                                               std::vector<std::vector<double>> &DmDgrad_u,      std::vector<std::vector<double>> &DmDphi,      std::vector<std::vector<double>> &DmDgrad_phi,
-                                              std::vector<std::vector<double>> &ADD_TERMS,      std::vector<std::vector<std::vector<double>>> &ADD_JACOBIANS, double delta=1e-9);
+                                              std::vector<std::vector<double>> &ADD_TERMS,      std::vector<std::vector<std::vector<double>>> &ADD_JACOBIANS, double delta=1e-6);
 
         void map_eigen_to_vector(const Vector_9  &V,       std::vector<double> &v);
         void map_eigen_to_vector(const Vector_27 &V,       std::vector<double> &v);
