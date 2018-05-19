@@ -9857,10 +9857,9 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
                                dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
                                dMdF,     dMdchi,     dMdgrad_chi);
 
-    deformation_measures::compute_dFdgrad_u(F, dFdgrad_u);
-    dPK2dgrad_u = dPK2dF*dFdgrad_u;    
+    //NOTE: For total lagrangian, dPK2dgrad_u == dPK2dF
 
-    balance_equations::compute_internal_force_jacobian(N, dNdX, eta, detadX, F, PK2, dPK2dgrad_u, dPK2dchi, dPK2dgrad_chi, _r);
+    balance_equations::compute_internal_force_jacobian(N, dNdX, eta, detadX, F, PK2, dPK2dF, dPK2dchi, dPK2dgrad_chi, _r);
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
 
@@ -11378,7 +11377,7 @@ int main(){
     //!Run the test functions
     
     //!Test of the stiffness tensors
-    test_compute_A_voigt(results);
+/*    test_compute_A_voigt(results);
     test_compute_B_voigt(results);
     test_compute_C_voigt(results);
     test_compute_D_voigt(results);
@@ -11453,12 +11452,12 @@ int main(){
     test_compute_internal_force_current(results);
     test_compute_internal_couple_current(results);
     
-    //!Test of the computation of the balance equation derivatives
+*/    //!Test of the computation of the balance equation derivatives
     //!for the reference configuration
     test_compute_internal_force_jacobian(results);
     test_compute_internal_couple_jacobian(results);
 
-    //!Test the computation of the gradient of the stress measures w.r.t. U
+/*    //!Test the computation of the gradient of the stress measures w.r.t. U
     //!in the current configuration.
     test_compute_DstressDU_current(results);
 
@@ -11469,7 +11468,7 @@ int main(){
     
     //!Test of the instance of the model in the material library
     test_micromorphic_material_library(results);
-
+*/
     //Close the results file
     results.close();
 }

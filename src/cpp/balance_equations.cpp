@@ -507,7 +507,9 @@ namespace balance_equations{
         return;
     }
     
-    void compute_internal_force_jacobian(const double &N, const double(&dNdX)[3], const double &eta, const double (&detadX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, const Matrix_9x9 &DPK2Dgrad_u, const Matrix_9x9 &DPK2Dphi, const Matrix_9x27 &DPK2Dgrad_phi, Matrix_3x12 &DfintDU){
+    void compute_internal_force_jacobian(const double &N, const double(&dNdX)[3], const double &eta, const double (&detadX)[3], const Matrix_3x3 &F,
+                                         const Vector_9 &PK2, const Matrix_9x9 &DPK2Dgrad_u, const Matrix_9x9 &DPK2Dphi, const Matrix_9x27 &DPK2Dgrad_phi,
+                                         Matrix_3x12 &DfintDU){
         /*!=========================================
         |    compute_internal_force_jacobian    |
         =========================================
@@ -674,8 +676,7 @@ namespace balance_equations{
         
         Compute the jacobian of the internal force.
         
-        Note: Currently an incorrect implementation which is retained to be the 
-              foundation of a total-lagrangian implementation.        
+        Total Lagrangian formulation.  
         */
 
         Matrix_3x3  _F;
