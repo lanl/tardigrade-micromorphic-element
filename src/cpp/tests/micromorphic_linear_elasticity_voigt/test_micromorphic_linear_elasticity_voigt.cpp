@@ -10240,7 +10240,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
 //    std::cout << "_r:\n" << _r << "\n";
     
     bool tot_result = r.isApprox(_r,1e-6);
-    std::cout << "result: " << tot_result << "\n";
+//    std::cout << "result: " << tot_result << "\n";
     
     //Compute the jacobian using a vector form
     std::vector<std::vector<double>> _F;
