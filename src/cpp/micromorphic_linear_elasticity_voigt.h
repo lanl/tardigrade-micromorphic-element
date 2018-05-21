@@ -55,20 +55,20 @@ namespace micro_material{
                                 const double (&grad_u)[3][3],           const double (&phi)[9],
                                 const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
                                 const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                                Vector_9 &cauchy, Vector_9 &s,     Vector_27 &m, std::vector<Eigen::VectorXd> &ADD_TERMS);
+                                Vector_9 &PK2, Vector_9 &SIGMA,     Vector_27 &M, std::vector<Eigen::VectorXd> &ADD_TERMS);
 
             void evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
                                 const double (&grad_u)[3][3],           const double (&phi)[9],
                                 const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
                                 const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                                Vector_9    &cauchy,    Vector_9    &s,           Vector_27    &m,
-                                Matrix_9x9  &DcauchyDgrad_u, Matrix_9x9  &DcauchyDphi, Matrix_9x27  &DcauchyDgrad_phi,
-                                Matrix_9x9  &DsDgrad_u,      Matrix_9x9  &DsDphi,      Matrix_9x27  &DsDgrad_phi,
-                                Matrix_27x9 &DmDgrad_u,      Matrix_27x9 &DmDphi,      Matrix_27x27 &DmDgrad_phi,
+                                Vector_9    &PK2,            Vector_9    &SIGMA,       Vector_27    &M,
+                                Matrix_9x9  &DPK2Dgrad_u,    Matrix_9x9  &DPK2Dphi,    Matrix_9x27  &DPK2Dgrad_phi,
+                                Matrix_9x9  &DSIGMADgrad_u,  Matrix_9x9  &DSIGMADphi,  Matrix_9x27  &DSIGMADgrad_phi,
+                                Matrix_27x9 &DMDgrad_u,      Matrix_27x9 &DMDphi,      Matrix_27x27 &DMDgrad_phi,
                                 std::vector<Eigen::VectorXd> &ADD_TERMS,               std::vector<Eigen::MatrixXd> &ADD_JACOBIANS);
                                 
             void get_deformation_measures(const double (&grad_u)[3][3], const double (&phi)[9], const double (&grad_phi)[9][3],
-                                          Matrix_3x3 &F,          Matrix_3x3 &chi,  Matrix_3x9 &grad_chi);
+                                          Matrix_3x3 &F,          Matrix_3x3 &chi,  Matrix_3x9 &grad_chi, bool iscurrent = true);
     };
 
     void get_stress(const double &t,     const double &dt,      const double (&params)[18], 

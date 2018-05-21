@@ -11267,43 +11267,22 @@ int test_micromorphic_material_library(std::ofstream &results){
     Vector_9  SIGMA;
     Vector_27 M;
 
-    Vector_9  cauchy;
-    Vector_9  s;
-    Vector_27 m;
-    
-    Matrix_9x9   dPK2dF;
-    Matrix_9x9   dPK2dchi;
-    Matrix_9x27  dPK2dgrad_chi;
-    Matrix_9x9   dSIGMAdF;
-    Matrix_9x9   dSIGMAdchi;
-    Matrix_9x27  dSIGMAdgrad_chi;
-    Matrix_27x9  dMdF;
-    Matrix_27x9  dMdchi;
-    Matrix_27x27 dMdgrad_chi;
-    
-    Matrix_9x9   dcauchydF;
-    Matrix_9x9   dcauchydchi;
-    Matrix_9x27  dcauchydgrad_chi;
-    Matrix_9x9   dsdF;
-    Matrix_9x9   dsdchi;
-    Matrix_9x27  dsdgrad_chi;
-    Matrix_27x9  dmdF;
-    Matrix_27x9  dmdchi;
-    Matrix_27x27 dmdgrad_chi;
-
-    Matrix_9x9   DcauchyDgrad_u;
-    Matrix_9x27  DcauchyDgrad_phi;
-    Matrix_9x9   DsDgrad_u;
-    Matrix_9x27  DsDgrad_phi;
-    Matrix_27x9  DmDgrad_u;
-    Matrix_27x27 DmDgrad_phi;
+    Matrix_9x9   DPK2Dgrad_u;
+    Matrix_9x9   DPK2Dphi;
+    Matrix_9x27  DPK2Dgrad_phi;
+    Matrix_9x9   DSIGMADgrad_u;
+    Matrix_9x9   DSIGMADphi;
+    Matrix_9x27  DSIGMADgrad_phi;
+    Matrix_27x9  DMDgrad_u;
+    Matrix_27x9  DMDphi;
+    Matrix_27x27 DMDgrad_phi;
     
     define_parameters(params);
     
-    deformation_measures::get_deformation_gradient(grad_u, F);
+    deformation_measures::get_deformation_gradient(grad_u, F, false);
     
     deformation_measures::assemble_chi(phi, chi);
-    deformation_measures::assemble_grad_chi(grad_phi_data, F, grad_chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data, grad_chi);
     
     Matrix_3x9 grad_phi_mat;
     Vector_27  grad_phi;
@@ -11311,24 +11290,9 @@ int test_micromorphic_material_library(std::ofstream &results){
     deformation_measures::voigt_3x9_tensor(grad_phi_mat,grad_phi);
     
     micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M,
-                               dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
-                               dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
-                               dMdF,     dMdchi,     dMdgrad_chi);
-    
-    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
-    
-    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
-                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
-                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
-                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
-
-    deformation_measures::compute_total_derivatives(F,              grad_phi,
-                                                    dcauchydF,      dcauchydgrad_chi,
-                                                    dsdF,           dsdgrad_chi,
-                                                    dmdF,           dmdgrad_chi,
-                                                    DcauchyDgrad_u, DcauchyDgrad_phi,
-                                                    DsDgrad_u,      DsDgrad_phi,
-                                                    DmDgrad_u,      DmDgrad_phi);
+                               DPK2Dgrad_u,   DPK2Dphi,   DPK2Dgrad_phi,
+                               DSIGMADgrad_u, DSIGMADphi, DSIGMADgrad_phi,
+                               DMDgrad_u,     DMDphi,     DMDgrad_phi);
                                                     
     //Compute the values using the version stored in the material library.
     auto &factory = micromorphic_material_library::MaterialFactory::Instance();
@@ -11336,34 +11300,34 @@ int test_micromorphic_material_library(std::ofstream &results){
     auto material = factory.GetMaterial("LinearElasticity");
     
     //Output
-    Vector_9  _cauchy;
-    Vector_9  _s;
-    Vector_27 _m;
+    Vector_9  _PK2;
+    Vector_9  _SIGMA;
+    Vector_27 _M;
     
-    Matrix_9x9   _DcauchyDgrad_u;
-    Matrix_9x9   _DcauchyDphi;
-    Matrix_9x27  _DcauchyDgrad_phi;
-    Matrix_9x9   _DsDgrad_u;
-    Matrix_9x9   _DsDphi;
-    Matrix_9x27  _DsDgrad_phi;
-    Matrix_27x9  _DmDgrad_u;
-    Matrix_27x9  _DmDphi;
-    Matrix_27x27 _DmDgrad_phi;
+    Matrix_9x9   _DPK2Dgrad_u;
+    Matrix_9x9   _DPK2Dphi;
+    Matrix_9x27  _DPK2Dgrad_phi;
+    Matrix_9x9   _DSIGMADgrad_u;
+    Matrix_9x9   _DSIGMADphi;
+    Matrix_9x27  _DSIGMADgrad_phi;
+    Matrix_27x9  _DMDgrad_u;
+    Matrix_27x9  _DMDphi;
+    Matrix_27x27 _DMDgrad_phi;
 
     //Vector output
-    std::vector<double> _cauchy_v;
-    std::vector<double> _s_v;
-    std::vector<double> _m_v;
+    std::vector<double> _PK2_v;
+    std::vector<double> _SIGMA_v;
+    std::vector<double> _M_v;
 
-    std::vector<std::vector<double>> _DcauchyDgrad_u_v;
-    std::vector<std::vector<double>> _DcauchyDphi_v;
-    std::vector<std::vector<double>> _DcauchyDgrad_phi_v;
-    std::vector<std::vector<double>> _DsDgrad_u_v;
-    std::vector<std::vector<double>> _DsDphi_v;
-    std::vector<std::vector<double>> _DsDgrad_phi_v;
-    std::vector<std::vector<double>> _DmDgrad_u_v;
-    std::vector<std::vector<double>> _DmDphi_v;
-    std::vector<std::vector<double>> _DmDgrad_phi_v;
+    std::vector<std::vector<double>> _DPK2Dgrad_u_v;
+    std::vector<std::vector<double>> _DPK2Dphi_v;
+    std::vector<std::vector<double>> _DPK2Dgrad_phi_v;
+    std::vector<std::vector<double>> _DSIGMADgrad_u_v;
+    std::vector<std::vector<double>> _DSIGMADphi_v;
+    std::vector<std::vector<double>> _DSIGMADgrad_phi_v;
+    std::vector<std::vector<double>> _DMDgrad_u_v;
+    std::vector<std::vector<double>> _DMDphi_v;
+    std::vector<std::vector<double>> _DMDgrad_phi_v;
 
     
     std::vector<double> time;
@@ -11384,126 +11348,130 @@ int test_micromorphic_material_library(std::ofstream &results){
     std::vector<std::vector<std::vector<double>>> ADD_JACOBIANS_v;
     
     //Compare the result from the stress calculation alone
-    material->evaluate_model(time, fparams, grad_u, phi,    grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
-                             _cauchy, _s,            _m,   ADD_TERMS);
+    material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
+                             _PK2,  _SIGMA,     _M,  ADD_TERMS);
                              
     bool tot_result = true;
     
-    tot_result *= cauchy.isApprox(_cauchy);
-    tot_result *= s.isApprox(_s);
-    tot_result *= m.isApprox(_m);
+    tot_result *= PK2.isApprox(_PK2);
+    tot_result *= SIGMA.isApprox(_SIGMA);
+    tot_result *= M.isApprox(_M);
+
+//    std::cout << "tot_result: " << tot_result << "\n";
     
     //Compare the result from the vector form of the stress calculation alone
-    material->evaluate_model(time,   fparams,  grad_u, phi,       grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
-                             _cauchy_v, _s_v,          _m_v, ADD_TERMS_v);
+    material->evaluate_model(time,    fparams,  grad_u, phi,       grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
+                             _PK2_v, _SIGMA_v,          _M_v, ADD_TERMS_v);
 
     for (int i=0; i<9; i++){
-        tot_result *= 1e-6>fabs(cauchy[i]-_cauchy_v[i]);
+        tot_result *= 1e-6>fabs(PK2[i]-_PK2_v[i]);
     }
 
     for (int i=0; i<9; i++){
-        tot_result *= 1e-6>fabs(s[i]-_s_v[i]);
+        tot_result *= 1e-6>fabs(SIGMA[i]-_SIGMA_v[i]);
     }
 
     for (int i=0; i<27; i++){
-        tot_result *= 1e-6>fabs(m[i]-_m_v[i]);
+        tot_result *= 1e-6>fabs(M[i]-_M_v[i]);
     }
+
+//    std::cout << "tot_result: " << tot_result << "\n";
 
     //Compare the results from the jacobian calculation.
     material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
-                             _cauchy, _s, _m,
-                             _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                             _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
-                             _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
-                             ADD_TERMS,       ADD_JACOBIANS);
+                             _PK2, _SIGMA, _M,
+                             _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
+                             _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
+                             _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
+                             ADD_TERMS,      ADD_JACOBIANS);
 
-    tot_result *= cauchy.isApprox(_cauchy);
-    tot_result *= s.isApprox(_s);
-    tot_result *= m.isApprox(_m);
+    tot_result *= PK2.isApprox(_PK2);
+    tot_result *= SIGMA.isApprox(_SIGMA);
+    tot_result *= M.isApprox(_M);
     
-    tot_result *= DcauchyDgrad_u.isApprox(_DcauchyDgrad_u);
-    tot_result *= dcauchydchi.isApprox(_DcauchyDphi); //d(x)dchi = D(x)Dphi
-    tot_result *= DcauchyDgrad_phi.isApprox(_DcauchyDgrad_phi);
+    tot_result *= DPK2Dgrad_u.isApprox(_DPK2Dgrad_u);
+    tot_result *= DPK2Dphi.isApprox(_DPK2Dphi); //d(x)dchi = D(x)Dphi
+    tot_result *= DPK2Dgrad_phi.isApprox(_DPK2Dgrad_phi);
     
-    tot_result *= DsDgrad_u.isApprox(_DsDgrad_u);
-    tot_result *= dsdchi.isApprox(_DsDphi); //d(x)dchi = D(x)Dphi
-    tot_result *= DsDgrad_phi.isApprox(_DsDgrad_phi);
+    tot_result *= DSIGMADgrad_u.isApprox(_DSIGMADgrad_u);
+    tot_result *= DSIGMADphi.isApprox(_DSIGMADphi); //d(x)dchi = D(x)Dphi
+    tot_result *= DSIGMADgrad_phi.isApprox(_DSIGMADgrad_phi);
     
-    tot_result *= DmDgrad_u.isApprox(_DmDgrad_u);
-    tot_result *= dmdchi.isApprox(_DmDphi); //d(x)dchi = D(x)Dphi
-    tot_result *= DmDgrad_phi.isApprox(_DmDgrad_phi);
+    tot_result *= DMDgrad_u.isApprox(_DMDgrad_u);
+    tot_result *= DMDphi.isApprox(_DMDphi); //d(x)dchi = D(x)Dphi
+    tot_result *= DMDgrad_phi.isApprox(_DMDgrad_phi);
 
     //Compare the result from the vector form of the jacobian calculation
     material->evaluate_model(time, fparams, grad_u, phi, grad_phi_data, SDVS, ADDDOF, ADD_grad_DOF,
-                             _cauchy_v, _s_v, _m_v,
-                             _DcauchyDgrad_u_v, _DcauchyDphi_v, _DcauchyDgrad_phi_v,
-                             _DsDgrad_u_v,      _DsDphi_v,      _DsDgrad_phi_v,
-                             _DmDgrad_u_v,      _DmDphi_v,     _DmDgrad_phi_v,
+                             _PK2_v, _SIGMA_v, _M_v,
+                             _DPK2Dgrad_u_v,   _DPK2Dphi_v,   _DPK2Dgrad_phi_v,
+                             _DSIGMADgrad_u_v, _DSIGMADphi_v, _DSIGMADgrad_phi_v,
+                             _DMDgrad_u_v,     _DMDphi_v,     _DMDgrad_phi_v,
                              ADD_TERMS_v,      ADD_JACOBIANS_v);
 
     for (int i=0; i<9; i++){
-        tot_result *= 1e-6>fabs(cauchy[i]-_cauchy_v[i]);
+        tot_result *= 1e-6>fabs(PK2[i]-_PK2_v[i]);
     }
 
     for (int i=0; i<9; i++){
-        tot_result *= 1e-6>fabs(s[i]-_s_v[i]);
+        tot_result *= 1e-6>fabs(SIGMA[i]-_SIGMA_v[i]);
     }
 
     for (int i=0; i<27; i++){
-        tot_result *= 1e-6>fabs(m[i]-_m_v[i]);
+        tot_result *= 1e-6>fabs(M[i]-_M_v[i]);
     }
 
     for (int i=0; i<9; i++){
         for (int j=0; j<9; j++){
-            tot_result *= 1e-6>fabs(DcauchyDgrad_u(i,j) - _DcauchyDgrad_u_v[i][j]);
+            tot_result *= 1e-6>fabs(DPK2Dgrad_u(i,j) - _DPK2Dgrad_u_v[i][j]);
         }
     }
 
     for (int i=0; i<9; i++){
         for (int j=0; j<9; j++){
-            tot_result *= 1e-6>fabs(dcauchydchi(i,j) - _DcauchyDphi_v[i][j]);
+            tot_result *= 1e-6>fabs(DPK2Dphi(i,j) - _DPK2Dphi_v[i][j]);
         }
     }
 
     for (int i=0; i<9; i++){
         for (int j=0; j<27; j++){
-            tot_result *= 1e-6>fabs(DcauchyDgrad_phi(i,j) - _DcauchyDgrad_phi_v[i][j]);
+            tot_result *= 1e-6>fabs(DPK2Dgrad_phi(i,j) - _DPK2Dgrad_phi_v[i][j]);
         }
     }
 
     for (int i=0; i<9; i++){
         for (int j=0; j<9; j++){
-            tot_result *= 1e-6>fabs(DsDgrad_u(i,j) - _DsDgrad_u_v[i][j]);
+            tot_result *= 1e-6>fabs(DSIGMADgrad_u(i,j) - _DSIGMADgrad_u_v[i][j]);
         }
     }
 
     for (int i=0; i<9; i++){
         for (int j=0; j<9; j++){
-            tot_result *= 1e-6>fabs(dsdchi(i,j) - _DsDphi_v[i][j]);
+            tot_result *= 1e-6>fabs(DSIGMADphi(i,j) - _DSIGMADphi_v[i][j]);
         }
     }
 
     for (int i=0; i<9; i++){
         for (int j=0; j<27; j++){
-            tot_result *= 1e-6>fabs(DsDgrad_phi(i,j) - _DsDgrad_phi_v[i][j]);
+            tot_result *= 1e-6>fabs(DSIGMADgrad_phi(i,j) - _DSIGMADgrad_phi_v[i][j]);
         }
     }
 
     for (int i=0; i<27; i++){
         for (int j=0; j<9; j++){
-            tot_result *= 1e-6>fabs(DmDgrad_u(i,j) - _DmDgrad_u_v[i][j]);
+            tot_result *= 1e-6>fabs(DMDgrad_u(i,j) - _DMDgrad_u_v[i][j]);
         }
     }
     
     for (int i=0; i<27; i++){
         for (int j=0; j<9; j++){
-            tot_result *= 1e-6>fabs(dmdchi(i,j) - _DmDphi_v[i][j]);
+            tot_result *= 1e-6>fabs(DMDphi(i,j) - _DMDphi_v[i][j]);
         }
     }
     
     for (int i=0; i<27; i++){
         for (int j=0; j<27; j++){
-            tot_result *= 1e-6>fabs(DmDgrad_phi(i,j) - _DmDgrad_phi_v[i][j]);
+            tot_result *= 1e-6>fabs(DMDgrad_phi(i,j) - _DMDgrad_phi_v[i][j]);
         }
     }
 
