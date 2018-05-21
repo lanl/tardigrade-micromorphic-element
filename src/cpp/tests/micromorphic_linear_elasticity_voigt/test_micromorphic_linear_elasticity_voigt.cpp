@@ -3674,27 +3674,27 @@ std::vector<double> parse_balance_of_first_moment_of_momentum_U(std::vector<doub
     double N;
     define_N(N);
     
-    double dNdx[3];
-    define_dNdx(dNdx);
+    double dNdX[3];
+    define_dNdx(dNdX);
 
     double eta;
     define_eta(eta);
 
-    double detadx[3];
-    define_detadx(detadx);
+    double detadX[3];
+    define_detadx(detadX);
     
     //Expand U
     double grad_u[3][3];
     
-    grad_u[0][0] = U[0]*detadx[0];
-    grad_u[1][1] = U[1]*detadx[1];
-    grad_u[2][2] = U[2]*detadx[2];
-    grad_u[1][2] = U[1]*detadx[2];
-    grad_u[0][2] = U[0]*detadx[2];
-    grad_u[0][1] = U[0]*detadx[1];
-    grad_u[2][1] = U[2]*detadx[1];
-    grad_u[2][0] = U[2]*detadx[0];
-    grad_u[1][0] = U[1]*detadx[0];
+    grad_u[0][0] = U[0]*detadX[0];
+    grad_u[1][1] = U[1]*detadX[1];
+    grad_u[2][2] = U[2]*detadX[2];
+    grad_u[1][2] = U[1]*detadX[2];
+    grad_u[0][2] = U[0]*detadX[2];
+    grad_u[0][1] = U[0]*detadX[1];
+    grad_u[2][1] = U[2]*detadX[1];
+    grad_u[2][0] = U[2]*detadX[0];
+    grad_u[1][0] = U[1]*detadX[0];
 
     double phi[9];
     for (int i=0; i<9; i++){phi[i] = U[i+3]*eta;}
@@ -3703,7 +3703,7 @@ std::vector<double> parse_balance_of_first_moment_of_momentum_U(std::vector<doub
     
     for (int I=3; I<12; I++){
         for (int j=0; j<3; j++){            
-            grad_phi_data[I-3][j] = U[I]*detadx[j];
+            grad_phi_data[I-3][j] = U[I]*detadX[j];
         }
     }
     
@@ -3723,17 +3723,12 @@ std::vector<double> parse_balance_of_first_moment_of_momentum_U(std::vector<doub
     Vector_9  SIGMA;
     Vector_27 M;
     
-    Vector_9  cauchy;
-    Vector_9  s;
-    Vector_27 m;
-    
-    
     define_parameters(params,false); //TODO: set to false!
     
-    deformation_measures::get_deformation_gradient(grad_u, F);
+    deformation_measures::get_deformation_gradient(grad_u, F, false);
     
     deformation_measures::assemble_chi(phi, chi);
-    deformation_measures::assemble_grad_chi(grad_phi_data, F, grad_chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data, grad_chi);
     
     Matrix_3x9 grad_phi_mat;
     Vector_27  grad_phi;
@@ -3742,11 +3737,9 @@ std::vector<double> parse_balance_of_first_moment_of_momentum_U(std::vector<doub
     
     micro_material::get_stress(t, dt, params, F, chi, grad_chi, SDVS, PK2, SIGMA, M);
     
-    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
-    
     double cint[9];
     
-    balance_equations::compute_internal_couple(N, dNdx, cauchy, s, m, cint);
+    balance_equations::compute_internal_couple(N, dNdX, F, chi, PK2, SIGMA, M, cint);
     
     std::vector<double> result;
     result.resize(9);
@@ -9538,6 +9531,183 @@ int test_compute_internal_force(std::ofstream &results){
     return 1;
 }
 
+int test_compute_internal_couple(std::ofstream &results){
+    /*!
+    =====================================
+    |    test_compute_internal_force    |
+    =====================================
+
+    Test the computation of the internal force in the reference configuration.
+
+    */
+
+    double  r[9]; //The expected result
+    double _r[9]; //The function output
+
+    //Define the test function
+    double N;
+    define_N(N);
+    
+    double dNdX[3];
+    define_dNdx(dNdX);
+
+    //Define the deformation gradient
+    Matrix_3x3 F;
+    define_deformation_gradient(F);
+    
+    //Define the micro-displacement tensor
+    Matrix_3x3 chi;
+    define_chi(chi);
+
+    //Define the stress tensors as eigen matrices
+    Vector_9 PK2;
+    define_PK2(PK2);
+    
+    Vector_9 SIGMA;
+    define_SIGMA(SIGMA);
+    
+    Vector_27 M;
+    define_M(M);
+
+    //Define the deformation gradient as a std::vector
+    std::vector<std::vector<double>> F_vec;
+    balance_equations::map_eigen_to_vector(F,F_vec);
+
+    std::vector<std::vector<double>> chi_vec;
+    balance_equations::map_eigen_to_vector(chi,chi_vec);
+    
+    //Define the stress tensors as std::vectors
+    std::vector<double> PK2_vec;
+    balance_equations::map_eigen_to_vector(PK2,PK2_vec);
+
+    std::vector<double> SIGMA_vec;
+    balance_equations::map_eigen_to_vector(SIGMA,SIGMA_vec);
+
+    std::vector<double> M_vec;
+    balance_equations::map_eigen_to_vector(M,M_vec);
+    
+    //Express the stress tensors as matrices
+    Matrix_3x3 PK2_mat;
+    deformation_measures::undo_voigt_3x3_tensor(PK2,PK2_mat);
+    
+    Matrix_3x3 SIGMA_mat;
+    deformation_measures::undo_voigt_3x3_tensor(SIGMA,SIGMA_mat);
+    
+    Matrix_3x9 M_mat;
+    deformation_measures::undo_voigt_3x9_tensor(M,M_mat);
+    
+    //Compute the expected value of the internal force
+    int sot_to_voigt_map[3][3] = {{0,5,4},
+                                  {8,1,3},
+                                  {7,6,2}};
+    int Ihat;
+    
+    Matrix_3x3 term1;
+    term1 = N*F*(PK2_mat - SIGMA_mat)*F.transpose();
+    
+    Vector_9 term2;
+    term2 = Vector_9::Zero();
+    
+    for (int K=0; K<3; K++){term2 += dNdX[K]*M_mat.row(K);}
+    
+    Matrix_3x3 temp_mat;
+    deformation_measures::undo_voigt_3x3_tensor(term2,temp_mat);
+    
+    Matrix_3x3 term2_mat;
+    
+//    for (int i=0; i<3; i++){
+//        for (int j=0; j<3; j++){
+//            
+//            term2_mat(i,j) = 0.;
+//            for (int I=0; I<3; I++){
+//                for (int J=0; J<3; J++){
+//                    term2_mat(i,j) += -F(j,J)*temp_mat(J,I)*chi(i,I);
+//                }
+//            }
+//        }
+//    }
+//    
+//    std::cout << "term2_mat:\n" << term2_mat << std::endl;
+    
+    term2_mat = (-F*temp_mat*chi.transpose()).transpose(); //Note: The total transpose seems consistent with the index notation and what 
+                                                           //      I think should be going on. 
+    
+//    std::cout << "term2_mat:\n" << term2_mat << std::endl;
+    
+    Matrix_3x3 r_mat;
+    r_mat = term1 + term2_mat;
+
+
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            r[sot_to_voigt_map[i][j]] = r_mat(i,j);
+        }
+    }
+    
+//    std::cout << "expected result:\n";
+//    for (int i=0; i<9; i++){std::cout << r[i] << " ";}
+//    std::cout << "\n";
+
+    //Compute the value from the function
+    balance_equations::compute_internal_couple(N, dNdX, F, chi, PK2, SIGMA, M, _r);
+    bool tot_result = true;
+
+    for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+    
+//    std::cout << "function result:\n";
+//    for (int i=0; i<9; i++){std::cout << _r[i] << " ";}
+//    std::cout << "\n";
+
+    balance_equations::compute_internal_couple(N, dNdX, F_vec, chi_vec,
+                                               PK2_vec, SIGMA_vec, M_vec,
+                                               _r);
+    for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+    
+//    std::cout << "function result:\n";
+//    for (int i=0; i<9; i++){std::cout << _r[i] << " ";}
+//    std::cout << "\n";
+
+    double tmp;
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            balance_equations::compute_internal_couple(i, j,
+                                                       N, dNdX, F, chi,
+                                                       PK2, SIGMA, M,
+                                                       tmp);
+            _r[sot_to_voigt_map[i][j]] = tmp;
+        }
+    }
+    for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+    
+//    std::cout << "function result:\n";
+//    for (int i=0; i<9; i++){std::cout << _r[i] << " ";}
+//    std::cout << "\n";
+
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            balance_equations::compute_internal_couple(i, j,
+                                                       N, dNdX, F_vec, chi_vec,
+                                                       PK2_vec, SIGMA_vec, M_vec,
+                                                       tmp);
+            _r[sot_to_voigt_map[i][j]] = tmp;
+        }
+    }
+    for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i] - _r[i]);}
+    
+//    std::cout << "function result:\n";
+//    for (int i=0; i<9; i++){std::cout << _r[i] << " ";}
+//    std::cout << "\n";
+
+    if (tot_result){
+        results << "test_compute_internal_couple_reference & True\\\\\n\\hline\n";
+    }
+    else {
+        results << "test_compute_internal_couple_reference & False\\\\\n\\hline\n";
+    }
+
+    return 1;
+}
+
 int test_compute_internal_force_current(std::ofstream &results){
     /*!
     =============================================
@@ -9863,10 +10033,11 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
 
-    std::cout << " r:\n" <<  r << "\n";
-    std::cout << "_r:\n" << _r << "\n";
+//    std::cout << " r:\n" <<  r << "\n";
+//    std::cout << "_r:\n" << _r << "\n";
 
     bool tot_result = r.isApprox(_r,1e-6);
+//    std::cout << "tot_result: " << tot_result << "\n";
 
     //Compute the jacobian using a vector form    
     std::vector<std::vector<double>> _F;
@@ -9878,7 +10049,7 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     
     balance_equations::map_eigen_to_vector(F,             _F);
     balance_equations::map_eigen_to_vector(PK2,           _PK2);
-    balance_equations::map_eigen_to_vector(dPK2dgrad_u,   _DPK2Dgrad_u);
+    balance_equations::map_eigen_to_vector(dPK2dF,        _DPK2Dgrad_u);
     balance_equations::map_eigen_to_vector(dPK2dchi,      _DPK2Dphi);
     balance_equations::map_eigen_to_vector(dPK2dgrad_chi, _DPK2Dgrad_phi);
     balance_equations::compute_internal_force_jacobian(N, dNdX, eta, detadX, _F, _PK2, _DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, __r);
@@ -9896,7 +10067,9 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     balance_equations::map_vector_to_eigen(__r, _r);
 //    std::cout << "__r:\n";
 //    print_matrix(__r);
+//    std::cout << "_r:\n" << _r << "\n";
     tot_result *= r.isApprox(_r,1e-6);
+//    std::cout << "tot_result: " << tot_result << "\n";
 
 //    std::cout << "test_compute_internal_force_jacobian:\n";
 //    std::cout << "cauchy:\n" << cauchy << "\n";
@@ -10035,30 +10208,13 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     Matrix_27x9  dMdchi;
     Matrix_27x27 dMdgrad_chi;
     
-    Matrix_9x9   dcauchydF;
-    Matrix_9x9   dcauchydchi;
-    Matrix_9x27  dcauchydgrad_chi;
-    Matrix_9x9   dsdF;
-    Matrix_9x9   dsdchi;
-    Matrix_9x27  dsdgrad_chi;
-    Matrix_27x9  dmdF;
-    Matrix_27x9  dmdchi;
-    Matrix_27x27 dmdgrad_chi;
-    
-    Matrix_9x9   DcauchyDgrad_u;
-    Matrix_9x27  DcauchyDgrad_phi;
-    Matrix_9x9   DsDgrad_u;
-    Matrix_9x27  DsDgrad_phi;
-    Matrix_27x9  DmDgrad_u;
-    Matrix_27x27 DmDgrad_phi;
-    
     define_parameters(params,MOOSE);
     
     t0 = Clock::now();
-    deformation_measures::get_deformation_gradient(grad_u, F);
+    deformation_measures::get_deformation_gradient(grad_u, F, false);
     
     deformation_measures::assemble_chi(phi, chi);
-    deformation_measures::assemble_grad_chi(grad_phi_data, F, grad_chi);
+    deformation_measures::assemble_grad_chi(grad_phi_data, grad_chi);
     
     Matrix_3x9 grad_phi_mat;
     Vector_27  grad_phi;
@@ -10070,83 +10226,81 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
                                dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
                                dMdF,     dMdchi,     dMdgrad_chi);
     
-    deformation_measures::map_stresses_to_current_configuration(F, chi, PK2, SIGMA, M, cauchy, s, m);
-                                               
-    deformation_measures::map_jacobians_to_current_configuration(F,      chi,      PK2,           SIGMA,     M,           cauchy, s, m,
-                                                                 dPK2dF, dPK2dchi, dPK2dgrad_chi, dSIGMAdF,  dSIGMAdchi,  dSIGMAdgrad_chi,
-                                                                 dMdF,   dMdchi,   dMdgrad_chi,   dcauchydF, dcauchydchi, dcauchydgrad_chi,
-                                                                 dsdF,   dsdchi,   dsdgrad_chi,   dmdF,      dmdchi,      dmdgrad_chi);
-    
-    deformation_measures::compute_total_derivatives(F,               grad_phi,
-                                                    dcauchydF,       dcauchydgrad_chi,
-                                                    dsdF,            dsdgrad_chi,
-                                                    dmdF,            dmdgrad_chi,
-                                                    DcauchyDgrad_u,  DcauchyDgrad_phi,
-                                                    DsDgrad_u,       DsDgrad_phi,
-                                                    DmDgrad_u,       DmDgrad_phi);
-    
     balance_equations::compute_internal_couple_jacobian(N, dNdx, eta, detadx,
-                                                        DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
-                                                        DsDgrad_u,      dsdchi,      DsDgrad_phi,
-                                                        DmDgrad_u,      dmdchi,      DmDgrad_phi,
+                                                        F,        chi,
+                                                        PK2,      SIGMA,      M,
+                                                        dPK2dF,   dPK2dchi,   dPK2dgrad_chi,
+                                                        dSIGMAdF, dSIGMAdchi, dSIGMAdgrad_chi,
+                                                        dMdF,     dMdchi,     dMdgrad_chi,
                                                         _r);
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
     
-    //std::cout << " r:\n" <<  r << "\n";
-    //std::cout << "_r:\n" << _r << "\n";
+//    std::cout << " r:\n" <<  r << "\n";
+//    std::cout << "_r:\n" << _r << "\n";
     
     bool tot_result = r.isApprox(_r,1e-6);
+    std::cout << "result: " << tot_result << "\n";
     
     //Compute the jacobian using a vector form
-    std::vector<double> _cauchy;
-    std::vector<double> _s;
-    std::vector<double> _m;
+    std::vector<std::vector<double>> _F;
+    std::vector<std::vector<double>> _chi;
+    
+    std::vector<double> _PK2;
+    std::vector<double> _SIGMA;
+    std::vector<double> _M;
  
-    std::vector<std::vector<double>> _DcauchyDgrad_u;
-    std::vector<std::vector<double>> _DcauchyDphi;
-    std::vector<std::vector<double>> _DcauchyDgrad_phi;
+    std::vector<std::vector<double>> _DPK2Dgrad_u;
+    std::vector<std::vector<double>> _DPK2Dphi;
+    std::vector<std::vector<double>> _DPK2Dgrad_phi;
 
-    std::vector<std::vector<double>> _DsDgrad_u;
-    std::vector<std::vector<double>> _DsDphi;
-    std::vector<std::vector<double>> _DsDgrad_phi;
+    std::vector<std::vector<double>> _DSIGMADgrad_u;
+    std::vector<std::vector<double>> _DSIGMADphi;
+    std::vector<std::vector<double>> _DSIGMADgrad_phi;
 
-    std::vector<std::vector<double>> _DmDgrad_u;
-    std::vector<std::vector<double>> _DmDphi;
-    std::vector<std::vector<double>> _DmDgrad_phi;
+    std::vector<std::vector<double>> _DMDgrad_u;
+    std::vector<std::vector<double>> _DMDphi;
+    std::vector<std::vector<double>> _DMDgrad_phi;
 
     std::vector<std::vector<double>> __r;
     
-    balance_equations::map_eigen_to_vector(cauchy, _cauchy);
-    balance_equations::map_eigen_to_vector(s, _s);
-    balance_equations::map_eigen_to_vector(m, _m);
+    balance_equations::map_eigen_to_vector(F,     _F);
+    balance_equations::map_eigen_to_vector(chi,   _chi);
+    
+    balance_equations::map_eigen_to_vector(PK2,   _PK2);
+    balance_equations::map_eigen_to_vector(SIGMA, _SIGMA);
+    balance_equations::map_eigen_to_vector(M,     _M);
 
-    balance_equations::map_eigen_to_vector(DcauchyDgrad_u,   _DcauchyDgrad_u);
-    balance_equations::map_eigen_to_vector(dcauchydchi,      _DcauchyDphi);
-    balance_equations::map_eigen_to_vector(DcauchyDgrad_phi, _DcauchyDgrad_phi);
+    balance_equations::map_eigen_to_vector(dPK2dF,        _DPK2Dgrad_u);
+    balance_equations::map_eigen_to_vector(dPK2dchi,      _DPK2Dphi);
+    balance_equations::map_eigen_to_vector(dPK2dgrad_chi, _DPK2Dgrad_phi);
 
-    balance_equations::map_eigen_to_vector(DsDgrad_u,   _DsDgrad_u);
-    balance_equations::map_eigen_to_vector(dsdchi,      _DsDphi);
-    balance_equations::map_eigen_to_vector(DsDgrad_phi, _DsDgrad_phi);
+    balance_equations::map_eigen_to_vector(dSIGMAdF,        _DSIGMADgrad_u);
+    balance_equations::map_eigen_to_vector(dSIGMAdchi,      _DSIGMADphi);
+    balance_equations::map_eigen_to_vector(dSIGMAdgrad_chi, _DSIGMADgrad_phi);
 
-    balance_equations::map_eigen_to_vector(DmDgrad_u,   _DmDgrad_u);
-    balance_equations::map_eigen_to_vector(dmdchi,      _DmDphi);
-    balance_equations::map_eigen_to_vector(DmDgrad_phi, _DmDgrad_phi);
-
+    balance_equations::map_eigen_to_vector(dMdF,        _DMDgrad_u);
+    balance_equations::map_eigen_to_vector(dMdchi,      _DMDphi);
+    balance_equations::map_eigen_to_vector(dMdgrad_chi, _DMDgrad_phi);
+    
     balance_equations::compute_internal_couple_jacobian(N, dNdx, eta, detadx,
-                                                        _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                                        _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
-                                                        _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                                        _F, _chi,
+                                                        _PK2,            _SIGMA,       _M,
+                                                        _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
+                                                        _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
+                                                        _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
                                                         __r);
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
+//    std::cout << "_r:\n" << r << "\n";
+//    std::cout << "result: " << tot_result << "\n";
 
     int sot_to_voigt_map[3][3];
     deformation_measures::get_sot_to_voigt_map(sot_to_voigt_map);
 
     double __r_ijA;
     int Ihat;
-
+    
     for (int i=0; i<3; i++){
 
         for (int j=0; j<3; j++){
@@ -10154,15 +10308,19 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
 
             for (int dof_num=0; dof_num<12; dof_num++){
 
-                balance_equations::compute_internal_couple_jacobian(i,j,dof_num, N, dNdx, eta, detadx,
-                                                                    _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                                                    _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
-                                                                    _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                balance_equations::compute_internal_couple_jacobian(i,j,dof_num,
+                                                                    N, dNdx, eta, detadx,
+                                                                    _F, _chi,
+                                                                    _PK2,           _SIGMA,      _M,
+                                                                    _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
+                                                                    _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
+                                                                    _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
                                                                     __r_ijA);
                 __r[Ihat][dof_num] = __r_ijA;
             }
         }
     }
+    
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 
@@ -10175,14 +10333,14 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
 //    print_matrix(_DcauchyDgrad_phi);
 //
 //    std::cout << "r:\n" << r << "\n";
-//    std::cout << "_r:\n";
-//    print_matrix(__r);
+//    std::cout << "_r:\n" << r << "\n";
+//    std::cout << "result: " << tot_result << "\n";
 
     if (tot_result){
-        results << "test_compute_internal_couple_jacobian & True\\\\\n\\hline\n";
+        results << "test_compute_internal_couple_jacobian_reference & True\\\\\n\\hline\n";
     }
     else {
-        results << "test_compute_internal_couple_jacobian & False\\\\\n\\hline\n";
+        results << "test_compute_internal_couple_jacobian_reference & False\\\\\n\\hline\n";
     }
     return 0;
 }
@@ -11377,7 +11535,7 @@ int main(){
     //!Run the test functions
     
     //!Test of the stiffness tensors
-/*    test_compute_A_voigt(results);
+    test_compute_A_voigt(results);
     test_compute_B_voigt(results);
     test_compute_C_voigt(results);
     test_compute_D_voigt(results);
@@ -11446,18 +11604,19 @@ int main(){
     //!Test the computation of the internal force
     //!in the reference configuraton
     test_compute_internal_force(results);
+    test_compute_internal_couple(results);
 
     //!Test the computation of the internal force
     //!in the current configuration
     test_compute_internal_force_current(results);
     test_compute_internal_couple_current(results);
     
-*/    //!Test of the computation of the balance equation derivatives
+    //!Test of the computation of the balance equation derivatives
     //!for the reference configuration
     test_compute_internal_force_jacobian(results);
     test_compute_internal_couple_jacobian(results);
 
-/*    //!Test the computation of the gradient of the stress measures w.r.t. U
+    //!Test the computation of the gradient of the stress measures w.r.t. U
     //!in the current configuration.
     test_compute_DstressDU_current(results);
 
@@ -11468,7 +11627,7 @@ int main(){
     
     //!Test of the instance of the model in the material library
     test_micromorphic_material_library(results);
-*/
+
     //Close the results file
     results.close();
 }

@@ -115,6 +115,85 @@ void find_tot_index(const int &i, const int &j, const int &k, int &Ihat){
     return;
 }
 
+void define_grad_u(Matrix_3x3 &grad_u){
+    /*!=======================
+       |    define_grad_u    |
+       =======================
+
+       Define the gradient of u to be used
+
+    */
+
+    grad_u << 0.69646919,  0.28613933,  0.22685145,  0.55131477,  0.71946897,
+              0.42310646,  0.9807642 ,  0.68482974,  0.4809319;
+
+    return;
+}
+
+void define_phi(Matrix_3x3 &phi){
+    /*!====================
+       |    define_phi    |
+       ====================
+
+       Define the values of phi to be used.
+
+    */
+
+    phi << 0.39211752,  0.34317802,  0.72904971,  0.43857224,  0.0596779,
+           0.39804426,  0.73799541,  0.18249173,  0.17545176;
+}
+
+void define_grad_phi(Matrix_3x9 &grad_phi){
+    /*!=========================
+       |    define_grad_phi    |
+       =========================
+
+       Define the gradient of phi to be used.
+
+    */
+
+    grad_phi << -1.81005245, -1.29847083, -0.48170751, -0.75470999, -0.4763441 ,
+                -1.11329654, -0.95632783, -0.9133694 , -1.99856773, -1.49033497,
+                -0.53589066, -0.44965118, -0.24378446, -0.18042363, -0.91358478,
+                -0.70051865, -1.09881086, -1.45762653, -3.00984646, -0.42927004,
+                -0.25701678, -0.61784346, -0.60307115, -1.35759442, -1.25541793,
+                -2.06541739, -1.12273603;
+
+}
+
+void define_deformation_gradient(Matrix_3x3 &F){
+    /*!=====================================
+       |    define_deformation_gradient    |
+       =====================================
+
+       Define the deformation gradient to be used.
+
+    */
+
+    Matrix_3x3 grad_u;
+
+    define_grad_u(grad_u);
+
+    F = (Matrix_3x3::Identity() - grad_u).inverse();
+
+    return;
+}
+
+void define_chi(Matrix_3x3 &chi){
+    /*!====================
+      |    define_chi    |
+      ====================
+
+      Define the micro-deformation tensor to be used.
+
+    */
+
+    Matrix_3x3 phi;
+    define_phi(phi);
+
+    chi = phi + Matrix_3x3::Identity();
+}
+
 void define_N(double &N){
     /*!==================
     |    define_N    |
@@ -265,6 +344,54 @@ void define_m(Vector_27 &m){
     m[26] = 0.521393759903;
     
     return;
+}
+
+void define_PK2(Vector_9 &PK2){
+    /*!==================
+    |    define_PK2    |
+    ====================
+    
+    Define the expected value of the PK2 stress.
+    
+    */
+    
+    PK2 << 59.03427247, 160.14321551, 105.82494785, 214.53178439,
+           237.37311424, 249.55639324, 110.81529   ,  25.70187797,
+           17.88329254;
+}
+
+void define_SIGMA(Vector_9 &SIGMA){
+    /*!======================
+    |    define_SIGMA    |
+    ======================
+    
+    Define the expected value of the symmetric stress.
+    
+    */
+    
+    SIGMA << 119.79705742647155, 323.7978637411792, 216.13272323537976,
+             326.0970440545271, 263.5407883419666, 267.61699074207695,
+             326.0970440545271, 263.5407883419666, 267.61699074207695;
+}
+
+void define_M(Vector_27 &M){
+    /*!==================
+    |    define_M    |
+    ==================
+    
+    Define the expected value of the higher-order stress.
+    
+    */
+    
+    M << 81.31981706487286, 31.798586060251207, 27.355416705438905,
+         4.4605220584734795, 15.239752824275838, 22.917719613671604,
+         4.761661534444574, 13.617364734132286, 20.631211107480663,
+         25.446753288061686, 41.98935229144166, 17.27436660090204,
+         12.970633348345526, 4.29549454562416, 21.185457632363434,
+         10.684683278867416, 4.658645978608793, 26.552528036554328,
+         18.65235152889546, 16.02598269360608, 29.787283731069458,
+         11.17944236411268, 18.36235422268097, 4.559452481399969,
+         14.133232412473218, 23.03915084858808, 4.849232622884019;
 }
 
 void define_body_force(double (&b)[3]){
@@ -778,41 +905,47 @@ int test_compute_internal_force(std::ofstream &results){
     double  r[3]; //The expected result.
     double _r[3]; //The function output.
     
-    double dNdx[3];
-    define_dNdx(dNdx);
+    double dNdX[3];
+    define_dNdx(dNdX);
     
-    Vector_9 cauchy;
-    define_cauchy(cauchy);
+    Vector_9 PK2;
+    define_PK2(PK2);
     
-    Matrix_3x3 cauchy_mat;
-    deformation_measures::undo_voigt_3x3_tensor(cauchy,cauchy_mat);
+    Matrix_3x3 F;
+    define_deformation_gradient(F);
+    
+    Matrix_3x3 PK2_mat;
+    deformation_measures::undo_voigt_3x3_tensor(PK2,PK2_mat);
     
     //Compute the expected value
     for (int i=0; i<3; i++){
         r[i] = 0.;
-        for (int j=0; j<3; j++){
-            r[i] -= dNdx[j]*cauchy_mat(j,i);
+        
+        for (int I=0; I<3; I++){
+            for (int J=0; J<3; J++){
+                r[i] -= dNdX[J]*PK2_mat(J,I)*F(i,I);
+            }
         }
     }
     
     bool tot_result = true;
     
     //Compute the vector result.
-    balance_equations::compute_internal_force(dNdx, cauchy, _r);
+    balance_equations::compute_internal_force(dNdX, F, PK2, _r);
     for (int i=0; i<3; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
     
     //Zero out the result.
     for (int i=0; i<3; i++){_r[i] = 0.;}
     
     //Compute the component result.
-    for (int i=0; i<3; i++){balance_equations::compute_internal_force(i, dNdx, cauchy, _r[i]);}
+    for (int i=0; i<3; i++){balance_equations::compute_internal_force(i, dNdX, F, PK2, _r[i]);}
     for (int i=0; i<3; i++){tot_result *= 1e-9>fabs(r[i]-_r[i]);}
     
     if (tot_result){
-        results << "test_compute_internal_force & True\\\\\n\\hline\n";
+        results << "test_compute_internal_force_reference & True\\\\\n\\hline\n";
     }
     else {
-        results << "test_compute_internal_force & False\\\\\n\\hline\n";
+        results << "test_compute_internal_force_reference & False\\\\\n\\hline\n";
     }
 }
 
@@ -936,37 +1069,59 @@ int test_compute_internal_couple(std::ofstream &results){
     double N;
     define_N(N);
     
-    double dNdx[3];
-    define_dNdx(dNdx);
+    double dNdX[3];
+    define_dNdx(dNdX);
     
-    Vector_9 cauchy;
-    define_cauchy(cauchy);
+    Matrix_3x3 F;
+    define_deformation_gradient(F);
     
-    Vector_9 s;
-    define_s(s);
+    Matrix_3x3 chi;
+    define_deformation_gradient(chi);
     
-    Vector_27 m;
-    define_m(m);
+    Vector_9 PK2;
+    define_PK2(PK2);
     
-    Matrix_3x3 cauchy_mat;
-    deformation_measures::undo_voigt_3x3_tensor(cauchy,cauchy_mat);
+    Vector_9 SIGMA;
+    define_SIGMA(SIGMA);
     
-    Matrix_3x3 s_mat;
-    deformation_measures::undo_voigt_3x3_tensor(s,s_mat);
+    Vector_27 M;
+    define_m(M);
     
-    Matrix_3x9 m_mat;
-    deformation_measures::undo_voigt_3x9_tensor(m,m_mat);
+    Matrix_3x3 PK2_mat;
+    deformation_measures::undo_voigt_3x3_tensor(PK2,PK2_mat);
+    
+    Matrix_3x3 SIGMA_mat;
+    deformation_measures::undo_voigt_3x3_tensor(SIGMA,SIGMA_mat);
+    
+    Matrix_3x9 M_mat;
+    deformation_measures::undo_voigt_3x9_tensor(M,M_mat);
     
     //Compute the divergence of the higher-order couple stress
-    Matrix_3x3 divm_mat;
-    Eigen::Matrix<double,1,3> dNdx_mat;
-    for (int i=0; i<3; i++){dNdx_mat(0,i) = dNdx[i];}
+    Matrix_3x3 divM_mat;
+    divM_mat = Matrix_3x3::Zero();
     
-    Vector_9 divm = dNdx_mat*m_mat;
-    deformation_measures::undo_voigt_3x3_tensor(divm,divm_mat);
+    int sot_to_voigt_map[3][3] = {{0,5,4},
+                                  {8,1,3},
+                                  {7,6,2}};
+    
+    int Ihat;
+    
+    for (int i=0; i<3; i++){
+        for (int j=0; j<3; j++){
+            
+            for (int I=0; I<3; I++){
+                for (int J=0; J<3; J++){
+                    for (int K=0; K<3; K++){
+                        Ihat = sot_to_voigt_map[J][I];
+                        divM_mat(i,j) += F(j,J)*chi(i,I)*M_mat(K,Ihat)*dNdX[K];
+                    }
+                }
+            }
+        }
+    }
     
     //Compute the expected value
-    Matrix_3x3 r_mat = -(N*(cauchy_mat - s_mat) - divm_mat.transpose());
+    Matrix_3x3 r_mat = N*F*(PK2_mat - SIGMA_mat)*F.transpose() - divM_mat;
     Vector_9 r_vec;
     deformation_measures::voigt_3x3_tensor(r_mat,r_vec);
     
@@ -974,31 +1129,30 @@ int test_compute_internal_couple(std::ofstream &results){
     
     bool tot_result = true;
     
-    //std::cout << "r: ";
-    //for (int i=0; i<9; i++){
-    //    std::cout << r[i] << " ";
-    //}
-    //std::cout << "\n";
+//    std::cout << "r: ";
+//    for (int i=0; i<9; i++){
+//        std::cout << r[i] << " ";
+//    }
+//    std::cout << "\n";
     
     //Compute the vector result.
-    balance_equations::compute_internal_couple(N, dNdx, cauchy, s, m, _r);
+    balance_equations::compute_internal_couple(N, dNdX, F, chi, PK2, SIGMA, M, _r);
     for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i]-_r[i]);}
     
-    //std::cout << "Vector _r: ";
-    //for (int i=0; i<9; i++){
-    //    std::cout << _r[i] << " ";
-    //}
-    //std::cout << "\n";
+//    std::cout << "Vector _r: ";
+//    for (int i=0; i<9; i++){
+//        std::cout << _r[i] << " ";
+//    }
+//    std::cout << "\n";
     
     //Zero out the result.
     for (int i=0; i<3; i++){_r[i] = 0.;}
     
     //Compute the component result.
-    int Ihat;
     for (int i=0; i<3; i++){
         for (int j=0; j<3; j++){
             find_sot_index(i,j,Ihat);
-            balance_equations::compute_internal_couple(i, j, N, dNdx, cauchy, s, m, _r[Ihat]);
+            balance_equations::compute_internal_couple(i, j, N, dNdX, F, chi, PK2, SIGMA, M, _r[Ihat]);
         }
     }
     
@@ -1011,10 +1165,10 @@ int test_compute_internal_couple(std::ofstream &results){
     for (int i=0; i<9; i++){tot_result *= 1e-6>fabs(r[i]-_r[i]);}
     
     if (tot_result){
-        results << "test_compute_internal_couple & True\\\\\n\\hline\n";
+        results << "test_compute_internal_couple_reference & True\\\\\n\\hline\n";
     }
     else {
-        results << "test_compute_internal_couple & False\\\\\n\\hline\n";
+        results << "test_compute_internal_couple_reference & False\\\\\n\\hline\n";
     }
 }
 
@@ -1184,15 +1338,15 @@ int test_compute_kinematic_couple(std::ofstream &results){
     }
 }
 
-int test_compute_internal_force_jacobian(std::ofstream &results){
-    /*!==============================================
-    |    test_compute_internal_force_jacobian    |
-    ==============================================
-    
-    Test the computation of the jacobian of the internal force.
-    
-    */
-    
+//int test_compute_internal_force_jacobian(std::ofstream &results){
+//    /*!==============================================
+//    |    test_compute_internal_force_jacobian    |
+//    ==============================================
+//    
+//    Test the computation of the jacobian of the internal force.
+//    
+//    */
+  /*  
     double r[3][12]; //The expected result.
     Matrix_3x12 _r;  //The function output.
     
@@ -1382,17 +1536,17 @@ int test_compute_internal_force_jacobian(std::ofstream &results){
         results << "test_compute_internal_force_jacobian & False\\\\\n\\hline\n";
     }
 }
-
-int test_compute_internal_couple_jacobian(std::ofstream &results){
-    /*!===============================================
-    |    test_compute_internal_couple_jacobian    |
-    ===============================================
-    
-    Test the computation of the jacobian associated with the 
-    internal couple.
-    
-    */
-    
+*/
+//int test_compute_internal_couple_jacobian(std::ofstream &results){
+//    /*!===============================================
+//    |    test_compute_internal_couple_jacobian    |
+//    ===============================================
+//    
+//    Test the computation of the jacobian associated with the 
+//    internal couple.
+//    
+//    */
+  /*  
     Matrix_9x12  r; //The expected result
     Matrix_9x12 _r; //The function output
     
@@ -1512,7 +1666,7 @@ int test_compute_internal_couple_jacobian(std::ofstream &results){
         results << "test_compute_internal_couple_jacobian & False\\\\\n\\hline\n";
     }
 }
-
+*/
 int test_construct_dgrad_udU(std::ofstream &results){
     /*!==================================
     |    test_construct_dgrad_udU    |
@@ -1907,15 +2061,16 @@ int main(){
     test_compute_internal_couple(results);
     test_compute_body_couple(results);
     test_compute_kinematic_couple(results);
-    
-    test_compute_internal_force_jacobian(results);
-    test_compute_internal_couple_jacobian(results);
+
+    //Currently these jacobians are tested in the individual material files.    
+//    test_compute_internal_force_jacobian(results);
+//    test_compute_internal_couple_jacobian(results);
     
     test_construct_dgrad_udU(results);
     test_construct_dgrad_udU_current(results);
     test_construct_dphidU(results);
     test_construct_dgrad_phidU(results);
-    test_construct_dgrad_phidU_current(results);
+    test_construct_dgrad_phidU_current(results); //Note: Currently fails.
 
     //Close the results file
     results.close();

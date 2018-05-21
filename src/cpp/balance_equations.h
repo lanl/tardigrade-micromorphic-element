@@ -55,6 +55,22 @@ namespace balance_equations{
     void compute_kinematic_force(const int &i, const double &N, const double &density, const double (&a)[3], double &fkin);
 
     //Stresses from the balance of first moment of momentum
+    void compute_internal_couple(const double &N, const double (&dNdX)[3], const Matrix_3x3 &F, const Matrix_3x3 &chi,
+                                 const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M, double (&cint)[9]);
+    
+    void compute_internal_couple(const int &component_i, const int &component_j, 
+                                 const double &N, const double (&dNdX)[3], const Matrix_3x3 &F, const Matrix_3x3 &chi,
+                                 const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M, double &cint_ij);
+                                 
+    void compute_internal_couple(const double &N, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<std::vector<double>> &chi,
+                                 const std::vector<double> &PK2, const std::vector<double> &SIGMA, const std::vector<double> &M,
+                                 double (&cint)[9]);
+                                 
+    void compute_internal_couple(const int &component_i, const int &component_j,
+                                 const double &N, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<std::vector<double>> &chi,
+                                 const std::vector<double> &PK2, const std::vector<double> &SIGMA, const std::vector<double> &M,
+                                 double &cint_ij);
+    
     void compute_internal_couple(const double &N, const double (&dNdx)[3], const Vector_9 &cauchy, const Vector_9 &s, const Vector_27 &m, double (&cint)[9]);
     
     void compute_internal_couple(const int &i, const int &j, const double &N, const double (&dNdx)[3], const Vector_9 &cauchy, const Vector_9 &s, const Vector_27 &m, double &cint_ij);
@@ -86,27 +102,37 @@ namespace balance_equations{
 
     //Compute the jacobians of the balance of first moment of momentum
     void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
-                                          const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
-                                          const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
-                                          const Matrix_27x9 &DmDgrad_u,      const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
+                                          const Matrix_3x3  &F,             const Matrix_3x3  &chi,
+                                          const Vector_9    &PK2,           const Vector_9    &SIGMA,      const Vector_27    &M,
+                                          const Matrix_9x9  &DPK2Dgrad_u,   const Matrix_9x9  &DPK2Dphi,   const Matrix_9x27  &DPK2Dgrad_phi,
+                                          const Matrix_9x9  &DSIGMADgrad_u, const Matrix_9x9  &DSIGMADphi, const Matrix_9x27  &DSIGMADgrad_phi,
+                                          const Matrix_27x9 &DMDgrad_u,     const Matrix_27x9 &DMDphi,     const Matrix_27x27 &DMDgrad_phi,
                                           Matrix_9x12 &DcintDU);
                                           
-    void compute_internal_couple_jacobian(const int &i, const int &j, const int &dof_num, const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
-                                          const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
-                                          const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
-                                          const Matrix_27x9 &DmDgrad_u,      const Matrix_27x9 &DmDphi,      const Matrix_27x27 &DmDgrad_phi,
+    void compute_internal_couple_jacobian(const int &component_i, const int &component_j, const int &dof_num,
+                                          const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const Matrix_3x3  &F,             const Matrix_3x3  &chi,
+                                          const Vector_9    &PK2,           const Vector_9    &SIGMA,      const Vector_27    &M,
+                                          const Matrix_9x9  &DPK2Dgrad_u,   const Matrix_9x9  &DPK2Dphi,   const Matrix_9x27  &DPK2Dgrad_phi,
+                                          const Matrix_9x9  &DSIGMADgrad_u, const Matrix_9x9  &DSIGMADphi, const Matrix_9x27  &DSIGMADgrad_phi,
+                                          const Matrix_27x9 &DMDgrad_u,     const Matrix_27x9 &DMDphi,     const Matrix_27x27 &DMDgrad_phi,
                                           double &DcintDU_ijA);
-
+                                          
     void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
-                                          const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
-                                          const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
-                                          const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
+                                          const std::vector<std::vector<double>> &F,             const std::vector<std::vector<double>> &chi,
+                                          const std::vector<double>              &PK2,           const std::vector<double>              &SIGMA,      const std::vector<double>         &M,
+                                          const std::vector<std::vector<double>> &DPK2Dgrad_u,   const std::vector<std::vector<double>> &DPK2Dphi,   const std::vector<std::vector<double>> &DPK2Dgrad_phi,
+                                          const std::vector<std::vector<double>> &DSIGMADgrad_u, const std::vector<std::vector<double>> &DSIGMADphi, const std::vector<std::vector<double>>  &DSIGMADgrad_phi,
+                                          const std::vector<std::vector<double>> &DMDgrad_u,     const std::vector<std::vector<double>> &DMDphi,     const std::vector<std::vector<double>> &DMDgrad_phi,
                                           std::vector<std::vector<double>> &DcintDU);
     
-    void compute_internal_couple_jacobian(const int &i, const int &j, const int &dof_num, const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
-                                          const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
-                                          const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
-                                          const std::vector<std::vector<double>> &DmDgrad_u,      const std::vector<std::vector<double>> &DmDphi,      const std::vector<std::vector<double>> &DmDgrad_phi,
+    void compute_internal_couple_jacobian(const int &i, const int &j, const int &dof_num,
+                                          const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                          const std::vector<std::vector<double>> &F,             const std::vector<std::vector<double>> &chi,
+                                          const std::vector<double>              &PK2,           const std::vector<double>              &SIGMA,      const std::vector<double>         &M,
+                                          const std::vector<std::vector<double>> &DPK2Dgrad_u,   const std::vector<std::vector<double>> &DPK2Dphi,   const std::vector<std::vector<double>> &DPK2Dgrad_phi,
+                                          const std::vector<std::vector<double>> &DSIGMADgrad_u, const std::vector<std::vector<double>> &DSIGMADphi, const std::vector<std::vector<double>>  &DSIGMADgrad_phi,
+                                          const std::vector<std::vector<double>> &DMDgrad_u,     const std::vector<std::vector<double>> &DMDphi,     const std::vector<std::vector<double>> &DMDgrad_phi,
                                           double &DcintDU_ijA);
 
     //Compute the jacobians of the balance of linear momentum (Current configuration)
