@@ -3250,7 +3250,7 @@ int test_micromorphic_material_library(){
 
     for (int i=0; i<3; i++){
         for (int A=0; A<12; A++){
-            balance_equations::compute_internal_force_jacobian(i, A
+            balance_equations::compute_internal_force_jacobian(i, A,
                                                                N, dNdX, eta, detadX,
                                                                _F_v,
                                                                _PK2_v,
