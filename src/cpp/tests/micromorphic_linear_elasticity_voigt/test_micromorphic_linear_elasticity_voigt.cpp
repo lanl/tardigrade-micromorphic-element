@@ -10804,10 +10804,10 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
                                                     DsDgrad_u,       DsDgrad_phi,
                                                     DmDgrad_u,       DmDgrad_phi);
 
-    balance_equations::compute_internal_force_jacobian(             N,           dNdx,         eta,           detadx,
-                                                               grad_u,  grad_phi_data,
-                                                               cauchy, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
-                                                                   _r);
+    balance_equations::compute_internal_force_jacobian_current(             N,           dNdx,         eta,           detadx,
+                                                                       grad_u,  grad_phi_data,
+                                                                       cauchy, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
+                                                                           _r);
     t1 = Clock::now();
     std::cout << "Analytic Jacobian: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
 
@@ -10820,11 +10820,11 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
 
     for (int i=0; i<3; i++){
         for (int A=0; A<12; A++){
-            balance_equations::compute_internal_force_jacobian(            i,              A,
-                                                                           N,           dNdx,         eta,           detadx,
-                                                                      grad_u,  grad_phi_data,
-                                                                      cauchy, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
-                                                                         tmp);
+            balance_equations::compute_internal_force_jacobian_current(            i,              A,
+                                                                                   N,           dNdx,         eta,           detadx,
+                                                                              grad_u,  grad_phi_data,
+                                                                              cauchy, DcauchyDgrad_u, dcauchydchi, DcauchyDgrad_phi,
+                                                                                 tmp);
             _r(i,A) = tmp;
         }
     }
@@ -10847,10 +10847,10 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
     balance_equations::map_eigen_to_vector(dcauchydchi,      _DcauchyDphi);
     balance_equations::map_eigen_to_vector(DcauchyDgrad_phi, _DcauchyDgrad_phi);
     balance_equations::map_eigen_to_vector(F,_F);
-    balance_equations::compute_internal_force_jacobian(               N,            dNdx,          eta,            detadx, 
-                                                                 grad_u,   grad_phi_data,
-                                                                _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                                                    __r);
+    balance_equations::compute_internal_force_jacobian_current(               N,            dNdx,          eta,            detadx, 
+                                                                         grad_u,   grad_phi_data,
+                                                                        _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                                            __r);
     balance_equations::map_vector_to_eigen(__r, _r);
 //    std::cout << "_r:\n" << _r << "\n";
     tot_result *= r.isApprox(_r,1e-6);
@@ -10858,11 +10858,11 @@ int test_compute_internal_force_jacobian_current(std::ofstream &results,bool MOO
     //Test the computation of the jacobian in a component-wise fashion
     for (int i=0; i<3; i++){
         for (int j=0; j<12; j++){
-            balance_equations::compute_internal_force_jacobian(              i,               j,
-                                                                             N,            dNdx,          eta,            detadx,
-                                                                        grad_u,   grad_phi_data,
-                                                                       _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                                                           tmp);
+            balance_equations::compute_internal_force_jacobian_current(              i,               j,
+                                                                                     N,            dNdx,          eta,            detadx,
+                                                                                grad_u,   grad_phi_data,
+                                                                               _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                                                   tmp);
             __r[i][j] = tmp;
         }
     }
@@ -11098,7 +11098,7 @@ int test_compute_internal_couple_jacobian_current(std::ofstream &results,bool MO
                                                     DsDgrad_u,       DsDgrad_phi,
                                                     DmDgrad_u,       DmDgrad_phi);
 
-    balance_equations::compute_internal_couple_jacobian(             N,          dNdx,         eta,           detadx,
+    balance_equations::compute_internal_couple_jacobian_current(             N,          dNdx,         eta,           detadx,
                                                                 grad_u, grad_phi_data,
                                                         DcauchyDgrad_u,   dcauchydchi, DcauchyDgrad_phi,
                                                              DsDgrad_u,        dsdchi,      DsDgrad_phi,
@@ -11121,13 +11121,13 @@ int test_compute_internal_couple_jacobian_current(std::ofstream &results,bool MO
     for (int i=0; i<3; i++){
         for (int j=0; j<3; j++){
             for (int A=0; A<12; A++){
-                balance_equations::compute_internal_couple_jacobian(            i,             j,                A,
-                                                                                N,          dNdx,              eta,           detadx,
-                                                                           grad_u, grad_phi_data,
-                                                                   DcauchyDgrad_u,   dcauchydchi, DcauchyDgrad_phi,
-                                                                        DsDgrad_u,        dsdchi,      DsDgrad_phi,
-                                                                        DmDgrad_u,        dmdchi,      DmDgrad_phi,
-                                                                              tmp);
+                balance_equations::compute_internal_couple_jacobian_current(            i,             j,                A,
+                                                                                        N,          dNdx,              eta,           detadx,
+                                                                                   grad_u, grad_phi_data,
+                                                                           DcauchyDgrad_u,   dcauchydchi, DcauchyDgrad_phi,
+                                                                                DsDgrad_u,        dsdchi,      DsDgrad_phi,
+                                                                                DmDgrad_u,        dmdchi,      DmDgrad_phi,
+                                                                                      tmp);
                 _r(sot_to_voigt_map[i][j],A) = tmp;
             }
         }
@@ -11160,12 +11160,12 @@ int test_compute_internal_couple_jacobian_current(std::ofstream &results,bool MO
     balance_equations::map_eigen_to_vector(DmDgrad_phi,      _DmDgrad_phi);
     std::vector<std::vector<double>> __r;
     
-    balance_equations::compute_internal_couple_jacobian(                     N,            dNdx,          eta,            detadx, 
-                                                                        grad_u,   grad_phi_data,
-                                                               _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                                                    _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
-                                                                    _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
-                                                                    __r);
+    balance_equations::compute_internal_couple_jacobian_current(                     N,            dNdx,          eta,            detadx, 
+                                                                                grad_u,   grad_phi_data,
+                                                                       _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                                            _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                                                            _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                                                            __r);
     balance_equations::map_vector_to_eigen(__r, _r);
 //    std::cout << "_r:\n" << _r << "\n";
     tot_result *= r.isApprox(_r,1e-6);
@@ -11174,13 +11174,13 @@ int test_compute_internal_couple_jacobian_current(std::ofstream &results,bool MO
     for (int i=0; i<3; i++){
         for (int j=0; j<3; j++){
             for (int A=0; A<12; A++){
-                balance_equations::compute_internal_couple_jacobian(              i,               j,            A,
-                                                                                  N,            dNdx,          eta,            detadx, 
-                                                                             grad_u,   grad_phi_data,
-                                                                    _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                                                         _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
-                                                                         _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
-                                                                         tmp);
+                balance_equations::compute_internal_couple_jacobian_current(              i,               j,            A,
+                                                                                          N,            dNdx,          eta,            detadx, 
+                                                                                     grad_u,   grad_phi_data,
+                                                                            _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                                                 _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                                                                 _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                                                                 tmp);
                 __r[sot_to_voigt_map[i][j]][A] = tmp;
             }
         }

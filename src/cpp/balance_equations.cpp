@@ -1280,7 +1280,7 @@ namespace balance_equations{
     |    Jacobians for current configuration    |
     =============================================
     */
-    void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
+    void compute_internal_force_jacobian_current(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                          Matrix_3x12 &DfintDU){
@@ -1376,7 +1376,7 @@ namespace balance_equations{
         return;
     }
 
-    void compute_internal_force_jacobian(const int &component,   const int &dof_num,
+    void compute_internal_force_jacobian_current(const int &component,   const int &dof_num,
                                          const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const Vector_9 &cauchy, const Matrix_9x9 &DcauchyDgrad_u, const Matrix_9x9 &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
@@ -1456,7 +1456,7 @@ namespace balance_equations{
         return;
     }
 
-    void compute_internal_force_jacobian(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
+    void compute_internal_force_jacobian_current(const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, 
                                          const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
@@ -1482,16 +1482,16 @@ namespace balance_equations{
         map_vector_to_eigen(     DcauchyDphi,      _DcauchyDphi);
         map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
 
-        compute_internal_force_jacobian(       N,            dNdx,          eta,            detadx,
-                                          grad_u,        grad_phi,
-                                         _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                        _DfintDU);
+        compute_internal_force_jacobian_current(       N,            dNdx,          eta,            detadx,
+                                                  grad_u,        grad_phi,
+                                                 _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                _DfintDU);
 
         map_eigen_to_vector(_DfintDU,DfintDU);        
         return;
     }
 
-    void compute_internal_force_jacobian(const int &component,   const int &dof_num,
+    void compute_internal_force_jacobian_current(const int &component,   const int &dof_num,
                                          const double &N,        const double(&dNdx)[3],           const double &eta,             const double(&detadx)[3],
                                          const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                          const std::vector<double> &cauchy, const std::vector<std::vector<double>> &DcauchyDgrad_u, 
@@ -1517,16 +1517,16 @@ namespace balance_equations{
         map_vector_to_eigen(     DcauchyDphi,      _DcauchyDphi);
         map_vector_to_eigen(DcauchyDgrad_phi, _DcauchyDgrad_phi);
 
-        compute_internal_force_jacobian(  component,         dof_num,
-                                                  N,            dNdx,          eta,            detadx,
-                                             grad_u,        grad_phi,
-                                            _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                         DfintDU_iA);
+        compute_internal_force_jacobian_current(  component,         dof_num,
+                                                          N,            dNdx,          eta,            detadx,
+                                                     grad_u,        grad_phi,
+                                                    _cauchy, _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                 DfintDU_iA);
 
         return;
     }
     
-    void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+    void compute_internal_couple_jacobian_current(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
                                           const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                           const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
                                           const Matrix_9x9  &DsDgrad_u,      const Matrix_9x9  &DsDphi,      const Matrix_9x27 &DsDgrad_phi,
@@ -1622,7 +1622,7 @@ namespace balance_equations{
         return;
     }
     
-    void compute_internal_couple_jacobian(const int &component_i, const int &component_j, const int &dof_num,
+    void compute_internal_couple_jacobian_current(const int &component_i, const int &component_j, const int &dof_num,
                                           const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
                                           const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                           const Matrix_9x9  &DcauchyDgrad_u, const Matrix_9x9  &DcauchyDphi, const Matrix_9x27 &DcauchyDgrad_phi,
@@ -1703,7 +1703,7 @@ namespace balance_equations{
         return;
     }
     
-    void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
+    void compute_internal_couple_jacobian_current(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
                                           const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                           const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
                                           const std::vector<std::vector<double>> &DsDgrad_u,      const std::vector<std::vector<double>> &DsDphi,      const std::vector<std::vector<double>> &DsDgrad_phi,
@@ -1744,18 +1744,18 @@ namespace balance_equations{
         map_vector_to_eigen(DmDphi,      _DmDphi);
         map_vector_to_eigen(DmDgrad_phi, _DmDgrad_phi);
 
-        compute_internal_couple_jacobian(N, dNdx, eta, detadx,
-                                         grad_u, grad_phi,
-                                         _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                         _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
-                                         _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
-                                         _DcintDU);
+        compute_internal_couple_jacobian_current(N, dNdx, eta, detadx,
+                                                          grad_u, grad_phi,
+                                                 _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                      _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                                      _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                                        _DcintDU);
         
         map_eigen_to_vector(_DcintDU, DcintDU);
         return;
     }
     
-    void compute_internal_couple_jacobian(const int &component_i, const int &component_j, const int &dof_num,
+    void compute_internal_couple_jacobian_current(const int &component_i, const int &component_j, const int &dof_num,
                                           const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
                                           const double (&grad_u)[3][3], const double (&grad_phi)[9][3],
                                           const std::vector<std::vector<double>> &DcauchyDgrad_u, const std::vector<std::vector<double>> &DcauchyDphi, const std::vector<std::vector<double>> &DcauchyDgrad_phi,
@@ -1795,13 +1795,13 @@ namespace balance_equations{
         map_vector_to_eigen(DmDphi,      _DmDphi);
         map_vector_to_eigen(DmDgrad_phi, _DmDgrad_phi);
 
-        compute_internal_couple_jacobian(component_i, component_j, dof_num,
-                                         N, dNdx, eta, detadx,
-                                         grad_u, grad_phi,
-                                         _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                                         _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
-                                         _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
-                                         DcintDU_ijA);
+        compute_internal_couple_jacobian_current(component_i, component_j, dof_num,
+                                                 N, dNdx, eta, detadx,
+                                                          grad_u, grad_phi,
+                                                 _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
+                                                      _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
+                                                      _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
+                                                     DcintDU_ijA);
         return;
     }
 
