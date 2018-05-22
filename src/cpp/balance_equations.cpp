@@ -835,8 +835,10 @@ namespace balance_equations{
         construct_dgrad_phidU(detadX, dgrad_phidU);
 
         //Compute DcauchyDU;
-        Matrix_9x12 DPK2DU;
-        DPK2DU = (DPK2Dgrad_u*dgrad_udU + DPK2Dphi*dphidU + DPK2Dgrad_phi*dgrad_phidU);
+        Vector_9 DPK2DU;
+        DPK2DU = (  DPK2Dgrad_u*dgrad_udU.col(dof_num)
+                  + DPK2Dphi*dphidU.col(dof_num)
+                  + DPK2Dgrad_phi*dgrad_phidU.col(dof_num));
 
         int sot_to_voigt_map[3][3] = {{0,5,4},
                                       {8,1,3},
@@ -855,7 +857,7 @@ namespace balance_equations{
             for (int J=0; J<3; J++){
                 Jhat = sot_to_voigt_map[I][J];
                 Khat = sot_to_voigt_map[component_i][J];
-                DfintDU_iA += -dNdX[I]*(DPK2DU(Jhat,dof_num) * F(component_i,J) + PK2(Jhat)*dgrad_udU(Khat,dof_num));
+                DfintDU_iA += -dNdX[I]*(DPK2DU(Jhat) * F(component_i,J) + PK2(Jhat)*dgrad_udU(Khat,dof_num));
             }
         }
         
@@ -1054,23 +1056,29 @@ namespace balance_equations{
         construct_dgrad_phidU(detadx, dgrad_phidU);
         
         //Compute DPK2DU;
-        Matrix_9x12 DPK2DU;
-        DPK2DU = (DPK2Dgrad_u*dgrad_udU + DPK2Dphi*dphidU + DPK2Dgrad_phi*dgrad_phidU);
+        Vector_9 DPK2DU;
+        DPK2DU = (  DPK2Dgrad_u*dgrad_udU.col(dof_num)
+                  + DPK2Dphi*dphidU.col(dof_num)
+                  + DPK2Dgrad_phi*dgrad_phidU.col(dof_num));
         
         //Compute DSIGMADU
-        Matrix_9x12 DSIGMADU;
-        DSIGMADU = (DSIGMADgrad_u*dgrad_udU + DSIGMADphi*dphidU + DSIGMADgrad_phi*dgrad_phidU);
+        Vector_9 DSIGMADU;
+        DSIGMADU = (  DSIGMADgrad_u*dgrad_udU.col(dof_num)
+                    + DSIGMADphi*dphidU.col(dof_num)
+                    + DSIGMADgrad_phi*dgrad_phidU.col(dof_num));
         
         //Compute DmDU
-        Matrix_27x12 DMDU;
-        DMDU = (DMDgrad_u*dgrad_udU + DMDphi*dphidU + DMDgrad_phi*dgrad_phidU);
+        Vector_27 DMDU;
+        DMDU = (  DMDgrad_u*dgrad_udU.col(dof_num)
+                + DMDphi*dphidU.col(dof_num)
+                + DMDgrad_phi*dgrad_phidU.col(dof_num));
         
         //Temporary variables
 
         Vector_9 PK2mSIGMA;
         PK2mSIGMA = PK2 - SIGMA;
 
-        Matrix_9x12 DPK2DUmDSIGMADU;
+        Vector_9 DPK2DUmDSIGMADU;
         DPK2DUmDSIGMADU = DPK2DU - DSIGMADU;
 
         double F_iI;
@@ -1115,7 +1123,7 @@ namespace balance_equations{
                 Lhat = sot_to_voigt_map[component_j][J];
                 PK2mSIGMA_IJ = PK2mSIGMA(Khat);
                 DcintDU_ijA += N*( dFdU_iIA*PK2mSIGMA_IJ*F(component_j,J)
-                                  +F_iI*DPK2DUmDSIGMADU(Khat,dof_num)*F(component_j,J)
+                                  +F_iI*DPK2DUmDSIGMADU(Khat)*F(component_j,J)
                                   +F_iI*PK2mSIGMA_IJ*dgrad_udU(Lhat,dof_num));
             }
         }
@@ -1132,7 +1140,7 @@ namespace balance_equations{
                     Mhat = tot_to_voigt_map[K][J][I];
                     M_KJI = M(Mhat);
                     DcintDU_ijA -= dNdX[K]*( dFdU_jJA * chi_iI * M_KJI
-                                            +    F_jJ * chi_iI * DMDU(Mhat,dof_num)
+                                            +    F_jJ * chi_iI * DMDU(Mhat)
                                             +    F_jJ * M_KJI  * dchidU_iIA);
                 }
             }
