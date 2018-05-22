@@ -359,7 +359,7 @@ namespace balance_equations{
         
         double tmp1;
         double tmp2;
-        int Itmp;
+        //int Itmp;
         int Jtmp;
         
 
@@ -845,7 +845,7 @@ namespace balance_equations{
         //Must compute DfintDU_jIhat = -dNdX[I]*(DPK2DU_IJIhat F_jJ + PK2_IJ DFDU_jJIhat)
         //NOTE: DFDU_jJIhat = Dgrad_udU_jJIhat
 
-        double tmp;
+        //double tmp;
         int Jhat;
         int Khat;
 
@@ -943,7 +943,7 @@ namespace balance_equations{
         double M_KJI;
         double tmp2;
         double tmp3;
-        int    A;
+        //int    A;
         int    Ihat;
         int    Jhat;
         int    Khat;
@@ -1034,8 +1034,8 @@ namespace balance_equations{
                                       {8,1,3},
                                       {7,6,2}};
                                       
-        int Ihat;
-        Ihat = sot_to_voigt_map[component_i][component_j];
+        //int Ihat;
+        //Ihat = sot_to_voigt_map[component_i][component_j];
         
         //Compute required DOF jacobians
         //Note: Removing sparse matrices because there 
@@ -1065,7 +1065,7 @@ namespace balance_equations{
         Matrix_27x12 DMDU;
         DMDU = (DMDgrad_u*dgrad_udU + DMDphi*dphidU + DMDgrad_phi*dgrad_phidU);
         
-        double tmp;
+        //double tmp;
         double F_iI;
         double F_jJ;
         double chi_iI;
@@ -1344,7 +1344,7 @@ namespace balance_equations{
         //Note: dfintdU = -D/DU(N,j sigma_ji) = -N,J (DFinvdU_JjIhat sigma_ji + Finv_Jj DcauchyDU jiIhat) = -N,J (-Dgrad_udU_JjIhat sigma_ji + Finv_Jj DsigmaDU_jiIhat) 
 
         double tmp;
-        int Jhat;
+        //int Jhat;
         int Khat;
 
         for (int i=0; i<3; i++){
@@ -1352,7 +1352,7 @@ namespace balance_equations{
                 tmp = 0;
                 for (int J=0; J<3; J++){
                     for (int j=0; j<3; j++){
-                        Jhat = sot_to_voigt_map[J][j];
+                        //Jhat = sot_to_voigt_map[J][j];
                         Khat = sot_to_voigt_map[j][i];
                         tmp += -dNdX[J]*(Finv(J,j) * DcauchyDU(Khat,Ihat));// - dgrad_udU(Jhat,Ihat)*cauchy(Khat));
 
@@ -1440,14 +1440,14 @@ namespace balance_equations{
         
         //Note: dfintdU = -D/DU(N,j sigma_ji) = -N,J (DFinvdU_JjIhat sigma_ji + Finv_Jj DcauchyDU jiIhat) = -N,J (-Dgrad_udU_JjIhat sigma_ji + Finv_Jj DsigmaDU_jiIhat) 
 
-        int Jhat;
+        //int Jhat;
         int Khat;
 
         DfintDU_iA = 0;
 
         for (int J=0; J<3; J++){
             for (int j=0; j<3; j++){
-                Jhat = sot_to_voigt_map[J][j];
+                //Jhat = sot_to_voigt_map[J][j];
                 Khat = sot_to_voigt_map[j][component];
                 DfintDU_iA += -dNdX[J]*(Finv(J,j) * DcauchyDU(Khat,dof_num));// - dgrad_udU(Jhat,dof_num)*cauchy(Khat));
             }
