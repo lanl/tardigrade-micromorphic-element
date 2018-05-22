@@ -28,11 +28,11 @@ namespace micromorphic_material_library {
                                    const double (&grad_u)[3][3],           const double (&phi)[9],
                                    const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
                                    const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                                   std::vector<double> &cauchy,                      std::vector<double> &s,                        std::vector<double> &m,
-                                   std::vector<std::vector<double>> &DcauchyDgrad_u, std::vector<std::vector<double>> &DcauchyDphi, std::vector<std::vector<double>> &DcauchyDgrad_phi,
-                                   std::vector<std::vector<double>> &DsDgrad_u,      std::vector<std::vector<double>> &DsDphi,      std::vector<std::vector<double>> &DsDgrad_phi,
-                                   std::vector<std::vector<double>> &DmDgrad_u,      std::vector<std::vector<double>> &DmDphi,      std::vector<std::vector<double>> &DmDgrad_phi,
-                                   std::vector<std::vector<double>> &ADD_TERMS,      std::vector<std::vector<std::vector<double>>> &ADD_JACOBIANS, double delta){
+                                   std::vector<double> &PK2,                        std::vector<double> &SIGMA,                   std::vector<double> &M,
+                                   std::vector<std::vector<double>> &DPK2Dgrad_u,   std::vector<std::vector<double>> &DPK2Dphi,   std::vector<std::vector<double>> &DPK2Dgrad_phi,
+                                   std::vector<std::vector<double>> &DSIGMADgrad_u, std::vector<std::vector<double>> &DSIGMADphi, std::vector<std::vector<double>> &DSIGMADgrad_phi,
+                                   std::vector<std::vector<double>> &DMDgrad_u,     std::vector<std::vector<double>> &DMDphi,     std::vector<std::vector<double>> &DMDgrad_phi,
+                                   std::vector<std::vector<double>> &ADD_TERMS,     std::vector<std::vector<std::vector<double>>> &ADD_JACOBIANS, double delta){
         /*!
         ==========================================
         |    evaluate_model_numeric_gradients    |
@@ -45,28 +45,28 @@ namespace micromorphic_material_library {
         */
 
         //Create temporary matrices and vectors
-        Vector_9  _cauchy;
-        Vector_9  _s;
-        Vector_27 _m;
+        Vector_9  _PK2;
+        Vector_9  _SIGMA;
+        Vector_27 _M;
 
-        Vector_9  _cauchy_p;
-        Vector_9  _s_p;
-        Vector_27 _m_p;
+        Vector_9  _PK2_p;
+        Vector_9  _SIGMA_p;
+        Vector_27 _M_p;
 
-        Vector_9  _cauchy_n;
-        Vector_9  _s_n;
-        Vector_27 _m_n;
+        Vector_9  _PK2_n;
+        Vector_9  _SIGMA_n;
+        Vector_27 _M_n;
 
         std::vector<Eigen::VectorXd> _ADD_TERMS;
 
         //Evaluate the model at the reference point
-        evaluate_model(time,    fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                       _cauchy, _s, _m, _ADD_TERMS);
+        evaluate_model(time, fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
+                       _PK2, _SIGMA,   _M, _ADD_TERMS);
 
         //Populate the stress outputs
-        map_eigen_to_vector(_cauchy,cauchy);
-        map_eigen_to_vector(_s,s);
-        map_eigen_to_vector(_m,m);
+        map_eigen_to_vector(_PK2,PK2);
+        map_eigen_to_vector(_SIGMA,SIGMA);
+        map_eigen_to_vector(_M,M);
 
         //Populate the additional terms
         ADD_TERMS.resize(_ADD_TERMS.size());
@@ -142,8 +142,8 @@ namespace micromorphic_material_library {
             }
 
             //Evaluate the model (positive shift)
-            evaluate_model(time,      fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                           _cauchy_p, _s_p,     _m_p,    _ADD_TERMS);
+            evaluate_model(  time,  fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
+                           _PK2_p, _SIGMA_p,     _M_p,    _ADD_TERMS);
 
             //Perturb the state in the positive direction
             U[J] -= 2*delta;
@@ -170,13 +170,13 @@ namespace micromorphic_material_library {
             }
 
             //Evaluate the model (positive shift)
-            evaluate_model(time,      fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                           _cauchy_n, _s_n,     _m_n,    _ADD_TERMS);
+            evaluate_model(time,    fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
+                           _PK2_n, _SIGMA_n,     _M_n,    _ADD_TERMS);
 
             //Extract the response
-            for (int I=0; I<9;  I++){STRESS_MATRIX[I   ][J] = 0.5*(_cauchy_p(I) - _cauchy_n[I])/delta;}
-            for (int I=0; I<9;  I++){STRESS_MATRIX[I+9 ][J] = 0.5*(_s_p(I)      - _s_n[I])/delta;}
-            for (int I=0; I<27; I++){STRESS_MATRIX[I+18][J] = 0.5*(_m_p(I)      - _m_n[I])/delta;}
+            for (int I=0; I<9;  I++){STRESS_MATRIX[I   ][J] = 0.5*(_PK2_p(I)   - _PK2_n[I])/delta;}
+            for (int I=0; I<9;  I++){STRESS_MATRIX[I+9 ][J] = 0.5*(_SIGMA_p(I) - _SIGMA_n[I])/delta;}
+            for (int I=0; I<27; I++){STRESS_MATRIX[I+18][J] = 0.5*(_M_p(I)     - _M_n[I])/delta;}
 
             U[J] += delta;
 
@@ -193,75 +193,75 @@ namespace micromorphic_material_library {
 
         //Extract the stress jacobians
         //std::cout << "dcauchydgrad_u\n";
-        DcauchyDgrad_u.resize(9);
+        DPK2Dgrad_u.resize(9);
         for (int I=0; I<9; I++){
-            DcauchyDgrad_u[I].resize(9);
+            DPK2Dgrad_u[I].resize(9);
             for (int J=0; J<9; J++){
-                DcauchyDgrad_u[I][J] = STRESS_MATRIX[I][J];
+                DPK2Dgrad_u[I][J] = STRESS_MATRIX[I][J];
             }
         }
         //std::cout << "dcauchydphi\n";
-        DcauchyDphi.resize(9);
+        DPK2Dphi.resize(9);
         for (int I=0; I<9; I++){
-            DcauchyDphi[I].resize(9);
+            DPK2Dphi[I].resize(9);
             for (int J=0; J<9; J++){
-                DcauchyDphi[I][J] = STRESS_MATRIX[I][J+9];
+                DPK2Dphi[I][J] = STRESS_MATRIX[I][J+9];
             }
         }
         //std::cout << "dcauchydgrad_phi\n";
-        DcauchyDgrad_phi.resize(9);
+        DPK2Dgrad_phi.resize(9);
         for (int I=0; I<9; I++){
-            DcauchyDgrad_phi[I].resize(27);
+            DPK2Dgrad_phi[I].resize(27);
             for (int J=0; J<27; J++){
-                DcauchyDgrad_phi[I][J] = STRESS_MATRIX[I][J+18];
+                DPK2Dgrad_phi[I][J] = STRESS_MATRIX[I][J+18];
             }
         }
         //std::cout << "dsdgrad_u\n";
-        DsDgrad_u.resize(9);
+        DSIGMADgrad_u.resize(9);
         for (int I=0; I<9; I++){
-            DsDgrad_u[I].resize(9);
+            DSIGMADgrad_u[I].resize(9);
             for (int J=0; J<9; J++){
-                DsDgrad_u[I][J] = STRESS_MATRIX[I+9][J];
+                DSIGMADgrad_u[I][J] = STRESS_MATRIX[I+9][J];
             }
         }
         //std::cout << "dsdphi\n";
-        DsDphi.resize(9);
+        DSIGMADphi.resize(9);
         for (int I=0; I<9; I++){
-            DsDphi[I].resize(9);
+            DSIGMADphi[I].resize(9);
             for (int J=0; J<9; J++){
-                DsDphi[I][J] = STRESS_MATRIX[I+9][J+9];
+                DSIGMADphi[I][J] = STRESS_MATRIX[I+9][J+9];
             }
         }
         //std::cout << "dsdgrad_phi\n";
-        DsDgrad_phi.resize(9);
+        DSIGMADgrad_phi.resize(9);
         for (int I=0; I<9; I++){
-            DsDgrad_phi[I].resize(27);
+            DSIGMADgrad_phi[I].resize(27);
             for (int J=0; J<27; J++){
-                DsDgrad_phi[I][J] = STRESS_MATRIX[I+9][J+18];
+                DSIGMADgrad_phi[I][J] = STRESS_MATRIX[I+9][J+18];
             }
         }
         //std::cout << "dmdgrad_u\n";
-        DmDgrad_u.resize(27);
+        DMDgrad_u.resize(27);
         for (int I=0; I<27; I++){
-            DmDgrad_u[I].resize(9);
+            DMDgrad_u[I].resize(9);
             for (int J=0; J<9; J++){
-                DmDgrad_u[I][J] = STRESS_MATRIX[I+18][J];
+                DMDgrad_u[I][J] = STRESS_MATRIX[I+18][J];
             }
         }
         //std::cout << "dmdphi\n";
-        DmDphi.resize(27);
+        DMDphi.resize(27);
         for (int I=0; I<27; I++){
-            DmDphi[I].resize(9);
+            DMDphi[I].resize(9);
             for (int J=0; J<9; J++){
-                DmDphi[I][J] = STRESS_MATRIX[I+18][J+9];
+                DMDphi[I][J] = STRESS_MATRIX[I+18][J+9];
             }
         }
         //std::cout << "dmdgrad_phi\n";
-        DmDgrad_phi.resize(27);
+        DMDgrad_phi.resize(27);
         for (int I=0; I<27; I++){
-            DmDgrad_phi[I].resize(27);
+            DMDgrad_phi[I].resize(27);
             for (int J=0; J<27; J++){
-                DmDgrad_phi[I][J] = STRESS_MATRIX[I+18][J+18];
+                DMDgrad_phi[I][J] = STRESS_MATRIX[I+18][J+18];
             }
         }
 
@@ -273,7 +273,7 @@ namespace micromorphic_material_library {
                                    const double (&grad_u)[3][3],           const double (&phi)[9],
                                    const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
                                    const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                                   std::vector<double> &cauchy,                      std::vector<double> &s,                        std::vector<double> &m,
+                                   std::vector<double> &PK2,               std::vector<double> &SIGMA,                           std::vector<double> &M,
                                    std::vector<std::vector<double>> &ADD_TERMS){
 
         /*!
@@ -288,20 +288,20 @@ namespace micromorphic_material_library {
         */
 
         //Create temporary matrices and vectors
-        Vector_9  _cauchy;
-        Vector_9  _s;
-        Vector_27 _m;
+        Vector_9  _PK2;
+        Vector_9  _SIGMA;
+        Vector_27 _M;
 
         std::vector<Eigen::VectorXd> _ADD_TERMS;
 
         //Evaluate the model
         evaluate_model(time,    fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                       _cauchy, _s, _m, _ADD_TERMS);
+                       _PK2,     _SIGMA,      _M, _ADD_TERMS);
 
         //Populate the stress outputs
-        map_eigen_to_vector(_cauchy,cauchy);
-        map_eigen_to_vector(_s,s);
-        map_eigen_to_vector(_m,m);
+        map_eigen_to_vector(_PK2,PK2);
+        map_eigen_to_vector(_SIGMA,SIGMA);
+        map_eigen_to_vector(_M,M);
 
         //Populate the additional terms
         ADD_TERMS.resize(_ADD_TERMS.size());
@@ -313,11 +313,11 @@ namespace micromorphic_material_library {
                                    const double (&grad_u)[3][3],           const double (&phi)[9],
                                    const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
                                    const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                                   std::vector<double> &cauchy,                      std::vector<double> &s,                        std::vector<double> &m,
-                                   std::vector<std::vector<double>> &DcauchyDgrad_u, std::vector<std::vector<double>> &DcauchyDphi, std::vector<std::vector<double>> &DcauchyDgrad_phi,
-                                   std::vector<std::vector<double>> &DsDgrad_u,      std::vector<std::vector<double>> &DsDphi,      std::vector<std::vector<double>> &DsDgrad_phi,
-                                   std::vector<std::vector<double>> &DmDgrad_u,      std::vector<std::vector<double>> &DmDphi,      std::vector<std::vector<double>> &DmDgrad_phi,
-                                   std::vector<std::vector<double>> &ADD_TERMS,      std::vector<std::vector<std::vector<double>>> &ADD_JACOBIANS){
+                                   std::vector<double> &PK2,                        std::vector<double> &SIGMA,                   std::vector<double> &M,
+                                   std::vector<std::vector<double>> &DPK2Dgrad_u,   std::vector<std::vector<double>> &DPK2Dphi,   std::vector<std::vector<double>> &DPK2Dgrad_phi,
+                                   std::vector<std::vector<double>> &DSIGMADgrad_u, std::vector<std::vector<double>> &DSIGMADphi, std::vector<std::vector<double>> &DSIGMADgrad_phi,
+                                   std::vector<std::vector<double>> &DMDgrad_u,     std::vector<std::vector<double>> &DMDphi,     std::vector<std::vector<double>> &DMDgrad_phi,
+                                   std::vector<std::vector<double>> &ADD_TERMS,     std::vector<std::vector<std::vector<double>>> &ADD_JACOBIANS){
 
         /*!
         ========================
@@ -333,21 +333,21 @@ namespace micromorphic_material_library {
         //std::cout << "In evaluate_model";
 
         //Create temporary matrices and vectors
-        Vector_9  _cauchy;
-        Vector_9  _s;
-        Vector_27 _m;
+        Vector_9  _PK2;
+        Vector_9  _SIGMA;
+        Vector_27 _M;
 
-        Matrix_9x9  _DcauchyDgrad_u;
-        Matrix_9x9  _DcauchyDphi;
-        Matrix_9x27 _DcauchyDgrad_phi;
+        Matrix_9x9  _DPK2Dgrad_u;
+        Matrix_9x9  _DPK2Dphi;
+        Matrix_9x27 _DPK2Dgrad_phi;
 
-        Matrix_9x9  _DsDgrad_u;
-        Matrix_9x9  _DsDphi;
-        Matrix_9x27 _DsDgrad_phi;
+        Matrix_9x9  _DSIGMADgrad_u;
+        Matrix_9x9  _DSIGMADphi;
+        Matrix_9x27 _DSIGMADgrad_phi;
 
-        Matrix_27x9  _DmDgrad_u;
-        Matrix_27x9  _DmDphi;
-        Matrix_27x27 _DmDgrad_phi;
+        Matrix_27x9  _DMDgrad_u;
+        Matrix_27x9  _DMDphi;
+        Matrix_27x27 _DMDgrad_phi;
 
         std::vector<Eigen::VectorXd> _ADD_TERMS;
         std::vector<Eigen::MatrixXd> _ADD_JACOBIANS;
@@ -356,37 +356,37 @@ namespace micromorphic_material_library {
         //std::cout << "temporary matrices created\n";
         //assert(-1==0);
         evaluate_model(time,    fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                       _cauchy,                      _s, _m,
-                       _DcauchyDgrad_u, _DcauchyDphi, _DcauchyDgrad_phi,
-                       _DsDgrad_u,      _DsDphi,      _DsDgrad_phi,
-                       _DmDgrad_u,      _DmDphi,      _DmDgrad_phi,
-                       _ADD_TERMS,      _ADD_JACOBIANS);
+                       _PK2,           _SIGMA,      _M,
+                       _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
+                       _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
+                       _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
+                       _ADD_TERMS,     _ADD_JACOBIANS);
 
         //assert(0==1);
 
         //Populate the stress outputs
-        map_eigen_to_vector(_cauchy,cauchy);
-        map_eigen_to_vector(_s,s);
-        map_eigen_to_vector(_m,m);
+        map_eigen_to_vector(_PK2,PK2);
+        map_eigen_to_vector(_SIGMA,SIGMA);
+        map_eigen_to_vector(_M,M);
 
         //assert(1==2);
 
         //Populate the jacobian outputs
-        map_eigen_to_vector(_DcauchyDgrad_u,   DcauchyDgrad_u);
-        map_eigen_to_vector(_DcauchyDphi,      DcauchyDphi);
-        map_eigen_to_vector(_DcauchyDgrad_phi, DcauchyDgrad_phi);
+        map_eigen_to_vector(_DPK2Dgrad_u,   DPK2Dgrad_u);
+        map_eigen_to_vector(_DPK2Dphi,      DPK2Dphi);
+        map_eigen_to_vector(_DPK2Dgrad_phi, DPK2Dgrad_phi);
 
         //assert(2==3);
 
-        map_eigen_to_vector(_DsDgrad_u,   DsDgrad_u);
-        map_eigen_to_vector(_DsDphi,      DsDphi);
-        map_eigen_to_vector(_DsDgrad_phi, DsDgrad_phi);
+        map_eigen_to_vector(_DSIGMADgrad_u,   DSIGMADgrad_u);
+        map_eigen_to_vector(_DSIGMADphi,      DSIGMADphi);
+        map_eigen_to_vector(_DSIGMADgrad_phi, DSIGMADgrad_phi);
 
         //assert(3==4);
 
-        map_eigen_to_vector(_DmDgrad_u,   DmDgrad_u);
-        map_eigen_to_vector(_DmDphi,      DmDphi);
-        map_eigen_to_vector(_DmDgrad_phi, DmDgrad_phi);
+        map_eigen_to_vector(_DMDgrad_u,   DMDgrad_u);
+        map_eigen_to_vector(_DMDphi,      DMDphi);
+        map_eigen_to_vector(_DMDgrad_phi, DMDgrad_phi);
 
         //assert(4==5);
         ADD_TERMS.resize(_ADD_TERMS.size());
