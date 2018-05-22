@@ -1065,11 +1065,24 @@ namespace balance_equations{
         Matrix_27x12 DMDU;
         DMDU = (DMDgrad_u*dgrad_udU + DMDphi*dphidU + DMDgrad_phi*dgrad_phidU);
         
-        //double tmp;
+        //Temporary variables
+
+        Vector_9 PK2mSIGMA;
+        PK2mSIGMA = PK2 - SIGMA;
+
+        Matrix_9x12 DPK2DUmDSIGMADU;
+        DPK2DUmDSIGMADU = DPK2DU - DSIGMADU;
+
         double F_iI;
         double F_jJ;
         double chi_iI;
         double M_KJI;
+
+        double dFdU_iIA;
+        double dFdU_jJA;
+        double dchidU_iIA;
+        double PK2mSIGMA_IJ;
+
         double tmp2;
         double tmp3;
         int    Jhat;
@@ -1096,29 +1109,31 @@ namespace balance_equations{
         for (int I=0; I<3; I++){
             Jhat = sot_to_voigt_map[component_i][I];
             F_iI = F(component_i,I);
+            dFdU_iIA = dgrad_udU(Jhat,dof_num);
             for (int J=0; J<3; J++){
                 Khat = sot_to_voigt_map[I][J];
                 Lhat = sot_to_voigt_map[component_j][J];
-                tmp2 = PK2(Khat) - SIGMA(Khat);
-                DcintDU_ijA += N*( dgrad_udU(Jhat,dof_num)*tmp2*F(component_j,J)
-                                  +F_iI*(DPK2DU(Khat,dof_num) - DSIGMADU(Khat,dof_num))*F(component_j,J)
-                                  +F_iI*tmp2*dgrad_udU(Lhat,dof_num));
+                PK2mSIGMA_IJ = PK2mSIGMA(Khat);
+                DcintDU_ijA += N*( dFdU_iIA*PK2mSIGMA_IJ*F(component_j,J)
+                                  +F_iI*DPK2DUmDSIGMADU(Khat,dof_num)*F(component_j,J)
+                                  +F_iI*PK2mSIGMA_IJ*dgrad_udU(Lhat,dof_num));
             }
         }
         
         for (int I=0; I<3; I++){
             Jhat = sot_to_voigt_map[component_i][I];
             chi_iI = chi(component_i,I);
-            tmp3 = dphidU(Jhat,dof_num);
+            dchidU_iIA = dphidU(Jhat,dof_num);
             for (int J=0; J<3; J++){
                 Lhat = sot_to_voigt_map[component_j][J];
+                dFdU_jJA = dgrad_udU(Lhat,dof_num);
                 F_jJ = F(component_j,J);
                 for (int K=0; K<3; K++){
                     Mhat = tot_to_voigt_map[K][J][I];
                     M_KJI = M(Mhat);
-                    DcintDU_ijA -= dNdX[K]*( dgrad_udU(Lhat,dof_num) * chi_iI * M_KJI
-                                            +F_jJ * chi_iI * DMDU(Mhat,dof_num)
-                                            +F_jJ * M_KJI * tmp3);
+                    DcintDU_ijA -= dNdX[K]*( dFdU_jJA * chi_iI * M_KJI
+                                            +    F_jJ * chi_iI * DMDU(Mhat,dof_num)
+                                            +    F_jJ * M_KJI  * dchidU_iIA);
                 }
             }
         }
