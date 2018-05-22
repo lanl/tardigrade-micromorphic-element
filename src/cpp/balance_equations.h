@@ -206,15 +206,21 @@ namespace balance_equations{
     void construct_dgrad_udU(const double (&detadx)[3], SpMat &dgrad_udU);    
 
     void construct_dgrad_udU(const double (&detadx)[3], Matrix_9x12 &dgrad_udU);
+
+    void construct_dgrad_udU(const double (&detadx)[3], const int dof_num, Vector_9 &dgrad_udU);
     
     void construct_dphidU(const double &eta, SpMat &dphidU);
 
     void construct_dphidU(const double &eta, Matrix_9x12 &dphidU);
+
+    void construct_dphidU(const double &eta, const int dof_num, Vector_9 &dphidU);
     
     void construct_dgrad_phidU(const double (&detadx)[3], SpMat &dgrad_phidU);
 
     void construct_dgrad_phidU(const double (&detadx)[3], Matrix_27x12 &dgrad_phidU);
     
+    void construct_dgrad_phidU(const double (&detadx)[3], const int dof_num, Vector_27 &dgrad_phidU);
+
     //The jacobians of u and phi w.r.t. the DOF vector (Current Configuration)
     void construct_dgrad_udU(const Matrix_3x3 &Finv, const double (&detadx)[3], Matrix_9x12 &dgrad_udU);
     void construct_dgrad_phidU(const double (&grad_phi)[9][3], const Matrix_3x3 &Finv, const double (&detadx)[3], Matrix_27x12 &dgrad_phidU);
