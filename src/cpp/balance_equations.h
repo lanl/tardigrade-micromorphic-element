@@ -89,15 +89,27 @@ namespace balance_equations{
     
     //Compute the jacobians of the balance of linear momentum w.r.t. the indicated displacement dof (Total-Lagrangian formulation)
     void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], const Matrix_3x3 &F, 
-                                         const Vector_9 &PK2, const Matrix_9x9 &DPK2Dgrad_u, const Matrix_9x9 &DPK2Dphi, const Matrix_9x27 &DPK2Dgrad_phi, Matrix_3x12 &DfintDU);
+                                         const Vector_9 &PK2,
+                                         const Matrix_9x9 &DPK2Dgrad_u, const Matrix_9x9 &DPK2Dphi, const Matrix_9x27 &DPK2Dgrad_phi,
+                                         Matrix_3x12 &DfintDU);
     
     void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const Matrix_3x3 &F,
-                                         const Vector_9 &PK2,  const Matrix_9x9 &DPK2Dgrad_u, const Matrix_9x9 &DPK2Dphi, const Matrix_9x27 &DPK2Dgrad_phi, double &DfintDU_iA);
+                                         const Vector_9 &PK2,
+                                         const Matrix_9x9 &DPK2Dgrad_u, const Matrix_9x9 &DPK2Dphi, const Matrix_9x27 &DPK2Dgrad_phi,
+                                         double &DfintDU_iA);
     
-    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], const std::vector<std::vector<double>> &F, 
-                                         const std::vector<double> &PK2, const std::vector<std::vector<double>> &DPK2Dgrad_u, const std::vector<std::vector<double>> &DPK2Dphi, const std::vector<std::vector<double>> &DPK2Dgrad_phi, std::vector<std::vector<double>> &DfintDU);
+    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3],
+                                         const std::vector<std::vector<double>> &F, 
+                                         const std::vector<double> &PK2,
+                                         const std::vector<std::vector<double>> &DPK2Dgrad_u, const std::vector<std::vector<double>> &DPK2Dphi, const std::vector<std::vector<double>> &DPK2Dgrad_phi,
+                                         std::vector<std::vector<double>> &DfintDU);
     
-    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const std::vector<std::vector<double>> &F, const std::vector<double> &PK2, const std::vector<std::vector<double>> &DPK2Dgrad_u, const std::vector<std::vector<double>> &DPK2Dphi, const std::vector<std::vector<double>> &DPK2Dgrad_phi, double &DfintDU_iA);
+    void compute_internal_force_jacobian(const int &i,    const int &dof_num,
+                                         const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3],
+                                         const std::vector<std::vector<double>> &F, 
+                                         const std::vector<double> &PK2,
+                                         const std::vector<std::vector<double>> &DPK2Dgrad_u, const std::vector<std::vector<double>> &DPK2Dphi, const std::vector<std::vector<double>> &DPK2Dgrad_phi,
+                                         double &DfintDU_iA);
 
     //Compute the jacobians of the balance of first moment of momentum
     void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
