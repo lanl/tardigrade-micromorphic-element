@@ -160,7 +160,7 @@ int test_constructors(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 8;
-    bool test_results[test_num] = {false,false,false,false,false,false,false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Form the required vectors
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,1,0,1,1,1,1,0,1,1};
@@ -179,7 +179,7 @@ int test_constructors(std::ofstream &results){
     
     test_results[0]  = A.RHS.rows()    == 96;
     test_results[1]  = A.AMATRX.rows() == 96;
-    test_results[1] *= A.AMATRX.cols() == 96;
+    test_results[1]  = test_results[1] * (A.AMATRX.cols() == 96);
     
     //!|=> Test 2
     //!Test the constructor with the reference node locations
@@ -220,7 +220,7 @@ int test_constructors(std::ofstream &results){
     test_results[6] = true;
     for(int n=0; n<8; n++){
         for(int i=0; i<3; i++){
-            test_results[6] *= fabs(C.current_coords[n][i]-(U[i+n*12]+reference_coords[i+n*3]))<1e-6;
+            test_results[6] = test_results[6] * (fabs(C.current_coords[n][i]-(U[i+n*12]+reference_coords[i+n*3]))<1e-6);
         }
     }
     
@@ -240,7 +240,7 @@ int test_constructors(std::ofstream &results){
         phic(2,0) = C.dof_at_nodes[n][10];
         phic(1,0) = C.dof_at_nodes[n][11];
         
-        test_results[7] *= phic.data == C.node_phis[n].data;
+        test_results[7] = test_results[7] * (phic.data == C.node_phis[n].data);
     }
     
     
@@ -279,7 +279,7 @@ int test_shape_functions(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 8;
-    bool test_results[test_num] = {false,false,false,false,false,false,false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0,0,1,1,0,1,1,1,1,0,1,1};
@@ -310,10 +310,10 @@ int test_shape_functions(std::ofstream &results){
     for(int n=0; n<8; n++){
         element.set_gpt_num(n);        //Set the, "gauss point," of the element to the current node
         element.set_shape_functions(); //Compute all of the values of the shape functions
-        test_results[0] *= (1e-9>(element.get_N(n)-1) && (element.get_N(n)-1))>=0; //The shape function should be equal to one at the specified node
+        test_results[0] = test_results[0] * ((1e-9>(element.get_N(n)-1) && (element.get_N(n)-1))>=0); //The shape function should be equal to one at the specified node
         for(int m=0; m<8; m++){
-            if(n==m){test_results[0] *= ((1e-9>(element.get_N(n)-element.get_N(m))) && ((element.get_N(n)-element.get_N(m))>=0));} //The shape function should only be 1 at N==M
-            else{test_results[0] *= 1e-9>element.get_N(n)-element.get_N(m)-1>=0;}
+            if(n==m){test_results[0] = test_results[0] * ((1e-9>(element.get_N(n)-element.get_N(m))) && ((element.get_N(n)-element.get_N(m))>=0));} //The shape function should only be 1 at N==M
+            else{test_results[0] = test_results[0] * (1e-9>element.get_N(n)-element.get_N(m)-1>=0);}
         }
     }
     
@@ -351,7 +351,7 @@ int test_shape_functions(std::ofstream &results){
     for(int n=0; n<8; n++){
         for(int i=0; i<3; i++){
             temp_diff        = fabs(element.get_dNdxi(n)[i]-dNdxi_answers[n][i]);
-            test_results[2] *= (1e-9>temp_diff);
+            test_results[2] = test_results[2] * (1e-9>temp_diff);
         }
     }
     
@@ -372,7 +372,7 @@ int test_shape_functions(std::ofstream &results){
     for(int n=0; n<8; n++){
         for(int i=0; i<3; i++){
             temp_diff = fabs(element.get_dNdxi(n)[i]-dNdxi_answers[n][i]);
-            test_results[3] *= ((1e-9>temp_diff) && (temp_diff>=0));
+            test_results[3] = test_results[3] * ((1e-9>temp_diff) && (temp_diff>=0));
         }
     }
     
@@ -428,7 +428,7 @@ int test_shape_functions(std::ofstream &results){
         //print_vector("result",element.get_dNdx(0,n));
         //print_vector("answer",dNdX_answer[n]);
         for(int i=0; i<3; i++){
-            test_results[6] *= 1e-9>fabs(element.get_dNdx(0,n)[i]-dNdX_answer[n][i]);
+            test_results[6] = test_results[6] * (1e-9>fabs(element.get_dNdx(0,n)[i]-dNdX_answer[n][i]));
         }
     }
     
@@ -459,7 +459,7 @@ int test_shape_functions(std::ofstream &results){
         //print_vector("result",element.get_dNdx(1,n));
         //print_vector("answer",dNdx_answer[n]);
         for(int i=0; i<3; i++){
-            test_results[7] *= 1e-9>fabs(element.get_dNdx(1,n)[i]-dNdx_answer[n][i]);
+            test_results[7] = test_results[7] * (1e-9>fabs(element.get_dNdx(1,n)[i]-dNdx_answer[n][i]));
         }
     }
     
@@ -1320,7 +1320,7 @@ int test_fundamental_measures(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 6;
-    bool test_results[test_num] = {false,false,false,false,false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Form the required vectors for element formation
     std::vector< double > reference_coords = {0,0,0,1,0,0,1,1,0,0,1,0,0.1,-0.2,1,1.1,-0.2,1.1,1.1,0.8,1.1,0.1,0.8,1};
@@ -1424,7 +1424,7 @@ int test_fundamental_measures(std::ofstream &results){
         
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
-                test_results[3] *= 1e-9>fabs(gradient[K][3*I+J] - dFdU_result(I,J,K));
+                test_results[3] = test_results[3] * (1e-9>fabs(gradient[K][3*I+J] - dFdU_result(I,J,K)));
                 //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dFdU_result(I,J,K) << "\n";
                 if(!test_results[3]){break;}
             }
@@ -1448,7 +1448,7 @@ int test_fundamental_measures(std::ofstream &results){
         
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
-                test_results[4] *= 1e-9>fabs(gradient[K][3*I+J] - dchidU_result(I,J,K));
+                test_results[4] = test_results[4] * (1e-9>fabs(gradient[K][3*I+J] - dchidU_result(I,J,K)));
                 //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dchidU_result(I,J,K) << "\n";
                 if(!test_results[4]){break;}
             }
@@ -1472,7 +1472,7 @@ int test_fundamental_measures(std::ofstream &results){
         for(int J=0; J<3; J++){
             for(int K=0; K<3; K++){
                 for(int L=0; L<96; L++){
-                    test_results[5] *= 1e-8>fabs(gradient[L][9*K+3*I+J] - dgrad_chidU_result(I,J,K,L));
+                    test_results[5] = test_results[5] * (1e-8>fabs(gradient[L][9*K+3*I+J] - dgrad_chidU_result(I,J,K,L)));
                     //std::cout << "answer: " << gradient[L][9*K+3*I+J] << "\nresult: " << dgrad_chidU_result(I,J,K,L) << "\ndiff: " << fabs(gradient[L][9*K+3*I+J] - dgrad_chidU_result(I,J,K,L)) << "\n";
                     if(!test_results[5]){break;}
                 }
@@ -1520,7 +1520,7 @@ int test_deformation_measures(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 6;
-    bool test_results[test_num] = {false,false,false,false,false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(19,0.);
@@ -1622,7 +1622,7 @@ int test_deformation_measures(std::ofstream &results){
         
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
-                test_results[3] *= 1e-9>fabs(gradient[K][3*I+J] - dCdU_result(I,J,K));
+                test_results[3] = test_results[3] * (1e-9>fabs(gradient[K][3*I+J] - dCdU_result(I,J,K)));
                 //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dFdU_result(I,J,K) << "\n";
                 if(!test_results[3]){break;}
             }
@@ -1646,7 +1646,7 @@ int test_deformation_measures(std::ofstream &results){
         
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
-                test_results[4] *= 1e-9>fabs(gradient[K][3*I+J] - dPsidU_result(I,J,K));
+                test_results[4] = test_results[4] * (1e-9>fabs(gradient[K][3*I+J] - dPsidU_result(I,J,K)));
                 //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dchidU_result(I,J,K) << "\n";
                 if(!test_results[4]){break;}
             }
@@ -1670,7 +1670,7 @@ int test_deformation_measures(std::ofstream &results){
         for(int J=0; J<3; J++){
             for(int K=0; K<3; K++){
                 for(int L=0; L<96; L++){
-                    test_results[5] *= 1e-8>fabs(gradient[L][9*K+3*I+J] - dGammadU_result(I,J,K,L));
+                    test_results[5] = test_results[5] * (1e-8>fabs(gradient[L][9*K+3*I+J] - dGammadU_result(I,J,K,L)));
                     //std::cout << "answer: " << gradient[L][9*K+3*I+J] << "\nresult: " << dGammadU_result(I,J,K,L) << "\n";
                     //std::cout << I << J << K << L << "\n";
                     if(!test_results[5]){break;}
@@ -1717,7 +1717,7 @@ int test_stress_tangents(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 3;
-    bool test_results[test_num] = {false,false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(19,0.);
@@ -1791,7 +1791,7 @@ int test_stress_tangents(std::ofstream &results){
         
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
-                test_results[0] *= double_compare(gradient[K][3*I+J],dPK2dU_result(I,J,K));
+                test_results[0] = test_results[0] * (double_compare(gradient[K][3*I+J],dPK2dU_result(I,J,K)));
                 //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dPK2dU_result(I,J,K) << "\n";
                 if(!test_results[0]){break;}
             }
@@ -1812,7 +1812,7 @@ int test_stress_tangents(std::ofstream &results){
         
         for(int I=0; I<3; I++){
             for(int J=0; J<3; J++){
-                test_results[2] *= double_compare(gradient[K][3*I+J],dSIGMAdU_result(I,J,K));
+                test_results[2] = test_results[2] * (double_compare(gradient[K][3*I+J],dSIGMAdU_result(I,J,K)));
                 //std::cout << "answer: " << gradient[K][3*I+J] << "\nresult: " << dPK2dU_result(I,J,K) << "\n";
                 if(!test_results[1]){break;}
             }
@@ -1836,7 +1836,7 @@ int test_stress_tangents(std::ofstream &results){
         for(int J=0; J<3; J++){
             for(int K=0; K<3; K++){
                 for(int L=0; L<96; L++){
-                    test_results[2] *= double_compare(gradient[L][9*K+3*I+J],dMdU_result(I,J,K,L));
+                    test_results[2] = test_results[2] * (double_compare(gradient[L][9*K+3*I+J],dMdU_result(I,J,K,L)));
                     //std::cout << "answer: " << gradient[L][9*K+3*I+J] << "\nresult: " << dMdU_result(I,J,K,L) << "\n";
                     //std::cout << I << J << K << L << "\n";
                     if(!test_results[2]){break;}
@@ -1882,7 +1882,7 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 2;
-    bool test_results[test_num] = {false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(19,0.);
@@ -1963,7 +1963,7 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     //!Compare the expected results to the element results
     test_results[0] = true;
     for(int i=0; i<96; i++){
-        test_results[0] *= 1e-9>fabs(element.RHS(i)-RHS[i]);
+        test_results[0] = test_results[0] * (1e-9>fabs(element.RHS(i)-RHS[i]));
     }
     
     //!Compare the tangents
@@ -1978,7 +1978,7 @@ int test_balance_of_linear_momentum(std::ofstream &results){
     test_results[1]=true;
     for(int i=95; i>=0; i--){
         for(int j=95; j>=0; j--){
-            test_results[1] *= double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5);
+            test_results[1] = test_results[1] * (double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5));
             //std::cout << "(" << i << ", " << j << ")\n";
             //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
             if(!test_results[1]){break;}
@@ -2024,7 +2024,7 @@ int test_mass_matrix(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 2;
-    bool test_results[test_num] = {false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(19,0.);
@@ -2099,7 +2099,7 @@ int test_mass_matrix(std::ofstream &results){
     test_results[0] = true;
     for(int m=0; m<8; m++){
         for(int n=0; n<8; n++){
-            test_results[0]*= 1e-9>fabs(mini_mass(m,n)-element.mini_mass(m,n));
+            test_results[0] = test_results[0] * (1e-9>fabs(mini_mass(m,n)-element.mini_mass(m,n)));
         }
     }
     
@@ -2129,7 +2129,7 @@ int test_mass_matrix(std::ofstream &results){
     test_results[1] = true;
     for(int m=0; m<96; m++){
         for(int n=0; n<96; n++){
-            test_results[1] *= 1e-9>fabs(element2.AMATRX(m,n)-mass_matrix(m,n));
+            test_results[1] = test_results[1] * (1e-9>fabs(element2.AMATRX(m,n)-mass_matrix(m,n)));
         }
     }
     
@@ -2168,7 +2168,7 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 2;
-    bool test_results[test_num] = {false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(19,0.);
@@ -2278,7 +2278,7 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     test_results[1]=true;
     for(int i=0; i<96; i++){
         for(int j=0; j<96; j++){
-            test_results[1] *= double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5);
+            test_results[1] = test_results[1] * (double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5));
             //std::cout << "(" << i << ", " << j << ")\n";
             //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
             if(!test_results[1]){break;}
@@ -2289,7 +2289,7 @@ int test_balance_of_first_moment_of_momentum(std::ofstream &results){
     //!Compare the expected results to the element results
     test_results[0] = true;
     for(int i=0; i<96; i++){
-        test_results[0] *= 1e-9>fabs(element.RHS(i)-RHS[i]);
+        test_results[0] = test_results[0] * (1e-9>fabs(element.RHS(i)-RHS[i]));
     }
     
     //Compare all test results
@@ -2326,7 +2326,7 @@ int test_integrate_element(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 2;
-    bool test_results[test_num] = {false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Initialize the floating point parameters
     std::vector< double > fparams(19,0.);
@@ -2438,7 +2438,7 @@ int test_integrate_element(std::ofstream &results){
     //!Compare the expected results to the element results
     test_results[0] = true;
     for(int i=0; i<96; i++){
-        test_results[0] *= 1e-9>fabs(element.RHS(i)-RHS[i]);
+        test_results[0] = test_results[0] * (1e-9>fabs(element.RHS(i)-RHS[i]));
     }
     
     //!Compare the tangents
@@ -2451,7 +2451,7 @@ int test_integrate_element(std::ofstream &results){
     test_results[1]=true;
     for(int i=0; i<96; i++){
         for(int j=0; j<96; j++){
-            test_results[1] *= double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5);
+            test_results[1] = test_results[1] * (double_compare(gradient[i][j],element.AMATRX(j,i),1e-5,1e-5));
             //std::cout << "(" << i << ", " << j << ")\n";
             //std::cout << "answer: " << gradient[i][j] << "\nresult: " << element.AMATRX[j][i] << "\ndiff: " << gradient[i][j]-element.AMATRX[j][i] <<"\n";
             if(!test_results[1]){break;}

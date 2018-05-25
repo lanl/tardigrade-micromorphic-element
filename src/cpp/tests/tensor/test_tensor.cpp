@@ -37,7 +37,7 @@ int test_tensor_functionality(std::ofstream &results){
     can be generated and manipulated.*/
 
     int  test_num        = 6;
-    bool test_results[test_num] = {false,false,false,false,false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //Define a test vector
     std::vector< int > v_shape;                 //Vector shape vector
@@ -167,7 +167,7 @@ int test_eye(std::ofstream &results){
     
     //Initialize the results
     int  test_num        = 2;
-    bool test_results[test_num] = {false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //Compute the identity tensor
     tensor::Tensor23 I = tensor::eye();
@@ -229,7 +229,7 @@ int test_FOT_eye(std::ofstream &results){
     
     //Initialize the results
     int  test_num        = 2;
-    bool test_results[test_num] = {false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //Compute the identity tensor
     tensor::Tensor43 FOTI = tensor::FOT_eye();
@@ -306,7 +306,7 @@ int test_inverse(std::ofstream &results){
     tensor.*/
     
     int  test_num               = 2;
-    bool test_results[test_num] = {false,false};
+    std::vector<bool> test_results(test_num,false);
     
     /*!Test the inverse of a second order tensor*/
     std::vector< int > m_shape; //Initialize the shape vector
@@ -403,7 +403,7 @@ int test_det(std::ofstream &results){
     those computed.*/
     
     int  test_num               = 2;
-    bool test_results[test_num] = {false,false};
+    std::vector<bool> test_results(test_num,false);
     
     /*!Test the determinant of a second order tensor*/
     std::vector< int > m_shape; //Initialize the shape vector

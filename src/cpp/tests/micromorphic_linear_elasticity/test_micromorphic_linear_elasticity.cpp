@@ -149,7 +149,7 @@ void test_stiffness_tensors(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 4;
-    bool test_results[test_num] = {false,false,false,false};
+    std::vector<bool> test_results(test_num, false);
     
     //!Initialize the floating point parameters
     double fpointer[19];
@@ -846,7 +846,7 @@ void test_get_stress(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 10;
-    bool test_results[test_num] = {false,false,false,false,false,false,false,false,false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Seed the random number generator
     srand (1);

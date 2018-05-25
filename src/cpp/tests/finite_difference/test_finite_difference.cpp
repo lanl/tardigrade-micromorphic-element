@@ -173,7 +173,7 @@ int test_finite_difference(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 3;
-    bool test_results[test_num] = {false,false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Initialize the points about which to compute the finite differences
     std::vector< double > x01(1,2.6);
@@ -232,7 +232,7 @@ int test_numeric_gradient(std::ofstream &results){
     
     //!Initialize test results
     int  test_num        = 3;
-    bool test_results[test_num] = {false,false,false};
+    std::vector<bool> test_results(test_num,false);
     
     //!Initialize the points about which to compute the finite differences
     std::vector< double > x01 = {2.3,-5.7};
