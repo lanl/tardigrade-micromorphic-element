@@ -10055,24 +10055,39 @@ int test_compute_internal_force_jacobian(std::ofstream &results,bool MOOSE=false
     balance_equations::map_eigen_to_vector(dPK2dF,        _DPK2Dgrad_u);
     balance_equations::map_eigen_to_vector(dPK2dchi,      _DPK2Dphi);
     balance_equations::map_eigen_to_vector(dPK2dgrad_chi, _DPK2Dgrad_phi);
-    t0 = Clock::now();
-    balance_equations::compute_internal_force_jacobian(N, dNdX, eta, detadX, _F, _PK2, _DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, __r);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (vectors): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+
+    unsigned int n=1000;
+    double avg_time=0;
+
+    for (int _n=0; _n<n; _n++){
+
+        t0 = Clock::now();
+        balance_equations::compute_internal_force_jacobian(N, dNdX, eta, detadX, _F, _PK2, _DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, __r);
+        t1 = Clock::now();
+
+        avg_time += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian (vectors): " << avg_time << "\n";
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
+//    std::cout << "_r:\n" << _r << "\n";
 
     //Test the computation of the jacobian in a component-wise fashion
     double tmp;
-    t0 = Clock::now();
-    for (int i=0; i<3; i++){
-        for (int j=0; j<12; j++){
-            balance_equations::compute_internal_force_jacobian(i,j,N,dNdX,eta,detadX,_F,_PK2,_DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, tmp);
-            __r[i][j] = tmp;
+    avg_time = 0;
+    for (int _n=0; _n<n; _n++){
+        t0 = Clock::now();
+        for (int i=0; i<3; i++){
+            for (int j=0; j<12; j++){
+                balance_equations::compute_internal_force_jacobian(i,j,N,dNdX,eta,detadX,_F,_PK2,_DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, tmp);
+                __r[i][j] = tmp;
+            }
         }
+        t1 = Clock::now();
+
+        avg_time += std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()/((double)n);
     }
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (component wise vectors): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    std::cout << "Analytic Jacobian (component wise vectors): " << avg_time << "\n";
     balance_equations::map_vector_to_eigen(__r, _r);
 //    std::cout << "__r:\n";
 //    print_matrix(__r);
@@ -10294,17 +10309,22 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
     balance_equations::map_eigen_to_vector(dMdF,        _DMDgrad_u);
     balance_equations::map_eigen_to_vector(dMdchi,      _DMDphi);
     balance_equations::map_eigen_to_vector(dMdgrad_chi, _DMDgrad_phi);
-    
-    t0 = Clock::now();
-    balance_equations::compute_internal_couple_jacobian(N, dNdx, eta, detadx,
-                                                        _F, _chi,
-                                                        _PK2,            _SIGMA,       _M,
-                                                        _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
-                                                        _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
-                                                        _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
-                                                        __r);
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (vectors): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+
+    unsigned int n=1000;
+    double avg_time=0;
+    for(int _n=0; _n<n; _n++){    
+        t0 = Clock::now();
+        balance_equations::compute_internal_couple_jacobian(N, dNdx, eta, detadx,
+                                                            _F, _chi,
+                                                            _PK2,            _SIGMA,       _M,
+                                                            _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
+                                                            _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
+                                                            _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
+                                                            __r);
+        t1 = Clock::now();
+        avg_time += std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count()/((double)n);
+    }
+    std::cout << "Analytic Jacobian (vectors): " << avg_time << "\n";
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);
 //    std::cout << "_r:\n" << r << "\n";
@@ -10315,29 +10335,33 @@ int test_compute_internal_couple_jacobian(std::ofstream &results,bool MOOSE=fals
 
     double __r_ijA;
     int Ihat;
-    
-    t0 = Clock::now();
-    for (int i=0; i<3; i++){
 
-        for (int j=0; j<3; j++){
-            Ihat = sot_to_voigt_map[i][j];
+    avg_time = 0;
+    for (int _n=0; _n<n; _n++){    
+        t0 = Clock::now();
+        for (int i=0; i<3; i++){
 
-            for (int dof_num=0; dof_num<12; dof_num++){
+            for (int j=0; j<3; j++){
+                Ihat = sot_to_voigt_map[i][j];
 
-                balance_equations::compute_internal_couple_jacobian(i,j,dof_num,
-                                                                    N, dNdx, eta, detadx,
-                                                                    _F, _chi,
-                                                                    _PK2,           _SIGMA,      _M,
-                                                                    _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
-                                                                    _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
-                                                                    _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
-                                                                    __r_ijA);
-                __r[Ihat][dof_num] = __r_ijA;
+                for (int dof_num=0; dof_num<12; dof_num++){
+
+                    balance_equations::compute_internal_couple_jacobian(i,j,dof_num,
+                                                                        N, dNdx, eta, detadx,
+                                                                        _F, _chi,
+                                                                        _PK2,           _SIGMA,      _M,
+                                                                        _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
+                                                                        _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
+                                                                        _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
+                                                                        __r_ijA);
+                    __r[Ihat][dof_num] = __r_ijA;
+                }
             }
         }
+        t1 = Clock::now();
+        avg_time += std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count()/((double)n);
     }
-    t1 = Clock::now();
-    std::cout << "Analytic Jacobian (component wise vectors): " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\n";
+    std::cout << "Analytic Jacobian (component wise vectors): " << avg_time << "\n";
     
     balance_equations::map_vector_to_eigen(__r, _r);
     tot_result *= r.isApprox(_r,1e-6);

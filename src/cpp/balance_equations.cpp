@@ -19,6 +19,36 @@
 
 namespace balance_equations{
 
+    void _print_vector(std::vector<double> &v){
+        /*!
+        =======================
+        |    _print_vector    |
+        =======================
+
+        Print a std::vector to the terminal.
+        */
+
+        for (unsigned int i=0; i<v.size(); i++){
+            std::cout << v[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+
+    void _print_matrix(std::vector<std::vector<double>> &m){
+        /*!
+        =======================
+        |    _print_vector    |
+        =======================
+
+        Print a std::vector to the terminal.
+        */
+
+        for (unsigned int i=0; i<m.size(); i++){
+            _print_vector(m[i]);
+        }
+    }
+
     void compute_internal_force(const double (&dNdX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, double (&fint)[3]){
         /*!================================
         |    compute_internal_force    |
@@ -839,7 +869,7 @@ namespace balance_equations{
         int sot_to_voigt_map[3][3] = {{0,5,4},
                                       {8,1,3},
                                       {7,6,2}};
-        
+
         //Must compute DfintDU_jIhat = -dNdX[I]*(DPK2DU_IJIhat F_jJ + PK2_IJ DFDU_jJIhat)
         //NOTE: DFDU_jJIhat = Dgrad_udU_jJIhat
 
@@ -860,7 +890,7 @@ namespace balance_equations{
         return;
     }
 
-    void compute_internal_force_jacobian(const int &i, const int &dof_num, const double &N, const double(&dNdx)[3], const double &eta, const double (&detadx)[3], const std::vector<std::vector<double>> &F,
+    void compute_internal_force_jacobian(const int &component_i, const int &dof_num, const double &N, const double(&dNdX)[3], const double &eta, const double (&detadX)[3], const std::vector<std::vector<double>> &F,
                                          const std::vector<double> &PK2, const std::vector<std::vector<double>> &DPK2Dgrad_u, const std::vector<std::vector<double>> &DPK2Dphi,
                                          const std::vector<std::vector<double>> &DPK2Dgrad_phi, double &DfintDU_iA){
         /*!=========================================
@@ -872,19 +902,53 @@ namespace balance_equations{
         Total Lagrangian formulation.  
         */
 
-        Matrix_3x3  _F;
-        Vector_9    _PK2;
-        Matrix_9x9  _DPK2Dgrad_u;
-        Matrix_9x9  _DPK2Dphi;
-        Matrix_9x27 _DPK2Dgrad_phi;
+        std::vector<double> dgrad_udU(9,0);
+        std::vector<double> dphidU(9,0);
+        std::vector<double> dgrad_phidU(27,0);
 
-        map_vector_to_eigen(F,             _F);
-        map_vector_to_eigen(PK2,           _PK2);
-        map_vector_to_eigen(DPK2Dgrad_u,   _DPK2Dgrad_u);
-        map_vector_to_eigen(DPK2Dphi,      _DPK2Dphi);
-        map_vector_to_eigen(DPK2Dgrad_phi, _DPK2Dgrad_phi);
+        construct_dgrad_udU(detadX, dof_num, dgrad_udU);
+        construct_dphidU(eta, dof_num, dphidU);
+        construct_dgrad_phidU(detadX, dof_num, dgrad_phidU);
+
+        //Compute DcauchyDU;
+        std::vector<double> DPK2DU(9,0);
+
+        double tmp;
+        for (int i=0; i<9; i++){
+            tmp = 0;
+            for (int j=0; j<9; j++){
+                tmp +=   DPK2Dgrad_u[i][j]*dgrad_udU[j]
+                       + DPK2Dphi[i][j]*dphidU[j]
+                       + DPK2Dgrad_phi[i][j]*dgrad_phidU[j];
+            }
+
+            for (int j=9; j<27; j++){
+                tmp += DPK2Dgrad_phi[i][j]*dgrad_phidU[j];
+            }
+
+            DPK2DU[i] = tmp;
+        }
+
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
         
-        compute_internal_force_jacobian(i, dof_num, N, dNdx, eta, detadx, _F, _PK2, _DPK2Dgrad_u, _DPK2Dphi, _DPK2Dgrad_phi, DfintDU_iA);
+        //Must compute DfintDU_jIhat = -dNdX[I]*(DPK2DU_IJIhat F_jJ + PK2_IJ DFDU_jJIhat)
+        //NOTE: DFDU_jJIhat = Dgrad_udU_jJIhat
+
+        //double tmp;
+        int Jhat;
+        int Khat;
+
+        DfintDU_iA = 0;
+
+        for (int I=0; I<3; I++){
+            for (int J=0; J<3; J++){
+                Jhat = sot_to_voigt_map[I][J];
+                Khat = sot_to_voigt_map[component_i][J];
+                DfintDU_iA += -dNdX[I]*(DPK2DU[Jhat] * F[component_i][J] + PK2[Jhat]*dgrad_udU[Khat]);
+            }
+        }
 
         return;
     }
@@ -902,8 +966,7 @@ namespace balance_equations{
         
         Compute the jacobian of the internal body couple.
         
-        Note: Currently an incorrect implementation which is retained to be the 
-              foundation of a total-lagrangian implementation.        
+        Total-Lagrangian formulation
         */
         
         //Compute required DOF jacobians
@@ -1023,25 +1086,13 @@ namespace balance_equations{
         
         f_{i}{dof_num}
         
-        Note: Currently an incorrect implementation which is retained to be the 
-              foundation of a total-lagrangian implementation.        
+        Total-Lagrangian formulation.
         */
         
         //Identify the voigt notation component
         int sot_to_voigt_map[3][3] = {{0,5,4},
                                       {8,1,3},
                                       {7,6,2}};
-                                      
-        //int Ihat;
-        //Ihat = sot_to_voigt_map[component_i][component_j];
-        
-        //Compute required DOF jacobians
-        //Note: Removing sparse matrices because there 
-        //      is a segmentation fault when being created 
-        //      while in a moose run.
-        //SpMat _dgrad_udU(9,12);
-        //SpMat _dphidU(9,12);
-        //SpMat _dgrad_phidU(27,12);
 
         Vector_9  dgrad_udU;
         Vector_9  dphidU;
@@ -1093,8 +1144,6 @@ namespace balance_equations{
         int    Khat;
         int    Lhat;
         int    Mhat;
-        
-        
                                       
         int tot_to_voigt_map[3][3][3];
         deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
@@ -1145,6 +1194,181 @@ namespace balance_equations{
         return;
     }
     
+    void compute_internal_couple_jacobian(const int &component_i, const int &component_j, const int &dof_num,
+                                          const double &N, const double (&dNdX)[3], const double &eta, const double (&detadX)[3],
+                                          const std::vector<std::vector<double>> &F,           const std::vector<std::vector<double>> &chi,
+                                          const std::vector<double>              &PK2,           const std::vector<double>              &SIGMA,      const std::vector<double>         &M,
+                                          const std::vector<std::vector<double>> &DPK2Dgrad_u, const std::vector<std::vector<double>> &DPK2Dphi, const std::vector<std::vector<double>> &DPK2Dgrad_phi,
+                                          const std::vector<std::vector<double>> &DSIGMADgrad_u,      const std::vector<std::vector<double>> &DSIGMADphi,      const std::vector<std::vector<double>> &DSIGMADgrad_phi,
+                                          const std::vector<std::vector<double>> &DMDgrad_u,      const std::vector<std::vector<double>> &DMDphi,      const std::vector<std::vector<double>> &DMDgrad_phi,
+                                          double &DcintDU_ijA){
+        /*!==========================================
+        |    compute_internal_couple_jacobian    |
+        ==========================================
+        
+        Compute the jacobian of the internal body couple.
+        
+        Total-Lagrangian formulation.
+        */
+
+        //Identify the voigt notation component
+        int sot_to_voigt_map[3][3] = {{0,5,4},
+                                      {8,1,3},
+                                      {7,6,2}};
+
+        std::vector<double>  dgrad_udU(9,0);
+        std::vector<double>  dphidU(9,0);
+        std::vector<double> dgrad_phidU(27,0);
+
+        std::vector<int> non_zero_terms_dgrad_udU(3,0);
+        std::vector<int> non_zero_terms_dgrad_phidU(3,0);
+        
+        construct_dgrad_udU(detadX, dof_num, non_zero_terms_dgrad_udU, dgrad_udU);
+        construct_dphidU(eta, dof_num, dphidU);
+        construct_dgrad_phidU(detadX, dof_num, non_zero_terms_dgrad_phidU, dgrad_phidU);
+        
+        //Compute DPK2DU;
+        std::vector<double> DPK2DU(9,0);
+        std::vector<double> DSIGMADU(9,0);
+        std::vector<double> DMDU(27,0);
+
+        double tmp1;
+        double tmp2;
+
+        int nzt;
+
+        if(dof_num<3){
+
+            for (int i=0; i<9; i++){
+                tmp1 = 0;
+                tmp2 = 0;
+                for (int j=0; j<3; j++){
+                    nzt   =   non_zero_terms_dgrad_udU[j];
+                    tmp1 +=   DPK2Dgrad_u[i][nzt]*dgrad_udU[nzt];
+
+                    tmp2 +=   DSIGMADgrad_u[i][nzt]*dgrad_udU[nzt];
+                }
+
+                DPK2DU[i]   = tmp1;
+                DSIGMADU[i] = tmp2;
+            }
+
+            for (int i=0; i<27; i++){
+                tmp1 = 0;
+                for (int j=0; j<3; j++){
+                    nzt   =   non_zero_terms_dgrad_udU[j];
+                    tmp1 +=   DMDgrad_u[i][nzt]*dgrad_udU[nzt];
+                }
+                DMDU[i] = tmp1;
+           }
+
+        }
+        else{
+
+            for (int i=0; i<9; i++){
+                tmp1 = DPK2Dphi[i][dof_num-3]*eta;//0;
+                tmp2 = DSIGMADphi[i][dof_num-3]*eta;//0;
+//                for (int j=0; j<9; j++){
+//                    tmp1 += DPK2Dphi[i][j]*dphidU[j];
+//
+//                    tmp2 += DSIGMADphi[i][j]*dphidU[j];
+//                }
+
+                for (int j=0; j<3; j++){
+                    nzt   = non_zero_terms_dgrad_phidU[j];
+                    tmp1 += DPK2Dgrad_phi[i][nzt]*dgrad_phidU[nzt];
+                    tmp2 += DSIGMADgrad_phi[i][nzt]*dgrad_phidU[nzt];
+                }
+
+                DPK2DU[i]   = tmp1;
+                DSIGMADU[i] = tmp2;
+            }
+        
+            for (int i=0; i<27; i++){
+                tmp1 = DMDphi[i][dof_num-3]*eta;//0;
+//                for (int j=0; j<9; j++){
+//                    tmp1 += DMDphi[i][j]*dphidU[j];
+//                }
+                DMDU[i] = tmp1;
+           }
+
+           for (int i=0; i<27; i++){
+                tmp1 = 0;
+                for (int j=0; j<3; j++){
+                    nzt   = non_zero_terms_dgrad_phidU[j];
+                    tmp1 += DMDgrad_phi[i][nzt]*dgrad_phidU[nzt];
+                }
+
+                DMDU[i]  += tmp1;
+            }
+        }
+        
+        //Temporary variables
+
+        std::vector<double> PK2mSIGMA(9,0);
+        for (int i=0; i<9; i++){PK2mSIGMA[i] = PK2[i] - SIGMA[i];}
+
+        std::vector<double> DPK2DUmDSIGMADU(9,0);
+        for (int i=0; i<9; i++){DPK2DUmDSIGMADU[i] = DPK2DU[i] - DSIGMADU[i];}
+
+        double F_iI;
+        double F_jJ;
+        double chi_iI;
+        double M_KJI;
+
+        double dFdU_iIA;
+        double dFdU_jJA;
+        double dchidU_iIA;
+        double PK2mSIGMA_IJ;
+
+        double tmp3;
+        int    Jhat;
+        int    Khat;
+        int    Lhat;
+        int    Mhat;
+                                      
+        int tot_to_voigt_map[3][3][3];
+        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
+        
+        //Note: dFdU = dgrad_udU and dchidU = dphidU
+        //
+        DcintDU_ijA = 0;
+        
+        for (int I=0; I<3; I++){
+            Jhat = sot_to_voigt_map[component_i][I];
+            F_iI = F[component_i][I];
+            dFdU_iIA = dgrad_udU[Jhat];
+            for (int J=0; J<3; J++){
+                Khat = sot_to_voigt_map[I][J];
+                Lhat = sot_to_voigt_map[component_j][J];
+                PK2mSIGMA_IJ = PK2mSIGMA[Khat];
+                DcintDU_ijA += N*( dFdU_iIA*PK2mSIGMA_IJ*F[component_j][J]
+                                  +F_iI*DPK2DUmDSIGMADU[Khat]*F[component_j][J]
+                                  +F_iI*PK2mSIGMA_IJ*dgrad_udU[Lhat]);
+            }
+        }
+        
+        for (int I=0; I<3; I++){
+            Jhat = sot_to_voigt_map[component_i][I];
+            chi_iI = chi[component_i][I];
+            dchidU_iIA = dphidU[Jhat];
+            for (int J=0; J<3; J++){
+                Lhat = sot_to_voigt_map[component_j][J];
+                dFdU_jJA = dgrad_udU[Lhat];
+                F_jJ = F[component_j][J];
+                for (int K=0; K<3; K++){
+                    Mhat = tot_to_voigt_map[K][J][I];
+                    M_KJI = M[Mhat];
+                    DcintDU_ijA -= dNdX[K]*( dFdU_jJA * chi_iI * M_KJI
+                                            +    F_jJ * chi_iI * DMDU[Mhat]
+                                            +    F_jJ * M_KJI  * dchidU_iIA);
+                }
+            }
+        }
+
+        return;
+    }
+
     void compute_internal_couple_jacobian(const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
                                           const std::vector<std::vector<double>> &F,           const std::vector<std::vector<double>> &chi,
                                           const std::vector<double>              &PK2,           const std::vector<double>              &SIGMA,      const std::vector<double>         &M,
@@ -1152,76 +1376,6 @@ namespace balance_equations{
                                           const std::vector<std::vector<double>> &DSIGMADgrad_u,      const std::vector<std::vector<double>> &DSIGMADphi,      const std::vector<std::vector<double>> &DSIGMADgrad_phi,
                                           const std::vector<std::vector<double>> &DMDgrad_u,      const std::vector<std::vector<double>> &DMDphi,      const std::vector<std::vector<double>> &DMDgrad_phi,
                                           std::vector<std::vector<double>> &DcintDU){
-        /*!==========================================
-        |    compute_internal_couple_jacobian    |
-        ==========================================
-        
-        Compute the jacobian of the internal body couple.
-        
-        Note: Currently an incorrect implementation which is retained to be the 
-              foundation of a total-lagrangian implementation.        
-        */
-        
-        Matrix_3x3   _F;
-        Matrix_3x3   _chi;
-        
-        Vector_9     _PK2;
-        Vector_9     _SIGMA;
-        Vector_27    _M;
-        
-        Matrix_9x9   _DPK2Dgrad_u;
-        Matrix_9x9   _DPK2Dphi;
-        Matrix_9x27  _DPK2Dgrad_phi;
-
-        Matrix_9x9   _DSIGMADgrad_u;
-        Matrix_9x9   _DSIGMADphi;
-        Matrix_9x27  _DSIGMADgrad_phi;
-        
-        Matrix_27x9  _DMDgrad_u;
-        Matrix_27x9  _DMDphi;
-        Matrix_27x27 _DMDgrad_phi;
-
-        Matrix_9x12  _DcintDU;
-
-        map_vector_to_eigen(F,             _F);
-        map_vector_to_eigen(chi,           _chi);
-        
-        map_vector_to_eigen(PK2,           _PK2);
-        map_vector_to_eigen(SIGMA,         _SIGMA);
-        map_vector_to_eigen(M,             _M);
-        
-        map_vector_to_eigen(DPK2Dgrad_u,   _DPK2Dgrad_u);
-        map_vector_to_eigen(DPK2Dphi,      _DPK2Dphi);
-        map_vector_to_eigen(DPK2Dgrad_phi, _DPK2Dgrad_phi);
-
-        map_vector_to_eigen(DSIGMADgrad_u,   _DSIGMADgrad_u);
-        map_vector_to_eigen(DSIGMADphi,      _DSIGMADphi);
-        map_vector_to_eigen(DSIGMADgrad_phi, _DSIGMADgrad_phi);
-
-        map_vector_to_eigen(DMDgrad_u,   _DMDgrad_u);
-        map_vector_to_eigen(DMDphi,      _DMDphi);
-        map_vector_to_eigen(DMDgrad_phi, _DMDgrad_phi);
-
-        compute_internal_couple_jacobian(N, dNdx, eta, detadx,
-                                         _F,              _chi,
-                                         _PK2,           _SIGMA,      _M,
-                                         _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
-                                         _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
-                                         _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
-                                         _DcintDU);
-
-        map_eigen_to_vector(_DcintDU, DcintDU);
-        return;
-    }
-
-    void compute_internal_couple_jacobian(const int &component_i, const int &component_j, const int &dof_num,
-                                          const double &N, const double (&dNdx)[3], const double &eta, const double (&detadx)[3],
-                                          const std::vector<std::vector<double>> &F,           const std::vector<std::vector<double>> &chi,
-                                          const std::vector<double>              &PK2,           const std::vector<double>              &SIGMA,      const std::vector<double>         &M,
-                                          const std::vector<std::vector<double>> &DPK2Dgrad_u, const std::vector<std::vector<double>> &DPK2Dphi, const std::vector<std::vector<double>> &DPK2Dgrad_phi,
-                                          const std::vector<std::vector<double>> &DSIGMADgrad_u,      const std::vector<std::vector<double>> &DSIGMADphi,      const std::vector<std::vector<double>> &DSIGMADgrad_phi,
-                                          const std::vector<std::vector<double>> &DMDgrad_u,      const std::vector<std::vector<double>> &DMDphi,      const std::vector<std::vector<double>> &DMDgrad_phi,
-                                          double &DcintDU_ijA){
 
         /*!
         ==========================================
@@ -1239,8 +1393,7 @@ namespace balance_equations{
         
         f_{i}{dof_num}
         
-        Note: Currently an incorrect implementation which is retained to be the 
-              foundation of a total-lagrangian implementation.        
+        Total-Lagrangian formulation.
         */
         Matrix_3x3   _F;
         Matrix_3x3   _chi;
@@ -1282,14 +1435,15 @@ namespace balance_equations{
         map_vector_to_eigen(DMDphi,      _DMDphi);
         map_vector_to_eigen(DMDgrad_phi, _DMDgrad_phi);
         
-        compute_internal_couple_jacobian(component_i,  component_j, dof_num,
-                                         N, dNdx, eta, detadx,
+        compute_internal_couple_jacobian( N, dNdx, eta, detadx,
                                          _F,             _chi,
                                          _PK2,           _SIGMA,      _M,
                                          _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
                                          _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
                                          _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
-                                         DcintDU_ijA);
+                                         _DcintDU);
+
+        map_eigen_to_vector(_DcintDU,DcintDU);
                                          
         return;
     }
@@ -1908,6 +2062,73 @@ namespace balance_equations{
         }
     }
     
+    void construct_dgrad_udU(const double (&detadx)[3], const int dof_num, std::vector<double> &dgrad_udU){
+        /*!
+        =============================
+        |    construct_dgrad_udU    |
+        =============================
+
+        Construct dgrad_udU for a single degree of freedom.
+
+        NOTE: IT IS ASSUMED THAT dgrad_uDU IS A ZERO VECTOR OF LENGTH 9!
+
+        */
+
+        if (dof_num==0){
+            dgrad_udU[0] = detadx[0];
+            dgrad_udU[5] = detadx[1];
+            dgrad_udU[4] = detadx[2];
+        }
+        else if (dof_num==1){
+            dgrad_udU[8] = detadx[0];
+            dgrad_udU[1] = detadx[1];
+            dgrad_udU[3] = detadx[2];
+        }
+        else if (dof_num==2){
+            dgrad_udU[7] = detadx[0];
+            dgrad_udU[6] = detadx[1];
+            dgrad_udU[2] = detadx[2];
+        }
+    }
+
+    void construct_dgrad_udU(const double (&detadx)[3], const int dof_num, std::vector<int> &non_zero_terms, std::vector<double> &dgrad_udU){
+        /*!
+        =============================
+        |    construct_dgrad_udU    |
+        =============================
+
+        Construct dgrad_udU for a single degree of freedom.
+
+        NOTE: IT IS ASSUMED THAT dgrad_uDU IS A ZERO VECTOR OF LENGTH 9!
+
+        */
+
+        if (dof_num==0){
+            dgrad_udU[0] = detadx[0];
+            dgrad_udU[5] = detadx[1];
+            dgrad_udU[4] = detadx[2];
+            non_zero_terms[0] = 0;
+            non_zero_terms[1] = 5;
+            non_zero_terms[2] = 4;
+        }
+        else if (dof_num==1){
+            dgrad_udU[8] = detadx[0];
+            dgrad_udU[1] = detadx[1];
+            dgrad_udU[3] = detadx[2];
+            non_zero_terms[0] = 8;
+            non_zero_terms[1] = 1;
+            non_zero_terms[2] = 3;
+        }
+        else if (dof_num==2){
+            dgrad_udU[7] = detadx[0];
+            dgrad_udU[6] = detadx[1];
+            dgrad_udU[2] = detadx[2];
+            non_zero_terms[0] = 7;
+            non_zero_terms[1] = 6;
+            non_zero_terms[2] = 2;
+        }
+    }
+
     void construct_dphidU(const double &eta, SpMat &dphidU){
         /*!==========================
         |    construct_dphidU    |
@@ -1976,6 +2197,20 @@ namespace balance_equations{
         dphidU = Vector_9::Zero();
 
         if(dof_num-3>=0){dphidU(dof_num-3) = eta;}
+    }
+
+    void construct_dphidU(const double &eta, const int dof_num, std::vector<double> &dphidU){
+        /*!
+        ==========================
+        |    construct_dphidU    |
+        ==========================
+
+        Construct dphidU for a single degree of freedom.
+
+        NOTE: dphidU IS ASSUMED TO BE A ZERO VECTOR OF LENGTH 9!
+        */
+
+        if(dof_num-3>=0){dphidU[dof_num-3] = eta;}
     }
 
     void construct_dgrad_phidU(const double (&detadx)[3], SpMat &dgrad_phidU){
@@ -2137,6 +2372,169 @@ namespace balance_equations{
 
     }
     
+    void construct_dgrad_phidU(const double (&detadx)[3], const int dof_num, std::vector<double> &dgrad_phidU){
+        /*!
+        ===============================
+        |    construct_dgrad_phidU    |
+        ===============================
+
+        Construct the jacobian of phi_iI,J w.r.t. a single degree of freedom.
+
+        NOTE: dgrad_phidU IS ASSUMED TO BE A ZERO VECTOR OF LENGTH 27!
+
+        */
+
+        if (dof_num == 3){
+            dgrad_phidU[ 0] = detadx[0];
+            dgrad_phidU[ 5] = detadx[1];
+            dgrad_phidU[ 4] = detadx[2];
+        }
+        else if (dof_num == 4){
+            dgrad_phidU[17] = detadx[0];
+            dgrad_phidU[10] = detadx[1];
+            dgrad_phidU[12] = detadx[2];
+        }
+
+        else if (dof_num == 5){
+            dgrad_phidU[25] = detadx[0];
+            dgrad_phidU[24] = detadx[1];
+            dgrad_phidU[20] = detadx[2];
+        }
+
+        else if (dof_num == 6){
+            dgrad_phidU[16] = detadx[0];
+            dgrad_phidU[15] = detadx[1];
+            dgrad_phidU[11] = detadx[2];
+        }
+
+        else if (dof_num == 7){
+            dgrad_phidU[ 7] = detadx[0];
+            dgrad_phidU[ 6] = detadx[1];
+            dgrad_phidU[ 2] = detadx[2];
+        }
+
+        else if (dof_num == 8){
+            dgrad_phidU[ 8] = detadx[0];
+            dgrad_phidU[ 1] = detadx[1];
+            dgrad_phidU[ 3] = detadx[2];
+        }
+
+        else if (dof_num == 9){
+            dgrad_phidU[26] = detadx[0];
+            dgrad_phidU[19] = detadx[1];
+            dgrad_phidU[21] = detadx[2];
+        }
+
+        else if (dof_num == 10){
+            dgrad_phidU[18] = detadx[0];
+            dgrad_phidU[23] = detadx[1];
+            dgrad_phidU[22] = detadx[2];
+        }
+
+        else if (dof_num == 11){
+            dgrad_phidU[ 9] = detadx[0];
+            dgrad_phidU[14] = detadx[1];
+            dgrad_phidU[13] = detadx[2];
+
+        }
+
+    }
+
+    void construct_dgrad_phidU(const double (&detadx)[3], const int dof_num, std::vector<int> &non_zero_terms, std::vector<double> &dgrad_phidU){
+        /*!
+        ===============================
+        |    construct_dgrad_phidU    |
+        ===============================
+
+        Construct the jacobian of phi_iI,J w.r.t. a single degree of freedom.
+
+        NOTE: dgrad_phidU IS ASSUMED TO BE A ZERO VECTOR OF LENGTH 27!
+
+        */
+
+        if (dof_num == 3){
+            dgrad_phidU[ 0] = detadx[0];
+            dgrad_phidU[ 5] = detadx[1];
+            dgrad_phidU[ 4] = detadx[2];
+            non_zero_terms[0] = 0;
+            non_zero_terms[1] = 5;
+            non_zero_terms[2] = 4;
+        }
+        else if (dof_num == 4){
+            dgrad_phidU[17] = detadx[0];
+            dgrad_phidU[10] = detadx[1];
+            dgrad_phidU[12] = detadx[2];
+            non_zero_terms[0] = 17;
+            non_zero_terms[1] = 10;
+            non_zero_terms[2] = 12;
+        }
+
+        else if (dof_num == 5){
+            dgrad_phidU[25] = detadx[0];
+            dgrad_phidU[24] = detadx[1];
+            dgrad_phidU[20] = detadx[2];
+            non_zero_terms[0] = 25;
+            non_zero_terms[1] = 24;
+            non_zero_terms[2] = 20;
+        }
+
+        else if (dof_num == 6){
+            dgrad_phidU[16] = detadx[0];
+            dgrad_phidU[15] = detadx[1];
+            dgrad_phidU[11] = detadx[2];
+            non_zero_terms[0] = 16;
+            non_zero_terms[1] = 15;
+            non_zero_terms[2] = 11;
+        }
+
+        else if (dof_num == 7){
+            dgrad_phidU[ 7] = detadx[0];
+            dgrad_phidU[ 6] = detadx[1];
+            dgrad_phidU[ 2] = detadx[2];
+            non_zero_terms[0] = 7;
+            non_zero_terms[1] = 6;
+            non_zero_terms[2] = 2;
+        }
+
+        else if (dof_num == 8){
+            dgrad_phidU[ 8] = detadx[0];
+            dgrad_phidU[ 1] = detadx[1];
+            dgrad_phidU[ 3] = detadx[2];
+            non_zero_terms[0] = 8;
+            non_zero_terms[1] = 1;
+            non_zero_terms[2] = 3;
+        }
+
+        else if (dof_num == 9){
+            dgrad_phidU[26] = detadx[0];
+            dgrad_phidU[19] = detadx[1];
+            dgrad_phidU[21] = detadx[2];
+            non_zero_terms[0] = 26;
+            non_zero_terms[1] = 19;
+            non_zero_terms[2] = 21;
+        }
+
+        else if (dof_num == 10){
+            dgrad_phidU[18] = detadx[0];
+            dgrad_phidU[23] = detadx[1];
+            dgrad_phidU[22] = detadx[2];
+            non_zero_terms[0] = 18;
+            non_zero_terms[1] = 23;
+            non_zero_terms[2] = 22;
+        }
+
+        else if (dof_num == 11){
+            dgrad_phidU[ 9] = detadx[0];
+            dgrad_phidU[14] = detadx[1];
+            dgrad_phidU[13] = detadx[2];
+            non_zero_terms[0] = 9;
+            non_zero_terms[1] = 14;
+            non_zero_terms[2] = 13;
+
+        }
+
+    }
+
     void construct_dgrad_udU(const Matrix_3x3 &Finv, const double (&detadx)[3], Matrix_9x12 &dgrad_udU){
         /*!==========================
         |    construct_dgrad_udU    |
