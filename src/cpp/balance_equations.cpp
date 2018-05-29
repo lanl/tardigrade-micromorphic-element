@@ -906,27 +906,61 @@ namespace balance_equations{
         std::vector<double> dphidU(9,0);
         std::vector<double> dgrad_phidU(27,0);
 
-        construct_dgrad_udU(detadX, dof_num, dgrad_udU);
+        std::vector<int> non_zero_terms_dgrad_udU(3,0);
+        std::vector<int> non_zero_terms_dgrad_phidU(3,0);
+
+        construct_dgrad_udU(detadX, dof_num, non_zero_terms_dgrad_udU, dgrad_udU);
         construct_dphidU(eta, dof_num, dphidU);
-        construct_dgrad_phidU(detadX, dof_num, dgrad_phidU);
+        construct_dgrad_phidU(detadX, dof_num, non_zero_terms_dgrad_phidU, dgrad_phidU);
 
         //Compute DcauchyDU;
         std::vector<double> DPK2DU(9,0);
 
+//        double tmp;
+//        int    nzt;
+//        for (int i=0; i<9; i++){
+//            tmp = DPK2Dphi[i][dof_num-3]*eta;
+//            for (int j=0; j<3; j++){
+//                nzt  = non_zero_terms_dgrad_udU[j];
+//                tmp +=   DPK2Dgrad_u[i][nzt]*dgrad_udU[nzt];
+////                       + DPK2Dphi[i][j]*dphidU[j]
+////                       + DPK2Dgrad_phi[i][j]*dgrad_phidU[j];
+//            }
+//
+//            for (int j=0; j<3; j++){
+//                nzt  = non_zero_terms_dgrad_phidU[j];
+//                tmp += DPK2Dgrad_phi[i][nzt]*dgrad_phidU[nzt];
+//            }
+//
+//            DPK2DU[i] = tmp;
+//        }
+
         double tmp;
-        for (int i=0; i<9; i++){
-            tmp = 0;
-            for (int j=0; j<9; j++){
-                tmp +=   DPK2Dgrad_u[i][j]*dgrad_udU[j]
-                       + DPK2Dphi[i][j]*dphidU[j]
-                       + DPK2Dgrad_phi[i][j]*dgrad_phidU[j];
-            }
+        int    nzt;
+        if(dof_num<3){
 
-            for (int j=9; j<27; j++){
-                tmp += DPK2Dgrad_phi[i][j]*dgrad_phidU[j];
-            }
+            for (int i=0; i<9; i++){
+                tmp = 0;
+                for (int j=0; j<3; j++){
+                    nzt   =   non_zero_terms_dgrad_udU[j];
+                    tmp +=   DPK2Dgrad_u[i][nzt]*dgrad_udU[nzt];
+                }
 
-            DPK2DU[i] = tmp;
+                DPK2DU[i]   = tmp;
+            }
+        }
+        else{
+
+            for (int i=0; i<9; i++){
+                tmp = DPK2Dphi[i][dof_num-3]*eta;//0;
+
+                for (int j=0; j<3; j++){
+                    nzt   = non_zero_terms_dgrad_phidU[j];
+                    tmp += DPK2Dgrad_phi[i][nzt]*dgrad_phidU[nzt];
+                }
+
+                DPK2DU[i]   = tmp;
+            }
         }
 
         int sot_to_voigt_map[3][3] = {{0,5,4},
