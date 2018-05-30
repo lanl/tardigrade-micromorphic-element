@@ -1339,8 +1339,8 @@ namespace balance_equations{
         
         //Temporary variables
 
-        std::vector<double> PK2mSIGMA(9,0);
-        for (int i=0; i<9; i++){PK2mSIGMA[i] = PK2[i] - SIGMA[i];}
+//        std::vector<double> PK2mSIGMA(9,0);
+//        for (int i=0; i<9; i++){PK2mSIGMA[i] = PK2[i] - SIGMA[i];}
 
         std::vector<double> DPK2DUmDSIGMADU(9,0);
         for (int i=0; i<9; i++){DPK2DUmDSIGMADU[i] = DPK2DU[i] - DSIGMADU[i];}
@@ -1375,7 +1375,7 @@ namespace balance_equations{
             for (int J=0; J<3; J++){
                 Khat = sot_to_voigt_map[I][J];
                 Lhat = sot_to_voigt_map[component_j][J];
-                PK2mSIGMA_IJ = PK2mSIGMA[Khat];
+                PK2mSIGMA_IJ = PK2[Khat] - SIGMA[Khat];//PK2mSIGMA[Khat];
                 DcintDU_ijA += N*( dFdU_iIA*PK2mSIGMA_IJ*F[component_j][J]
                                   +F_iI*DPK2DUmDSIGMADU[Khat]*F[component_j][J]
                                   +F_iI*PK2mSIGMA_IJ*dgrad_udU[Lhat]);
