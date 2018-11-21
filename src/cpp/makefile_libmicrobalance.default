@@ -14,7 +14,16 @@ EIGEN = -I EIGEN_LOCATION
 OBJ = balance_equations.o deformation_measures.o
 
 #Debugging flag
-DBG = 
+DBG =
+ifeq ($(METHOD),dbg)
+        DBG = -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -g
+endif
+ifeq ($(METHOD),oprof)
+        DBG = -pg
+endif
+
+# List of objects
+OBJECTS=libmicrobalance.so libmicrobalance.so.1 balance_equations.o deformation_measures.o
 
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
@@ -34,4 +43,6 @@ deformation_measures.o: deformation_measures.h deformation_measures.cpp
 	$(CC) $(STD) -o $@ -c deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 clean:
-	rm *o libmicrobalance.so.1
+	rm $(OBJECTS)
+
+.PHONY: all clean

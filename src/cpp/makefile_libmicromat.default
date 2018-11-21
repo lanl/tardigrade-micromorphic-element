@@ -15,7 +15,16 @@ OBJ = micromorphic_material_library.o deformation_measures.o
 OBJ += micromorphic_linear_elasticity_voigt.o
 
 #Debugging flag
-DBG = 
+DBG =
+ifeq ($(METHOD),dbg)
+        DBG = -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -g
+endif
+ifeq ($(METHOD),oprof)
+        DBG = -pg
+endif
+
+#Define the objects made by the makefile
+OBJECTS = libmicromat.so libmicromat.so.1 micromorphic_material_library.o deformation_measures.o micromorphic_linear_elasticity_voigt.o
 
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
@@ -42,4 +51,6 @@ micromorphic_linear_elasticity_voigt.o: micromorphic_linear_elasticity_voigt.h m
 	$(CC) $(STD) -o $@ -c micromorphic_linear_elasticity_voigt.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 clean:
-	rm *o libmicromat.so.1
+	rm $(OBJECTS)
+
+.PHONY: all clean
