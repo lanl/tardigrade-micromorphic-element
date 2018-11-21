@@ -2548,34 +2548,34 @@ namespace deformation_measures
         Matrix_3x3 dJdF;
         compute_ddetAdA(F,dJdF);
 
-        #pragma omp parallel num_threads(4)
-        {        
+//        #pragma omp parallel num_threads(4)
+//        {        
         //Map the cauchy stress
-        #pragma omp single nowait
-        {
+//        #pragma omp single nowait
+//        {
             map_dAdF_to_dadF(cauchy_voigt, PK2_voigt, dPK2dF, J, dJdF, F, dcauchydF);
             map_dAdchi_to_dadchi(dPK2dchi, J, F, dcauchydchi);
             map_dAdgrad_chi_to_dadgrad_chi(dPK2dgrad_chi, J, F, dcauchydgrad_chi);        
-        }
+//        }
         //Map the symmetric stress
-        #pragma omp single nowait
-        {
+//        #pragma omp single nowait
+//        {
             map_dAdF_to_dadF(s_voigt, SIGMA_voigt, dSIGMAdF, J, dJdF, F, dsdF);
             map_dAdchi_to_dadchi(dSIGMAdchi, J, F, dsdchi);
             map_dAdgrad_chi_to_dadgrad_chi(dSIGMAdgrad_chi, J, F, dsdgrad_chi);
-        }
+//        }
 
-        #pragma omp single nowait
-        {
+//        #pragma omp single nowait
+//        {
             //Map the higher order stress
             map_dAdF_to_dadF(m_voigt, M_voigt, dMdF, J, dJdF, F, chi, dmdF);
             map_dAdchi_to_dadchi(M_voigt, dMdchi, J, F, chi, dmdchi);
-        }
-        #pragma omp single nowait
-        {
+//        }
+//        #pragma omp single nowait
+//        {
             map_dAdgrad_chi_to_dadgrad_chi(dMdgrad_chi, J, F, chi, dmdgrad_chi);
-        }
-        }
+//        }
+//        }
 
         return;
     }

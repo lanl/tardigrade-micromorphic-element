@@ -1172,8 +1172,8 @@ namespace balance_equations{
         double dchidU_iIA;
         double PK2mSIGMA_IJ;
 
-        double tmp2;
-        double tmp3;
+        //double tmp2;
+        //double tmp3;
         int    Jhat;
         int    Khat;
         int    Lhat;
@@ -1355,7 +1355,7 @@ namespace balance_equations{
         double dchidU_iIA;
         double PK2mSIGMA_IJ;
 
-        double tmp3;
+        //double tmp3;
         int    Jhat;
         int    Khat;
         int    Lhat;
