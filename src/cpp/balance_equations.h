@@ -20,7 +20,19 @@
 #define BALANCE_EQUATIONS_H
 
 #include <Eigen/Dense>
-#include <Eigen/Sparse>
+
+#ifdef __GNUC__
+//Avoid warnings from Eigen/Sparse root code
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#endif
+
+#include<Eigen/Sparse>
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
 #include <deformation_measures.h>
 
 typedef Eigen::Matrix<double, 3, 12> Matrix_3x12;
