@@ -140,8 +140,8 @@ namespace micromorphicLinearElasticity{
                                         variableVector &PK2Stress, variableVector &referenceMicroStress,
                                         variableVector &referenceHigherOrderStress,
                                         variableMatrix &dPK2StressdF, variableMatrix &dPK2StressdXi, variableMatrix &dPK2StressdGradXi,
-                                        variableMatrix &dMicroStressdF, variableMatrix &dMicroStressdXi,
-                                        variableMatrix &dMicroStressdGradXi, variableMatrix &dMdF, variableMatrix &dMdGradXi ){
+                                        variableMatrix &dReferenceMicroStressdF, variableMatrix &dReferenceMicroStressdXi,
+                                        variableMatrix &dReferenceMicroStressdGradXi, variableMatrix &dMdF, variableMatrix &dMdGradXi ){
         /*!
          * Compute the stress measures in the reference configuration for micromorphic linear elasticity based off
          * of a quadratic decomposition of the energy.
@@ -163,9 +163,9 @@ namespace micromorphicLinearElasticity{
          * :param variableMatrix &dPK2StressdF: The Jacobian of the PK2 stress w.r.t. the deformation gradient.
          * :param variableMatrix &dPK2StressdXi: The Jacobian of the PK2 stress w.r.t. the micro deformation.
          * :param variableMatrix &dPK2StressdGradXi: The Jacobian of the PK2 stress w.r.t. the gradient of the micro deformation.
-         * :param variableMatrix &dMicroStressdF: The Jacobian of the Micro stress w.r.t. the deformation gradient.
-         * :param variableMatrix &dMicroStressdXi: The Jacobian of the Micro stress w.r.t. the micro deformation.
-         * :param variableMatrix &dMicroStressdGradXi: The Jacobian of the Micro stress w.r.t. the gradient of the micro deformation.
+         * :param variableMatrix &dReferenceMicroStressdF: The Jacobian of the Micro stress w.r.t. the deformation gradient.
+         * :param variableMatrix &dReferenceMicroStressdXi: The Jacobian of the Micro stress w.r.t. the micro deformation.
+         * :param variableMatrix &dReferenceStressdGradXi: The Jacobian of the Micro stress w.r.t. the gradient of the micro deformation.
          * :param variableMatrix &dMdF: The Jacobian of the higher order stress w.r.t. the deformation gradient.
          * :param variableMatrix &dMdGradXi: The Jacobian of the higher order stress w.r.t. the gradient of the micro deformation.
          */
@@ -316,11 +316,11 @@ namespace micromorphicLinearElasticity{
         error = constitutiveTools::computeSymmetricPart( term2 + term3, symmTerm2Term3, dSymmTerm2Term3dTerm2Term3 );
         referenceMicroStress = term1 + 2 * symmTerm2Term3;
 
-        dMicroStressdF = dTerm1dF + 2 * ( vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm2dF )
-                                        + vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm3dF ) );
+        dReferenceMicroStressdF = dTerm1dF + 2 * ( vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm2dF )
+                                                 + vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm3dF ) );
 
-        dMicroStressdXi = dTerm1dXi + 2 * vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm2dXi );
-        dMicroStressdGradXi = 2 * vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm3dGradXi );
+        dReferenceMicroStressdXi = dTerm1dXi + 2 * vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm2dXi );
+        dReferenceMicroStressdGradXi = 2 * vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm3dGradXi );
 
     return NULL;
     }
@@ -1130,6 +1130,149 @@ namespace micromorphicLinearElasticity{
         }
 
         return NULL;
+    }
 
-    } 
+    errorOut linearElasticity( const variableVector &deformationGradient, const variableVector &microDeformation,
+                               const variableVector &gradientMicroDeformation,
+                               const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                               const parameterVector &D,
+                               variableVector &cauchyStress, variableVector &microStress,
+                               variableVector &higherOrderStress ){
+        /*!
+         * Compute the stress measures in the current configuration for micromorphic linear elasticity based off 
+         * of a quadratic decomposition of the energy.
+         *
+         * :param const variableVector &deformationGradient: The deformation gradient
+         * :param const variableVector &microDeformation: The micro-deformation
+         * :param const variableVector &gradientMicroDeformation: The spatial gradient of the micro-deformation
+         * :param const parameterVector &A: The A stiffness matrix.
+         * :param const parameterVector &B: The B stiffness matrix.
+         * :param const parameterVector &C: The C stiffness matrix.
+         * :param const parameterVector &D: The D stiffness matrix.
+         * :param variableVector &CauchyStress: The Cauchy stress.
+         * :param variableVector &microStress: The symmetric micro-stress.
+         * :param variableVector &higherOrderStress: The higher-order stress.
+         */
+
+        variableVector PK2Stress, referenceMicroStress, referenceHigherOrderStress;
+        errorOut error = linearElasticityReference( deformationGradient, microDeformation, gradientMicroDeformation,
+                                                    A, B, C, D,
+                                                    PK2Stress, referenceMicroStress, referenceHigherOrderStress );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticity",
+                                             "Error in the computation of the stresses in the reference configuration" );
+            result->addNext( error );
+            return result;
+        }
+
+        error = mapStressMeasuresToCurrent( deformationGradient, microDeformation, PK2Stress,
+                                            referenceMicroStress, referenceHigherOrderStress,
+                                            cauchyStress, microStress, higherOrderStress );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticity",
+                                             "Error in mapping the reference stresses to the current configuration" );
+            result->addNext( error );
+            return result;
+        }
+
+        return NULL;
+    }
+    
+    errorOut linearElasticity(  const variableVector &deformationGradient, const variableVector &microDeformation,
+                                const variableVector &gradientMicroDeformation,
+                                const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                                const parameterVector &D,
+                                variableVector &cauchyStress, variableVector &microStress,
+                                variableVector &higherOrderStress,
+                                variableMatrix &dCauchyStressdF, variableMatrix &dCauchyStressdXi, variableMatrix &dCauchyStressdGradXi,
+                                variableMatrix &dMicroStressdF, variableMatrix &dMicroStressdXi, variableMatrix &dMicroStressdGradXi,
+                                variableMatrix &dHigherOrderStressdF, variableMatrix &dHigherOrderStressdXi,
+                                variableMatrix &dHigherOrderStressdGradXi ){
+        /*!
+         * Compute the stress measures in the current configuration for micromorphic linear elasticity based off 
+         * of a quadratic decomposition of the energy.
+         *
+         * Also compute the Jacobians
+         *
+         * :param const variableVector &deformationGradient: The deformation gradient
+         * :param const variableVector &microDeformation: The micro-deformation
+         * :param const variableVector &gradientMicroDeformation: The spatial gradient of the micro-deformation
+         * :param const parameterVector &A: The A stiffness matrix.
+         * :param const parameterVector &B: The B stiffness matrix.
+         * :param const parameterVector &C: The C stiffness matrix.
+         * :param const parameterVector &D: The D stiffness matrix.
+         * :param variableVector &CauchyStress: The Cauchy stress.
+         * :param variableVector &microStress: The symmetric micro-stress.
+         * :param variableVector &higherOrderStress: The higher-order stress.
+         * :param variableMatrix &dCauchyStressdF: The Jacobian of the Cauchy stress w.r.t. the deformation gradient
+         * :param variableMatrix &dCauchyStressdXi: The Jacobian of the Cauchy stress w.r.t. the micro deformation.
+         * :param variableMatrix &dCauchyStressdGradXi: The Jacobian of the Cauchy stress w.r.t. the gradient of the 
+         *     micro-deformation.
+         * :param variableMatrix &dMicroStressdF: The Jacobian of the Micro stress w.r.t. the deformation gradient
+         * :param variableMatrix &dMicroStressdXi: The Jacobian of the Micro stress w.r.t. the micro deformation.
+         * :param variableMatrix &dMicroStressdGradXi: The Jacobian of the Micro stress w.r.t. the gradient of the 
+         *     micro-deformation.
+         * :param variableMatrix &dHigherOrderStressdF: The Jacobian of the Higher Order stress w.r.t. the deformation gradient
+         * :param variableMatrix &dHigherOrderStressdXi: The Jacobian of the Higher Order stress w.r.t. the micro deformation.
+         * :param variableMatrix &dHigherOrderStressdGradXi: The Jacobian of the Higher Order stress w.r.t. the gradient of the 
+         *     micro-deformation.
+         */
+
+        variableVector PK2Stress, referenceMicroStress, referenceHigherOrderStress;
+
+        variableMatrix dPK2StressdF, dPK2StressdXi, dPK2StressdGradXi;
+        variableMatrix dReferenceMicroStressdF, dReferenceMicroStressdXi, dReferenceMicroStressdGradXi;
+        variableMatrix dReferenceHigherOrderStressdF, dReferenceHigherOrderStressdGradXi;
+
+        errorOut error = linearElasticityReference( deformationGradient, microDeformation, gradientMicroDeformation,
+                                                    A, B, C, D,
+                                                    PK2Stress, referenceMicroStress, referenceHigherOrderStress,
+                                                    dPK2StressdF, dPK2StressdXi, dPK2StressdGradXi,
+                                                    dReferenceMicroStressdF, dReferenceMicroStressdXi, dReferenceMicroStressdGradXi,
+                                                    dReferenceHigherOrderStressdF, dReferenceHigherOrderStressdGradXi );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticity",
+                                             "Error in the computation of the stresses in the reference configuration" );
+            result->addNext( error );
+            return result;
+        }
+
+        variableMatrix dCauchyStressdPK2Stress, dMicroStressdReferenceMicroStress, dHigherOrderStressdReferenceHigherOrderStress;
+
+        error = mapStressMeasuresToCurrent( deformationGradient, microDeformation, PK2Stress,
+                                            referenceMicroStress, referenceHigherOrderStress,
+                                            cauchyStress, microStress, higherOrderStress,
+                                            dCauchyStressdF, dCauchyStressdPK2Stress,
+                                            dMicroStressdF, dMicroStressdReferenceMicroStress,
+                                            dHigherOrderStressdF, dHigherOrderStressdXi,
+                                            dHigherOrderStressdReferenceHigherOrderStress );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticity",
+                                             "Error in mapping the reference stresses to the current configuration" );
+            result->addNext( error );
+            return result;
+        }
+
+        //Assemble the jacobians of the Cauchy stress
+        dCauchyStressdF += vectorTools::dot( dCauchyStressdPK2Stress, dPK2StressdF );
+        dCauchyStressdXi = vectorTools::dot( dCauchyStressdPK2Stress, dPK2StressdXi );
+        dCauchyStressdGradXi = vectorTools::dot( dCauchyStressdPK2Stress, dPK2StressdGradXi );
+
+        //Assemble the jacobians of the symmetric micro-stress
+        dMicroStressdF += vectorTools::dot( dMicroStressdReferenceMicroStress, dReferenceMicroStressdF );
+        dMicroStressdXi = vectorTools::dot( dMicroStressdReferenceMicroStress, dReferenceMicroStressdXi );
+        dMicroStressdGradXi = vectorTools::dot( dMicroStressdReferenceMicroStress, dReferenceMicroStressdGradXi );
+
+        //Assemble the jacobians of the higher-order stress
+        dHigherOrderStressdF += vectorTools::dot( dHigherOrderStressdReferenceHigherOrderStress,
+                                                  dReferenceHigherOrderStressdF );
+        dHigherOrderStressdGradXi = vectorTools::dot( dHigherOrderStressdReferenceHigherOrderStress,
+                                                      dReferenceHigherOrderStressdGradXi );
+
+        return NULL;
+    }
 }

@@ -34,22 +34,40 @@ namespace micromorphicLinearElasticity{
     typedef errorTools::Node errorNode;
     typedef errorNode* errorOut;
 
+    errorOut linearElasticity( const variableVector &deformationGradient, const variableVector &microDeformation,
+                               const variableVector &gradientMicroDeformation,
+                               const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                               const parameterVector &D,
+                               variableVector &cauchyStress, variableVector &microStress,
+                               variableVector &higherOrderStress );
+
+    errorOut linearElasticity( const variableVector &deformationGradient, const variableVector &microDeformation,
+                               const variableVector &gradientMicroDeformation,
+                               const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                               const parameterVector &D,
+                               variableVector &cauchyStress, variableVector &microStress,
+                               variableVector &higherOrderStress,
+                               variableMatrix &dCauchyStressdF, variableMatrix &dCauchyStressdXi, variableMatrix &dCauchyStressdGradXi,
+                               variableMatrix &dMicroStressdF, variableMatrix &dMicroStressdXi, variableMatrix &dMicroStressdGradXi,
+                               variableMatrix &dHigherOrderStressdF, variableMatrix &dHigherOrderStressdXi,
+                               variableMatrix &dHigherOrderStressdGradXi );
+
     errorOut linearElasticityReference( const variableVector &deformationGradient, const variableVector &microDeformation,
-                                        const variableVector &microDeformationGradient,
+                                        const variableVector &gradientMicroDeformation,
                                         const parameterVector &A, const parameterVector &B, const parameterVector &C,
                                         const parameterVector &D,
                                         variableVector &PK2Stress, variableVector &referenceMicroStress,
                                         variableVector &referenceHigherOrderStress );
 
     errorOut linearElasticityReference( const variableVector &deformationGradient, const variableVector &microDeformation,
-                                        const variableVector &microDeformationGradient,
+                                        const variableVector &gradientMicroDeformation,
                                         const parameterVector &A, const parameterVector &B, const parameterVector &C,
                                         const parameterVector &D,
                                         variableVector &PK2Stress, variableVector &referenceMicroStress,
                                         variableVector &referenceHigherOrderStress,
                                         variableMatrix &dPK2StressdF, variableMatrix &dPK2StressdXi, variableMatrix &dPK2StressdGradXi,
-                                        variableMatrix &dMicroStressdF, variableMatrix &dMicroStressdXi,
-                                        variableMatrix &dMicroStressdGradXi, variableMatrix &dMdF, variableMatrix &dMdGradXi );
+                                        variableMatrix &dReferenceMicroStressdF, variableMatrix &dReferenceMicroStressdXi,
+                                        variableMatrix &dReferenceMicroStressdGradXi, variableMatrix &dMdF, variableMatrix &dMdGradXi );
 
     errorOut mapStressMeasuresToCurrent( const variableVector &deformationGradient, const variableVector &microDeformation,
                                          const variableVector &PK2Stress, const variableVector &referenceMicroStress,
