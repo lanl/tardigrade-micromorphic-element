@@ -1308,4 +1308,44 @@ namespace micromorphicLinearElasticity{
 
         return NULL;
     }
+
+    errorOut formIsotropicB( const parameterType &eta, const parameterType &tau,   const parameterType &kappa,
+                             const parameterType &nu,  const parameterType &sigma, parameterVector &B ){
+        /*!
+         * Form the isotropic B stiffness tensor.
+         * B_{KLMN} = ( eta - tau ) \delta_{KL} \delta_{MN} + \kappa \delta_{KM} \delta_{LN} + \nu \delta_{KN} \delta_{LM}
+         *          - \sigma \left( \delta_{KM} \delta_{LN} + \delta_{KN} \delta_{LM} \right)
+         *
+         * :param const parameterType &eta: The micromorphic eta parameter.
+         * :param const parameterType &tau: The micromorphic tau parameter.
+         * :param const parameterType &kappa: The micromorphic kappa parameter.
+         * :param const parameterType &nu: The micromorphic nu parameter.
+         * :param const parameterType &sigma: The micromorphic sigma parameter
+         * :param parameterVector &B: The isotropic B stiffnes tensor.
+         */
+
+        //Assume 3D
+        unsigned int dim = 3;
+
+        constantVector eye( dim * dim );
+        vectorTools::eye( eye );
+
+        B = parameterVector( dim * dim * dim * dim, 0 );
+
+        for ( unsigned int K = 0; K < dim; K++ ){
+            for ( unsigned int L = 0; L < dim; L++ ){
+                for ( unsigned int M = 0; M < dim; M++ ){
+                    for ( unsigned int N = 0; N < dim; N++ ){
+                        B[ dim * dim * dim * K + dim * dim * L + dim * M + N ] = ( eta - tau ) * eye[ dim * K + L ] * eye[ dim * M + N ]
+                                                                               + kappa * eye[ dim * K + M ] * eye[ dim * L + N ]
+                                                                               + nu * eye[ dim * K + N ] * eye[ dim * L + M ]
+                                                                               - sigma * ( eye[ dim * K + M ] * eye[ dim * L + N ]
+                                                                                         + eye[ dim * K + N ] * eye[ dim * L + M ] );
+                    }
+                }
+            }
+        }
+
+        return NULL;
+    }
 }
