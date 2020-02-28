@@ -2512,6 +2512,43 @@ int test_formIsotropicC( std::ofstream &results){
     return 0;
 }
 
+int test_formIsotropicD( std::ofstream &results){
+    /*!
+     * Test the formation of the isotropic D stiffness tensor.
+     *
+     * :param std::ofstream &results: The output file.
+     */
+
+    parameterType tau = 5;
+    parameterType sigma = 4;
+
+    parameterVector answer = { 13.,  0.,  0.,  0.,  5.,  0.,  0.,  0.,  5.,  0.,  4.,  0.,  4.,
+                                0.,  0.,  0.,  0.,  0.,  0.,  0.,  4.,  0.,  0.,  0.,  4.,  0.,
+                                0.,  0.,  4.,  0.,  4.,  0.,  0.,  0.,  0.,  0.,  5.,  0.,  0.,
+                                0., 13.,  0.,  0.,  0.,  5.,  0.,  0.,  0.,  0.,  0.,  4.,  0.,
+                                4.,  0.,  0.,  0.,  4.,  0.,  0.,  0.,  4.,  0.,  0.,  0.,  0.,
+                                0.,  0.,  0.,  4.,  0.,  4.,  0.,  5.,  0.,  0.,  0.,  5.,  0.,
+                                0.,  0., 13. };
+
+    parameterVector result;
+
+    errorOut error = micromorphicLinearElasticity::formIsotropicD( tau, sigma, result );
+
+    if ( error ){
+        error->print();
+        results << "test_formIsotropicD & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( answer, result ) ){
+        results << "test_formIsotropicD (test 1) & False\n";
+        return 1;
+    }
+
+    results << "test_formIsotropicD & True\n";
+    return 0;
+}
+
 int main(){
     /*!
     The main loop which runs the tests defined in the 
@@ -2539,6 +2576,7 @@ int main(){
     test_formIsotropicA( results );
     test_formIsotropicB( results );
     test_formIsotropicC( results );
+    test_formIsotropicD( results );
 
     //Close the results file
     results.close();

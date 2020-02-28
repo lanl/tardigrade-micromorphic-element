@@ -1361,8 +1361,8 @@ namespace micromorphicLinearElasticity{
          *            + \tau_7 \delta_{KN} \delta_{LP} \delta_{MQ}
          *            + \tau_8 \left( \delta_{KP} \delta_{LQ} \delta_{MN} + \delta_{KQ} \delta_{LN} \delta_{MP} )
          *            + \tau_9 \delta_{KN} \delta_{LQ} \delta_{MP}
-         *            + \tau_10 \delta_{KP} \delta_{LN} \delta_{MQ}
-         *            + \tau_11 \delta_{KQ} \delta_{LP} \delta_{MN}
+         *            + \tau_{10} \delta_{KP} \delta_{LN} \delta_{MQ}
+         *            + \tau_{11} \delta_{KQ} \delta_{LP} \delta_{MN}
          *
          * :param const parameterVector &taus: The moduli (11 independent terms)
          * :param parameterVector &C: The isotropic C stiffness tensor.
@@ -1404,6 +1404,37 @@ namespace micromorphicLinearElasticity{
                                                                  + taus[10] * eye[ dim * K + Q ] * eye[ dim * L + P ] * eye[ dim * M + N ];
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        return NULL;
+    }
+
+    errorOut formIsotropicD( const parameterType &tau, const parameterType &sigma, parameterVector &D ) {
+        /*!
+         * Form the isotropic tensor D.
+         * D_{KLMN} = \tau \delta_{KL} \delta_{MN} + \sigma \left( \delta_{KM} \delta_{LN} + \delta_{KN} \delta_{LM} )
+         *
+         * :param const parameterType &tau: The micromorphic tau parameter.
+         * :param const parameterType &sigma: The micromorphic sigma parameter.
+         * :param parameterVector &D: The D stiffness tensor.
+         */
+
+        //Assume 3D
+        unsigned int dim = 3;
+
+        constantVector eye( dim * dim );
+        vectorTools::eye( eye );
+
+        D = parameterVector( dim * dim * dim * dim, 0 );
+        for ( unsigned int K = 0; K < dim; K++ ){
+            for ( unsigned int L = 0; L < dim; L++ ){
+                for ( unsigned int M = 0; M < dim; M++ ){
+                    for ( unsigned int N = 0; N < dim; N++ ){
+                        D[ dim * dim * dim * K + dim * dim * L + dim * M + N ] = tau * eye[ dim * K + L ] * eye[ dim * M + N ]
+                            + sigma * ( eye[ dim * K + M ] * eye[ dim * L + N ] + eye[ dim * K + N ] * eye[ dim * L + M ] );
                     }
                 }
             }

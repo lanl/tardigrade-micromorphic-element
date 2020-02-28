@@ -142,7 +142,7 @@ namespace micromorphicLinearElasticity{
 
     errorOut formIsotropicC( const parameterVector &taus, parameterVector &C );
 
-    errorOut formIsotropicD( const parameterType &tau, const parameterType &sigma );
+    errorOut formIsotropicD( const parameterType &tau, const parameterType &sigma, parameterVector &D );
 
 }
 
