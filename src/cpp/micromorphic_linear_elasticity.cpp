@@ -12,14 +12,15 @@
 
 namespace micromorphicLinearElasticity{
 
-    errorOut linearElasticity( const variableVector &deformationGradient, const variableVector &microDeformation,
-                               const variableVector &gradientMicroDeformation,
-                               const parameterVector &A, const parameterVector &B, const parameterVector &C,
-                               const parameterVector &D,
-                               variableVector &PK2Stress, variableVector &referenceMicroStress,
-                               variableVector &referenceHigherOrderStress ){
+    errorOut linearElasticityReference( const variableVector &deformationGradient, const variableVector &microDeformation,
+                                        const variableVector &gradientMicroDeformation,
+                                        const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                                        const parameterVector &D,
+                                        variableVector &PK2Stress, variableVector &referenceMicroStress,
+                                        variableVector &referenceHigherOrderStress ){
         /*!
-         * Compute the stress measures for micromorphic linear elasticity based of of a quadratic decomposition of the energy.
+         * Compute the stress measures in the reference configuration for micromorphic linear elasticity based off 
+         * of a quadratic decomposition of the energy.
          *
          * :param const variableVector &deformationGradient: The deformation gradient
          * :param const variableVector &microDeformation: The micro-deformation
@@ -132,17 +133,18 @@ namespace micromorphicLinearElasticity{
     return NULL;
     }
 
-    errorOut linearElasticity( const variableVector &deformationGradient, const variableVector &microDeformation,
-                               const variableVector &gradientMicroDeformation,
-                               const parameterVector &A, const parameterVector &B, const parameterVector &C,
-                               const parameterVector &D,
-                               variableVector &PK2Stress, variableVector &referenceMicroStress,
-                               variableVector &referenceHigherOrderStress,
-                               variableMatrix &dPK2StressdF, variableMatrix &dPK2StressdXi, variableMatrix &dPK2StressdGradXi,
-                               variableMatrix &dMicroStressdF, variableMatrix &dMicroStressdXi, variableMatrix &dMicroStressdGradXi,
-                               variableMatrix &dMdF, variableMatrix &dMdGradXi ){
+    errorOut linearElasticityReference( const variableVector &deformationGradient, const variableVector &microDeformation,
+                                        const variableVector &gradientMicroDeformation,
+                                        const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                                        const parameterVector &D,
+                                        variableVector &PK2Stress, variableVector &referenceMicroStress,
+                                        variableVector &referenceHigherOrderStress,
+                                        variableMatrix &dPK2StressdF, variableMatrix &dPK2StressdXi, variableMatrix &dPK2StressdGradXi,
+                                        variableMatrix &dMicroStressdF, variableMatrix &dMicroStressdXi,
+                                        variableMatrix &dMicroStressdGradXi, variableMatrix &dMdF, variableMatrix &dMdGradXi ){
         /*!
-         * Compute the stress measures for micromorphic linear elasticity based of of a quadratic decomposition of the energy.
+         * Compute the stress measures in the reference configuration for micromorphic linear elasticity based off
+         * of a quadratic decomposition of the energy.
          *
          * Also computes the Jacobians
          *
