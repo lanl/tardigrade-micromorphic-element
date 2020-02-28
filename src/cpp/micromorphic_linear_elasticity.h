@@ -135,6 +135,15 @@ namespace micromorphicLinearElasticity{
     errorOut computeInvRCGGamma( const variableVector &invRCG, const variableVector &Gamma, variableVector &invRCGGamma,
                                  variableMatrix &dInvRCGGammadRCG, variableMatrix &dInvRCGGammadGamma );
 
+    errorOut formIsotropicA( const parameterType &lambda, const parameterType &mu, parameterVector &A );
+
+    errorOut formIsotropicB( const parameterType &eta, const parameterType &tau,   const parameterType &kappa,
+                             const parameterType &nu,  const parameterType &sigma, parameterVector &B );
+
+    errorOut formIsotropicC( const parameterVector &taus, parameterVector &C );
+
+    errorOut formIsotropicD( const parameterType &tau, const parameterType &sigma );
+
 }
 
 #endif

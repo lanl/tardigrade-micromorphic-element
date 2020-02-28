@@ -1275,4 +1275,37 @@ namespace micromorphicLinearElasticity{
 
         return NULL;
     }
+
+    errorOut formIsotropicA( const parameterType &lambda, const parameterType &mu, parameterVector &A ){
+        /*!
+         * Form the isotropic A stiffness tensor.
+         * A_{KLMN} = \lambda \delta_{KL} \delta_{MN} + \mu \left( \delta_{KM} \delta_{LN} + \delta_{KN} \delta_{LM} )
+         *
+         * :param const parameterType &lambda: The micromorphic lambda parameter.
+         * :param const parameterType &mu: The micromorphic mu parameter.
+         * :param parameterVector &A: The isotropic A stiffness tensor.
+         */
+
+        //Assume 3D
+        unsigned int dim = 3;
+
+        constantVector eye( dim * dim );
+        vectorTools::eye( eye );
+
+        A = parameterVector( dim * dim * dim * dim, 0 );
+
+        for ( unsigned int K = 0; K < dim; K++ ){
+            for ( unsigned int L = 0; L < dim; L++ ){
+                for ( unsigned int M = 0; M < dim; M++ ){
+                    for ( unsigned int N = 0; N < dim; N++ ){
+                        A[ dim * dim * dim * K + dim * dim * L + dim * M + N ] = lambda * eye[ dim * K + L ] * eye[ dim * M + N ]
+                                                                               + mu * ( eye[ dim * K + M ] * eye[ dim * L + N ]
+                                                                                      + eye[ dim * K + N ] * eye[ dim * L + M ] );
+                    }
+                }
+            }
+        }
+
+        return NULL;
+    }
 }

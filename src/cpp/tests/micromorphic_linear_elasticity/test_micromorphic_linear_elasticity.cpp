@@ -2347,6 +2347,43 @@ int test_linearElasticity( std::ofstream &results ){
     return 0;
 }
 
+int test_formIsotropicA( std::ofstream &results){
+    /*!
+     * Test the formation of the isotropic A stiffness tensor.
+     *
+     * :param std::ofstream &results: The output file.
+     */
+
+    parameterType lambda = 4;
+    parameterType mu = 7;
+
+    parameterVector answer = { 18.,  0.,  0.,  0.,  4.,  0.,  0.,  0.,  4.,  0.,  7.,  0.,  7.,
+                                0.,  0.,  0.,  0.,  0.,  0.,  0.,  7.,  0.,  0.,  0.,  7.,  0.,
+                                0.,  0.,  7.,  0.,  7.,  0.,  0.,  0.,  0.,  0.,  4.,  0.,  0.,
+                                0., 18.,  0.,  0.,  0.,  4.,  0.,  0.,  0.,  0.,  0.,  7.,  0.,
+                                7.,  0.,  0.,  0.,  7.,  0.,  0.,  0.,  7.,  0.,  0.,  0.,  0.,
+                                0.,  0.,  0.,  7.,  0.,  7.,  0.,  4.,  0.,  0.,  0.,  4.,  0.,
+                                0.,  0., 18. };
+
+    parameterVector result;
+
+    errorOut error = micromorphicLinearElasticity::formIsotropicA( lambda, mu, result );
+
+    if ( error ){
+        error->print();
+        results << "test_formIsotropicA & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( answer, result ) ){
+        results << "test_formIsotropicA (test 1) & False\n";
+        return 1;
+    }
+
+    results << "test_formIsotropicA & True\n";
+    return 0;
+}
+
 int main(){
     /*!
     The main loop which runs the tests defined in the 
@@ -2370,6 +2407,7 @@ int main(){
     test_linearElasticityReference( results );
     test_mapStressesToCurrent( results );
     test_linearElasticity( results );
+    test_formIsotropicA( results );
 
     //Close the results file
     results.close();
