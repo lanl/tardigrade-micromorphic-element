@@ -1348,4 +1348,67 @@ namespace micromorphicLinearElasticity{
 
         return NULL;
     }
+
+    errorOut formIsotropicC( const parameterVector &taus, parameterVector &C ){
+        /*!
+         * Form the isotropic C stiffness tensor.
+         * C_{KLMNPQ} = \tau_1 \left( \delta_{KL} \delta_{MN} \delta_{PQ} + \delta_{KQ} \delta_{LM} \delta_{NP} \right) 
+         *            + \tau_2 \left( \delta_{KL} \delta_{MP} \delta_{NQ} + \delta_{KM} \delta_{LQ} \delta_{NP} \right)
+         *            + \tau_3 \delta_{KL} \delta_{MQ} \delta_{NP}
+         *            + \tau_4 \delta_{KN} \delta_{LM} \delta_{PQ}
+         *            + \tau_5 \left( \delta_{KM} \delta_{LN} \delta_{PQ} + \delta_{KP} \delta_{LM} \delta_{NQ} )
+         *            + \tau_6 \delta_{KM} \delta_{LP} \delta_{NQ}
+         *            + \tau_7 \delta_{KN} \delta_{LP} \delta_{MQ}
+         *            + \tau_8 \left( \delta_{KP} \delta_{LQ} \delta_{MN} + \delta_{KQ} \delta_{LN} \delta_{MP} )
+         *            + \tau_9 \delta_{KN} \delta_{LQ} \delta_{MP}
+         *            + \tau_10 \delta_{KP} \delta_{LN} \delta_{MQ}
+         *            + \tau_11 \delta_{KQ} \delta_{LP} \delta_{MN}
+         *
+         * :param const parameterVector &taus: The moduli (11 independent terms)
+         * :param parameterVector &C: The isotropic C stiffness tensor.
+         */
+
+        //Assume 3D
+        unsigned int dim = 3;
+
+        if ( taus.size() != 11 ){
+            return new errorNode( "formIsotropicC", "11 moduli required to form C" );
+        }
+
+        constantVector eye( dim * dim );
+        vectorTools::eye( eye );
+
+        C = parameterVector( dim * dim * dim * dim * dim * dim, 0 );
+
+        for ( unsigned int K = 0; K < dim; K++ ){
+            for ( unsigned int L = 0; L < dim; L++ ){
+                for ( unsigned int M = 0; M < dim; M++ ){
+                    for ( unsigned int N = 0; N < dim; N++ ){
+                        for ( unsigned int P = 0; P < dim; P++ ){
+                            for ( unsigned int Q = 0; Q < dim; Q++ ){
+                                C[ dim * dim * dim * dim * dim * K + dim * dim * dim * dim * L + dim * dim * dim * M 
+                                 + dim * dim * N + dim * P + Q ] = taus[0] * ( eye[ dim * K + L ] * eye[ dim * M + N ] * eye[ dim * P + Q ]
+                                                                             + eye[ dim * K + Q ] * eye[ dim * L + M ] * eye[ dim * N + P ] )
+                                                                 + taus[1] * ( eye[ dim * K + L ] * eye[ dim * M + P ] * eye[ dim * N + Q ]
+                                                                             + eye[ dim * K + M ] * eye[ dim * L + Q ] * eye[ dim * N + P ] )
+                                                                 + taus[2] * eye[ dim * K + L ] * eye[ dim * M + Q ] * eye[ dim * N + P]
+                                                                 + taus[3] * eye[ dim * K + N ] * eye[ dim * L + M ] * eye[ dim * P + Q]
+                                                                 + taus[4] * ( eye[ dim * K + M ] * eye[ dim * L + N ] * eye[ dim * P + Q ]
+                                                                             + eye[ dim * K + P ] * eye[ dim * L + M ] * eye[ dim * N + Q ] )
+                                                                 + taus[5] * eye[ dim * K + M ] * eye[ dim * L + P ] * eye[ dim * N + Q ]
+                                                                 + taus[6] * eye[ dim * K + N ] * eye[ dim * L + P ] * eye[ dim * M + Q ]
+                                                                 + taus[7] * ( eye[ dim * K + P ] * eye[ dim * L + Q ] * eye[ dim * M + N ]
+                                                                             + eye[ dim * K + Q ] * eye[ dim * L + N ] * eye[ dim * M + P ] )
+                                                                 + taus[8] * eye[ dim * K + N ] * eye[ dim * L + Q ] * eye[ dim * M + P ]
+                                                                 + taus[9] * eye[ dim * K + P ] * eye[ dim * L + N ] * eye[ dim * M + Q ]
+                                                                 + taus[10] * eye[ dim * K + Q ] * eye[ dim * L + P ] * eye[ dim * M + N ];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return NULL;
+    }
 }
