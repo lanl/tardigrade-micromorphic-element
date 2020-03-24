@@ -1,11 +1,11 @@
-# Micromorphic tools library
+# Micromorphic linear elasticity library
 # 
 # Author: Nathan A. Miller (LANL / CU Boulder)
 # Email:  nathanm@lanl.gov
 # Date:   February 21, 2020
 #
 # This is the makefile for test_micromorphic_linear_elasticity.cpp it tests the 
-# micromorphic continuum tools.
+# micromorphic linear elastic constitutive model.
 
 include ../../../../config.mk
 
