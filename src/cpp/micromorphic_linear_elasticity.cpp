@@ -36,35 +36,73 @@ namespace micromorphicLinearElasticity{
          *     reference configuration.
          */
 
-        //Assume 3d
-        unsigned int dim = 3;
-
-        constantVector eye( dim * dim );
-        vectorTools::eye( eye );
-
         //Compute the required deformation measures
         variableVector RCG, Psi, Gamma;
         errorOut error = computeDeformationMeasures( deformationGradient, microDeformation, gradientMicroDeformation,
                                                      RCG, Psi, Gamma );
 
         if ( error ){
-            errorOut result = new errorNode( "linearElasticity",
+            errorOut result = new errorNode( "linearElasticityReference",
                                              "Error in the computation of the deformation measures" );
             result->addNext( error );
             return result;
         }
 
-        variableVector invRCG = vectorTools::inverse( RCG, dim, dim );
+        error = linearElasticityReferenceDerivedMeasures( RCG, Psi, Gamma, A, B, C, D,
+                                                          PK2Stress, referenceMicroStress,
+                                                          referenceHigherOrderStress );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticityReference",
+                                             "Error in the computation of the reference stresses" );
+            result->addNext( error );
+            return result;
+        }
+
+        return NULL;
+    }
+
+    errorOut linearElasticityReferenceDerivedMeasures( const variableVector &rightCauchyGreenDeformation,
+                                                       const variableVector &Psi, const variableVector &Gamma,
+                                                       const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                                                       const parameterVector &D,
+                                                       variableVector &PK2Stress, variableVector &referenceMicroStress,
+                                                       variableVector &referenceHigherOrderStress ){
+        /*!
+         * Compute the stress measures in the reference configuration for micromorphic linear elasticity based off
+         * of a quadratic decomposition of the energy.
+         *
+         * :param const variableVector &rightCauchyGreenDeformation: The right Cauchy-Green deformation metric
+         * :param const variableVector &Psi: The micro-deformation measure Psi
+         * :param const variableVector &Gamma: The higher order deformation measure Gamma
+         * :param const parameterVector &A: The A stiffness matrix.
+         * :param const parameterVector &B: The B stiffness matrix.
+         * :param const parameterVector &C: The C stiffness matrix.
+         * :param const parameterVector &D: The D stiffness matrix.
+         * :param variableVector &PK2Stress: The second Piola-Kirchoff stress.
+         * :param variableVector &referenceMicroStress: The symmetric micro-stress in the 
+         *     reference configuration.
+         * :param variableVector &referenceHigherOrderStress: The higher-order stress in the 
+         *     reference configuration.
+         */
+
+        //Assume 3D
+        unsigned int dim = 3;
+
+        constantVector eye( dim * dim );
+        vectorTools::eye( eye );
+
+        variableVector invRCG = vectorTools::inverse( rightCauchyGreenDeformation, dim, dim );
 
         //Compute the strain measures
-        variableVector greenLagrangeStrain = 0.5 * ( RCG - eye );
+        variableVector greenLagrangeStrain = 0.5 * ( rightCauchyGreenDeformation - eye );
         variableVector microStrain   = Psi - eye;
 
         //Compute the higher order stress
-        error = computeReferenceHigherOrderStress( Gamma, C, referenceHigherOrderStress );
+        errorOut error = computeReferenceHigherOrderStress( Gamma, C, referenceHigherOrderStress );
 
         if ( error ){
-            errorOut result = new errorNode( "linearElasticity",
+            errorOut result = new errorNode( "linearElasticityReferenceDerivedMeasures",
                                              "Error in computation of higher-order stress" );
             result->addNext( error );
             return result;
@@ -75,7 +113,7 @@ namespace micromorphicLinearElasticity{
         error = computeLinearElasticTerm1( greenLagrangeStrain, microStrain, A, D, term1 );
 
         if ( error ){
-            errorOut result = new errorNode( "linearElasticity",
+            errorOut result = new errorNode( "linearElasticityReferenceDerivedMeasures",
                                              "Error in computation of term 1" );
             result->addNext( error );
             return result;
@@ -86,7 +124,7 @@ namespace micromorphicLinearElasticity{
         error = computeInvRCGPsi( invRCG, Psi, invRCGPsi );
         
         if ( error ){
-            errorOut result = new errorNode( "linearElasticity",
+            errorOut result = new errorNode( "linearElasticityReferenceDerivedMeasures",
                                              "Error in computation of invRCG Psi product" );
             result->addNext( error );
             return result;
@@ -96,7 +134,7 @@ namespace micromorphicLinearElasticity{
         error = computeLinearElasticTerm2( greenLagrangeStrain, microStrain, invRCGPsi, B, D, term2 );
 
         if ( error ){
-            errorOut result = new errorNode( "linearElasticity",
+            errorOut result = new errorNode( "linearElasticityReferenceDerivedMesures",
                                              "Error in computation of term 2" );
             result->addNext( error );
             return result;
@@ -107,7 +145,7 @@ namespace micromorphicLinearElasticity{
         error = computeInvRCGGamma( invRCG, Gamma, invRCGGamma );
 
         if ( error ){
-            errorOut result = new errorNode( "linearElasticity",
+            errorOut result = new errorNode( "linearElasticityReferenceDerivedMeasures",
                                              "Error in computation of invRCG Gamma product" );
             result->addNext(error);
             return result;
@@ -117,7 +155,7 @@ namespace micromorphicLinearElasticity{
         error = computeLinearElasticTerm3( invRCGGamma, referenceHigherOrderStress, term3 );
 
         if ( error ){
-            errorOut result = new errorNode( "linearElasticity",
+            errorOut result = new errorNode( "linearElasticityReferenceDerivedMeasures",
                                              "Error in computation of term 3" );
             result->addNext( error );
             return result;
@@ -130,7 +168,7 @@ namespace micromorphicLinearElasticity{
         error = constitutiveTools::computeSymmetricPart( term2 + term3, symmTerm2Term3 );
         referenceMicroStress = term1 + 2 * symmTerm2Term3;
 
-    return NULL;
+        return NULL;
     }
 
     errorOut linearElasticityReference( const variableVector &deformationGradient, const variableVector &microDeformation,
@@ -183,7 +221,7 @@ namespace micromorphicLinearElasticity{
                                                      RCG, Psi, Gamma, dRCGdF, dPsidF, dPsidXi, dGammadF, dGammadGradXi );
 
         if ( error ){
-            errorOut result = new errorNode( "linearElasticity (jacobian)",
+            errorOut result = new errorNode( "linearElasticityReference (jacobian)",
                                              "Error in the computation of the deformation measures" );
             result->addNext( error );
             return result;
@@ -322,7 +360,168 @@ namespace micromorphicLinearElasticity{
         dReferenceMicroStressdXi = dTerm1dXi + 2 * vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm2dXi );
         dReferenceMicroStressdGradXi = 2 * vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm3dGradXi );
 
-    return NULL;
+        return NULL;
+    }
+
+    errorOut linearElasticityReferenceDerivedMeasures( const variableVector &rightCauchyGreenDeformation, const variableVector &Psi,
+                                                       const variableVector &Gamma,
+                                                       const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                                                       const parameterVector &D,
+                                                       variableVector &PK2Stress, variableVector &referenceMicroStress,
+                                                       variableVector &referenceHigherOrderStress,
+                                                       variableMatrix &dPK2StressdRCG, variableMatrix &dPK2StressdPsi,
+                                                       variableMatrix &dPK2StressdGamma,
+                                                       variableMatrix &dReferenceMicroStressdRCG,
+                                                       variableMatrix &dReferenceMicroStressdPsi,
+                                                       variableMatrix &dReferenceMicroStressdGamma,
+                                                       variableMatrix &dMdGamma ){
+        /*!
+         * Compute the stress measures in the reference configuration for micromorphic linear elasticity based off
+         * of a quadratic decomposition of the energy.
+         *
+         * :param const variableVector &rightCauchyGreenDeformation: The right Cauchy-Green deformation metric
+         * :param const variableVector &Psi: The micro-deformation measure Psi
+         * :param const variableVector &Gamma: The higher order deformation measure Gamma
+         * :param const parameterVector &A: The A stiffness matrix.
+         * :param const parameterVector &B: The B stiffness matrix.
+         * :param const parameterVector &C: The C stiffness matrix.
+         * :param const parameterVector &D: The D stiffness matrix.
+         * :param variableVector &PK2Stress: The second Piola-Kirchoff stress.
+         * :param variableVector &referenceMicroStress: The symmetric micro-stress in the 
+         *     reference configuration.
+         * :param variableVector &referenceHigherOrderStress: The higher-order stress in the 
+         *     reference configuration.
+         * :param variableMatrix &dPK2StressdRCG: The Jacobian of the PK2 stress w.r.t. the right Cauchy-Green
+         *     deformation metric.
+         * :param variableMatrix &dPK2StressdPsi: The Jacobian of the PK2 stress w.r.t. the micro deformation 
+         *     metric.
+         * :param variableMatrix &dPK2StressdGamma: The Jacobian of the PK2 stress w.r.t. the higher order 
+         *     deformation measure.
+         * :param variableMatrix &dReferenceMicroStressdRCG: The Jacobian of the reference micro stress w.r.t. the 
+         *     right Cacuhy-Green deformation metric.
+         * :param variableMatrix &dReferenceMicroStressdPsi: The Jacobian of the reference micro stress w.r.t. the 
+         *     micro deformation measure.
+         * :param variableMatrix &dReferenceMicroStrssdGamma: The Jacobian of the reference micro stress w.r.t. the 
+         *     higher order deformation measure.
+         * :param variableMatrix &dMdGamma: The Jacobian of the reference higher order stress w.r.t. 
+         *     the higher order deformation measure.
+         */
+
+        //Assume 3d
+        unsigned int dim = 3;
+
+        constantVector eye( dim * dim );
+        vectorTools::eye( eye );
+
+        variableVector invRCG = vectorTools::inverse( rightCauchyGreenDeformation, dim, dim );
+
+        //Compute the strain measures
+        variableVector greenLagrangeStrain = 0.5 * ( rightCauchyGreenDeformation - eye );
+        variableVector microStrain   = Psi - eye;
+
+        //Compute the higher order stress
+        errorOut error = computeReferenceHigherOrderStress( Gamma, C, referenceHigherOrderStress, dMdGamma );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticityRefereceDerivedMetrics (jacobian)",
+                                             "Error in computation of higher-order stress" );
+            result->addNext( error );
+            return result;
+        }
+
+        //Compute the first common term for the PK2 and symmetric micro-stress
+        variableVector term1;
+
+        variableMatrix dTerm1dRCG, dTerm1dPsi;
+        error = computeLinearElasticTerm1( greenLagrangeStrain, microStrain, A, D, term1,
+                                           dTerm1dRCG, dTerm1dPsi );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticityDerivedMetrics (jacobian)",
+                                             "Error in computation of term 1" );
+            result->addNext( error );
+            return result;
+        }
+
+        //Assemble term1 jacobians w.r.t. F and Xi
+        dTerm1dRCG *= 0.5;
+
+        //Compute the second common term for the PK2 and symmetric micro-stress
+        variableVector invRCGPsi;
+        variableMatrix dInvRCGPsidRCG, dInvRCGPsidPsi;
+
+        error = computeInvRCGPsi( invRCG, Psi, invRCGPsi, dInvRCGPsidRCG, dInvRCGPsidPsi );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticityReferenceDerivedMetrics (jacobian)",
+                                             "Error in computation of invRCG Psi product" );
+            result->addNext( error );
+            return result;
+        }
+
+        variableVector term2;
+        variableMatrix dTerm2dRCG, dTerm2dPsi, dTerm2dInvRCGPsi;
+        error = computeLinearElasticTerm2( greenLagrangeStrain, microStrain, invRCGPsi, B, D, term2,
+                                           dTerm2dRCG, dTerm2dPsi, dTerm2dInvRCGPsi );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticity",
+                                             "Error in computation of term 2" );
+            result->addNext( error );
+            return result;
+        }
+
+        dTerm2dRCG *= 0.5;
+        dTerm2dRCG += vectorTools::dot( dTerm2dInvRCGPsi, dInvRCGPsidRCG );
+
+        dTerm2dPsi += vectorTools::dot( dTerm2dInvRCGPsi, dInvRCGPsidPsi );
+
+        //Compute the third common term for the PK2 and symmetric micro-stress
+        variableVector invRCGGamma;
+        variableMatrix dInvRCGGammadRCG, dInvRCGGammadGamma;
+
+        error = computeInvRCGGamma( invRCG, Gamma, invRCGGamma, dInvRCGGammadRCG, dInvRCGGammadGamma );
+
+        if ( error ){
+            errorOut result = new errorNode( "linear elasticity (jacobian)", "Error in computation of invRCG Gamma product" );
+            result->addNext( error );
+            return result;
+        }
+
+        variableVector term3;
+        variableMatrix dTerm3dInvRCGGamma, dTerm3dM;
+        error = computeLinearElasticTerm3( invRCGGamma, referenceHigherOrderStress, term3, dTerm3dInvRCGGamma, dTerm3dM );
+
+        if ( error ){
+            errorOut result = new errorNode( "linearElasticity",
+                                             "Error in computation of term 3" );
+            result->addNext( error );
+            return result;
+        }
+
+        variableMatrix dTerm3dRCG = vectorTools::dot( dTerm3dInvRCGGamma, dInvRCGGammadRCG );
+        variableMatrix dTerm3dGamma = vectorTools::dot( dTerm3dInvRCGGamma, dInvRCGGammadGamma )
+                                    + vectorTools::dot( dTerm3dM, dMdGamma );
+
+        //Construct the PK2 and reference symmetric stresses
+        PK2Stress            = term1 + term2 + term3;
+
+        dPK2StressdRCG    = dTerm1dRCG + dTerm2dRCG + dTerm3dRCG;
+        dPK2StressdPsi    = dTerm1dPsi + dTerm2dPsi;
+        dPK2StressdGamma  = dTerm3dGamma;
+
+        variableVector symmTerm2Term3;
+        variableMatrix dSymmTerm2Term3dTerm2Term3;
+        error = constitutiveTools::computeSymmetricPart( term2 + term3, symmTerm2Term3, dSymmTerm2Term3dTerm2Term3 );
+        referenceMicroStress = term1 + 2 * symmTerm2Term3;
+
+        dReferenceMicroStressdRCG = dTerm1dRCG + 2 * ( vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm2dRCG )
+                                                     + vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm3dRCG ) );
+
+        dReferenceMicroStressdPsi = dTerm1dPsi + 2 * vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm2dPsi );
+        dReferenceMicroStressdGamma = 2 * vectorTools::dot( dSymmTerm2Term3dTerm2Term3, dTerm3dGamma );
+
+        return NULL;
     }
 
     errorOut computeDeformationMeasures( const variableVector &deformationGradient, const variableVector &microDeformation,
@@ -426,7 +625,6 @@ namespace micromorphicLinearElasticity{
         }
 
         return NULL;
-
     }
 
     errorOut computeLinearElasticTerm1( const variableVector &greenLagrangeStrain, const variableVector &microStrain, 

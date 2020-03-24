@@ -69,6 +69,26 @@ namespace micromorphicLinearElasticity{
                                         variableMatrix &dReferenceMicroStressdF, variableMatrix &dReferenceMicroStressdXi,
                                         variableMatrix &dReferenceMicroStressdGradXi, variableMatrix &dMdF, variableMatrix &dMdGradXi );
 
+    errorOut linearElasticityReferenceDerivedMeasures( const variableVector &rightCauchyGreenDeformation, const variableVector &Psi,
+                                                       const variableVector &Gamma,
+                                                       const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                                                       const parameterVector &D,
+                                                       variableVector &PK2Stress, variableVector &referenceMicroStress,
+                                                       variableVector &referenceHigherOrderStress );
+
+    errorOut linearElasticityReferenceDerivedMeasures( const variableVector &rightCauchyGreenDeformation, const variableVector &Psi,
+                                                       const variableVector &Gamma,
+                                                       const parameterVector &A, const parameterVector &B, const parameterVector &C,
+                                                       const parameterVector &D,
+                                                       variableVector &PK2Stress, variableVector &referenceMicroStress,
+                                                       variableVector &referenceHigherOrderStress,
+                                                       variableMatrix &dPK2StressdRCG, variableMatrix &dPK2StressdPsi,
+                                                       variableMatrix &dPK2StressdGamma,
+                                                       variableMatrix &dReferenceMicroStressdRCG,
+                                                       variableMatrix &dReferenceMicroStressdPsi,
+                                                       variableMatrix &dReferenceMicroStressdGamma,
+                                                       variableMatrix &dMdGamma );
+
     errorOut mapStressMeasuresToCurrent( const variableVector &deformationGradient, const variableVector &microDeformation,
                                          const variableVector &PK2Stress, const variableVector &referenceMicroStress,
                                          const variableVector &referenceHigherOrderStress,
