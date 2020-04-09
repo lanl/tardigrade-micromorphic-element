@@ -47,10 +47,10 @@ namespace micromorphicLinearElasticity{
                                const parameterVector &D,
                                variableVector &cauchyStress, variableVector &microStress,
                                variableVector &higherOrderStress,
-                               variableMatrix &dCauchyStressdF, variableMatrix &dCauchyStressdXi, variableMatrix &dCauchyStressdGradXi,
-                               variableMatrix &dMicroStressdF, variableMatrix &dMicroStressdXi, variableMatrix &dMicroStressdGradXi,
-                               variableMatrix &dHigherOrderStressdF, variableMatrix &dHigherOrderStressdXi,
-                               variableMatrix &dHigherOrderStressdGradXi );
+                               variableMatrix &dCauchyStressdF, variableMatrix &dCauchyStressdChi, variableMatrix &dCauchyStressdGradChi,
+                               variableMatrix &dMicroStressdF, variableMatrix &dMicroStressdChi, variableMatrix &dMicroStressdGradChi,
+                               variableMatrix &dHigherOrderStressdF, variableMatrix &dHigherOrderStressdChi,
+                               variableMatrix &dHigherOrderStressdGradChi );
 
     errorOut linearElasticityReference( const variableVector &deformationGradient, const variableVector &microDeformation,
                                         const variableVector &gradientMicroDeformation,
@@ -65,9 +65,9 @@ namespace micromorphicLinearElasticity{
                                         const parameterVector &D,
                                         variableVector &PK2Stress, variableVector &referenceMicroStress,
                                         variableVector &referenceHigherOrderStress,
-                                        variableMatrix &dPK2StressdF, variableMatrix &dPK2StressdXi, variableMatrix &dPK2StressdGradXi,
-                                        variableMatrix &dReferenceMicroStressdF, variableMatrix &dReferenceMicroStressdXi,
-                                        variableMatrix &dReferenceMicroStressdGradXi, variableMatrix &dMdF, variableMatrix &dMdGradXi );
+                                        variableMatrix &dPK2StressdF, variableMatrix &dPK2StressdChi, variableMatrix &dPK2StressdGradChi,
+                                        variableMatrix &dReferenceMicroStressdF, variableMatrix &dReferenceMicroStressdChi,
+                                        variableMatrix &dReferenceMicroStressdGradChi, variableMatrix &dMdF, variableMatrix &dMdGradChi );
 
     errorOut linearElasticityReferenceDerivedMeasures( const variableVector &rightCauchyGreenDeformation, const variableVector &Psi,
                                                        const variableVector &Gamma,
@@ -102,7 +102,7 @@ namespace micromorphicLinearElasticity{
                                          variableVector &higherOrderStress,
                                          variableMatrix &dCauchyStressdF, variableMatrix &dCauchyStressdPK2Stress,
                                          variableMatrix &dMicroStressdF, variableMatrix &dMicroStressdReferenceMicroStress,
-                                         variableMatrix &dHigherOrderStressdF, variableMatrix &dHigherOrderStressdXi,
+                                         variableMatrix &dHigherOrderStressdF, variableMatrix &dHigherOrderStressdChi,
                                          variableMatrix &dHigherOrderStressdReferenceHigherOrderStress );
 
     errorOut computeDeformationMeasures( const variableVector &deformationGradient, const variableVector &microDeformation,
@@ -112,8 +112,8 @@ namespace micromorphicLinearElasticity{
     errorOut computeDeformationMeasures( const variableVector &deformationGradient, const variableVector &microDeformation,
                                          const variableVector &gradientMicroDeformation,
                                          variableVector &rightCauchyGreen, variableVector &Psi, variableVector &Gamma,
-                                         variableMatrix &dCdF, variableMatrix &dPsidF, variableMatrix &dPsidXi, 
-                                         variableMatrix &dGammadF, variableMatrix &dGammadGradXi );
+                                         variableMatrix &dCdF, variableMatrix &dPsidF, variableMatrix &dPsidChi, 
+                                         variableMatrix &dGammadF, variableMatrix &dGammadGradChi );
 
     errorOut computeLinearElasticTerm1( const variableVector &greenLagrangeStrain, const variableVector &microStrain,
                                         const parameterVector &A, const parameterVector &D, variableVector &term1 );
