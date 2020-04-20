@@ -884,7 +884,9 @@ int test_computeReferenceHigherOrderStress( std::ofstream &results ){
         constantVector delta( Gamma.size(), 0 );
         delta[i] = eps * fabs( delta[i] ) + eps;
 
-        error = micromorphicLinearElasticity::computeReferenceHigherOrderStress( Gamma + delta, C, resultJ );
+        variableVector result_P, result_M;
+
+        error = micromorphicLinearElasticity::computeReferenceHigherOrderStress( Gamma + delta, C, result_P );
 
         if ( error ){
             error->print();
@@ -892,7 +894,15 @@ int test_computeReferenceHigherOrderStress( std::ofstream &results ){
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        error = micromorphicLinearElasticity::computeReferenceHigherOrderStress( Gamma - delta, C, result_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeReferenceHigherOrderStress & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dMdGamma[j][i] ) ){
