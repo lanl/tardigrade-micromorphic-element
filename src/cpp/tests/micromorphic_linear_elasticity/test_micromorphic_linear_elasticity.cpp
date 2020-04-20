@@ -982,8 +982,10 @@ int test_computeLinearElasticTerm3( std::ofstream &results ){
         constantVector delta( invCGamma.size(), 0 );
         delta[i] = eps * fabs( invCGamma[i] ) + eps;
 
+        variableVector result_P, result_M;
+
         error = micromorphicLinearElasticity::computeLinearElasticTerm3( invCGamma + delta, referenceHigherOrderStress,
-                                                                         resultJ );
+                                                                         result_P );
 
         if ( error ){
             error->print();
@@ -991,7 +993,16 @@ int test_computeLinearElasticTerm3( std::ofstream &results ){
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        error = micromorphicLinearElasticity::computeLinearElasticTerm3( invCGamma - delta, referenceHigherOrderStress,
+                                                                         result_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeLinearElasticTerm3 & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dTerm3dInvCGamma[j][i] ) ){
@@ -1006,8 +1017,10 @@ int test_computeLinearElasticTerm3( std::ofstream &results ){
         constantVector delta( referenceHigherOrderStress.size(), 0 );
         delta[i] = eps * fabs( referenceHigherOrderStress[i] ) + eps;
 
+        variableVector result_P, result_M;
+
         error = micromorphicLinearElasticity::computeLinearElasticTerm3( invCGamma, referenceHigherOrderStress + delta,
-                                                                         resultJ );
+                                                                         result_P );
 
         if ( error ){
             error->print();
@@ -1015,7 +1028,16 @@ int test_computeLinearElasticTerm3( std::ofstream &results ){
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        error = micromorphicLinearElasticity::computeLinearElasticTerm3( invCGamma, referenceHigherOrderStress - delta,
+                                                                         result_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeLinearElasticTerm3 & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dTerm3dM[j][i] ) ){
