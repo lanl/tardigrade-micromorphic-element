@@ -143,9 +143,13 @@ int test_computeDeformationMeasures( std::ofstream &results ){
         constantVector delta( deformationGradient.size(), 0 );
         delta[i] = eps * fabs( deformationGradient[i] ) + eps;
 
+        variableVector resultC_P, resultC_M;
+        variableVector resultPsi_P, resultPsi_M;
+        variableVector resultGamma_P, resultGamma_M;
+
         error =  micromorphicLinearElasticity::computeDeformationMeasures( deformationGradient + delta, microDeformation, 
                                                                            gradientMicroDeformation,
-                                                                           resultCJ, resultPsiJ, resultGammaJ );
+                                                                           resultC_P, resultPsi_P, resultGamma_P );
 
         if ( error ){
             error->print();
@@ -153,7 +157,17 @@ int test_computeDeformationMeasures( std::ofstream &results ){
             return 1;
         }
 
-        variableVector gradCol = ( resultCJ - resultC ) / delta[i];
+        error =  micromorphicLinearElasticity::computeDeformationMeasures( deformationGradient - delta, microDeformation, 
+                                                                           gradientMicroDeformation,
+                                                                           resultC_M, resultPsi_M, resultGamma_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeDeformationMeasures & False\n";
+            return 1;
+        }
+
+        variableVector gradCol = ( resultC_P - resultC_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dCdF[j][i] ) ){
@@ -162,7 +176,7 @@ int test_computeDeformationMeasures( std::ofstream &results ){
             }
         }
 
-        gradCol = ( resultPsiJ - resultPsi ) / delta[i];
+        gradCol = ( resultPsi_P - resultPsi_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dPsidF[j][i] ) ){
@@ -171,7 +185,7 @@ int test_computeDeformationMeasures( std::ofstream &results ){
             }
         }
 
-        gradCol = ( resultGammaJ - resultGamma ) / delta[i];
+        gradCol = ( resultGamma_P - resultGamma_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dGammadF[j][i] ) ){
@@ -186,9 +200,13 @@ int test_computeDeformationMeasures( std::ofstream &results ){
         constantVector delta( microDeformation.size(), 0 );
         delta[i] = eps * fabs( microDeformation[i] ) + eps;
 
+        variableVector resultC_P, resultC_M;
+        variableVector resultPsi_P, resultPsi_M;
+        variableVector resultGamma_P, resultGamma_M;
+
         error =  micromorphicLinearElasticity::computeDeformationMeasures( deformationGradient, microDeformation + delta, 
                                                                            gradientMicroDeformation,
-                                                                           resultCJ, resultPsiJ, resultGammaJ );
+                                                                           resultC_P, resultPsi_P, resultGamma_P );
 
         if ( error ){
             error->print();
@@ -196,11 +214,37 @@ int test_computeDeformationMeasures( std::ofstream &results ){
             return 1;
         }
 
-        variableVector gradCol = ( resultPsiJ - resultPsi ) / delta[i];
+        error =  micromorphicLinearElasticity::computeDeformationMeasures( deformationGradient, microDeformation - delta, 
+                                                                           gradientMicroDeformation,
+                                                                           resultC_M, resultPsi_M, resultGamma_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeDeformationMeasures & False\n";
+            return 1;
+        }
+
+        variableVector gradCol = ( resultC_P - resultC_M ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
+                results << "test_computeDeformationMeasures (test 10) & False\n";
+            }
+        }
+
+        gradCol = ( resultPsi_P - resultPsi_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dPsidXi[j][i] ) ){
-                results << "test_computeDeformationMeasures (test 10) & False\n";
+                results << "test_computeDeformationMeasures (test 11) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( resultGamma_P - resultGamma_M ) / ( 2 * delta[ i ] );
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], 0. ) ){
+                results << "test_computeDeformationMeasures (test 12) * False\n";
                 return 1;
             }
         }
@@ -211,9 +255,13 @@ int test_computeDeformationMeasures( std::ofstream &results ){
         constantVector delta( gradientMicroDeformation.size(), 0 );
         delta[i] = eps * fabs( gradientMicroDeformation[i] ) + eps;
 
-        error =  micromorphicLinearElasticity::computeDeformationMeasures( deformationGradient, microDeformation, 
+        variableVector resultC_P, resultC_M;
+        variableVector resultPsi_P, resultPsi_M;
+        variableVector resultGamma_P, resultGamma_M;
+
+        error =  micromorphicLinearElasticity::computeDeformationMeasures( deformationGradient, microDeformation,
                                                                            gradientMicroDeformation + delta,
-                                                                           resultCJ, resultPsiJ, resultGammaJ );
+                                                                           resultC_P, resultPsi_P, resultGamma_P );
 
         if ( error ){
             error->print();
@@ -221,11 +269,38 @@ int test_computeDeformationMeasures( std::ofstream &results ){
             return 1;
         }
 
-        variableVector gradCol = ( resultGammaJ - resultGamma ) / delta[i];
+        error =  micromorphicLinearElasticity::computeDeformationMeasures( deformationGradient, microDeformation,
+                                                                           gradientMicroDeformation - delta,
+                                                                           resultC_M, resultPsi_M, resultGamma_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeDeformationMeasures & False\n";
+            return 1;
+        }
+
+        variableVector gradCol = ( resultC_P - resultC_M ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
+                results << "test_computeDeformationMeasures (test 13) & False\n";
+            }
+        }
+
+        gradCol = ( resultPsi_P - resultPsi_M ) / ( 2 * delta[i] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
+                results << "test_computeDeformationMeasures (test 14) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( resultGamma_P - resultGamma_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dGammadGradXi[j][i] ) ){
-                results << "test_computeDeformationMeasures (test 11) & False\n";
+                results << "test_computeDeformationMeasures (test 15) & False\n";
                 return 1;
             }
         }
