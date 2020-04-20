@@ -2381,10 +2381,22 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         constantVector delta( deformationGradient.size(), 0 );
         delta[i] = eps * fabs( deformationGradient[i] ) + eps;
 
+        variableVector result_sigma_P, result_s_P, result_m_P;
+        variableVector result_sigma_M, result_s_M, result_m_M;
+
         error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient + delta, microDeformation,
-                                                                          PK2Stress, referenceMicroStress,
-                                                                          referenceHigherOrderStress, resultJCauchyStress,
-                                                                          resultJMicroStress, resultJHigherOrderStress );
+                                                                          PK2Stress, referenceMicroStress, referenceHigherOrderStress,
+                                                                          result_sigma_P, result_s_P, result_m_P );
+
+        if ( error ){
+            error->print();
+            results << "test_mapStressesToCurrent & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient - delta, microDeformation,
+                                                                          PK2Stress, referenceMicroStress, referenceHigherOrderStress,
+                                                                          result_sigma_M, result_s_M, result_m_M );
 
         if ( error ){
             error->print();
@@ -2393,30 +2405,30 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test Cauchy Stress
-        constantVector gradCol = ( resultJCauchyStress - resultCauchyStress ) / delta[i];
+        constantVector gradCol = ( result_sigma_P - result_sigma_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dCauchyStressdF[j][i], 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dCauchyStressdF[j][i] ) ){
                 results << "test_mapStressesToCurrent (test 7) & False\n";
                 return 1;
             }
         }
 
         //Test symmetric micro stress
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( result_s_P - result_s_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dMicroStressdF[j][i], 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dMicroStressdF[j][i] ) ){
                 results << "test_mapStressesToCurrent (test 8) & False\n";
                 return 1;
             }
         }
 
         //Test higher order stress
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( result_m_P - result_m_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdF[j][i], 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdF[j][i] ) ){
                 results << "test_mapStressesToCurrent (test 9) & False\n";
                 return 1;
             }
@@ -2428,10 +2440,22 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         constantVector delta( microDeformation.size(), 0 );
         delta[i] = eps * fabs( microDeformation[i] ) + eps;
 
+        variableVector result_sigma_P, result_s_P, result_m_P;
+        variableVector result_sigma_M, result_s_M, result_m_M;
+
         error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient, microDeformation + delta,
-                                                                          PK2Stress, referenceMicroStress,
-                                                                          referenceHigherOrderStress, resultJCauchyStress,
-                                                                          resultJMicroStress, resultJHigherOrderStress );
+                                                                          PK2Stress, referenceMicroStress, referenceHigherOrderStress,
+                                                                          result_sigma_P, result_s_P, result_m_P );
+
+        if ( error ){
+            error->print();
+            results << "test_mapStressesToCurrent & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient, microDeformation - delta,
+                                                                          PK2Stress, referenceMicroStress, referenceHigherOrderStress,
+                                                                          result_sigma_M, result_s_M, result_m_M );
 
         if ( error ){
             error->print();
@@ -2440,30 +2464,30 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test Cauchy Stress
-        constantVector gradCol = ( resultJCauchyStress - resultCauchyStress ) / delta[i];
+        constantVector gradCol = ( result_sigma_P - result_sigma_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], 0., 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
                 results << "test_mapStressesToCurrent (test 10) & False\n";
                 return 1;
             }
         }
 
         //Test symmetric micro stress
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( result_s_P - result_s_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], 0., 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
                 results << "test_mapStressesToCurrent (test 11) & False\n";
                 return 1;
             }
         }
 
         //Test higher order stress
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( result_m_P - result_m_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdXi[j][i], 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdXi[j][i] ) ){
                 results << "test_mapStressesToCurrent (test 12) & False\n";
                 return 1;
             }
@@ -2475,10 +2499,24 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         constantVector delta( PK2Stress.size(), 0 );
         delta[i] = eps * fabs( PK2Stress[i] ) + eps;
 
+        variableVector result_sigma_P, result_s_P, result_m_P;
+        variableVector result_sigma_M, result_s_M, result_m_M;
+
         error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient, microDeformation,
                                                                           PK2Stress + delta, referenceMicroStress,
-                                                                          referenceHigherOrderStress, resultJCauchyStress,
-                                                                          resultJMicroStress, resultJHigherOrderStress );
+                                                                          referenceHigherOrderStress,
+                                                                          result_sigma_P, result_s_P, result_m_P );
+
+        if ( error ){
+            error->print();
+            results << "test_mapStressesToCurrent & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient, microDeformation,
+                                                                          PK2Stress - delta, referenceMicroStress,
+                                                                          referenceHigherOrderStress,
+                                                                          result_sigma_M, result_s_M, result_m_M );
 
         if ( error ){
             error->print();
@@ -2487,7 +2525,7 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test Cauchy Stress
-        constantVector gradCol = ( resultJCauchyStress - resultCauchyStress ) / delta[i];
+        constantVector gradCol = ( result_sigma_P - result_sigma_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dCauchyStressdPK2Stress[j][i] ) ){
@@ -2497,7 +2535,7 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test symmetric micro stress
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( result_s_P - result_s_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
@@ -2507,7 +2545,7 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test higher order stress
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( result_m_P - result_m_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
@@ -2522,10 +2560,24 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         constantVector delta( referenceMicroStress.size(), 0 );
         delta[i] = eps * fabs( referenceMicroStress[i] ) + eps;
 
+        variableVector result_sigma_P, result_s_P, result_m_P;
+        variableVector result_sigma_M, result_s_M, result_m_M;
+
         error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient, microDeformation,
                                                                           PK2Stress, referenceMicroStress + delta,
-                                                                          referenceHigherOrderStress, resultJCauchyStress,
-                                                                          resultJMicroStress, resultJHigherOrderStress );
+                                                                          referenceHigherOrderStress,
+                                                                          result_sigma_P, result_s_P, result_m_P );
+
+        if ( error ){
+            error->print();
+            results << "test_mapStressesToCurrent & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient, microDeformation,
+                                                                          PK2Stress, referenceMicroStress - delta,
+                                                                          referenceHigherOrderStress,
+                                                                          result_sigma_M, result_s_M, result_m_M );
 
         if ( error ){
             error->print();
@@ -2534,7 +2586,7 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test Cauchy Stress
-        constantVector gradCol = ( resultJCauchyStress - resultCauchyStress ) / delta[i];
+        constantVector gradCol = ( result_sigma_P - result_sigma_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
@@ -2544,7 +2596,7 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test symmetric micro stress
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( result_s_P - result_s_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dMicroStressdReferenceMicroStress[j][i] ) ){
@@ -2554,7 +2606,7 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test higher order stress
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( result_m_P - result_m_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
@@ -2569,10 +2621,24 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         constantVector delta( referenceHigherOrderStress.size(), 0 );
         delta[i] = eps * fabs( referenceHigherOrderStress[i] ) + eps;
 
+        variableVector result_sigma_P, result_s_P, result_m_P;
+        variableVector result_sigma_M, result_s_M, result_m_M;
+
         error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient, microDeformation,
                                                                           PK2Stress, referenceMicroStress,
-                                                                          referenceHigherOrderStress + delta, resultJCauchyStress,
-                                                                          resultJMicroStress, resultJHigherOrderStress );
+                                                                          referenceHigherOrderStress + delta,
+                                                                          result_sigma_P, result_s_P, result_m_P );
+
+        if ( error ){
+            error->print();
+            results << "test_mapStressesToCurrent & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::mapStressMeasuresToCurrent( deformationGradient, microDeformation,
+                                                                          PK2Stress, referenceMicroStress,
+                                                                          referenceHigherOrderStress - delta,
+                                                                          result_sigma_M, result_s_M, result_m_M );
 
         if ( error ){
             error->print();
@@ -2581,7 +2647,7 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test Cauchy Stress
-        constantVector gradCol = ( resultJCauchyStress - resultCauchyStress ) / delta[i];
+        constantVector gradCol = ( result_sigma_P - result_sigma_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
@@ -2591,7 +2657,7 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test symmetric micro stress
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( result_s_P - result_s_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], 0. ) ){
@@ -2601,7 +2667,7 @@ int test_mapStressesToCurrent( std::ofstream &results ){
         }
 
         //Test higher order stress
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( result_m_P - result_m_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdReferenceHigherOrderStress[j][i] ) ){
