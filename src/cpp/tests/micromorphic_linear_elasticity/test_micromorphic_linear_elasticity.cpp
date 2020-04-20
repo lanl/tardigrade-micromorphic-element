@@ -406,15 +406,25 @@ int test_computeLinearElasticTerm1( std::ofstream &results ){
         constantVector delta( greenLagrangeStrain.size(), 0 );
         delta[i] = eps * fabs( greenLagrangeStrain[i] ) + eps;
 
+        variableVector result_P, result_M;
+
         error =  micromorphicLinearElasticity::computeLinearElasticTerm1( greenLagrangeStrain + delta, microStrain, 
-                                                                              A, D, resultJ );
+                                                                              A, D, result_P );
 
         if ( error ){
             results << "test_computeLinearElasticTerm1 & False\n";
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        error =  micromorphicLinearElasticity::computeLinearElasticTerm1( greenLagrangeStrain - delta, microStrain, 
+                                                                              A, D, result_M );
+
+        if ( error ){
+            results << "test_computeLinearElasticTerm1 & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dTerm1dGreenLagrangeStrain[j][i] ) ){
@@ -428,15 +438,25 @@ int test_computeLinearElasticTerm1( std::ofstream &results ){
         constantVector delta( microStrain.size(), 0 );
         delta[i] = eps * fabs( microStrain[i] ) + eps;
 
+        variableVector result_P, result_M;
+
         error =  micromorphicLinearElasticity::computeLinearElasticTerm1( greenLagrangeStrain, microStrain + delta, 
-                                                                              A, D, resultJ );
+                                                                              A, D, result_P );
 
         if ( error ){
             results << "test_computeLinearElasticTerm1 & False\n";
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        error =  micromorphicLinearElasticity::computeLinearElasticTerm1( greenLagrangeStrain, microStrain - delta, 
+                                                                              A, D, result_M );
+
+        if ( error ){
+            results << "test_computeLinearElasticTerm1 & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dTerm1dMicroStrain[j][i] ) ){
