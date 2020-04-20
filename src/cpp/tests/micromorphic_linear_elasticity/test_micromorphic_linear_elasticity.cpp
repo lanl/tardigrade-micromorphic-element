@@ -574,8 +574,10 @@ int test_computeLinearElasticTerm2( std::ofstream &results){
         constantVector delta( greenLagrangeStrain.size(), 0 );
         delta[i] = eps * fabs( greenLagrangeStrain[i] ) + eps;
 
+        variableVector result_P, result_M;
+
         error = micromorphicLinearElasticity::computeLinearElasticTerm2( greenLagrangeStrain + delta, microStrain, invCPsi,
-                                                                              B, D, resultJ );
+                                                                              B, D, result_P );
 
         if ( error ){
             error->print();
@@ -583,7 +585,16 @@ int test_computeLinearElasticTerm2( std::ofstream &results){
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        error = micromorphicLinearElasticity::computeLinearElasticTerm2( greenLagrangeStrain - delta, microStrain, invCPsi,
+                                                                              B, D, result_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeLinearElasticTerm2 & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dTerm2dE[j][i] ) ){
@@ -598,8 +609,10 @@ int test_computeLinearElasticTerm2( std::ofstream &results){
         constantVector delta( microStrain.size(), 0 );
         delta[i] = eps * fabs( microStrain[i] ) + eps;
 
+        variableVector result_P, result_M;
+
         error = micromorphicLinearElasticity::computeLinearElasticTerm2( greenLagrangeStrain, microStrain + delta, invCPsi,
-                                                                              B, D, resultJ );
+                                                                              B, D, result_P );
 
         if ( error ){
             error->print();
@@ -607,7 +620,16 @@ int test_computeLinearElasticTerm2( std::ofstream &results){
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        error = micromorphicLinearElasticity::computeLinearElasticTerm2( greenLagrangeStrain, microStrain - delta, invCPsi,
+                                                                              B, D, result_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeLinearElasticTerm2 & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dTerm2dMicroE[j][i] ) ){
@@ -622,8 +644,10 @@ int test_computeLinearElasticTerm2( std::ofstream &results){
         constantVector delta( invCPsi.size(), 0 );
         delta[i] = eps * fabs( invCPsi[i] ) + eps;
 
+        variableVector result_P, result_M;
+
         error = micromorphicLinearElasticity::computeLinearElasticTerm2( greenLagrangeStrain, microStrain, invCPsi + delta,
-                                                                              B, D, resultJ );
+                                                                              B, D, result_P );
 
         if ( error ){
             error->print();
@@ -631,7 +655,16 @@ int test_computeLinearElasticTerm2( std::ofstream &results){
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        error = micromorphicLinearElasticity::computeLinearElasticTerm2( greenLagrangeStrain, microStrain, invCPsi - delta,
+                                                                              B, D, result_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeLinearElasticTerm2 & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[i] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dTerm2dInvCPsi[j][i] ) ){
