@@ -2059,9 +2059,11 @@ int test_computeInvRCGPsi( std::ofstream &results ){
         constantVector delta( RCG.size(), 0 );
         delta[i] = eps * fabs( delta[i] ) + eps;
 
-        variableVector invRCGJ = vectorTools::inverse( RCG + delta, 3, 3 );
+        variableVector result_P, result_M;
 
-        error = micromorphicLinearElasticity::computeInvRCGPsi( invRCGJ, Psi, resultJ );
+        variableVector invRCG_P = vectorTools::inverse( RCG + delta, 3, 3 );
+
+        error = micromorphicLinearElasticity::computeInvRCGPsi( invRCG_P, Psi, result_P );
 
         if ( error ){
             error->print();
@@ -2069,10 +2071,20 @@ int test_computeInvRCGPsi( std::ofstream &results ){
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        variableVector invRCG_M = vectorTools::inverse( RCG - delta, 3, 3 );
+
+        error = micromorphicLinearElasticity::computeInvRCGPsi( invRCG_M, Psi, result_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeInvRCGPsi & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dInvRCGPsidRCG[j][i], 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dInvRCGPsidRCG[j][i] ) ){
                 results << "test_computeInvRCGPsi (test 3) & False\n";
                 return 1;
             }
@@ -2084,7 +2096,9 @@ int test_computeInvRCGPsi( std::ofstream &results ){
         constantVector delta( Psi.size(), 0 );
         delta[i] = eps * fabs( delta[i] ) + eps;
 
-        error = micromorphicLinearElasticity::computeInvRCGPsi( invRCG, Psi + delta, resultJ );
+        variableVector result_P, result_M;
+
+        error = micromorphicLinearElasticity::computeInvRCGPsi( invRCG, Psi + delta, result_P );
 
         if ( error ){
             error->print();
@@ -2092,7 +2106,15 @@ int test_computeInvRCGPsi( std::ofstream &results ){
             return 1;
         }
 
-        constantVector gradCol = ( resultJ - result ) / delta[i];
+        error = micromorphicLinearElasticity::computeInvRCGPsi( invRCG, Psi - delta, result_M );
+
+        if ( error ){
+            error->print();
+            results << "test_computeInvRCGPsi & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( result_P - result_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dInvRCGPsidPsi[j][i] ) ){
