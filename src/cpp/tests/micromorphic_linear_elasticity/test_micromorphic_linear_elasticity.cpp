@@ -1383,9 +1383,6 @@ int test_linearElasticityReferenceDerivedMeasures( std::ofstream &results ){
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[ j ], dPK2dRCG[ j ][ i ] ) ){
-                std::cout << "i, j: " << i << ", " << j << "\n";
-                std::cout << "gradCol:\n"; vectorTools::print( gradCol );
-                std::cout << "dPK2dRCG:\n"; vectorTools::print( dPK2dRCG );
                 results << "test_linearElasticityReferenceDerivedMeasures (test 7) & False\n";
                 return 1;
             }
@@ -1395,9 +1392,6 @@ int test_linearElasticityReferenceDerivedMeasures( std::ofstream &results ){
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[ j ], dSigmadRCG[ j ][ i ] ) ){
-                std::cout << "i, j: " << i << ", " << j << "\n";
-                std::cout << "gradCol:\n"; vectorTools::print( gradCol );
-                std::cout << "dSigmadRCG:\n"; vectorTools::print( dSigmadRCG );
                 results << "test_linearElasticityReferenceDerivedMeasures (test 8) & False\n";
                 return 1;
             }
@@ -1443,9 +1437,6 @@ int test_linearElasticityReferenceDerivedMeasures( std::ofstream &results ){
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[ j ], dPK2dPsi[ j ][ i ] ) ){
-                std::cout << "i, j: " << i << ", " << j << "\n";
-                std::cout << "gradCol:\n"; vectorTools::print( gradCol );
-                std::cout << "dPK2dPsi:\n"; vectorTools::print( dPK2dPsi );
                 results << "test_linearElasticityReferenceDerivedMeasures (test 10) & False\n";
                 return 1;
             }
@@ -1455,9 +1446,6 @@ int test_linearElasticityReferenceDerivedMeasures( std::ofstream &results ){
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[ j ], dSigmadPsi[ j ][ i ] ) ){
-                std::cout << "i, j: " << i << ", " << j << "\n";
-                std::cout << "gradCol:\n"; vectorTools::print( gradCol );
-                std::cout << "dSigmadPsi:\n"; vectorTools::print( dSigmadPsi );
                 results << "test_linearElasticityReferenceDerivedMeasures (test 11) & False\n";
                 return 1;
             }
