@@ -1825,11 +1825,14 @@ int test_linearElasticityReference( std::ofstream &results ){
         constantVector delta( deformationGradient.size(), 0 );
         delta[i] = eps * fabs( delta[i] ) + eps;
 
+        variableVector PK2_P, PK2_M;
+        variableVector Sigma_P, Sigma_M;
+        variableVector M_P, M_M;
+
         error = micromorphicLinearElasticity::linearElasticityReference( deformationGradient + delta, microDeformation,
                                                                          gradientMicroDeformation,
                                                                          A, B, C, D,
-                                                                         resultJPK2Stress, resultJMicroStress,
-                                                                         resultJHigherOrderStress );
+                                                                         PK2_P, Sigma_P, M_P );
 
         if ( error ){
             error->print();
@@ -1837,25 +1840,36 @@ int test_linearElasticityReference( std::ofstream &results ){
             return 1;
         }
 
-        constantVector gradCol = ( resultJPK2Stress - resultPK2Stress ) / delta[i];
+        error = micromorphicLinearElasticity::linearElasticityReference( deformationGradient - delta, microDeformation,
+                                                                         gradientMicroDeformation,
+                                                                         A, B, C, D,
+                                                                         PK2_M, Sigma_M, M_M );
+
+        if ( error ){
+            error->print();
+            results << "test_linearElasticityReference & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( PK2_P - PK2_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dPK2dF[j][i], 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dPK2dF[j][i] ) ){
                 results << "test_linearElasticityReference (test 7) & False\n";
                 return 1;
             }
         }
 
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( Sigma_P - Sigma_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dSigmadF[j][i], 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dSigmadF[j][i] ) ){
                 results << "test_linearElasticityReference (test 8) & False\n";
                 return 1;
             }
         }
 
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( M_P - M_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dMdF[j][i] ) ){
@@ -1870,11 +1884,14 @@ int test_linearElasticityReference( std::ofstream &results ){
         constantVector delta( microDeformation.size(), 0 );
         delta[i] = eps * fabs( delta[i] ) + eps;
 
+        variableVector PK2_P, PK2_M;
+        variableVector Sigma_P, Sigma_M;
+        variableVector M_P, M_M;
+
         error = micromorphicLinearElasticity::linearElasticityReference( deformationGradient, microDeformation + delta,
                                                                          gradientMicroDeformation,
                                                                          A, B, C, D,
-                                                                         resultJPK2Stress, resultJMicroStress,
-                                                                         resultJHigherOrderStress );
+                                                                         PK2_P, Sigma_P, M_P );
 
         if ( error ){
             error->print();
@@ -1882,20 +1899,40 @@ int test_linearElasticityReference( std::ofstream &results ){
             return 1;
         }
 
-        constantVector gradCol = ( resultJPK2Stress - resultPK2Stress ) / delta[i];
+        error = micromorphicLinearElasticity::linearElasticityReference( deformationGradient, microDeformation - delta,
+                                                                         gradientMicroDeformation,
+                                                                         A, B, C, D,
+                                                                         PK2_M, Sigma_M, M_M );
+
+        if ( error ){
+            error->print();
+            results << "test_linearElasticityReference & False\n";
+            return 1;
+        }
+
+        constantVector gradCol = ( PK2_P - PK2_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dPK2dXi[j][i], 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dPK2dXi[j][i] ) ){
                 results << "test_linearElasticityReference (test 10) & False\n";
                 return 1;
             }
         }
 
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( Sigma_P - Sigma_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dSigmadXi[j][i], 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dSigmadXi[j][i] ) ){
                 results << "test_linearElasticityReference (test 11) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( M_P - M_M ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], 0. ) ){
+                results << "test_linearElasticityReference (test 12) & False\n";
                 return 1;
             }
         }
@@ -1906,11 +1943,14 @@ int test_linearElasticityReference( std::ofstream &results ){
         constantVector delta( gradientMicroDeformation.size(), 0 );
         delta[i] = eps * fabs( delta[i] ) + eps;
 
+        variableVector PK2_P, PK2_M;
+        variableVector Sigma_P, Sigma_M;
+        variableVector M_P, M_M;
+
         error = micromorphicLinearElasticity::linearElasticityReference( deformationGradient, microDeformation,
                                                                          gradientMicroDeformation + delta,
                                                                          A, B, C, D,
-                                                                         resultJPK2Stress, resultJMicroStress,
-                                                                         resultJHigherOrderStress );
+                                                                         PK2_P, Sigma_P, M_P );
 
         if ( error ){
             error->print();
@@ -1918,29 +1958,40 @@ int test_linearElasticityReference( std::ofstream &results ){
             return 1;
         }
 
-        constantVector gradCol = ( resultJPK2Stress - resultPK2Stress ) / delta[i];
+        error = micromorphicLinearElasticity::linearElasticityReference( deformationGradient, microDeformation,
+                                                                         gradientMicroDeformation - delta,
+                                                                         A, B, C, D,
+                                                                         PK2_M, Sigma_M, M_M );
 
-        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dPK2dGradXi[j][i], 1e-4 ) ){
-                results << "test_linearElasticityReference (test 12) & False\n";
-                return 1;
-            }
+        if ( error ){
+            error->print();
+            results << "test_linearElasticityReference & False\n";
+            return 1;
         }
 
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        constantVector gradCol = ( PK2_P - PK2_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dSigmadGradXi[j][i], 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dPK2dGradXi[j][i] ) ){
                 results << "test_linearElasticityReference (test 13) & False\n";
                 return 1;
             }
         }
 
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( Sigma_P - Sigma_M ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dSigmadGradXi[j][i], 1e-4 ) ){
+                results << "test_linearElasticityReference (test 14) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( M_P - M_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
             if ( !vectorTools::fuzzyEquals( gradCol[j], dMdGradXi[j][i], 1e-4 ) ){
-                results << "test_linearElasticityReference (test 14) & False\n";
+                results << "test_linearElasticityReference (test 15) & False\n";
                 return 1;
             }
         }
