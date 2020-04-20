@@ -2993,11 +2993,24 @@ int test_linearElasticity( std::ofstream &results ){
         constantVector delta( deformationGradient.size(), 0 );
         delta[i] = eps * fabs( deformationGradient[i] ) + eps;
 
+        variableVector sigma_P, s_P, m_P;
+        variableVector sigma_M, s_M, m_M;
+
         error = micromorphicLinearElasticity::linearElasticity( deformationGradient + delta, microDeformation,
                                                                 gradientMicroDeformation,
                                                                 A, B, C, D,
-                                                                resultJCauchyStress, resultJMicroStress,
-                                                                resultJHigherOrderStress );
+                                                                sigma_P, s_P, m_P );
+
+        if ( error ){
+            error->print();
+            results << "test_linearElasticity & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::linearElasticity( deformationGradient - delta, microDeformation,
+                                                                gradientMicroDeformation,
+                                                                A, B, C, D,
+                                                                sigma_M, s_M, m_M );
 
         if ( error ){
             error->print();
@@ -3006,30 +3019,30 @@ int test_linearElasticity( std::ofstream &results ){
         }
 
         //Test Cauchy Stress
-        constantVector gradCol = ( resultJCauchyStress - resultCauchyStress ) / delta[i];
+        constantVector gradCol = ( sigma_P - sigma_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dCauchyStressdF[j][i], 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dCauchyStressdF[j][i] ) ){
                 results << "test_linearElasticity (test 7) & False\n";
                 return 1;
             }
         }
 
         //Test symmetric micro stress
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( s_P - s_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dMicroStressdF[j][i], 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dMicroStressdF[j][i] ) ){
                 results << "test_linearElasticity (test 8) & False\n";
                 return 1;
             }
         }
 
         //Test higher order stress
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( m_P - m_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdF[j][i], 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdF[j][i] ) ){
                 results << "test_linearElasticity (test 9) & False\n";
                 return 1;
             }
@@ -3041,11 +3054,24 @@ int test_linearElasticity( std::ofstream &results ){
         constantVector delta( microDeformation.size(), 0 );
         delta[i] = eps * fabs( microDeformation[i] ) + eps;
 
+        variableVector sigma_P, s_P, m_P;
+        variableVector sigma_M, s_M, m_M;
+
         error = micromorphicLinearElasticity::linearElasticity( deformationGradient, microDeformation + delta,
                                                                 gradientMicroDeformation,
                                                                 A, B, C, D,
-                                                                resultJCauchyStress, resultJMicroStress,
-                                                                resultJHigherOrderStress );
+                                                                sigma_P, s_P, m_P );
+
+        if ( error ){
+            error->print();
+            results << "test_linearElasticity & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::linearElasticity( deformationGradient, microDeformation - delta,
+                                                                gradientMicroDeformation,
+                                                                A, B, C, D,
+                                                                sigma_M, s_M, m_M );
 
         if ( error ){
             error->print();
@@ -3054,30 +3080,30 @@ int test_linearElasticity( std::ofstream &results ){
         }
 
         //Test Cauchy Stress
-        constantVector gradCol = ( resultJCauchyStress - resultCauchyStress ) / delta[i];
+        constantVector gradCol = ( sigma_P - sigma_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dCauchyStressdXi[j][i], 1e-4, 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dCauchyStressdXi[j][i] ) ){
                 results << "test_linearElasticity (test 10) & False\n";
                 return 1;
             }
         }
 
         //Test symmetric micro stress
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( s_P - s_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dMicroStressdXi[j][i], 1e-4, 1e-4 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dMicroStressdXi[j][i] ) ){
                 results << "test_linearElasticity (test 11) & False\n";
                 return 1;
             }
         }
 
         //Test higher order stress
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( m_P - m_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdXi[j][i], 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdXi[j][i] ) ){
                 results << "test_linearElasticity (test 12) & False\n";
                 return 1;
             }
@@ -3089,11 +3115,24 @@ int test_linearElasticity( std::ofstream &results ){
         constantVector delta( gradientMicroDeformation.size(), 0 );
         delta[i] = eps * fabs( gradientMicroDeformation[i] ) + eps;
 
+        variableVector sigma_P, s_P, m_P;
+        variableVector sigma_M, s_M, m_M;
+
         error = micromorphicLinearElasticity::linearElasticity( deformationGradient, microDeformation,
                                                                 gradientMicroDeformation + delta,
                                                                 A, B, C, D,
-                                                                resultJCauchyStress, resultJMicroStress,
-                                                                resultJHigherOrderStress );
+                                                                sigma_P, s_P, m_P );
+
+        if ( error ){
+            error->print();
+            results << "test_linearElasticity & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::linearElasticity( deformationGradient, microDeformation,
+                                                                gradientMicroDeformation - delta,
+                                                                A, B, C, D,
+                                                                sigma_M, s_M, m_M );
 
         if ( error ){
             error->print();
@@ -3102,30 +3141,30 @@ int test_linearElasticity( std::ofstream &results ){
         }
 
         //Test Cauchy Stress
-        constantVector gradCol = ( resultJCauchyStress - resultCauchyStress ) / delta[i];
+        constantVector gradCol = ( sigma_P - sigma_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dCauchyStressdGradXi[j][i], 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dCauchyStressdGradXi[j][i] ) ){
                 results << "test_linearElasticity (test 13) & False\n";
                 return 1;
             }
         }
 
         //Test symmetric micro stress
-        gradCol = ( resultJMicroStress - resultMicroStress ) / delta[i];
+        gradCol = ( s_P - s_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dMicroStressdGradXi[j][i], 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dMicroStressdGradXi[j][i] ) ){
                 results << "test_linearElasticity (test 14) & False\n";
                 return 1;
             }
         }
 
         //Test higher order stress
-        gradCol = ( resultJHigherOrderStress - resultHigherOrderStress ) / delta[i];
+        gradCol = ( m_P - m_M ) / ( 2 * delta[ i ] );
 
         for ( unsigned int j = 0; j < gradCol.size(); j++ ){
-            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdGradXi[j][i], 1e-5 ) ){
+            if ( !vectorTools::fuzzyEquals( gradCol[j], dHigherOrderStressdGradXi[j][i] ) ){
                 results << "test_linearElasticity (test 15) & False\n";
                 return 1;
             }
