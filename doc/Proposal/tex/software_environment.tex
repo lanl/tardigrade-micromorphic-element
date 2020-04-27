@@ -1,0 +1,57 @@
+\section{Software Environment}
+
+\subsection{Language}
+
+The language which will be utilized for the model will be Python 2.7. The language has been chosen both for its utility as well as its generality. The numpy library will be utilized for storing arrays though only one and two dimensional arrays will be utilized. This is to avoid the use of higher dimensional arrays. Fortran allows up to seven dimensions but a general solution is sought.
+
+All other additional libraries to be used are either included, or generated as a part of the project. A convenient distribution of python which contains all of these libraries natively is Anaconda (\verb|www.continuum.io|). The distribution is available for download for free online.
+
+\subsection{Implementation Design}
+
+The code will be divided into four major modules with additional modules included as needed.
+
+\begin{table}[htb!]
+\centering
+\begin{tabular}{|c|l|}
+\hline
+\verb|fea_driver.py| & A module containing the finite element driver program which will\\
+& handle the construction and solution of a finite element model\\
+\hline
+\verb|micro_element.py| & A module containing the commands required for the micromorphic\\
+& implementation of the hexehedral element. The format of the major\\
+& function call has been chosen to mirror the Abaqus UEL subroutine\\
+\hline
+\verb|hex8.py| & A module containing utility commands as well as commands specific\\
+& to the eight node hexehedral element\\
+\hline
+\verb|micromorphic_linear_elasticity.py| & A subroutine containing an implementation of a micromorphic linear\\
+& elastic constitutive model\\
+\hline
+\end{tabular}
+\end{table}
+
+As mentioned previously, the implemented code will not utilize the higher dimensional array capabilities of numpy in order to maintain generality and ease of porting to Fortan in the future. This may cause the code to run significantly slower than if numpy array indexing was utilized. Since it is not desired to use the Python script for any significant calculations, this is deemed acceptable.
+
+
+
+\subsection{Test Strategy}
+
+The verification test strategy will be broken into two components, small unit tests and larger regression tests. At this time no validation simulations are intended as the model will need to be calibrated to as yet unavailable data. Future efforts will pursue this aim.
+
+\subsubsection{Unit Tests}
+
+Unit tests are defined as tests which are performed to ensure a small functions capability in performing its required task correctly. These functions are, typically, not exercises of the primary functions of the code, but rather functions which are used in code execution. An example of a test which falls under this category would be the exercise of a indexing function which converts tensor notation to an index in a 1D array.
+
+These verification tests are performed by using the \verb|unittest| module in python. This module allows verification tests to be performed by issuing the command \verb|>python *.py -v| where \verb|*.py| is the name of the python module. The results of these tests will be stored in \verb|\src\python\tests\unittests\*_unittests.tex| and will be added to the final \LaTeX~report.
+
+If possible, all subroutines in every module should have at least one test problem which show that the code is performing as intended. In particular, it is important to show that the residuals and their tangents are consistent with each other. To this end, a utility module \verb|finite_difference.py| has been developed which allows the analytic derivatives to be evaluated against a numeric standard. In conjunction with purely analytic solutions this will help to verify the capabilities of the subroutines.
+
+\subsubsection{Regression Tests}
+
+Regression tests are defined as tests which are performed to exercise some part of the primary function of the code. These tests are intended to prove the capability of the code for solving some problem of interest and will be used to verify the accuracy of the functions of the code against analytic solutions (if one such solution is found to exist), manufactured solutions, and to be used in code-to-code verification.
+
+As no analytical solutions for large deformation micromorphic continuum materials are known to exist, the current intent is to utilize the method of manufactured solutions~\cite{bib:alari2000} to develop solutions by propagating deformation fields through the PDE to determine the forcing function. This residual coupled with the appropriate boundary conditions will then be used to show that the code can converge to the correct solution. Several fields will be investigated including linear, quadratic, and other non-polynomial constructions.
+
+\subsection{Version Control Plan}
+
+Version control will be handled using Git (\verb|https://git-scm.com/|) in a local repository which will be uploaded to an online repository. At this time, it is not desired to make all of the work public though this is desired at a future date. The documentation, source code, and all utilities required for the verification and regression tests are located in the repository.

@@ -1,0 +1,34 @@
+#Compiler option
+CC=COMPILER_COMMAND
+
+#Standard option
+STD=-std=gnu++11
+
+#Compiler flags
+CFLAGS=-I. -I../..
+
+#Include Eigen Library
+EIGEN = -I EIGEN_LOCATION
+
+#Terminate after N errors
+ERRORFLG=-fmax-errors=5
+
+#Debugging flag
+DBG = -ggdb
+
+all: test_balance_equations
+
+test_balance_equations: test_balance_equations.o balance_equations.o deformation_measures.o
+	$(CC) $(STD) -o $@ test_balance_equations.o balance_equations.o deformation_measures.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+test_balance_equations.o: test_balance_equations.cpp ../../balance_equations.h
+	$(CC) $(STD) -o $@ -c test_balance_equations.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+balance_equations.o: ../../balance_equations.h ../../balance_equations.cpp
+	$(CC) $(STD) -o $@ -c ../../balance_equations.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+    
+deformation_measures.o: ../../deformation_measures.h ../../deformation_measures.cpp
+	$(CC) $(STD) -o $@ -c ../../deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+clean:
+	rm *o test_balance_equations

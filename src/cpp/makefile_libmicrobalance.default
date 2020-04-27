@@ -1,0 +1,48 @@
+#Compiler option
+CC=COMPILER_COMMAND
+
+#Standard option
+STD=-std=gnu++11
+
+#Compiler flags
+CFLAGS=-I. -O3 -flto -fpic -Wall
+
+#Include Eigen Library
+EIGEN = -I EIGEN_LOCATION
+
+#Object files to produce
+OBJ = balance_equations.o deformation_measures.o
+
+#Debugging flag
+DBG =
+ifeq ($(METHOD),dbg)
+        DBG = -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -g
+endif
+ifeq ($(METHOD),oprof)
+        DBG = -pg
+endif
+
+# List of objects
+OBJECTS=libmicrobalance.so libmicrobalance.so.1 balance_equations.o deformation_measures.o
+
+#Terminate after N errors
+ERRORFLG=-fmax-errors=5
+
+all: libmicrobalance.so
+
+libmicrobalance.so: libmicrobalance.so.1
+	ln -s libmicrobalance.so.1 $@
+
+libmicrobalance.so.1: $(OBJ)
+	$(CC) $(STD) -shared -Wl,-soname,libmicrobalance.so.1 -o $@ $^ $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+balance_equations.o: balance_equations.h balance_equations.cpp
+	$(CC) $(STD) -o $@ -c balance_equations.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+deformation_measures.o: deformation_measures.h deformation_measures.cpp
+	$(CC) $(STD) -o $@ -c deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+
+clean:
+	rm $(OBJECTS)
+
+.PHONY: all clean

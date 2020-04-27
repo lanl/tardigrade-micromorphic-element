@@ -1,0 +1,50 @@
+#Test element for the input parser function
+*LATEX
+This is the test element for the InputParser class of \verb|fea_driver.py|. It reads in the nodes, 
+elements, and properties for a one element mesh. The top is constrained to move 1.0 in the $z$ direction, 
+the bottom is fixed in the $z$ direction, the front is fixed in the $y$ direction and the left is fixed 
+in the $x$ direction. The values of $\phi$ are set to zero everywhere.
+surface. 
+
+*NODES,12
+1 , 0.0, 0.0, 0.0
+2 , 1.0, 0.0, 0.0
+3 , 1.0, 1.0, 0.0
+4 , 0.0, 1.0, 0.0
+5 , 0.0, 0.0, 1.0
+6 , 1.0, 0.0, 1.0
+7 , 1.0, 1.0, 1.0
+8 , 0.0, 1.0, 1.0
+
+*ELEMENTS
+ 1,  1,  2, 3, 4, 5, 6, 7, 8
+
+
+*PROPERTIES
+1000., 29., 7., 60., 8., 10., 10.,  5., 0., 0., 0., 0., 0., 0., 8., 0., 0., 0., 0.
+
+*NSET
+bottom,      1,  2,  3,  4
+top,         5,  6,  7,  8
+front,       1,  2,  5,  6
+left,        1,  4,  5,  8
+all,         1,  2,  3,  4,  5,  6,  7,  8
+
+*DIRICHLET_BCS
+
+#Fix u degrees of freedom
+nodeset, bottom, 3, 0.0
+nodeset,    top, 3, 1.0
+nodeset,  front, 2, 0.0
+nodeset,   left, 1, 0.0
+
+#Fix phi degrees of freedom
+nodeset, all,  4, 0.0
+nodeset, all,  5, 0.0
+nodeset, all,  6, 0.0
+nodeset, all,  7, 0.0
+nodeset, all,  8, 0.0
+nodeset, all,  9, 0.0
+nodeset, all, 10, 0.0
+nodeset, all, 11, 0.0
+nodeset, all, 12, 0.0

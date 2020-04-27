@@ -1,0 +1,548 @@
+%\documentclass[11pt]{article}
+\documentclass{asme2ej}
+\usepackage{amsmath,amssymb,graphicx,bm}
+\usepackage{listings, xcolor, subcaption, placeins}
+\usepackage{undertilde}
+\usepackage{algorithm,algpseudocode}
+\usepackage{multicol}
+\usepackage{makecell}
+\usepackage{longtable}
+\usepackage[longtable]{colortbl}
+\graphicspath{{./images}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% If you want to define a new command, you can do it like this:
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\e}{\bm{e}}
+\newcommand{\TEN}[1]{\underline{\underline{#1}}}
+\newcommand{\VEC}[1]{\utilde{#1}}
+\newcommand{\UVEC}[1]{\underline{#1}}
+\newcommand{\PK}[1]{\TEN{\tau}^{(#1)}}
+\newcommand{\cauchy}{\TEN{\sigma}}
+\newcommand{\st}{$^{\text{st}}$}
+\newcommand{\nd}{$^{\text{nd}}$}
+\newcommand\defeq{\mathrel{\stackrel{\makebox[0pt]{\mbox{\normalfont\tiny def}}}{=}}}
+
+\graphicspath{{./images/}}
+
+%% If you want to use a function like ''sin'' or ''cos'', you can do it like this
+%% (we probably won't have much use for this)
+% \DeclareMathOperator{\sin}{sin}   %% just an example (it's already defined)
+
+
+\begin{document}
+\title{Programmers Manual}
+\author{Nathan Miller}
+
+\maketitle
+
+\begin{abstract}
+
+This is intended to provide information on the major modules and functions contained within the user element and testing framework.
+
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+\section{fea\_driver.py}
+
+\subsection{Description}
+
+The overall driver code for the UEL. This code is considered to be largely auxillary to the fundamental aim of the project which is the development of a user element for Abaqus. It is useful however to verify that the element is working correctly outside of the confines of Abaqus itself. This allows for the element to be verified individually and then as a part of the whole.
+
+\subsection{Classes}
+
+\subsubsection{FEAModel}
+
+The class which defines the FEA model.
+
+This stores the solution as well as (currently) some of the time-stepping parameters. It is intended in a future update to move these to the InputParser class as they will be read in from the input deck.
+
+\begin{longtable}{ p{.40\textwidth}  p{.60\textwidth} }
+\hline
+Method & Description\\
+\_\_init\_\_ & Initialize the finite element model.
+
+inputs: IP\_ (InputParser object)\\
+\_\_repr\_\_ & Define the repr string
+
+print FEAModel returns FEAModel(InputParser.\_\_repr\_\_())\\
+
+apply\_dirichlet\_bcs & Apply the Dirichlet boundary conditions to the system of equations\\
+apply\_manufactured\_solution & Apply the manufactured solution indicated in the InputParser class\\
+assemble\_RHS\_and\_jacobian\_matrix & Assemble the global right hand side vector and jacobian matrix.
+
+Arises from $RHS^n = -\frac{\partial RHS}{\partial U} \cdot \Delta U = AMATRX \cdot \Delta U$\\
+assign\_dof & Assign degrees of freedom to the nodes\\
+compare\_manufactured\_solution & Compare the manufactured solution to the computed solution\\
+compute\_mms\_bc\_values & Compute the boundary condition values for the method of manufactured solutions. Currently only works for Dirichlet boundary conditions.\\
+compute\_mms\_forcing\_function & Compute the forcing function for the method of manufactured solutions\\
+convert\_local\_dbc\_to\_global & Convert the locally defined Dirichlet boundary conditions to their global values\\
+form\_increment\_dof\_vector & Form the incremented dof vector at a given increment\\
+get\_mms\_dof\_vector & Compute the displacement vector for the method of manufactured solutions\\
+increment\_solution & Perform a Newton-Raphson iteration to find the solution\\
+initialize\_dof & Initialize the degrees fo freedom for the FEA problem\\
+initialize\_timestep & Initialize the timestep for the FEA problem\\
+solve & Solve the defined finite element problem. KEY FUNCTION!\\
+update\_increment & Update the currently defined increment and update xi\\
+\end{longtable}
+
+\subsubsection{InputParser}
+
+The input parser class which reads in data from a text file.
+
+This class is used as a storage class for the recorded information. It contains the definition of the finite element model as well as material properties and (upcoming) the solution parameters such as timestepping, solution constrolls, etc.
+
+\begin{longtable}{ p{.40\textwidth}  p{.60\textwidth} }
+\hline
+Method & Description\\
+\_\_init\_\_ & Initialize the input parser object. Reads in a filename in the form of a string\\
+\_\_repr\_\_ & Define the repr string. This is printed out in the case of: print InputParser\\
+check\_keywords & Check a given line for keywords\\
+input:
+
+    linenum: The number of the line (used primarily for error handling)
+    line:    The line read from the file\\
+mms\_const\_u & Compute the method of manufactured solutions for a constant displacement of u with the phi values fixed at zero.\\
+mms\_linear\_u & Compute the method of manufactured solutions for a linear displacement of u with the phi values fixed at zero.\\
+parse\_dirichlet\_bcs & Parse the dirichlet boundary conditions applied at the nodes
+input:
+
+    linenum: The number of the line (used primarily for error handling)
+    
+    line:    The line read from the file\\
+parse\_elements & Parse the file when triggered by an element keyword
+input:
+
+    linenum: The number of the line (used primarily for error handling)
+    
+    line:    The line read from the file\\
+parse\_latex & Parse the file when triggered by a latex keyword
+
+Appends the line whole to self.latex\_string
+
+input:
+
+    linenum: The number of the line (used primarily for error handling)
+    
+    line:    The line read from the file\\
+parse\_mms & Parse the method of manufactured solutions keyword
+
+input:
+
+    linenum: The number of the line (used primarily for error handling)
+    
+    line:    The line read from the file\\
+parse\_nodes & Parse the file when triggered by a node keyword
+
+input:
+
+    linenum: The number of the line (used primarily for error handling)
+    
+    line:    The line read from the file\\
+parse\_nodeset & Parse the incoming nodesets when triggered by the keyword
+
+input:
+
+    linenum: The number of the line (used primarily for error handling)
+    
+    line:    The line read from the file\\
+parse\_props & Parse the file when triggered by a properties keyword
+
+input:
+
+    linenum: The number of the line (used primarily for error handling)
+    
+    line:    The line read from the file\\
+read\_input & REad the input file (self.filename) and parse the information into the class structure.
+\end{longtable}
+     
+\subsection{TestFEA}
+
+The test class for fea\_driver.py
+
+\begin{longtable}{ p{.40\textwidth}  p{.60\textwidth} }
+\hline
+Method & Description\\
+run & A redefinition of the parent run method which allows for recording the results of the tests.\\
+setUp & A redefinition of the setUp method used for recording the results. Called for each test.\\
+tearDown & A redefinition of the tearDown method used for recording the results. Called for each test.\\
+test\_fea\_solver & Perform a single element test of the FEA solver program.\\
+setUpClass & A redefinition of setUpClass which is run once at the initialization of the class. This opens a file to write the results to and initializes it.\\
+tearDownClass & A redefinition of tearDownClass which is run once when the class exits. This closes the results file.\\
+\end{longtable}
+
+\subsubsection{Data and attributes}
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Data and Attribute & Decription\\
+\hline
+\hline
+currentResult & The current result of a given test simulation\\
+f & The output file the results of the tests are being written to\\
+module\_name & The name of the module\\
+original\_directory & The original directory of the module\\
+output\_file\_location & The location where the output file should be stored\\
+output\_file\_name & The name of the output file\\
+\hline
+\end{longtable}
+
+\subsection{Functions}
+\begin{longtable}{ p{0.30\textwidth} p{0.70\textwidth} }
+flatten\_list & Flatten list of lists\\
+profile\_solve & Solver run to profile (largely unused)\\
+run\_finite\_element\_model & Run the finite element model identified by the input filename. This combines the major classes together to solve an input file.
+\end{longtable}
+
+\clearpage
+\section{micro\_element.py}
+
+\subsection{Description}
+
+The definition of the micromorphic finite element. The element is an eight noded, linear hexehedral element with twelve degrees of freedom per node. These degrees of freedom are described in table~\ref{table:nodal_dof}.
+
+\begin{table}
+\centering
+\begin{tabular}{c c}
+\hline
+Degree of freedom & Description \\
+\hline
+\hline
+$u_1$ & Displacement degree of freedom in the 1 direction\\
+%\hline
+$u_2$ & Displacement degree of freedom in the 2 direction\\
+%\hline
+$u_3$ & Displacement degree of freedom in the 3 direction\\
+%\hline
+$\phi_{11}$ & The 11 component of the micro-displacement tensor\\
+%\hline
+$\phi_{22}$ & The 22 component of the micro-displacement tensor\\
+%\hline
+$\phi_{33}$ & The 33 component of the micro-displacement tensor\\
+%\hline
+$\phi_{23}$ & The 23 component of the micro-displacement tensor\\
+%\hline
+$\phi_{13}$ & The 13 component of the micro-displacement tensor\\
+%\hline
+$\phi_{12}$ & The 12 component of the micro-displacement tensor\\
+%\hline
+$\phi_{32}$ & The 32 component of the micro-displacement tensor\\
+%\hline
+$\phi_{31}$ & The 31 component of the micro-displacement tensor\\
+%\hline
+$\phi_{21}$ & The 21 component of the micro-displacement tensor\\
+\hline
+\end{tabular}
+\caption{Nodal degrees of freedom}
+\label{table:nodal_dof}
+\end{table}
+
+This module performs the parsing of the Abaqus inputs, and will provide the residual vector (Abaqus' RHS) the Jacobian (Abaqus' AMATRX), and other quantities such as the mass matrix (to be implemented).
+
+\subsection{Classes}
+
+\subsubsection{TestMicroElement}
+
+The function testing class
+
+\begin{longtable}{ p{.40\textwidth}  p{.60\textwidth} }
+\hline
+Method & Description\\
+\hline
+\hline
+run & A redefinition of the parent run method which allows for recording the results of the tests.\\
+setUp & A redefinition of the setUp method used for recording the results. Called for each test.\\
+tearDown & A redefinition of the tearDown method used for recording the results. Called for each test.\\
+test\_compute\_BLM\_residual\_gpt & Test the computation of the Balance of linear momentum residual at a gauss point Note: Ignores surface traction term for now\\
+test\_compute\_DM\_derivatives & Test the computation of the deformation measure derivatives with respect to the degree of freedom vector\\
+test\_compute\_F & Test the computation of the deformation gradient\\
+test\_compute\_FMOM\_residual\_gpt & Test the computation of the residual of the first moment of momentum at a gauss point\\
+test\_compute\_chi & Test compute\_chi to take values of phi located at the nodes, interpolate, and assemble into chi\\
+test\_compute\_dBLMdU & Test the computation of the derivative of the residual of the balance of linear momentum w.r.t. the degree of freedom vector\\
+test\_compute\_dCdU & Test the computation of the matrix form of the derivative of the right Cauchy-Green deformation tensor with respect to the degree of freedom vector\\
+test\_compute\_dCinvdU & Test the computation of the matrix form of the derivative of the inverse of the right Cauchy-Green deformation tensor with respect to the degree of freedom vector\\
+test\_compute\_dFMOMdU & Test the computation of the derivative of the residual of the first moment of momentum with respect to the degree of freedom vector\\
+test\_compute\_dFdU & Test the computation of the matrix form of the derivative of the deformation gradient with respect to the degree of freedom vector\\
+test\_compute\_dGammadU & Test the computation of the matrix form of the derivative of the deformation measure Gamma with respect to the degree of freedom vector\\  
+test\_compute\_dPsidU & Test the computation of the matrix form of the derivative of the deformation measure Psi with respect to the degree of freedom vector\\
+test\_compute\_dSigmadU & Test for the computation of the derivative of the symmetric stress w.r.t. the degree of freedom vector.\\
+test\_compute\_dchidU & Test the computation of the matrix form of the derivative of the micro-displacement with respect to the degree of freedom vector\\
+test\_compute\_dgrad\_chidU & Test the computation of the matrix form of the derivative of the gradient of the micro-displacement with respect to the degree of freedom vector\\
+test\_compute\_dho\_stressdU & Test for the computation of the derivative of the higher order w.r.t. the degree of freedom vector.\\
+test\_compute\_dpk2dU & Test for the computation of the derivative of the Second Piola Kirchhoff stress w.r.t. the degree of freedom vector.\\
+test\_compute\_fundamental\_derivatives & Test the function compute\_fundamental\_derivatives\\
+test\_compute\_grad\_chi & Test compute\_grad\_chi to take values of phi located at the nodes and compute their gradient at a location\\
+test\_compute\_residuals\_jacobians\_gpt & Test the computation of the residuals and jacobian\\
+test\_form\_jacobian\_gpt & Test of the formation of the element jacobian\\
+test\_form\_residual\_gpt & Test the formation of the element residual at a gauss point\\
+test\_get\_deformation\_measures & Test get\_deformation\_measures to compute C, Psi, Gamma\\
+test\_integrate\_element & Test some properties of the integrated element\\
+test\_interpolate\_dof & Test the interpolate dof function\\
+test\_parse\_dof\_vector & Test of the parsing of the DOF vector\\
+setUpClass & A redefinition of setUpClass which is run once at the initialization of the class. This opens a file to write the results to and initializes it.\\
+tearDownClass & A redefinition of tearDownClass which is run once when the class exits. This closes the results file.\\
+\hline
+\end{longtable}
+
+\subsubsection{Data and attributes}
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Data and Attribute & Decription\\
+\hline
+\hline
+currentResult & The current result of a given test simulation\\
+f & The output file the results of the tests are being written to\\
+module\_name & The name of the module\\
+original\_directory & The original directory of the module\\
+output\_file\_location & The location where the output file should be stored\\
+output\_file\_name & The name of the output file\\
+\hline
+\end{longtable}
+\subsection{Functions}
+
+\begin{longtable}{ p{.40\textwidth}  p{.60\textwidth} }
+\hline
+Function & Description\\
+\hline
+\hline
+compute\_BLM\_residual\_gpt & Compute the Balance of linear momentum residual at a gauss point Note: Ignores surface traction term for now\\
+compute\_DM\_derivatives &Compute the deformation measure derivatives with respect to the degree of freedom vector\\
+compute\_F & Compute the deformation gradient\\
+compute\_FMOM\_residual\_gpt & Compute the residual of the first moment of momentum at a gauss point\\
+compute\_chi & Compute $\chi$ by taking values of phi located at the nodes, interpolate, and assemble into chi\\
+compute\_dBLMdU & Compute the derivative of the residual of the balance of linear momentum w.r.t. the degree of freedom vector\\
+compute\_dCdU & Compute the matrix form of the derivative of the right Cauchy-Green deformation tensor with respect to the degree of freedom vector\\
+compute\_dCinvdU & Compute the matrix form of the derivative of the inverse of the right Cauchy-Green deformation tensor with respect to the degree of freedom vector\\
+compute\_dFMOMdU & Compute the derivative of the residual of the first moment of momentum with respect to the degree of freedom vector\\
+compute\_dFdU & Compute the matrix form of the derivative of the deformation gradient with respect to the degree of freedom vector\\
+compute\_dGammadU & Compute the matrix form of the derivative of the deformation measure Gamma with respect to the degree of freedom vector\\  
+compute\_dPsidU & Compute the matrix form of the derivative of the deformation measure Psi with respect to the degree of freedom vector\\
+compute\_dSigmadU & Compute the derivative of the symmetric stress w.r.t. the degree of freedom vector.\\
+compute\_dchidU & Compute the matrix form of the derivative of the micro-displacement with respect to the degree of freedom vector\\
+compute\_dgrad\_chidU & Compute the matrix form of the derivative of the gradient of the micro-displacement with respect to the degree of freedom vector\\
+compute\_dho\_stressdU & Compute the derivative of the higher order w.r.t. the degree of freedom vector.\\
+compute\_dpk2dU & Compute the derivative of the Second Piola Kirchhoff stress w.r.t. the degree of freedom vector.\\
+compute\_fundamental\_derivatives & Compute all of the derivatives of the fundamental deformation measures $F$, $\chi$ and the gradient of $\chi$\\
+compute\_grad\_chi & Take values of phi located at the nodes and compute their gradient at a location\\
+compute\_residuals\_jacobians\_gpt & Test the computation of the residuals and jacobian\\
+form\_jacobian\_gpt & Form the element jacobian at a gauss point\\
+form\_residual\_gpt & Form the element residual at a gauss point\\
+get\_deformation\_measures & Get the deformation measures compute $C$, $\Psi$, and $\Gamma$\\
+integrate\_element & Integrate the finite element\\
+interpolate\_dof & Interpolate the degrees of freedom\\
+parse\_dof\_vector & Parse the incomming DOF vector into a node-by-node form\\
+\hline
+\end{longtable}
+
+\clearpage
+\section{micromorphic\_linear\_elasticity.py}
+
+\subsection{Description}
+
+A constitutive model for micromorphic linear elasticity. The general format which must be followed for constitutive models is the model is provided with the deformation measures, the state variables, the material properties, the current time, and the change in time.
+
+All constitutive models are required to provide the Cauchy stress, the symmetric stress, the higher order stress, and the tangents of each of these stresses with respect to the deformation measures.
+
+\subsection{Classes}
+
+\subsubsection{TestMicro\_LE}
+
+The function testing class
+
+\begin{longtable}{ p{.40\textwidth}  p{.60\textwidth} }
+\hline
+Method & Description\\
+\hline
+\hline
+run & A redefinition of the parent run method which allows for recording the results of the tests.\\
+setUp & A redefinition of the setUp method used for recording the results. Called for each test.\\
+tearDown & A redefinition of the tearDown method used for recording the results. Called for each test.\\
+test\_compute\_dCinvdC & Test the computation of the derivative of the inverse of the right Cauchy-Green deformation tensor w.r.t. the right Cauchy-Green deformation tensor C\\
+test\_compute\_deformation\_measures & Test the computation of the deformation measures \\
+test\_compute\_ho\_stress & Test the computation of the higher order stress\\
+test\_compute\_pk2\_stress & Test the computation of the second Piola-Kirchhoff stress\\
+test\_compute\_strain\_measures & Test the computation of the strain measures\\
+test\_compute\_stress\_derivatives & Test the computation of the stress derivatives with respect to the deformation measures\\
+test\_compute\_stress\_derivatives\_wrt\_C(self) & Test the computation of the stress derivatives wrt the right Cauchy-Green deformation tensor\\
+test\_compute\_stress\_derivatives\_wrt\_Gamma & Test the computation of the stress derivatives wrt the deformation measure Gamma\\
+test\_compute\_stress\_derivatives\_wrt\_Psi & Test the computation of the stress derivatives wrt the deformation measure Psi\\
+test\_compute\_stresses & Test the computation of all of the stress measures\\
+test\_compute\_symmetric\_stress &  Test the computation of the symmetric stress\\
+test\_form\_A & Test forming the A stiffness tensor\\
+test\_form\_B & Test forming the B stiffness tensor\\
+test\_form\_C & Test forming the C stiffness tensor\\
+test\_form\_D & Test forming the D stiffness tensor\\
+test\_form\_stiffness\_tensors & Test forming the stiffness tensors\\
+test\_micromorphic\_linear\_elasticity & Test the main function for the micromorphic linear elasticity model\\
+setUpClass & A redefinition of setUpClass which is run once at the initialization of the class. This opens a file to write the results to and initializes it.\\
+tearDownClass & A redefinition of tearDownClass which is run once when the class exits. This closes the results file.\\
+\hline
+\end{longtable}
+
+\subsubsection{Data and attributes}
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Data and Attribute & Decription\\
+\hline
+\hline
+currentResult & The current result of a given test simulation\\
+f & The output file the results of the tests are being written to\\
+module\_name & The name of the module\\
+original\_directory & The original directory of the module\\
+output\_file\_location & The location where the output file should be stored\\
+output\_file\_name & The name of the output file\\
+\hline
+\end{longtable}
+
+\subsection{Functions}
+
+\begin{longtable}{p{.40\textwidth} p{0.60\textwidth}}
+\hline
+Function & Description\\
+\hline
+\hline
+compute\_dCinvdC & Compute the derivative of the inverse of the right Cauchy-Green deformation tensor w.r.t. the right Cauchy-Green deformation tensor C\\
+compute\_deformation\_measures & Compute the deformation measures \\
+compute\_ho\_stress & Compute the higher order stress\\
+compute\_pk2\_stress & Compute the second Piola-Kirchhoff stress\\
+compute\_strain\_measures & Compute the strain measures\\
+compute\_stress\_derivatives & Compute the stress derivatives with respect to the deformation measures\\
+compute\_stress\_derivatives\_wrt\_C(self) & Compute the stress derivatives wrt the right Cauchy-Green deformation tensor\\
+compute\_stress\_derivatives\_wrt\_Gamma & Compute the stress derivatives wrt the deformation measure Gamma\\
+compute\_stress\_derivatives\_wrt\_Psi & Compute the stress derivatives wrt the deformation measure Psi\\
+compute\_stresses & Compute all of the stress measures\\
+compute\_symmetric\_stress &  Compute the symmetric stress\\
+form\_A & Form the A stiffness tensor\\
+form\_B & Form the B stiffness tensor\\
+form\_C & Form the C stiffness tensor\\
+form\_D & Form the D stiffness tensor\\
+form\_stiffness\_tensors & Form the stiffness tensors\\
+micromorphic\_linear\_elasticity & The main function for the micromorphic linear elasticity model\\
+\hline
+\end{longtable}
+
+\clearpage
+\section{hex8.py}
+
+\subsection{Description}
+
+Utility functions used in the computation of the shape functions for the eight noded hexahedral element. This module should contain general functions used in accessing the tensor datastructures and common functions which are not necessarily specific to the element.
+
+\subsection{Classes}
+
+\subsubsection{TestHex8}
+
+The function testing class
+
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Method & Description\\
+\hline
+\hline
+run & A redefinition of the parent run method which allows for recording the results of the tests.\\
+setUp & A redefinition of the setUp method used for recording the results. Called for each test.\\
+tearDown & A redefinition of the tearDown method used for recording the results. Called for each test.\\
+BVoigt\_submatrix & A test of the function which creates a submatrix of the the strain displacement matrix\\
+Hex8\_get\_shape\_function\_info & A test of the function which returns the shape function value, the gradient of the shape function, and the determinant of the jacobian in the local coordinate system of a specified node at a specified local coordinate.\\
+Hex8\_global\_grad\_shape\_function & A test of the computation of the global gradient of the shape function for a specified node at a specified local coordinate\\
+Hex8\_interpolation\_matrix & A test of the forming of the interpolation matrix.\\
+Hex8\_local\_grad\_shape\_function & A test of the computation of the local gradient of the shape function for a specified node at a specified local coordinate\\
+Hex8\_shape\_function & A test of the computation of the shape function for a specified node at a specified local position\\
+Hex8\_shape\_function\_loc & A test of the computation of the shape function for a specified node, at a specified local position, with specified nodal coordinates\\
+T\_to\_V\_mapping & A test of the mapping from tensor indices to the vector form index\\
+V\_to\_T\_mapping & A test of the mapping from a vector index to the tensor form indices\\
+compute\_BVoigt & A test of the computation of the strain displacement matrix in Voigt notation\\
+convert\_M\_to\_V & A test of the conversion of a tensor in matrix form to a tensor in vector form\\
+convert\_V\_to\_T & A test of the conversion of a tensor in vector form to a tensor in matrix form\\
+convert\_V\_to\_T & A test of the conversion of a tensor in vector form to the full tensor representation\\
+get\_1D\_gpw & A test of the function which returns the one dimensional gauss points and weights\\
+get\_all\_shape\_function\_info & A test of the function that computes and returns the value of all of the nodal shape functions, global gradients, and determinants of the jacobians of transformation to the local coordinates\\
+get\_global\_gradients & A test of the function which computes and returns all of the global gradients of the shape functions and the determinants of the jacobians of transformation to the local coordinates\\
+get\_gpq & A test of the function which returns the 3D gauss points\\
+get\_jacobian & A test of the computation of the jacobian of the transformation to the local coordinates\\
+get\_shape\_functions & A test of the function which computes the shape\\ functions.\\
+get\_symm\_matrix & Test for the function which returns the symmetric part of a matrix\\
+get\_symm\_matrix\_V & Test getting the symmetric part of a matrix in vector form\\
+invert\_3x3\_matrix &= Test the inversion of a 3 by 3 matrix\\
+invert\_3x3\_matrix\_V & Test the inversion of a 3 by 3 matrix in vector form\\
+matrix\_Tdot & Test the dot product of two matrices where the first one is transposed\\
+matrix\_Tdot\_TOT & Test the dot product of a transposed matrix and a third order tensor\\
+matrix\_Tdot\_V & Test the dot product of a transposed matrix and another matrix in vector form.\\
+matrix\_dot & Test the dot product of two matrices\\
+matrix\_dot\_V & Test the dot product of two matrices in vector form\\
+reduce\_tensor\_to\_matrix\_form & Test the reduction of a tensor to matrix form\\
+vector\_dot\_matrix & Test the dot product of a vector and a matrix\\
+vector\_dyadic\_product & Test the dyadic product of two vectors\\
+setUpClass & A redefinition of setUpClass which is run once at the initialization of the class. This opens a file to write the results to and initializes it.\\
+tearDownClass & A redefinition of tearDownClass which is run once when the class exits. This closes the results file.\\
+\hline
+\end{longtable}
+
+\subsubsection{Data and attributes}
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Data and Attribute & Decription\\
+\hline
+\hline
+currentResult & The current result of a given test simulation\\
+f & The output file the results of the tests are being written to\\
+module\_name & The name of the module\\
+original\_directory & The original directory of the module\\
+output\_file\_location & The location where the output file should be stored\\
+output\_file\_name & The name of the output file\\
+\hline
+\end{longtable}
+
+\subsection{Functions}
+
+\begin{longtable}{ p{.30\textwidth}  p{.70\textwidth} }
+\hline
+Function & Description\\
+\hline
+\hline
+BVoigt\_submatrix & The function which creates a submatrix of the the strain displacement matrix\\
+Hex8\_get\_shape\_function\_info & The function which returns the shape function value, the gradient of the shape function, and the determinant of the jacobian in the local coordinate system of a specified node at a specified local coordinate.\\
+Hex8\_global\_grad\_shape\_function & Computes of the global gradient of the shape function for a specified node at a specified local coordinate\\
+Hex8\_interpolation\_matrix & Forms of the interpolation matrix.\\
+Hex8\_local\_grad\_shape\_function & Computes the local gradient of the shape function for a specified node at a specified local coordinate\\
+Hex8\_shape\_function & Computes the shape function for a specified node at a specified local position\\
+Hex8\_shape\_function\_loc & Computes the shape function for a specified node, at a specified local position, with specified nodal coordinates\\
+T\_to\_V\_mapping & Returns the mapping from tensor indices to the vector form index\\
+V\_to\_T\_mapping & Returns the mapping from a vector index to the tensor form indices\\
+compute\_BVoigt & Returns the computation of the strain displacement matrix in Voigt notation\\
+convert\_M\_to\_V & Converts a tensor in matrix form to a tensor in vector form\\
+convert\_V\_to\_T & Converts a tensor in vector form to a tensor in matrix form\\
+convert\_V\_to\_T & Converts a tensor in vector form to the full tensor representation\\
+get\_1D\_gpw & Returns the one dimensional gauss points and weights\\
+get\_all\_shape\_function\_info & Computes and returns the value of all of the nodal shape functions, global gradients, and determinants of the jacobians of transformation to the local coordinates\\
+get\_global\_gradients & Computes and returns all of the global gradients of the shape functions and the determinants of the jacobians of transformation to the local coordinates\\
+get\_gpq & Returns the 3D gauss points\\
+get\_jacobian & A test of the computation of the jacobian of the transformation to the local coordinates\\
+get\_shape\_functions &Computes the shape\\ functions.\\
+get\_symm\_matrix & Returns the symmetric part of a matrix\\
+get\_symm\_matrix\_V & Returns the symmetric part of a matrix in vector form\\
+invert\_3x3\_matrix &=Inverts a 3 by 3 matrix\\
+invert\_3x3\_matrix\_V & Inverts a 3 by 3 matrix in vector form\\
+matrix\_Tdot & Computes the dot product of two matrices where the first one is transposed\\
+matrix\_Tdot\_TOT & Computes the dot product of a transposed matrix and a third order tensor\\
+matrix\_Tdot\_V & Computes the dot product of a transposed matrix and another matrix in vector form.\\
+matrix\_dot & Computes the dot product of two matrices\\
+matrix\_dot\_V & Computes the dot product of two matrices in vector form\\
+reduce\_tensor\_to\_matrix\_form & Reduces a tensor to matrix form\\
+vector\_dot\_matrix & Computes the dot product of a vector and a matrix\\
+vector\_dyadic\_product & Computes the dyadic product of two vectors\\
+\hline
+\end{longtable}
+
+\FloatBarrier
+
+\bibliographystyle{asme2ej}
+\bibliography{micromorphic}
+
+\end{document}

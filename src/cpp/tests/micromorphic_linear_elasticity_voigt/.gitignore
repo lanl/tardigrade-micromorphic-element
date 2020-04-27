@@ -1,0 +1,6 @@
+*.exe
+*.o
+*.gcda
+results.tex
+temp.py
+makefile

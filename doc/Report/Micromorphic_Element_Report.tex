@@ -1,0 +1,62 @@
+%\documentclass[11pt]{article}
+\documentclass{asme2ej}
+\usepackage{amsmath,amssymb,graphicx,bm}
+\usepackage{listings, xcolor, subcaption, placeins}
+\usepackage{undertilde}
+\usepackage{algorithm,algpseudocode}
+\usepackage{multicol}
+\usepackage{makecell}
+\usepackage[table]{colortbl}
+\graphicspath{{./images}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% If you want to define a new command, you can do it like this:
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\e}{\bm{e}}
+\newcommand{\TEN}[1]{\underline{\underline{#1}}}
+\newcommand{\VEC}[1]{\utilde{#1}}
+\newcommand{\UVEC}[1]{\underline{#1}}
+\newcommand{\PK}[1]{\TEN{\tau}^{(#1)}}
+\newcommand{\cauchy}{\TEN{\sigma}}
+\newcommand{\st}{$^{\text{st}}$}
+\newcommand{\nd}{$^{\text{nd}}$}
+\newcommand\defeq{\mathrel{\stackrel{\makebox[0pt]{\mbox{\normalfont\tiny def}}}{=}}}
+
+\graphicspath{{./images/}}
+
+%% If you want to use a function like ''sin'' or ''cos'', you can do it like this
+%% (we probably won't have much use for this)
+% \DeclareMathOperator{\sin}{sin}   %% just an example (it's already defined)
+
+
+\begin{document}
+\title{Micromorphic Finte Element Implementation}
+\author{Nathan Miller}
+
+\maketitle
+
+\begin{abstract}
+A micromorphic finite element is developed along with the documentation for the implementation. The equations are presented along with some background on their derivation and meaning. The equations are to be written in such a way that an Abaqus, ``UEL,'' or a, ``user element,'' can be relatively easily developed. The code is currently implemented in Python which allows rapid iteration. The results of the regression and unit tests are included along with the current development goals.
+\end{abstract}
+
+\input{./tex/nomenclature}
+\input{./tex/technical_approach.tex}
+
+\input{./tex/upcoming_enhancements.tex}
+
+\input{./tex/unittest_results.tex}
+%\input{./tex/regression_test_results.tex}
+
+
+
+\FloatBarrier
+
+\bibliographystyle{asme2ej}
+\bibliography{micromorphic}
+
+\end{document}

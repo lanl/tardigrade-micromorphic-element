@@ -1,0 +1,10 @@
+*.log
+*.dat
+*.com
+*.msg
+*.odb
+*.prt
+*.sim
+*.sta
+hex8.inp
+*swp
