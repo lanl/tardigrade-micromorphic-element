@@ -3377,6 +3377,840 @@ int test_formIsotropicD( std::ofstream &results){
     return 0;
 }
 
+int test_assembleFundamentalDeformationMeasures( std::ofstream &results ){
+    /*!
+     * Assemble the fundamental deformation measures from the degrees of freedom.
+     *
+     * :param std::ofstream &results: The output file.
+     */
+
+    double grad_u[ 3 ][ 3 ] = { { 1, 2, 3 },
+                                { 4, 5, 6 },
+                                { 7, 8, 9 } };
+
+    double phi[ 9 ] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    double grad_phi[ 9 ][ 3 ] = { {  1,  2,  3 },
+                                  {  4,  5,  6 },
+                                  {  7,  8,  9 },
+                                  { 10, 11, 12 },
+                                  { 13, 14, 15 },
+                                  { 16, 17, 18 },
+                                  { 19, 20, 21 },
+                                  { 22, 23, 24 },
+                                  { 25, 26, 27 } };
+
+    variableVector answerDeformationGradient = { 2, 2, 3, 4, 6, 6, 7, 8, 10 };
+
+    variableVector answerMicroDeformation = { 2, 2, 3, 4, 6, 6, 7, 8, 10 };
+
+    variableVector answerGradientMicroDeformation = { 1,  2,  3,  4,  5,  6,  7,  8,  9,
+                                                     10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                                     19, 20, 21, 22, 23, 24, 25, 26, 27 };
+
+    variableVector resultF, resultChi, resultGradChi;
+
+    errorOut error = micromorphicLinearElasticity::assembleFundamentalDeformationMeasures( grad_u, phi, grad_phi,
+                                                                                           resultF, resultChi, resultGradChi );
+
+    if ( error ){
+        results << "test_assembleFundamentalDeformationMeasures & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( resultF, answerDeformationGradient ) ){
+        results << "test_assembleFundamentalDeformationMeasures (test 1) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( resultChi, answerMicroDeformation ) ){
+        results << "test_assembleFundamentalDeformationMeasures (test 2) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( resultGradChi, answerGradientMicroDeformation ) ){
+        results << "test_assembleFundamentalDeformationMeasures (test 3) & False\n";
+        return 1;
+    }
+
+    //Test the Jacobians
+    variableVector resultFJ, resultChiJ, resultGradChiJ;
+    variableMatrix dFdGradU, dChidPhi, dGradChidGradPhi;
+
+    error = micromorphicLinearElasticity::assembleFundamentalDeformationMeasures( grad_u, phi, grad_phi,
+                                                                                  resultFJ, resultChiJ, resultGradChiJ,
+                                                                                  dFdGradU, dChidPhi, dGradChidGradPhi );
+
+    if ( error ){
+        results << "test_assembleFundamentalDeformationMeasures & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( resultFJ, answerDeformationGradient ) ){
+        results << "test_assembleFundamentalDeformationMeasures (test 4) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( resultChiJ, answerMicroDeformation ) ){
+        results << "test_assembleFundamentalDeformationMeasures (test 5) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( resultGradChiJ, answerGradientMicroDeformation ) ){
+        results << "test_assembleFundamentalDeformationMeasures (test 6) & False\n";
+        return 1;
+    }
+
+    //Test the jacobians w.r.t. the gradient of the displacement
+    constantType eps = 1e-6;
+    for ( unsigned int i = 0; i < 9; i++ ){
+        constantMatrix delta( 3, constantVector( 3, 0 ) );
+        unsigned int ii, ij;
+        ii = ( int )( i / 3 );
+        ij = i % 3;
+        delta[ ii ][ ij ] = eps * fabs( grad_u[ ii ][ ij ] ) + eps;
+
+        variableVector FP, chiP, gradChiP;
+        variableVector FM, chiM, gradChiM;
+
+        double positive_perturb[ 3 ][ 3 ] =
+        {
+                { grad_u[ 0 ][ 0 ] + delta[ 0 ][ 0 ], grad_u[ 0 ][ 1 ] + delta[ 0 ][ 1 ], grad_u[ 0 ][ 2 ] + delta[ 0 ][ 2 ] },
+                { grad_u[ 1 ][ 0 ] + delta[ 1 ][ 0 ], grad_u[ 1 ][ 1 ] + delta[ 1 ][ 1 ], grad_u[ 1 ][ 2 ] + delta[ 1 ][ 2 ] },
+                { grad_u[ 2 ][ 0 ] + delta[ 2 ][ 0 ], grad_u[ 2 ][ 1 ] + delta[ 2 ][ 1 ], grad_u[ 2 ][ 2 ] + delta[ 2 ][ 2 ] }
+        };
+
+        double negative_perturb[ 3 ][ 3 ] =
+        {
+                { grad_u[ 0 ][ 0 ] - delta[ 0 ][ 0 ], grad_u[ 0 ][ 1 ] - delta[ 0 ][ 1 ], grad_u[ 0 ][ 2 ] - delta[ 0 ][ 2 ] },
+                { grad_u[ 1 ][ 0 ] - delta[ 1 ][ 0 ], grad_u[ 1 ][ 1 ] - delta[ 1 ][ 1 ], grad_u[ 1 ][ 2 ] - delta[ 1 ][ 2 ] },
+                { grad_u[ 2 ][ 0 ] - delta[ 2 ][ 0 ], grad_u[ 2 ][ 1 ] - delta[ 2 ][ 1 ], grad_u[ 2 ][ 2 ] - delta[ 2 ][ 2 ] }
+        };
+
+        error = micromorphicLinearElasticity::assembleFundamentalDeformationMeasures( positive_perturb, phi, grad_phi,
+                                                                                      FP, chiP, gradChiP );
+
+        if ( error ){
+            results << "test_assembleFundamentalDeformationMeasures & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::assembleFundamentalDeformationMeasures( negative_perturb, phi, grad_phi,
+                                                                                      FM, chiM, gradChiM );
+
+        if ( error ){
+            results << "test_assembleFundamentalDeformationMeasures & False\n";
+            return 1;
+        }
+        variableVector gradCol = ( FP - FM ) / ( 2 * delta[ ii ][ ij ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], dFdGradU[ j ][ i ] ) ){
+                results << "test_assembleFundamentalDeformationMeasures (test 7) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( chiP - chiM ) / ( 2 * delta[ ii ][ ij ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], 0. ) ){
+                results << "test_assembleFundamentalDeformationMeasures (test 8) & False\n";
+            }
+        }
+
+        gradCol = ( gradChiP - gradChiM ) / ( 2 * delta[ ii ][ ij ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], 0. ) ){
+                results << "test_assembleFundamentalDeformationMeasures (test 9) & False\n";
+            }
+        }
+    }
+
+    for ( unsigned int i = 0; i < 9; i++ ){
+        constantVector delta( 9, 0 );
+
+        delta[ i ] = eps * fabs( phi[ i ] ) + eps;
+
+        variableVector FP, chiP, gradChiP;
+        variableVector FM, chiM, gradChiM;
+
+        double positive_perturb[ 9 ] = { phi[ 0 ] + delta[ 0 ], phi[ 1 ] + delta[ 1 ], phi[ 2 ] + delta[ 2 ],
+                                         phi[ 3 ] + delta[ 3 ], phi[ 4 ] + delta[ 4 ], phi[ 5 ] + delta[ 5 ],
+                                         phi[ 6 ] + delta[ 6 ], phi[ 7 ] + delta[ 7 ], phi[ 8 ] + delta[ 8 ] };
+
+        double negative_perturb[ 9 ] = { phi[ 0 ] - delta[ 0 ], phi[ 1 ] - delta[ 1 ], phi[ 2 ] - delta[ 2 ],
+                                         phi[ 3 ] - delta[ 3 ], phi[ 4 ] - delta[ 4 ], phi[ 5 ] - delta[ 5 ],
+                                         phi[ 6 ] - delta[ 6 ], phi[ 7 ] - delta[ 7 ], phi[ 8 ] - delta[ 8 ] };
+
+        error = micromorphicLinearElasticity::assembleFundamentalDeformationMeasures( grad_u, positive_perturb, grad_phi,
+                                                                                      FP, chiP, gradChiP );
+
+        if ( error ){
+            results << "test_assembleFundamentalDeformationMeasures & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::assembleFundamentalDeformationMeasures( grad_u, negative_perturb, grad_phi,
+                                                                                      FM, chiM, gradChiM );
+
+        if ( error ){
+            results << "test_assembleFundamentalDeformationMeasures & False\n";
+            return 1;
+        }
+        variableVector gradCol = ( FP - FM ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], 0. ) ){
+                results << "test_assembleFundamentalDeformationMeasures (test 10) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( chiP - chiM ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], dChidPhi[ j ][ i ] ) ){
+                results << "test_assembleFundamentalDeformationMeasures (test 11) & False\n";
+            }
+        }
+
+        gradCol = ( gradChiP - gradChiM ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], 0. ) ){
+                results << "test_assembleFundamentalDeformationMeasures (test 12) & False\n";
+            }
+        }
+    }
+
+    for ( unsigned int i = 0; i < 27; i++ ){
+        constantMatrix delta( 9, constantVector( 3, 0 ) );
+        unsigned int ii, ij;
+        ii = ( int )( i / 3 );
+        ij = i % 3;
+        delta[ ii ][ ij ] = eps * fabs( grad_u[ ii ][ ij ] ) + eps;
+
+        variableVector FP, chiP, gradChiP;
+        variableVector FM, chiM, gradChiM;
+
+        double positive_perturb[ 9 ][ 3 ] =
+        {
+                { grad_phi[ 0 ][ 0 ] + delta[ 0 ][ 0 ], grad_phi[ 0 ][ 1 ] + delta[ 0 ][ 1 ], grad_phi[ 0 ][ 2 ] + delta[ 0 ][ 2 ] },
+                { grad_phi[ 1 ][ 0 ] + delta[ 1 ][ 0 ], grad_phi[ 1 ][ 1 ] + delta[ 1 ][ 1 ], grad_phi[ 1 ][ 2 ] + delta[ 1 ][ 2 ] },
+                { grad_phi[ 2 ][ 0 ] + delta[ 2 ][ 0 ], grad_phi[ 2 ][ 1 ] + delta[ 2 ][ 1 ], grad_phi[ 2 ][ 2 ] + delta[ 2 ][ 2 ] },
+                { grad_phi[ 3 ][ 0 ] + delta[ 3 ][ 0 ], grad_phi[ 3 ][ 1 ] + delta[ 3 ][ 1 ], grad_phi[ 3 ][ 2 ] + delta[ 3 ][ 2 ] },
+                { grad_phi[ 4 ][ 0 ] + delta[ 4 ][ 0 ], grad_phi[ 4 ][ 1 ] + delta[ 4 ][ 1 ], grad_phi[ 4 ][ 2 ] + delta[ 4 ][ 2 ] },
+                { grad_phi[ 5 ][ 0 ] + delta[ 5 ][ 0 ], grad_phi[ 5 ][ 1 ] + delta[ 5 ][ 1 ], grad_phi[ 5 ][ 2 ] + delta[ 5 ][ 2 ] },
+                { grad_phi[ 6 ][ 0 ] + delta[ 6 ][ 0 ], grad_phi[ 6 ][ 1 ] + delta[ 6 ][ 1 ], grad_phi[ 6 ][ 2 ] + delta[ 6 ][ 2 ] },
+                { grad_phi[ 7 ][ 0 ] + delta[ 7 ][ 0 ], grad_phi[ 7 ][ 1 ] + delta[ 7 ][ 1 ], grad_phi[ 7 ][ 2 ] + delta[ 7 ][ 2 ] },
+                { grad_phi[ 8 ][ 0 ] + delta[ 8 ][ 0 ], grad_phi[ 8 ][ 1 ] + delta[ 8 ][ 1 ], grad_phi[ 8 ][ 2 ] + delta[ 8 ][ 2 ] }
+        };
+
+        double negative_perturb[ 9 ][ 3 ] =
+        {
+                { grad_phi[ 0 ][ 0 ] - delta[ 0 ][ 0 ], grad_phi[ 0 ][ 1 ] - delta[ 0 ][ 1 ], grad_phi[ 0 ][ 2 ] - delta[ 0 ][ 2 ] },
+                { grad_phi[ 1 ][ 0 ] - delta[ 1 ][ 0 ], grad_phi[ 1 ][ 1 ] - delta[ 1 ][ 1 ], grad_phi[ 1 ][ 2 ] - delta[ 1 ][ 2 ] },
+                { grad_phi[ 2 ][ 0 ] - delta[ 2 ][ 0 ], grad_phi[ 2 ][ 1 ] - delta[ 2 ][ 1 ], grad_phi[ 2 ][ 2 ] - delta[ 2 ][ 2 ] },
+                { grad_phi[ 3 ][ 0 ] - delta[ 3 ][ 0 ], grad_phi[ 3 ][ 1 ] - delta[ 3 ][ 1 ], grad_phi[ 3 ][ 2 ] - delta[ 3 ][ 2 ] },
+                { grad_phi[ 4 ][ 0 ] - delta[ 4 ][ 0 ], grad_phi[ 4 ][ 1 ] - delta[ 4 ][ 1 ], grad_phi[ 4 ][ 2 ] - delta[ 4 ][ 2 ] },
+                { grad_phi[ 5 ][ 0 ] - delta[ 5 ][ 0 ], grad_phi[ 5 ][ 1 ] - delta[ 5 ][ 1 ], grad_phi[ 5 ][ 2 ] - delta[ 5 ][ 2 ] },
+                { grad_phi[ 6 ][ 0 ] - delta[ 6 ][ 0 ], grad_phi[ 6 ][ 1 ] - delta[ 6 ][ 1 ], grad_phi[ 6 ][ 2 ] - delta[ 6 ][ 2 ] },
+                { grad_phi[ 7 ][ 0 ] - delta[ 7 ][ 0 ], grad_phi[ 7 ][ 1 ] - delta[ 7 ][ 1 ], grad_phi[ 7 ][ 2 ] - delta[ 7 ][ 2 ] },
+                { grad_phi[ 8 ][ 0 ] - delta[ 8 ][ 0 ], grad_phi[ 8 ][ 1 ] - delta[ 8 ][ 1 ], grad_phi[ 8 ][ 2 ] - delta[ 8 ][ 2 ] }
+        };
+
+        error = micromorphicLinearElasticity::assembleFundamentalDeformationMeasures( grad_u, phi, positive_perturb,
+                                                                                      FP, chiP, gradChiP );
+
+        if ( error ){
+            results << "test_assembleFundamentalDeformationMeasures & False\n";
+            return 1;
+        }
+
+        error = micromorphicLinearElasticity::assembleFundamentalDeformationMeasures( grad_u, phi, negative_perturb,
+                                                                                      FM, chiM, gradChiM );
+
+        if ( error ){
+            results << "test_assembleFundamentalDeformationMeasures & False\n";
+            return 1;
+        }
+
+        variableVector gradCol = ( FP - FM ) / ( 2 * delta[ ii ][ ij ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], 0. ) ){
+                results << "test_assembleFundamentalDeformationMeasures (test 13) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( chiP - chiM ) / ( 2 * delta[ ii ][ ij ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], 0. ) ){
+                results << "test_assembleFundamentalDeformationMeasures (test 14) & False\n";
+            }
+        }
+
+        gradCol = ( gradChiP - gradChiM ) / ( 2 * delta[ ii ][ ij ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ], dGradChidGradPhi[ j ][ i ] ) ){
+                results << "test_assembleFundamentalDeformationMeasures (test 15) & False\n";
+            }
+        }
+    }
+
+    results << "test_assembleFundamentalDeformationMeasures & True\n";
+    return 0;
+}
+
+int test_cout_redirect( std::ofstream &results ){
+    /*!
+     * Test the utility function which redirects cout to a string buffer.
+     *
+     * :param std::ofstream &results: The output file.
+     */
+
+    std::stringbuf buffer;
+    micromorphicLinearElasticity::cout_redirect rd( &buffer );
+    
+    std::string answer = "hello world\n";
+
+    std::cout << answer;
+
+    if ( answer.compare( buffer.str() ) != 0 ){
+        results << "test_cout_redirect (test 1) & False\n";
+        return 1;
+    }
+
+    results << "test_cout_redirect & True\n";
+    return 0;
+}
+
+int test_cerr_redirect( std::ofstream &results ){
+    /*!
+     * Test the utility function which redirects cerr to a string buffer.
+     *
+     * :param std::ofstream &results: The output file.
+     */
+
+    std::stringbuf buffer;
+    micromorphicLinearElasticity::cerr_redirect rd( &buffer );
+    
+    std::string answer = "hello world\n";
+
+    std::cerr << answer;
+
+    if ( answer.compare( buffer.str() ) != 0 ){
+        results << "test_cerr_redirect (test 1) & False\n";
+        return 1;
+    }
+
+    results << "test_cerr_redirect & True\n";
+    return 0;
+}
+
+int test_extractMaterialParameters( std::ofstream &results ){
+    /*!
+     * Test the extraction of the material parameters.
+     *
+     * :param std::ofstream &results: The output file.
+     */
+
+    std::vector< double > fparams = { 2, 1.7, 1.8,
+                                      5, 2.8, .76, .15, 9.8, 5.4,
+                                      11, 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.,
+                                      2, .76, 5.4 };
+
+    parameterVector Amatrix;
+    parameterVector Bmatrix;
+    parameterVector Cmatrix;
+    parameterVector Dmatrix;
+
+    parameterVector answerAmatrix;
+    parameterVector answerBmatrix;
+    parameterVector answerCmatrix;
+    parameterVector answerDmatrix;
+
+   errorOut error = micromorphicLinearElasticity::formIsotropicA( 1.7, 1.8, answerAmatrix );
+    if ( error ){
+        error->print();
+        results << "test_extractMaterialParameters & False\n";
+        return 1;
+    }
+
+    error = micromorphicLinearElasticity::formIsotropicB( 2.8, 0.76, 0.15, 9.8, 5.4, answerBmatrix );
+    if ( error ){
+        error->print();
+        results << "test_extractMaterialParameters & False\n";
+        return 1;
+    }
+
+    error = micromorphicLinearElasticity::formIsotropicC( { 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.}, answerCmatrix );
+    if ( error ){
+        error->print();
+        results << "test_extractMaterialParameters & False\n";
+        return 1;
+    }
+
+    error = micromorphicLinearElasticity::formIsotropicD( 0.76, 5.4, answerDmatrix );
+    if ( error ){
+        error->print();
+        results << "test_extractMaterialParameters & False\n";
+        return 1;
+    }
+
+    error = micromorphicLinearElasticity::extractMaterialParameters( fparams, Amatrix, Bmatrix, Cmatrix, Dmatrix );
+
+    if ( error ){
+        error->print();
+        results << "test_extractMaterialParameters & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( Amatrix, answerAmatrix ) ){
+        results << "test_extractMaterialParameters (test 1) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( Bmatrix, answerBmatrix ) ){
+        results << "test_extractMaterialParameters (test 2) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( Cmatrix, answerCmatrix ) ){
+        results << "test_extractMaterialParameters (test 3) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( Dmatrix, answerDmatrix ) ){
+        results << "test_extractMaterialParameters (test 4) & False\n";
+        return 1;
+    }
+
+    results << "test_extractMaterialParameters & True\n";
+    return 0;
+}
+
+int test_evaluate_model( std::ofstream &results ){
+    /*!
+     * Test the model evaluation interface for the stresses computed
+     * in the reference configuration.
+     *
+     * :param std::ofstream &results: The output file.
+     */
+
+    const std::vector< double > time = { 10, 2.7 };
+
+    const std::vector< double > fparams = { 2, 1.7, 1.8,
+                                            5, 2.8, .76, .15, 9.8, 5.4,
+                                           11, 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.,
+                                            2, .76, 5.4 };
+
+    const double current_grad_u[ 3 ][ 3 ] = { { -1.07901185, -1.09656192, -0.04629144 },
+                                              { -0.77749189, -1.27877771, -0.82648234 },
+                                              {  0.66484637, -0.05552567, -1.65125738 } };
+
+    const double current_phi[ 9 ] = { -1.40391532, -0.42715691,  0.75393369,
+                                       0.2849511 , -2.06484257, -0.52190902,
+                                       1.07238446,  0.19155907, -0.39704566 };
+
+    const double current_grad_phi[ 9 ][ 3 ] = { { 0.14940184, 0.12460812, 0.31971128 },
+                                                { 0.67550862, 0.61095383, 0.87972732 },
+                                                { 0.30872424, 0.32158187, 0.25480281 },
+                                                { 0.45570006, 0.69090695, 0.72388584 },
+                                                { 0.14880964, 0.67520596, 0.15106516 },
+                                                { 0.77810545, 0.07641724, 0.09367471 },
+                                                { 0.15905979, 0.0651695 , 0.52150417 },
+                                                { 0.91873444, 0.5622355 , 0.50199447 },
+                                                { 0.26729942, 0.89858519, 0.09043229 } };
+
+    const double previous_grad_u[ 3 ][ 3 ] = { { 0, 0, 0},
+                                               { 0, 0, 0},
+                                               { 0, 0, 0} };
+
+    const double previous_phi[ 9 ] = { 0, 0, 0,
+                                       0, 0, 0,
+                                       0, 0, 0 };
+
+    const double previous_grad_phi[ 9 ][ 3 ] = { { 0, 0, 0},
+                                                 { 0, 0, 0},
+                                                 { 0, 0, 0},
+                                                 { 0, 0, 0},
+                                                 { 0, 0, 0},
+                                                 { 0, 0, 0},
+                                                 { 0, 0, 0},
+                                                 { 0, 0, 0},
+                                                 { 0, 0, 0} };
+
+    std::vector< double > SDVS;
+    const std::vector< double > current_ADD_DOF, previous_ADD_DOF;
+    const std::vector< std::vector< double > > current_ADD_grad_DOF, previous_ADD_grad_DOF;
+
+    std::vector< double > PK2_answer   = { -26.78976487,  91.99831835, 135.04096376,
+                                           -63.68792655, 149.68226149, 186.67587146,
+                                           -42.54105342, 125.2317492 , 150.55767059 };
+
+    std::vector< double > SIGMA_answer = { -47.59920949,  20.84881327,  93.02392773,
+                                            20.84881327, 302.43209139, 311.0104045 ,
+                                            93.02392773, 311.0104045 , 312.60512922 };
+
+    std::vector< double > M_answer     = { -50.37283054, -23.25778149, -37.92963077, -19.16962188,
+                                           -32.97279228, -14.89104497, -33.4026237 , -15.47947779,
+                                           -40.31460994, -16.29637436, -36.63942799, -18.22777296,
+                                           -39.33546661, -86.69472439, -59.29150146, -15.76480164,
+                                           -55.42039768, -35.09720118, -28.94394503, -17.96726082,
+                                           -45.09734176, -16.46568416, -50.79898863, -39.19129183,
+                                           -47.46372724, -42.98201472, -45.57864883 };
+
+    std::vector< double > PK2_result, SIGMA_result, M_result;
+    std::vector< std::vector< double > > ADD_TERMS;
+    std::string output_message;
+
+    int errorCode  = micromorphicLinearElasticity::evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi,
+                                                                   previous_grad_u, previous_phi, previous_grad_phi,
+                                                                   SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                                                   previous_ADD_DOF, previous_ADD_grad_DOF,
+                                                                   PK2_result, SIGMA_result, M_result,
+                                                                   ADD_TERMS, output_message
+                                                                 );
+
+    if ( errorCode > 0 ){
+        std::cout << output_message << "\n";
+        results << "test_evaluate_model & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( PK2_result, PK2_answer ) ){
+        vectorTools::print( PK2_result - PK2_answer );
+        results << "test_evaluate_model (test 1) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer ) ){
+        vectorTools::print( SIGMA_result - SIGMA_answer );
+        results << "test_evaluate_model (test 2) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( M_result, M_answer ) ){
+        vectorTools::print( M_result -  M_answer );
+        results << "test_evaluate_model (test 3) & False\n";
+        return 1;
+    }
+
+    //Test of the Jacobians
+    PK2_result.clear();
+    SIGMA_result.clear();
+    M_result.clear();
+    ADD_TERMS.clear();
+
+    std::vector< std::vector< double > > DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
+                                         DSIGMADgrad_u, DSIGMADphi, DSIGMADgrad_phi,
+                                         DMDgrad_u, DMDphi, DMDgrad_phi;
+
+    std::vector< std::vector< std::vector< double > > > ADD_JACOBIANS;
+
+    errorCode  = micromorphicLinearElasticity::evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi,
+                                                               previous_grad_u, previous_phi, previous_grad_phi,
+                                                               SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                                               previous_ADD_DOF, previous_ADD_grad_DOF,
+                                                               PK2_result, SIGMA_result, M_result,
+                                                               DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
+                                                               DSIGMADgrad_u, DSIGMADphi, DSIGMADgrad_phi,
+                                                               DMDgrad_u, DMDphi, DMDgrad_phi,
+                                                               ADD_TERMS, ADD_JACOBIANS, output_message
+                                                             );
+
+    if ( errorCode > 0 ){
+        std::cout << output_message << "\n";
+        results << "test_evaluate_model & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( PK2_result, PK2_answer ) ){
+        vectorTools::print( PK2_result - PK2_answer );
+        results << "test_evaluate_model (test 4) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer ) ){
+        vectorTools::print( SIGMA_result - SIGMA_answer );
+        results << "test_evaluate_model (test 5) & False\n";
+        return 1;
+    }
+
+    if ( !vectorTools::fuzzyEquals( M_result, M_answer ) ){
+        vectorTools::print( M_result -  M_answer );
+        results << "test_evaluate_model (test 6) & False\n";
+        return 1;
+    }
+
+    //Test the jacobians w.r.t. the gradient of the macro displacement
+    constantType eps = 1e-6;
+    for ( unsigned int i = 0; i < 9; i++ ){
+        variableMatrix delta( 3, variableVector( 3, 0 ) );
+        delta[ i / 3 ][ i % 3 ] = eps * fabs( current_grad_u[ i / 3 ][ i % 3 ] ) + eps;
+
+        double current_grad_u_P[ 3 ][ 3 ] =
+        {
+            { current_grad_u[ 0 ][ 0 ] + delta[ 0 ][ 0 ], current_grad_u[ 0 ][ 1 ] + delta[ 0 ][ 1 ], current_grad_u[ 0 ][ 2 ] + delta[ 0 ][ 2 ] },
+            { current_grad_u[ 1 ][ 0 ] + delta[ 1 ][ 0 ], current_grad_u[ 1 ][ 1 ] + delta[ 1 ][ 1 ], current_grad_u[ 1 ][ 2 ] + delta[ 1 ][ 2 ] },
+            { current_grad_u[ 2 ][ 0 ] + delta[ 2 ][ 0 ], current_grad_u[ 2 ][ 1 ] + delta[ 2 ][ 1 ], current_grad_u[ 2 ][ 2 ] + delta[ 2 ][ 2 ] }
+        };
+
+        double current_grad_u_M[ 3 ][ 3 ] =
+        {
+            { current_grad_u[ 0 ][ 0 ] - delta[ 0 ][ 0 ], current_grad_u[ 0 ][ 1 ] - delta[ 0 ][ 1 ], current_grad_u[ 0 ][ 2 ] - delta[ 0 ][ 2 ] },
+            { current_grad_u[ 1 ][ 0 ] - delta[ 1 ][ 0 ], current_grad_u[ 1 ][ 1 ] - delta[ 1 ][ 1 ], current_grad_u[ 1 ][ 2 ] - delta[ 1 ][ 2 ] },
+            { current_grad_u[ 2 ][ 0 ] - delta[ 2 ][ 0 ], current_grad_u[ 2 ][ 1 ] - delta[ 2 ][ 1 ], current_grad_u[ 2 ][ 2 ] - delta[ 2 ][ 2 ] }
+        };
+
+        variableVector PK2_P, SIGMA_P, M_P,
+                       PK2_M, SIGMA_M, M_M;
+
+        errorCode = micromorphicLinearElasticity::evaluate_model( time, fparams, current_grad_u_P, current_phi, current_grad_phi,
+                                                                   previous_grad_u, previous_phi, previous_grad_phi,
+                                                                   SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                                                   previous_ADD_DOF, previous_ADD_grad_DOF,
+                                                                   PK2_P, SIGMA_P, M_P,
+                                                                   ADD_TERMS, output_message
+                                                                 );
+
+        if ( errorCode > 0 ){
+            std::cout << output_message << "\n";
+            results << "test_evaluate_model & False\n";
+            return 1;
+        }
+
+        errorCode = micromorphicLinearElasticity::evaluate_model( time, fparams, current_grad_u_M, current_phi, current_grad_phi,
+                                                                   previous_grad_u, previous_phi, previous_grad_phi,
+                                                                   SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                                                   previous_ADD_DOF, previous_ADD_grad_DOF,
+                                                                   PK2_M, SIGMA_M, M_M,
+                                                                   ADD_TERMS, output_message
+                                                                 );
+
+        if ( errorCode > 0 ){
+            std::cout << output_message << "\n";
+            results << "test_evaluate_model & False\n";
+            return 1;
+        }
+
+        std::vector< double > gradCol = ( PK2_P - PK2_M ) / ( 2 * delta[ i / 3 ][ i % 3 ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ],
+                                            DPK2Dgrad_u[ j ][ i ],
+                                            1e-6, 1e-9 ) ){
+                results << "test_evaluate_model (test 7) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( SIGMA_P - SIGMA_M ) / ( 2 * delta[ i / 3 ][ i % 3 ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ],
+                                            DSIGMADgrad_u[ j ][ i ],
+                                            1e-6, 1e-9 ) ){
+                results << "test_evaluate_model (test 8) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( M_P - M_M ) / ( 2 * delta[ i / 3 ][ i % 3 ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ],
+                                            DMDgrad_u[ j ][ i ],
+                                            1e-6, 1e-9 ) ){
+                results << "test_evaluate_model (test 9) & False\n";
+                return 1;
+            }
+        }
+    }
+
+    //Tests of Jacobians w.r.t. the micro displacement
+    for ( unsigned int i = 0; i < 9; i++ ){
+        variableVector delta( 9, 0 );
+        delta[ i ] = eps * fabs( current_phi[ i ] ) + eps;
+
+        double current_phi_P[ 9 ] = { current_phi[ 0 ] + delta[ 0 ], current_phi[ 1 ] + delta[ 1 ], current_phi[ 2 ] + delta[ 2 ],
+                                      current_phi[ 3 ] + delta[ 3 ], current_phi[ 4 ] + delta[ 4 ], current_phi[ 5 ] + delta[ 5 ],
+                                      current_phi[ 6 ] + delta[ 6 ], current_phi[ 7 ] + delta[ 7 ], current_phi[ 8 ] + delta[ 8 ]};
+
+        double current_phi_M[ 9 ] = { current_phi[ 0 ] - delta[ 0 ], current_phi[ 1 ] - delta[ 1 ], current_phi[ 2 ] - delta[ 2 ],
+                                      current_phi[ 3 ] - delta[ 3 ], current_phi[ 4 ] - delta[ 4 ], current_phi[ 5 ] - delta[ 5 ],
+                                      current_phi[ 6 ] - delta[ 6 ], current_phi[ 7 ] - delta[ 7 ], current_phi[ 8 ] - delta[ 8 ]};
+
+        variableVector PK2_P, SIGMA_P, M_P,
+                       PK2_M, SIGMA_M, M_M;
+
+        errorCode = micromorphicLinearElasticity::evaluate_model( time, fparams, current_grad_u, current_phi_P, current_grad_phi,
+                                                                   previous_grad_u, previous_phi, previous_grad_phi,
+                                                                   SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                                                   previous_ADD_DOF, previous_ADD_grad_DOF,
+                                                                   PK2_P, SIGMA_P, M_P,
+                                                                   ADD_TERMS, output_message
+                                                                 );
+
+        if ( errorCode > 0 ){
+            std::cout << output_message << "\n";
+            results << "test_evaluate_model & False\n";
+            return 1;
+        }
+
+        errorCode = micromorphicLinearElasticity::evaluate_model( time, fparams, current_grad_u, current_phi_M, current_grad_phi,
+                                                                   previous_grad_u, previous_phi, previous_grad_phi,
+                                                                   SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                                                   previous_ADD_DOF, previous_ADD_grad_DOF,
+                                                                   PK2_M, SIGMA_M, M_M,
+                                                                   ADD_TERMS, output_message
+                                                                 );
+
+        if ( errorCode > 0 ){
+            std::cout << output_message << "\n";
+            results << "test_evaluate_model & False\n";
+            return 1;
+        }
+
+        std::vector< double > gradCol = ( PK2_P - PK2_M ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ],
+                                            DPK2Dphi[ j ][ i ],
+                                            1e-6, 1e-9 ) ){
+                results << "test_evaluate_model (test 10) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( SIGMA_P - SIGMA_M ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ],
+                                            DSIGMADphi[ j ][ i ],
+                                            1e-6, 1e-9 ) ){
+                results << "test_evaluate_model (test 11) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( M_P - M_M ) / ( 2 * delta[ i ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ],
+                                            DMDphi[ j ][ i ],
+                                            1e-6, 1e-9 ) ){
+                results << "test_evaluate_model (test 12) & False\n";
+                return 1;
+            }
+        }
+    }
+
+    for ( unsigned int i = 0; i < 27; i++ ){
+        variableMatrix delta( 9, variableVector( 3, 0 ) );
+        delta[ i / 3 ][ i % 3 ] = eps * fabs( current_grad_u[ i / 3 ][ i % 3 ] ) + eps;
+
+        double current_grad_phi_P[ 9 ][ 3 ] =
+        {
+            { current_grad_phi[ 0 ][ 0 ] + delta[ 0 ][ 0 ], current_grad_phi[ 0 ][ 1 ] + delta[ 0 ][ 1 ], current_grad_phi[ 0 ][ 2 ] + delta[ 0 ][ 2 ] },
+            { current_grad_phi[ 1 ][ 0 ] + delta[ 1 ][ 0 ], current_grad_phi[ 1 ][ 1 ] + delta[ 1 ][ 1 ], current_grad_phi[ 1 ][ 2 ] + delta[ 1 ][ 2 ] },
+            { current_grad_phi[ 2 ][ 0 ] + delta[ 2 ][ 0 ], current_grad_phi[ 2 ][ 1 ] + delta[ 2 ][ 1 ], current_grad_phi[ 2 ][ 2 ] + delta[ 2 ][ 2 ] },
+            { current_grad_phi[ 3 ][ 0 ] + delta[ 3 ][ 0 ], current_grad_phi[ 3 ][ 1 ] + delta[ 3 ][ 1 ], current_grad_phi[ 3 ][ 2 ] + delta[ 3 ][ 2 ] },
+            { current_grad_phi[ 4 ][ 0 ] + delta[ 4 ][ 0 ], current_grad_phi[ 4 ][ 1 ] + delta[ 4 ][ 1 ], current_grad_phi[ 4 ][ 2 ] + delta[ 4 ][ 2 ] },
+            { current_grad_phi[ 5 ][ 0 ] + delta[ 5 ][ 0 ], current_grad_phi[ 5 ][ 1 ] + delta[ 5 ][ 1 ], current_grad_phi[ 5 ][ 2 ] + delta[ 5 ][ 2 ] },
+            { current_grad_phi[ 6 ][ 0 ] + delta[ 6 ][ 0 ], current_grad_phi[ 6 ][ 1 ] + delta[ 6 ][ 1 ], current_grad_phi[ 6 ][ 2 ] + delta[ 6 ][ 2 ] },
+            { current_grad_phi[ 7 ][ 0 ] + delta[ 7 ][ 0 ], current_grad_phi[ 7 ][ 1 ] + delta[ 7 ][ 1 ], current_grad_phi[ 7 ][ 2 ] + delta[ 7 ][ 2 ] },
+            { current_grad_phi[ 8 ][ 0 ] + delta[ 8 ][ 0 ], current_grad_phi[ 8 ][ 1 ] + delta[ 8 ][ 1 ], current_grad_phi[ 8 ][ 2 ] + delta[ 8 ][ 2 ] }
+        };
+
+        double current_grad_phi_M[ 9 ][ 3 ] =
+        {
+            { current_grad_phi[ 0 ][ 0 ] - delta[ 0 ][ 0 ], current_grad_phi[ 0 ][ 1 ] - delta[ 0 ][ 1 ], current_grad_phi[ 0 ][ 2 ] - delta[ 0 ][ 2 ] },
+            { current_grad_phi[ 1 ][ 0 ] - delta[ 1 ][ 0 ], current_grad_phi[ 1 ][ 1 ] - delta[ 1 ][ 1 ], current_grad_phi[ 1 ][ 2 ] - delta[ 1 ][ 2 ] },
+            { current_grad_phi[ 2 ][ 0 ] - delta[ 2 ][ 0 ], current_grad_phi[ 2 ][ 1 ] - delta[ 2 ][ 1 ], current_grad_phi[ 2 ][ 2 ] - delta[ 2 ][ 2 ] },
+            { current_grad_phi[ 3 ][ 0 ] - delta[ 3 ][ 0 ], current_grad_phi[ 3 ][ 1 ] - delta[ 3 ][ 1 ], current_grad_phi[ 3 ][ 2 ] - delta[ 3 ][ 2 ] },
+            { current_grad_phi[ 4 ][ 0 ] - delta[ 4 ][ 0 ], current_grad_phi[ 4 ][ 1 ] - delta[ 4 ][ 1 ], current_grad_phi[ 4 ][ 2 ] - delta[ 4 ][ 2 ] },
+            { current_grad_phi[ 5 ][ 0 ] - delta[ 5 ][ 0 ], current_grad_phi[ 5 ][ 1 ] - delta[ 5 ][ 1 ], current_grad_phi[ 5 ][ 2 ] - delta[ 5 ][ 2 ] },
+            { current_grad_phi[ 6 ][ 0 ] - delta[ 6 ][ 0 ], current_grad_phi[ 6 ][ 1 ] - delta[ 6 ][ 1 ], current_grad_phi[ 6 ][ 2 ] - delta[ 6 ][ 2 ] },
+            { current_grad_phi[ 7 ][ 0 ] - delta[ 7 ][ 0 ], current_grad_phi[ 7 ][ 1 ] - delta[ 7 ][ 1 ], current_grad_phi[ 7 ][ 2 ] - delta[ 7 ][ 2 ] },
+            { current_grad_phi[ 8 ][ 0 ] - delta[ 8 ][ 0 ], current_grad_phi[ 8 ][ 1 ] - delta[ 8 ][ 1 ], current_grad_phi[ 8 ][ 2 ] - delta[ 8 ][ 2 ] }
+        };
+
+        variableVector PK2_P, SIGMA_P, M_P,
+                       PK2_M, SIGMA_M, M_M;
+
+        errorCode = micromorphicLinearElasticity::evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi_P,
+                                                                   previous_grad_u, previous_phi, previous_grad_phi,
+                                                                   SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                                                   previous_ADD_DOF, previous_ADD_grad_DOF,
+                                                                   PK2_P, SIGMA_P, M_P,
+                                                                   ADD_TERMS, output_message
+                                                                 );
+
+        if ( errorCode > 0 ){
+            std::cout << output_message << "\n";
+            results << "test_evaluate_model & False\n";
+            return 1;
+        }
+
+        errorCode = micromorphicLinearElasticity::evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi_M,
+                                                                   previous_grad_u, previous_phi, previous_grad_phi,
+                                                                   SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                                                   previous_ADD_DOF, previous_ADD_grad_DOF,
+                                                                   PK2_M, SIGMA_M, M_M,
+                                                                   ADD_TERMS, output_message
+                                                                 );
+
+        if ( errorCode > 0 ){
+            std::cout << output_message << "\n";
+            results << "test_evaluate_model & False\n";
+            return 1;
+        }
+
+        std::vector< double > gradCol = ( PK2_P - PK2_M ) / ( 2 * delta[ i / 3 ][ i % 3 ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ],
+                                            DPK2Dgrad_phi[ j ][ i ],
+                                            1e-6, 1e-9 ) ){
+                results << "test_evaluate_model (test 13) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( SIGMA_P - SIGMA_M ) / ( 2 * delta[ i / 3 ][ i % 3 ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ],
+                                            DSIGMADgrad_phi[ j ][ i ],
+                                            1e-6, 1e-9 ) ){
+                results << "test_evaluate_model (test 14) & False\n";
+                return 1;
+            }
+        }
+
+        gradCol = ( M_P - M_M ) / ( 2 * delta[ i / 3 ][ i % 3 ] );
+
+        for ( unsigned int j = 0; j < gradCol.size(); j++ ){
+            if ( !vectorTools::fuzzyEquals( gradCol[ j ],
+                                            DMDgrad_phi[ j ][ i ],
+                                            1e-6, 1e-9 ) ){
+                results << "test_evaluate_model (test 15) & False\n";
+                return 1;
+            }
+        }
+    }
+
+    results << "test_evaluate_model & True\n";
+    return 0;
+}
+
 int main(){
     /*!
     The main loop which runs the tests defined in the 
@@ -3402,10 +4236,17 @@ int main(){
     test_mapStressesToCurrent( results );
     test_linearElasticity( results );
 
+    test_assembleFundamentalDeformationMeasures( results );
+    test_extractMaterialParameters( results );
+    test_cout_redirect( results );
+    test_cerr_redirect( results );
+
     test_formIsotropicA( results );
     test_formIsotropicB( results );
     test_formIsotropicC( results );
     test_formIsotropicD( results );
+
+    test_evaluate_model( results );
 
     //Close the results file
     results.close();

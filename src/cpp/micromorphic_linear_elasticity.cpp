@@ -1544,4 +1544,582 @@ namespace micromorphicLinearElasticity{
 
         return NULL;
     }
+
+    errorOut assembleFundamentalDeformationMeasures( const double ( &grad_u )[ 3 ][ 3 ], const double ( &phi )[ 9 ],
+                                                     const double ( &grad_phi )[ 9 ][ 3 ],
+                                                     variableVector &deformationGradient, variableVector &microDeformation,
+                                                     variableVector &gradientMicroDeformation ){
+        /*!
+         * Assemble the fundamental deformation meaures from the degrees of freedom.
+         *
+         * :param const double ( &grad_u )[ 3 ][ 3 ]: The macro displacement gradient w.r.t. the reference configuration.
+         * :param const double ( &phi )[ 9 ]: The micro displacement.
+         * :param const double ( &grad_phi )[ 9 ][ 3 ]: The gradient of the micro displacement w.r.t. the reference configuration.
+         * :param variableVector &deformationGradient: The deformation gradient
+         * :param variableVector &microDeformation: The micro deformation
+         * :param variableVector &gradientMicroDeformation: The gradient of the micro deformation.
+         */
+
+
+        //Extract the degrees of freedom
+        variableMatrix displacementGradient = { { grad_u[ 0 ][ 0 ], grad_u[ 0 ][ 1 ], grad_u[ 0 ][ 2 ] },
+                                                { grad_u[ 1 ][ 0 ], grad_u[ 1 ][ 1 ], grad_u[ 1 ][ 2 ] },
+                                                { grad_u[ 2 ][ 0 ], grad_u[ 2 ][ 1 ], grad_u[ 2 ][ 2 ] } };
+
+        variableVector microDisplacement = { phi[ 0 ], phi[ 1 ], phi[ 2 ],
+                                             phi[ 3 ], phi[ 4 ], phi[ 5 ],
+                                             phi[ 6 ], phi[ 7 ], phi[ 8 ] };
+
+        variableMatrix gradientMicroDisplacement = { { grad_phi[ 0 ][ 0 ], grad_phi[ 0 ][ 1 ], grad_phi[ 0 ][ 2 ] },
+                                                     { grad_phi[ 1 ][ 0 ], grad_phi[ 1 ][ 1 ], grad_phi[ 1 ][ 2 ] },
+                                                     { grad_phi[ 2 ][ 0 ], grad_phi[ 2 ][ 1 ], grad_phi[ 2 ][ 2 ] },
+                                                     { grad_phi[ 3 ][ 0 ], grad_phi[ 3 ][ 1 ], grad_phi[ 3 ][ 2 ] },
+                                                     { grad_phi[ 4 ][ 0 ], grad_phi[ 4 ][ 1 ], grad_phi[ 4 ][ 2 ] },
+                                                     { grad_phi[ 5 ][ 0 ], grad_phi[ 5 ][ 1 ], grad_phi[ 5 ][ 2 ] },
+                                                     { grad_phi[ 6 ][ 0 ], grad_phi[ 6 ][ 1 ], grad_phi[ 6 ][ 2 ] },
+                                                     { grad_phi[ 7 ][ 0 ], grad_phi[ 7 ][ 1 ], grad_phi[ 7 ][ 2 ] },
+                                                     { grad_phi[ 8 ][ 0 ], grad_phi[ 8 ][ 1 ], grad_phi[ 8 ][ 2 ] } };
+
+        errorOut error = micromorphicTools::assembleDeformationGradient( displacementGradient, deformationGradient );
+
+        if ( error ){
+            errorOut result = new errorNode( "assembleFundamentalDeformationMeasures",
+                                             "Error in assembly of the deformation gradient" );
+            result->addNext( error );
+            return result;
+        }
+
+        error = micromorphicTools::assembleMicroDeformation( microDisplacement, microDeformation );
+
+        if ( error ){
+            errorOut result = new errorNode( "assembleFundamentalDeformationMeasures",
+                                             "Error in assembly of the micro deformation" );
+            result->addNext( error );
+            return result;
+        }
+
+        error = micromorphicTools::assembleGradientMicroDeformation( gradientMicroDisplacement, gradientMicroDeformation );
+
+        if ( error ){
+            errorOut result = new errorNode( "assembleFundamentalDeformationMeasures",
+                                             "Error in assembly of the gradient of the micro deformation" );
+            result->addNext( error );
+            return result;
+        }
+
+        return NULL;
+    }
+
+    errorOut assembleFundamentalDeformationMeasures( const double ( &grad_u )[ 3 ][ 3 ], const double ( &phi )[ 9 ],
+                                                     const double ( &grad_phi )[ 9 ][ 3 ],
+                                                     variableVector &deformationGradient, variableVector &microDeformation,
+                                                     variableVector &gradientMicroDeformation, variableMatrix &dFdGradU,
+                                                     variableMatrix &dChidPhi, variableMatrix &dGradChidGradPhi ){
+        /*!
+         * Assemble the fundamental deformation meaures from the degrees of freedom.
+         *
+         * :param const double ( &grad_u )[ 3 ][ 3 ]: The macro displacement gradient w.r.t. the reference configuration.
+         * :param const double ( &phi )[ 9 ]: The micro displacement.
+         * :param const double ( &grad_phi )[ 9 ][ 3 ]: The gradient of the micro displacement w.r.t. the reference configuration.
+         * :param variableVector &deformationGradient: The deformation gradient
+         * :param variableVector &microDeformation: The micro deformation
+         * :param variableVector &gradientMicroDeformation: The gradient of the micro deformation.
+         * :param variableMatrix &dFdGradU: The Jacobian of the deformation gradient w.r.t. the gradient of the displacement
+         * :param variableMatrix &dChidPhi: The Jacobian of the micro deformation w.r.t. the micro displacement
+         * :param variableMatrix &dGradChidGradPhi: The Jacobian of the gradient of the micro deformation w.r.t.
+         *      the gradient of the micro displacement
+         */
+
+
+        //Extract the degrees of freedom
+        variableMatrix displacementGradient = { { grad_u[ 0 ][ 0 ], grad_u[ 0 ][ 1 ], grad_u[ 0 ][ 2 ] },
+                                                { grad_u[ 1 ][ 0 ], grad_u[ 1 ][ 1 ], grad_u[ 1 ][ 2 ] },
+                                                { grad_u[ 2 ][ 0 ], grad_u[ 2 ][ 1 ], grad_u[ 2 ][ 2 ] } };
+
+        variableVector microDisplacement = { phi[ 0 ], phi[ 1 ], phi[ 2 ],
+                                             phi[ 3 ], phi[ 4 ], phi[ 5 ],
+                                             phi[ 6 ], phi[ 7 ], phi[ 8 ] };
+
+        variableMatrix gradientMicroDisplacement = { { grad_phi[ 0 ][ 0 ], grad_phi[ 0 ][ 1 ], grad_phi[ 0 ][ 2 ] },
+                                                     { grad_phi[ 1 ][ 0 ], grad_phi[ 1 ][ 1 ], grad_phi[ 1 ][ 2 ] },
+                                                     { grad_phi[ 2 ][ 0 ], grad_phi[ 2 ][ 1 ], grad_phi[ 2 ][ 2 ] },
+                                                     { grad_phi[ 3 ][ 0 ], grad_phi[ 3 ][ 1 ], grad_phi[ 3 ][ 2 ] },
+                                                     { grad_phi[ 4 ][ 0 ], grad_phi[ 4 ][ 1 ], grad_phi[ 4 ][ 2 ] },
+                                                     { grad_phi[ 5 ][ 0 ], grad_phi[ 5 ][ 1 ], grad_phi[ 5 ][ 2 ] },
+                                                     { grad_phi[ 6 ][ 0 ], grad_phi[ 6 ][ 1 ], grad_phi[ 6 ][ 2 ] },
+                                                     { grad_phi[ 7 ][ 0 ], grad_phi[ 7 ][ 1 ], grad_phi[ 7 ][ 2 ] },
+                                                     { grad_phi[ 8 ][ 0 ], grad_phi[ 8 ][ 1 ], grad_phi[ 8 ][ 2 ] } };
+
+        errorOut error = micromorphicTools::assembleDeformationGradient( displacementGradient, deformationGradient, dFdGradU );
+
+        if ( error ){
+            errorOut result = new errorNode( "assembleFundamentalDeformationMeasures (jacobian)",
+                                             "Error in assembly of the deformation gradient" );
+            result->addNext( error );
+            return result;
+        }
+
+        error = micromorphicTools::assembleMicroDeformation( microDisplacement, microDeformation, dChidPhi );
+
+        if ( error ){
+            errorOut result = new errorNode( "assembleFundamentalDeformationMeasures (jacobian)",
+                                             "Error in assembly of the micro deformation" );
+            result->addNext( error );
+            return result;
+        }
+
+        error = micromorphicTools::assembleGradientMicroDeformation( gradientMicroDisplacement, gradientMicroDeformation,
+                                                                     dGradChidGradPhi );
+
+        if ( error ){
+            errorOut result = new errorNode( "assembleFundamentalDeformationMeasures (jacobian)",
+                                             "Error in assembly of the gradient of the micro deformation" );
+            result->addNext( error );
+            return result;
+        }
+
+        return NULL;
+    }
+
+    errorOut extractMaterialParameters( const std::vector< double > &fparams,
+                                        parameterVector &Amatrix, parameterVector &Bmatrix,
+                                        parameterVector &Cmatrix, parameterVector &Dmatrix ){
+        /*!
+         * Extract the parameters from the parameter vector
+         *
+         * :param const std::vector< double > &fparams: The incoming parameter vector
+         * :param parameterVector &Amatrix: The A stiffness matrix.
+         * :param parameterVector &Bmatrix: The B stiffness matrix.
+         * :param parameterVector &Cmatrix: The C stiffness matrix.
+         * :param parameterVector &Dmatrix: The D stiffness matrix.
+         */
+
+        if ( fparams.size() == 0 ){
+            return new errorNode( "extractMaterialParameters",
+                                  "The material parameters vector has a length of 0" );
+        }
+
+        unsigned int start = 0;
+        unsigned int span;
+
+        std::vector< parameterVector > outputs( 4 );
+
+        //Extract the material parameters
+        for ( unsigned int i = 0; i < outputs.size(); i++ ){
+            span = ( unsigned int )std::floor( fparams[ start ]  + 0.5 ); //Extract the span of the parameter set
+
+            if ( fparams.size() < start + 1 + span ){
+                std::string outstr = "fparams is not long enough to contain all of the required parameters:\n";
+                outstr +=            "    filling variable " + std::to_string( i ) + "\n";
+                outstr +=            "    size =          "  + std::to_string( fparams.size() ) + "\n";
+                outstr +=            "    required size = "  + std::to_string( start + 1 + span );
+
+                return new errorNode( "extractMaterialParameters",
+                                      outstr.c_str() );
+            }
+
+            outputs[ i ] = parameterVector( fparams.begin() + start + 1, fparams.begin() + start + 1 + span );
+
+            start = start + 1 + span;
+        }
+
+        //Form the stiffness tensors
+        errorOut error;
+        if ( outputs[ 0 ].size() == 2 ){
+            error = micromorphicLinearElasticity::formIsotropicA( outputs[ 0 ][ 0 ], outputs[ 0 ][ 1 ], Amatrix );
+        }
+        else{
+            std::string outstr = "Unrecognized number of parameters ( " + std::to_string( outputs[ 0 ].size() ) + " ) for the A stiffness tensor";
+            return new errorNode( "extractMaterialParameters",
+                                  outstr.c_str() );
+        }
+
+        if ( error ){
+            errorOut result = new errorNode( "extractMaterialParameters", "Error in computation of the A stiffness tensor" );
+            result->addNext( error );
+            return result;
+        }
+
+        if ( outputs[ 1 ].size() == 5 ){
+            error = micromorphicLinearElasticity::formIsotropicB( outputs[ 1 ][ 0 ], outputs[ 1 ][ 1 ], outputs[ 1 ][ 2 ],
+                                                                  outputs[ 1 ][ 3 ], outputs[ 1 ][ 4 ], Bmatrix );
+        }
+        else{
+            std::string outstr = "Unrecognized number of parameters ( " + std::to_string( outputs[ 1 ].size() ) + " ) for the B stiffness tensor";
+            return new errorNode( "extractMaterialParameters",
+                                  outstr.c_str() );
+        }
+
+        if ( error ){
+            errorOut result = new errorNode( "extractMaterialParameters", "Error in computation of the B stiffness tensor" );
+            result->addNext( error );
+            return result;
+        }
+
+        if ( outputs[ 2 ].size() == 11 ){
+            error = micromorphicLinearElasticity::formIsotropicC( outputs[ 2 ], Cmatrix );
+        }
+        else{
+            std::string outstr = "Unrecognized number of parameters ( " + std::to_string( outputs[ 2 ].size() ) + " ) for the C stiffness tensor";
+            return new errorNode( "extractMaterialParameters",
+                                  outstr.c_str() );
+        }
+
+        if ( error ){
+            errorOut result = new errorNode( "extractMaterialParameters", "Error in computation of the C stiffness tensor" );
+            result->addNext( error );
+            return result;
+        }
+
+        if ( outputs[ 3 ].size() == 2 ){
+            error = micromorphicLinearElasticity::formIsotropicD( outputs[ 3 ][ 0 ], outputs[ 3 ][ 1 ], Dmatrix );
+        }
+        else{
+            std::string outstr = "Unrecognized number of parameters ( " + std::to_string( outputs[ 3 ].size() ) + " ) for the D stiffness tensor";
+            return new errorNode( "extractMaterialParameters",
+                                  outstr.c_str() );
+        }
+
+        if ( error ){
+            errorOut result = new errorNode( "extractMaterialParameters", "Error in computation of the D stiffness tensor" );
+            result->addNext( error );
+            return result;
+        }
+
+        return NULL;
+    }
+
+
+    int evaluate_model( const std::vector< double > &time,            const std::vector< double > ( &fparams ), 
+                        const double ( &current_grad_u )[ 3 ][ 3 ],   const double ( &current_phi )[ 9 ],
+                        const double ( &current_grad_phi )[ 9 ][ 3 ], const double ( &previous_grad_u )[ 3 ][ 3 ],
+                        const double ( &previous_phi )[ 9 ],          const double ( &previous_grad_phi )[ 9 ][ 3 ],
+                        std::vector< double > &SDVS,
+                        const std::vector< double > &current_ADD_DOF,
+                        const std::vector< std::vector< double > > &current_ADD_grad_DOF,
+                        const std::vector< double > &previous_ADD_DOF,
+                        const std::vector< std::vector< double > > &previous_ADD_grad_DOF,
+                        std::vector< double > &PK2, std::vector< double > &SIGMA, std::vector< double > &M,
+                        std::vector< std::vector< double > > &ADD_TERMS,
+                        std::string &output_message
+                      ){
+        /*!
+         * Evaluate the elasto-plastic constitutive model. Note the format of the header changed to provide a 
+         * consistant interface with the material model library.
+         *
+         * :param const std::vector< double > &time: The current time and the timestep
+         *     [ current_t, dt ]
+         * :param const std::vector< double > ( &fparams ): The parameters for the constitutive model
+         *     [ num_Amatrix_parameters, Amatrix_parameters, num_Bmatrix_parameters, Bmatrix_parameters,
+         *       num_Cmatrix_parameters, Cmatrix_parameters, num_Dmatrix_parameters, Dmatrix_parameters ]
+         *
+         * :param const double ( &current_grad_u )[ 3 ][ 3 ]: The current displacement gradient
+         *     Assumed to be of the form [ [ u_{1,1}, u_{1,2}, u_{1,3} ],
+         *                                 [ u_{2,1}, u_{2,2}, u_{2,3} ],
+         *                                 [ u_{3,1}, u_{3,2}, u_{3,3} ] ]
+         * :param const double ( &current_phi )[ 9 ]: The current micro displacment values.
+         *     Assumed to be of the form [ \phi_{11}, \phi_{12}, \phi_{13}, \phi_{21}, \phi_{22}, \phi_{23}, \phi_{31}, \phi_{32}, \phi_{33} ]
+         * :param const double ( &current_grad_phi )[ 9 ][ 3 ]: The current micro displacement gradient
+         *     Assumed to be of the form [ [ \phi_{11,1}, \phi_{11,2}, \phi_{11,3} ],
+         *                                 [ \phi_{12,1}, \phi_{12,2}, \phi_{12,3} ],
+         *                                 [ \phi_{13,1}, \phi_{13,2}, \phi_{13,3} ],
+         *                                 [ \phi_{21,1}, \phi_{21,2}, \phi_{21,3} ],
+         *                                 [ \phi_{22,1}, \phi_{22,2}, \phi_{22,3} ],
+         *                                 [ \phi_{23,1}, \phi_{23,2}, \phi_{23,3} ],
+         *                                 [ \phi_{31,1}, \phi_{31,2}, \phi_{31,3} ],
+         *                                 [ \phi_{32,1}, \phi_{32,2}, \phi_{32,3} ],
+         *                                 [ \phi_{33,1}, \phi_{33,2}, \phi_{33,3} ] ]
+         * :param const double ( &previous_grad_u )[ 3 ][ 3 ]: The previous displacement gradient.
+         * :param const double ( &previous_phi )[ 9 ]: The previous micro displacement.
+         * :param const double ( &previous_grad_phi )[ 9 ][ 3 ]: The previous micro displacement gradient.
+         * :param std::vector< double > &SDVS: The previously converged values of the state variables ( unused )
+         * :param std::vector< double > &current_ADD_DOF: The current values of the additional degrees of freedom ( unused )
+         * :param std::vector< std::vector< double > > &current_ADD_grad_DOF: The current values of the gradients of the 
+         *     additional degrees of freedom ( unused )
+         * :param std::vector< double > &current_PK2: The current value of the second Piola Kirchhoff stress tensor. The format is
+         *     [ S_{11}, S_{12}, S_{13}, S_{21}, S_{22}, S_{23}, S_{31}, S_{32}, S_{33} ]
+         * :param std::vector< double > &current_SIGMA: The current value of the reference micro stress. The format is
+         *     [ S_{11}, S_{12}, S_{13}, S_{21}, S_{22}, S_{23}, S_{31}, S_{32}, S_{33} ]
+         * :param std::vector< double > &current_M: The current value of the reference higher order stress. The format is
+         *     [ M_{111}, M_{112}, M_{113}, M_{121}, M_{122}, M_{123}, M_{131}, M_{132}, M_{133},
+         *       M_{211}, M_{212}, M_{213}, M_{221}, M_{222}, M_{223}, M_{231}, M_{232}, M_{233},
+         *       M_{311}, M_{312}, M_{313}, M_{321}, M_{322}, M_{323}, M_{331}, M_{332}, M_{333} ]
+         * :param std::vector< std::vector< double > > &ADD_TERMS: Additional terms ( unused )
+         * :param std::string &output_message: The output message string.
+         *
+         * Returns:
+         *     0: No errors. Solution converged.
+         *     1: Convergence Error. Request timestep cutback. ( unused )
+         *     2: Fatal Errors encountered. Terminate the simulation.
+         */
+
+        //Re-direct the output to a buffer
+        std::stringbuf buffer;
+        cerr_redirect rd( &buffer );
+
+        /*=============================
+        | Extract the incoming values |
+        ==============================*/
+
+        //Extract the parameters
+        parameterVector Amatrix, Bmatrix, Cmatrix, Dmatrix;
+
+        errorOut error = extractMaterialParameters( fparams, Amatrix, Bmatrix, Cmatrix, Dmatrix );
+
+        if ( error ){
+            errorOut result = new errorNode( "evaluate_model",
+                                             "Error in the extraction of the material parameters" );
+            result->addNext( error );
+            result->print();           //Print the error message
+            output_message = buffer.str(); //Save the output to enable message printing
+            return 2;
+        }
+
+        /*===============================================
+        | Assemble the fundamental deformation measures |
+        ================================================*/
+
+        //Compute the fundamental deformation measures from the degrees of freedom
+
+        variableVector currentDeformationGradient, currentMicroDeformation, currentGradientMicroDeformation;
+
+        error = assembleFundamentalDeformationMeasures( current_grad_u, current_phi, current_grad_phi,
+                                                        currentDeformationGradient, currentMicroDeformation,
+                                                        currentGradientMicroDeformation );
+
+        if ( error ){
+            errorOut result = new errorNode( "evaluate_model",
+                                             "Error in the computation of the current deformation measures" );
+            result->addNext( error );
+            result->print();           //Print the error message
+            output_message = buffer.str(); //Save the output to enable message printing
+            return 2;
+        }
+
+        /*===============================
+        | Compute the new stress values |
+        ===============================*/
+
+        //Compute the new stress values
+        variableVector currentPK2Stress, currentReferenceMicroStress, currentReferenceHigherOrderStress;
+
+        error = micromorphicLinearElasticity::linearElasticityReference( currentDeformationGradient,
+                                                                         currentMicroDeformation,
+                                                                         currentGradientMicroDeformation,
+                                                                         Amatrix, Bmatrix, Cmatrix, Dmatrix,
+                                                                         PK2, SIGMA, M );
+
+        if ( error ){
+            errorOut result = new errorNode( "evaluate_model",
+                                             "Error in the computation of the current stress measures" );
+            result->addNext( error );
+            result->print();           //Print the error message
+            output_message = buffer.str(); //Save the output to enable message passing
+            return 2;
+        }
+
+        //No errors in calculation.
+        return 0;
+    }
+
+    int evaluate_model( const std::vector< double > &time,            const std::vector< double > ( &fparams ), 
+                        const double ( &current_grad_u )[ 3 ][ 3 ],   const double ( &current_phi )[ 9 ],
+                        const double ( &current_grad_phi )[ 9 ][ 3 ], const double ( &previous_grad_u )[ 3 ][ 3 ],
+                        const double ( &previous_phi )[ 9 ],          const double ( &previous_grad_phi )[ 9 ][ 3 ],
+                        std::vector< double > &SDVS,
+                        const std::vector< double > &current_ADD_DOF,
+                        const std::vector< std::vector< double > > &current_ADD_grad_DOF,
+                        const std::vector< double > &previous_ADD_DOF,
+                        const std::vector< std::vector< double > > &previous_ADD_grad_DOF,
+                        std::vector< double > &PK2, std::vector< double > &SIGMA, std::vector< double > &M,
+                        std::vector< std::vector< double > > &DPK2Dgrad_u,   std::vector< std::vector< double > > &DPK2Dphi,
+                        std::vector< std::vector< double > > &DPK2Dgrad_phi, 
+                        std::vector< std::vector< double > > &DSIGMADgrad_u, std::vector< std::vector< double > > &DSIGMADphi,
+                        std::vector< std::vector< double > > &DSIGMADgrad_phi,
+                        std::vector< std::vector< double > > &DMDgrad_u,     std::vector< std::vector< double > > &DMDphi,
+                        std::vector< std::vector< double > > &DMDgrad_phi,
+                        std::vector< std::vector< double > > &ADD_TERMS,
+                        std::vector< std::vector< std::vector< double > > > &ADD_JACOBIANS,
+                        std::string &output_message
+                      ){
+        /*!
+         * Evaluate the elasto-plastic constitutive model. Note the format of the header changed to provide a 
+         * consistant interface with the material model library.
+         *
+         * :param const std::vector< double > &time: The current time and the timestep
+         *     [ current_t, dt ]
+         * :param const std::vector< double > ( &fparams ): The parameters for the constitutive model
+         *     [ num_Amatrix_parameters, Amatrix_parameters, num_Bmatrix_parameters, Bmatrix_parameters,
+         *       num_Cmatrix_parameters, Cmatrix_parameters, num_Dmatrix_parameters, Dmatrix_parameters,
+         *       num_macroHardeningParameters, macroHardeningParameters,
+         *       num_microHardeningParameters, microHardeningParameters,
+         *       num_microGradientHardeningParameters, microGradientHardeningParameters,
+         *       num_macroFlowParameters, macroFlowParameters,
+         *       num_microFlowParameters, microFlowParameters,
+         *       num_microGradientFlowParameters, microGradientFlowParameters,
+         *       num_macroYieldParameters, macroYieldParameters,
+         *       num_microYieldParameters, microYieldParameters,
+         *       num_microGradientYieldParameters, microGradientYieldParameters,
+         *       alphaMacro, alphaMicro, alphaMicroGradient,
+         *       relativeTolerance, absoluteTolerance ]
+         *
+         * :param const double ( &current_grad_u )[ 3 ][ 3 ]: The current displacement gradient
+         *     Assumed to be of the form [ [ u_{1,1}, u_{1,2}, u_{1,3} ],
+         *                                 [ u_{2,1}, u_{2,2}, u_{2,3} ],
+         *                                 [ u_{3,1}, u_{3,2}, u_{3,3} ] ]
+         * :param const double ( &current_phi )[ 9 ]: The current micro displacment values.
+         *     Assumed to be of the form [ \phi_{11}, \phi_{12}, \phi_{13}, \phi_{21}, \phi_{22}, \phi_{23}, \phi_{31}, \phi_{32}, \phi_{33} ]
+         * :param const double ( &current_grad_phi )[ 9 ][ 3 ]: The current micro displacement gradient
+         *     Assumed to be of the form [ [ \phi_{11,1}, \phi_{11,2}, \phi_{11,3} ],
+         *                                 [ \phi_{12,1}, \phi_{12,2}, \phi_{12,3} ],
+         *                                 [ \phi_{13,1}, \phi_{13,2}, \phi_{13,3} ],
+         *                                 [ \phi_{21,1}, \phi_{21,2}, \phi_{21,3} ],
+         *                                 [ \phi_{22,1}, \phi_{22,2}, \phi_{22,3} ],
+         *                                 [ \phi_{23,1}, \phi_{23,2}, \phi_{23,3} ],
+         *                                 [ \phi_{31,1}, \phi_{31,2}, \phi_{31,3} ],
+         *                                 [ \phi_{32,1}, \phi_{32,2}, \phi_{32,3} ],
+         *                                 [ \phi_{33,1}, \phi_{33,2}, \phi_{33,3} ] ]
+         * :param const double ( &previous_grad_u )[ 3 ][ 3 ]: The previous displacement gradient.
+         * :param const double ( &previous_phi )[ 9 ]: The previous micro displacement.
+         * :param const double ( &previous_grad_phi )[ 9 ][ 3 ]: The previous micro displacement gradient.
+         * :param std::vector< double > &SDVS: The previously converged values of the state variables
+         *     [ previousMacroStrainISV, previousMicroStrainISV, previousMicroGradientStrainISV,
+         *       previousMacroGamma, previousMicroGamma, previousMicroGradientGamma,
+         *       previousPlasticDeformationGradient - eye, previousPlasticMicroDeformation - eye,
+         *       previousPlasticMicroGradient ]
+         * :param std::vector< double > &current_ADD_DOF: The current values of the additional degrees of freedom ( unused )
+         * :param std::vector< std::vector< double > > &current_ADD_grad_DOF: The current values of the gradients of the 
+         *     additional degrees of freedom ( unused )
+         * :param std::vector< double > &current_PK2: The current value of the second Piola Kirchhoff stress tensor. The format is
+         *     [ S_{11}, S_{12}, S_{13}, S_{21}, S_{22}, S_{23}, S_{31}, S_{32}, S_{33} ]
+         * :param std::vector< double > &current_SIGMA: The current value of the reference micro stress. The format is
+         *     [ S_{11}, S_{12}, S_{13}, S_{21}, S_{22}, S_{23}, S_{31}, S_{32}, S_{33} ]
+         * :param std::vector< double > &current_M: The current value of the reference higher order stress. The format is
+         *     [ M_{111}, M_{112}, M_{113}, M_{121}, M_{122}, M_{123}, M_{131}, M_{132}, M_{133},
+         *       M_{211}, M_{212}, M_{213}, M_{221}, M_{222}, M_{223}, M_{231}, M_{232}, M_{233},
+         *       M_{311}, M_{312}, M_{313}, M_{321}, M_{322}, M_{323}, M_{331}, M_{332}, M_{333} ]
+         * :param std::vector< std::vector< double > > &DPK2Dgrad_u: The Jacobian of the PK2 stress w.r.t. the 
+         *     gradient of macro displacement.
+         * :param std::vector< std::vector< double > > &DPK2Dphi: The Jacobian of the PK2 stress w.r.t. the
+         *     micro displacement.
+         * :param std::vector< std::vector< double > > &DPK2Dgrad_phi: The Jacobian of the PK2 stress w.r.t.
+         *     the gradient of the micro displacement.
+         * :param std::vector< std::vector< double > > &DSIGMAdgrad_u: The Jacobian of the reference symmetric
+         *     micro stress w.r.t. the gradient of the macro displacement.
+         * :param std::vector< std::vector< double > > &DSIGMAdphi: The Jacobian of the reference symmetric micro
+         *     stress w.r.t. the micro displacement.
+         * :param std::vector< std::vector< double > > &DSIGMAdgrad_phi: The Jacobian of the reference symmetric
+         *     micro stress w.r.t. the gradient of the micro displacement.
+         * :param std::vector< std::vector< double > > &DMDgrad_u: The Jacobian of the reference higher order
+         *     stress w.r.t. the gradient of the macro displacement.
+         * :param std::vector< std::vector< double > > &DMDphi: The Jacobian of the reference higher order stress
+         *     w.r.t. the micro displacement.
+         * :param std::vector< std::vector< double > > &DMDgrad_phi: The Jacobian of the reference higher order stress
+         *     w.r.t. the gradient of the micro displacement.
+         * :param std::vector< std::vector< double > > &ADD_TERMS: Additional terms ( unused )
+         * :param std::vector< std::vector< std::vector< double > > > &ADD_JACOBIANS: The jacobians of the additional
+         *     terms w.r.t. the deformation ( unused )
+         * :param std::string &output_message: The output message string.
+         *
+         * Returns:
+         *     0: No errors. Solution converged.
+         *     1: Convergence Error. Request timestep cutback.
+         *     2: Fatal Errors encountered. Terminate the simulation.
+         */
+
+        //Re-direct the output to a buffer
+        std::stringbuf buffer;
+        cerr_redirect rd( &buffer );
+
+        /*=============================
+        | Extract the incoming values |
+        ==============================*/
+
+        //Extract the parameters
+        parameterVector Amatrix, Bmatrix, Cmatrix, Dmatrix;
+
+        errorOut error = extractMaterialParameters( fparams, Amatrix, Bmatrix, Cmatrix, Dmatrix );
+
+        if ( error ){
+            errorOut result = new errorNode( "evaluate_model",
+                                             "Error in the extraction of the material parameters" );
+            result->addNext( error );
+            result->print();           //Print the error message
+            output_message = buffer.str(); //Save the output to enable message printing
+            return 2;
+        }
+
+        /*===============================================
+        | Assemble the fundamental deformation measures |
+        ================================================*/
+
+        //Compute the fundamental deformation measures from the degrees of freedom
+
+        variableVector currentDeformationGradient, currentMicroDeformation, currentGradientMicroDeformation;
+        variableMatrix dDeformationGradientdGradU, dMicroDeformationdPhi, dGradientMicroDeformationdGradPhi;
+
+        error = assembleFundamentalDeformationMeasures( current_grad_u, current_phi, current_grad_phi,
+                                                        currentDeformationGradient, currentMicroDeformation,
+                                                        currentGradientMicroDeformation, dDeformationGradientdGradU,
+                                                        dMicroDeformationdPhi, dGradientMicroDeformationdGradPhi );
+
+        if ( error ){
+            errorOut result = new errorNode( "evaluate_model",
+                                             "Error in the computation of the current deformation measures" );
+            result->addNext( error );
+            result->print();           //Print the error message
+            output_message = buffer.str(); //Save the output to enable message printing
+            return 2;
+        }
+
+        /*===============================
+        | Compute the new stress values |
+        ===============================*/
+
+        //Compute the new stress values
+        variableVector currentPK2Stress, currentReferenceMicroStress, currentReferenceHigherOrderStress;
+
+        variableMatrix dPK2dDeformationGradient, dPK2dMicroDeformation, dPK2dGradientMicroDeformation,
+                       dSIGMAdDeformationGradient, dSIGMAdMicroDeformation, dSIGMAdGradientMicroDeformation,
+                       dMdDeformationGradient, dMdGradientMicroDeformation;
+
+        error = micromorphicLinearElasticity::linearElasticityReference( currentDeformationGradient,
+                                                                         currentMicroDeformation,
+                                                                         currentGradientMicroDeformation,
+                                                                         Amatrix, Bmatrix, Cmatrix, Dmatrix,
+                                                                         PK2, SIGMA, M,
+                                                                         dPK2dDeformationGradient, dPK2dMicroDeformation,
+                                                                         dPK2dGradientMicroDeformation,
+                                                                         dSIGMAdDeformationGradient, dSIGMAdMicroDeformation,
+                                                                         dSIGMAdGradientMicroDeformation,
+                                                                         dMdDeformationGradient, dMdGradientMicroDeformation );
+
+        if ( error ){
+            errorOut result = new errorNode( "evaluate_model",
+                                             "Error in the computation of the current stress measures" );
+            result->addNext( error );
+            result->print();           //Print the error message
+            output_message = buffer.str(); //Save the output to enable message passing
+            return 2;
+        }
+
+        /*=======================
+        | Assemble the Jacobian |
+        =======================*/
+
+        DPK2Dgrad_u     = vectorTools::dot( dPK2dDeformationGradient, dDeformationGradientdGradU );
+        DPK2Dphi        = vectorTools::dot( dPK2dMicroDeformation, dMicroDeformationdPhi );
+        DPK2Dgrad_phi   = vectorTools::dot( dPK2dGradientMicroDeformation, dGradientMicroDeformationdGradPhi );
+
+        DSIGMADgrad_u   = vectorTools::dot( dSIGMAdDeformationGradient, dDeformationGradientdGradU );
+        DSIGMADphi      = vectorTools::dot( dSIGMAdMicroDeformation, dMicroDeformationdPhi );
+        DSIGMADgrad_phi = vectorTools::dot( dSIGMAdGradientMicroDeformation, dGradientMicroDeformationdGradPhi );
+
+        DMDgrad_u       = vectorTools::dot( dMdDeformationGradient, dDeformationGradientdGradU );
+        DMDphi          = variableMatrix( 27, variableVector( 9, 0 ) );
+        DMDgrad_phi     = vectorTools::dot( dMdGradientMicroDeformation, dGradientMicroDeformationdGradPhi );
+
+        //No errors in calculation.
+        return 0;
+    }
 }
