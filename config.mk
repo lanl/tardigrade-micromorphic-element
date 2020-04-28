@@ -46,5 +46,11 @@ MICROMORPHICTOOLSHEADER = $(ROOTDIR)/micromorphic_tools/src/cpp/micromorphic_too
 INC+=-I$(ROOTDIR)/micromorphic_tools/src/cpp
 LIB+=-L$(ROOTDIR)/micromorphic_tools/src/cpp
 
+# Add the location of the micromorphic material library
+MICROMORPHICMATERIALLIBSOURCE = $(ROOTDIR)/micromorphic_element/src/cpp/micromorphic_material_library.cpp
+MICROMORPHICMATERIALLIBHEADER = $(ROOTDIR)/micromorphic_element/src/cpp/micromorphic_material_library.h
+INC+=-I$(ROOTDIR)/micromorphic_element/src/cpp
+LIB+=-L$(ROOTDIR)/micromorphic_element/src/cpp
+
 # The python command
 PYTHON=/apps/anaconda3/bin/python
