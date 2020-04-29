@@ -306,4 +306,106 @@ namespace balance_equations{
         
         return;
     }
+
+    void compute_internal_force_jacobian( const double &N, const double ( &dNdX )[ 3 ], const double &eta, const double ( &detadX )[ 3 ],
+                                          const variableVector &F, const variableVector &PK2,
+                                          const variableMatrix &DPK2Dgrad_u, const variableMatrix &DPK2Dphi,
+                                          const variableMatrix &DPK2Dgrad_phi,
+                                          variableMatrix &DfintDU ){
+        /*!
+         * Compute the jacobian of the internal force
+         *
+         * :param const double &N: The shape function value
+         * :param const double ( &dNdX )[ 3 ]: The gradient of the shape function w.r.t. X in the reference configuration.
+         * :param const double &eta: The interpolation function value
+         * :param const double ( &detadX )[ 3 ]: The gradient of the interpolation function w.r.t. X in the reference configuration.
+         * :param const variableVector &F: The deformation gradient.
+         * :param const variableVector &PK2: The second Piola Kirchoff stress.
+         * :param const variableMatrix &DPK2Dgrad_u: The Jacobian of the second Piola Kirchoff stress w.r.t. the gradient of the 
+         *     macro displacement w.r.t. X in the reference configuration.
+         * :param const variableVector &DPK2Dphi: The Jacobian of the second Piola Kirchoff stress w.r.t. the micro displacement.
+         * :param const variableMatrix &DPK2Dgrad_phi: The Jacobian of the second Piola Kirchoff stress w.r.t. the gradient 
+         *     of the micro displacement.
+         * :param variableMatrix DfintDU: The Jacobian of the internal force
+         */
+
+        //Assume 3D
+        const unsigned int dim = 3;
+
+        //Assume 12 degrees of freedom
+        const unsigned int NDOF = 12;
+
+        DfintDU = variableMatrix( dim, variableVector( NDOF, 0 ) );
+        for ( unsigned int i = 0; i < dim; i++ ){
+            for ( unsigned int j = 0; j < NDOF; j++ ){
+                compute_internal_force_jacobian( i, j, N, dNdX, eta, detadX, F, PK2,
+                                                 DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
+                                                 DfintDU[ i ][ j ] );
+            }
+        }
+
+        return;
+    }
+
+    void compute_internal_force_jacobian( const int &i, const int &j,
+                                          const double &N, const double ( &dNdX )[ 3 ], const double &eta, const double ( &detadX )[ 3 ],
+                                          const variableVector &F, const variableVector &PK2,
+                                          const variableMatrix &DPK2Dgrad_u, const variableMatrix &DPK2Dphi,
+                                          const variableMatrix &DPK2Dgrad_phi,
+                                          variableType &DfintDU_ij ){
+        /*!
+         * Compute the jacobian of the internal force
+         *
+         * fint_i = - N_{ , I } PK2_{ I J } F_{ i J }
+         *
+         * :param const int &i: The first index
+         * :param const int &j: The second index
+         * :param const double &N: The shape function value
+         * :param const double ( &dNdX )[ 3 ]: The gradient of the shape function w.r.t. X in the reference configuration.
+         * :param const double &eta: The interpolation function value
+         * :param const double ( &detadX )[ 3 ]: The gradient of the interpolation function w.r.t. X in the reference configuration.
+         * :param const variableVector &F: The deformation gradient.
+         * :param const variableVector &PK2: The second Piola Kirchoff stress.
+         * :param const variableMatrix &DPK2Dgrad_u: The Jacobian of the second Piola Kirchoff stress w.r.t. the gradient of the 
+         *     macro displacement w.r.t. X in the reference configuration.
+         * :param const variableVector &DPK2Dphi: The Jacobian of the second Piola Kirchoff stress w.r.t. the micro displacement.
+         * :param const variableMatrix &DPK2Dgrad_phi: The Jacobian of the second Piola Kirchoff stress w.r.t. the gradient 
+         *     of the micro displacement.
+         * :param variableType DfintDU_ij: The ij'th component of the internal force jacobian
+         */
+
+        //Assume 3D
+        const unsigned int dim = 3;
+
+        DfintDU_ij = 0;
+
+        //Assemble the Jacobians w.r.t. the macro displacement
+        if ( j < 3 ){
+            for ( unsigned int I = 0; I < dim; I++ ){
+                for ( unsigned int J = 0; J < dim; J++ ){
+                    for ( unsigned int K = 0; K < dim; K++ ){
+                        DfintDU_ij += dNdX[ I ] * DPK2Dgrad_u[ dim * I + J ][ dim * j + K ] * F[ dim * i + J ] * detadX[ K ];
+                    }
+
+                    if ( i == j ){
+                        DfintDU_ij += dNdX[ I ] * PK2[ dim * I + J ] * detadX[ J ];
+                    }
+                }
+            }
+        }
+        else if ( ( j < 12 ) && ( j > 3 ) ){
+
+            for ( unsigned int I = 0; I < dim; I++ ){
+                for ( unsigned int J = 0; J < dim; J++ ){
+                    DfintDU_ij -= dNdX[ I ] * DPK2Dphi[ dim * I + J ][ j - 3 ] * eta * F[ dim * i + J ];
+
+                    for ( unsigned int K = 0; K < dim; K++ ){
+                        DfintDU_ij -= dNdX[ I ] * DPK2Dgrad_phi[ dim * I + J ][ dim * ( j - 3 ) + K ] * detadX[ K ] * F[ dim * i + J ];
+                    }
+                }
+            }
+        }
+
+        return;
+    }
 }
