@@ -19,85 +19,55 @@
 #ifndef BALANCE_EQUATIONS_H
 #define BALANCE_EQUATIONS_H
 
-#include <Eigen/Dense>
-
-#ifdef __GNUC__
-//Avoid warnings from Eigen/Sparse root code
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmisleading-indentation"
-#endif
-
-#include<Eigen/Sparse>
-
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-
-#include <deformation_measures.h>
-
-typedef Eigen::Matrix<double, 3, 12> Matrix_3x12;
-typedef Eigen::Matrix<double, 9, 12> Matrix_9x12;
-typedef Eigen::Matrix<double,27, 12> Matrix_27x12;
+#include<vector_tools.h>
+#include<error_tools.h>
 
 namespace balance_equations{
 
-    //Forces from the balance of linear momentum
-    void compute_internal_force(const double (&dNdX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, double (&fint)[3]);
+    typedef double variableType;
+    typedef std::vector< variableType > variableVector;
+    typedef std::vector< variableVector > variableMatrix;
 
-    void compute_internal_force(const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<double> &PK2, double (&fint)[3]);
-    
-    void compute_internal_force(const int &i, const double (&dNdX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, double &fint_i);
-    
-    void compute_internal_force(const int &i, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<double> &PK2, double &fint_i);
+    /*============================================
+    | Forces from the balance of linear momentum |
+    ============================================*/
 
-    void compute_internal_force(const double (&dNdx)[3], const Vector_9 &cauchy, double (&fint)[3]);
+    void compute_internal_force( const double (&dNdX)[3], const variableVector &F, const variableVector &PK2, double ( &fint )[ 3 ] );
 
-    void compute_internal_force(const double (&dNdx)[3], const std::vector<double> &cauchy, double (&fint)[3]);
-    
-    void compute_internal_force(const int &i, const double (&dNdx)[3], const Vector_9 &cauchy, double &fint_i);
-    
-    void compute_internal_force(const int &i, const double (&dNdx)[3], const std::vector<double> &cauchy, double &fint_i);
+    void compute_internal_force( const int &i,  const double (&dNdX)[3], const variableVector &F, const variableVector &PK2,
+                                 double &fint_i );
 
     void compute_body_force(const double &N, const double &density, const double (&b)[3], double (&fb)[3]);
     
     void compute_body_force(const int &i, const double &N, const double &density, const double (&b)[3], double &fb);
 
-    void compute_kinematic_force(const double &N, const double &density, const double (&a)[3], double (&fkin)[3]);
+    void compute_inertial_force(const double &N, const double &density, const double (&a)[3], double (&fkin)[3]);
     
-    void compute_kinematic_force(const int &i, const double &N, const double &density, const double (&a)[3], double &fkin);
+    void compute_inertial_force(const int &i, const double &N, const double &density, const double (&a)[3], double &fkin);
+
+    /*===========================================================
+    | Stresses from the balance of the first moment of momentum |
+    ===========================================================*/
 
     //Stresses from the balance of first moment of momentum
-    void compute_internal_couple(const double &N, const double (&dNdX)[3], const Matrix_3x3 &F, const Matrix_3x3 &chi,
-                                 const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M, double (&cint)[9]);
-    
-    void compute_internal_couple(const int &component_i, const int &component_j, 
-                                 const double &N, const double (&dNdX)[3], const Matrix_3x3 &F, const Matrix_3x3 &chi,
-                                 const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M, double &cint_ij);
-                                 
-    void compute_internal_couple(const double &N, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<std::vector<double>> &chi,
-                                 const std::vector<double> &PK2, const std::vector<double> &SIGMA, const std::vector<double> &M,
-                                 double (&cint)[9]);
-                                 
-    void compute_internal_couple(const int &component_i, const int &component_j,
-                                 const double &N, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<std::vector<double>> &chi,
-                                 const std::vector<double> &PK2, const std::vector<double> &SIGMA, const std::vector<double> &M,
-                                 double &cint_ij);
-    
-    void compute_internal_couple(const double &N, const double (&dNdx)[3], const Vector_9 &cauchy, const Vector_9 &s, const Vector_27 &m, double (&cint)[9]);
-    
-    void compute_internal_couple(const int &i, const int &j, const double &N, const double (&dNdx)[3], const Vector_9 &cauchy, const Vector_9 &s, const Vector_27 &m, double &cint_ij);
+    void compute_internal_couple( const double &N, const double ( &dNdX )[ 3 ], const variableVector &F, const variableVector &chi,
+                                  const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
+                                  double ( &cint )[ 9 ] );
 
-    void compute_internal_couple(const double &N, const double (&dNdx)[3], const std::vector<double> &cauchy, const std::vector<double> &s, const std::vector<double> &m, double (&cint)[9]);
-    
-    void compute_internal_couple(const int &i, const int &j, const double &N, const double (&dNdx)[3], const std::vector<double> &cauchy, const std::vector<double> &s, const std::vector<double> &m, double &cint_ij);
+    void compute_internal_couple( const int &i, const int &j, const double &N, const double ( &dNdX )[ 3 ],
+                                  const variableVector &F, const variableVector &chi,
+                                  const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
+                                  double cint_ij );
 
-    void compute_body_couple(const double &N, const double &density, const double (&l)[9], double (&cb)[9]);
-    
-    void compute_body_couple(const int &i, const int &j, const double &N, const double &density, const double (&l)[9], double &cb_ij);
-    
-    void compute_kinematic_couple(const double &N, const double &density, const double (&omega)[9], double (&ckin)[9]);
-    
-    void compute_kinematic_couple(const int &i, const int &j, const double &N, const double &density, const double (&omega)[9], double &ckin_ij);
+    void compute_body_couple( const double &N, const double &density, const double ( &l )[ 9 ], double ( &cb )[ 9 ] );
+
+    void compute_body_couple( const int &i, const int &j, const double &N, const double &density, const double l_ji,
+                              double cb_ij );
+
+    void compute_inertial_couple( const double &N, const double &density, const double ( &omega )[ 9 ], double ( &cinertial )[ 9 ] );
+
+    void compute_inertial_couple( const int &i, const int &j, const double &N, const double &density, const double ( &omega )[ 9 ],
+                                  double cinertial_ij );
     
     //Compute the jacobians of the balance of linear momentum w.r.t. the indicated displacement dof (Total-Lagrangian formulation)
     void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], const Matrix_3x3 &F, 

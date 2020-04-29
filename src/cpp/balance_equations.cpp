@@ -12,722 +12,278 @@
   |        eigen.tuxfamily.org.                               |
   =============================================================*/
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-#include <deformation_measures.h>
 #include <balance_equations.h>
 
 namespace balance_equations{
 
-    void _print_vector(std::vector<double> &v){
+    void compute_internal_force( const double ( &dNdX )[ 3 ], const variableVector &F, const variableVector &PK2, double ( &fint )[ 3 ]){
         /*!
-        =======================
-        |    _print_vector    |
-        =======================
+         * Compute the internal force given the gradient of the shape function in the reference configuration,
+         * the deformation gradient, and the PK2 stress.
+         *
+         * Note: This has already accounted for the volume change term.
+         *
+         * :param const double ( &dNdX )[ 3 ]: The gradient of the shape-functions in the reference configuration.
+         * :param const variableVector &F: The deformation gradient.
+         * :param const variableVector &PK2: The PK2 stress.
+         * :param double ( &fint )[ 3 ]: The internal force.
+         */
 
-        Print a std::vector to the terminal.
-        */
-
-        for (unsigned int i=0; i<v.size(); i++){
-            std::cout << v[i] << " ";
+        for ( unsigned int i = 0; i < 3; i++ ){
+            compute_internal_force( i, dNdX, F, PK2, fint[ i ] );
         }
-        std::cout << std::endl;
-    }
-
-
-    void _print_matrix(std::vector<std::vector<double>> &m){
-        /*!
-        =======================
-        |    _print_vector    |
-        =======================
-
-        Print a std::vector to the terminal.
-        */
-
-        for (unsigned int i=0; i<m.size(); i++){
-            _print_vector(m[i]);
-        }
-    }
-
-    void compute_internal_force(const double (&dNdX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, double (&fint)[3]){
-        /*!================================
-        |    compute_internal_force    |
-        ================================
-
-        Compute the internal force given the gradient 
-        of the shape function, the deformation gradient,
-        and the PK2 stress on one of the components.
-
-        Reference configuration.
-        */
-
-        int sot_to_voigt_map[3][3] = {{0,5,4},
-                                      {8,1,3},
-                                      {7,6,2}};
-
-        int Ihat;
-
-        for (int i=0; i<3; i++){
-            fint[i] = 0;
-            for (int I=0; I<3; I++){
-                for (int J=0; J<3; J++){
-                    Ihat = sot_to_voigt_map[I][J];
-                    fint[i] += -dNdX[I]*PK2(Ihat)*F(i,J);
-                }
-            }
-        }
-
-        return;
-    }
-
-    void compute_internal_force(const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<double> &PK2, double (&fint)[3]){
-        /*!================================
-        |    compute_internal_force    |
-        ================================
-
-        Compute the internal force given the gradient 
-        of the shape function, the deformation gradient, 
-        and the PK2 stress on one of the components.
-
-        */
-        Matrix_3x3 _F;
-        Vector_9 _PK2;
-        map_vector_to_eigen(F,_F);
-        map_vector_to_eigen(PK2,_PK2);
-        compute_internal_force(dNdX, _F, _PK2, fint);        
 
         return;
     }
     
-    void compute_internal_force(const int &i, const double (&dNdX)[3], const Matrix_3x3 &F, const Vector_9 &PK2, double &fint_i){
-        /*!================================
-        |    compute_internal_force    |
-        ================================
+    void compute_internal_force( const int &i,  const double (&dNdX)[3], const variableVector &F, const variableVector &PK2,
+                                 double &fint ){
+        /*!
+         * Compute the internal force given the gradient of the shape function in the reference configuration,
+         * the deformation gradient, and the PK2 stress on a single component.
+         *
+         * :param const int &i: The component to compute the stress on.
+         * :param const double ( &dNdX )[ 3 ]: The gradient of the shape-functions in the reference configuration.
+         * :param const variableVector &F: The deformation gradient.
+         * :param const variableVector &PK2: The PK2 stress.
+         * :param double ( &fint )[ 3 ]: The internal force.
+         */
 
-        Compute the internal force given the gradient 
-        of the shape function, the deformation gradient,
-        and the PK2 stress on one of the components.
-
-        */
-
-        int sot_to_voigt_map[3][3] = {{0,5,4},
-                                      {8,1,3},
-                                      {7,6,2}};
-
-        int Ihat;
-        
         fint_i = 0;
-        for (int I=0; I<3; I++){
-            for (int J=0; J<3; J++){
-                Ihat = sot_to_voigt_map[I][J];
-                fint_i += -dNdX[I]*PK2(Ihat)*F(i,J);
+        for ( unsigned int I = 0; I < dim; I++ ){
+            for ( unsigned int J = 0; J < dim; J++ ){
+                fint_i -= dNdX[ I ] * PK2[ dim * I + J ] * F[ dim * i + J ];
             }
         }
 
         return;
     }
 
-    void compute_internal_force(const int &i, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<double> &PK2, double &fint_i){
-        /*!================================
-        |    compute_internal_force    |
-        ================================
 
-        Compute the internal force given the gradient 
-        of the shape function, the deformation gradient,
-        and the cauchy stress on one of the components.
-
-        */
-
-        Matrix_3x3 _F;
-        map_vector_to_eigen(F,_F);
-        Vector_9 _PK2;
-        map_vector_to_eigen(PK2,_PK2);
-        compute_internal_force(i, dNdX, _F, _PK2, fint_i);        
-
-        return;
-    }
-
-    void compute_internal_force(const double (&dNdx)[3], const Vector_9 &cauchy, double (&fint)[3]){
-        /*!================================
-        |    compute_internal_force    |
-        ================================
-
-        Compute the internal force given the gradient 
-        of the shape function and the cauchy stress on 
-        one of the components.
-
-        */
-        
-        fint[0] = -(dNdx[0]*cauchy[0] + dNdx[1]*cauchy[8] + dNdx[2]*cauchy[7]);
-        fint[1] = -(dNdx[0]*cauchy[5] + dNdx[1]*cauchy[1] + dNdx[2]*cauchy[6]);
-        fint[2] = -(dNdx[0]*cauchy[4] + dNdx[1]*cauchy[3] + dNdx[2]*cauchy[2]);
-
-        return;
-    }
-
-    void compute_internal_force(const double (&dNdx)[3], const std::vector<double> &cauchy, double (&fint)[3]){
-        /*!================================
-        |    compute_internal_force    |
-        ================================
-
-        Compute the internal force given the gradient 
-        of the shape function and the cauchy stress on 
-        one of the components.
-
-        */
-        Vector_9 _cauchy;
-        map_vector_to_eigen(cauchy,_cauchy);
-        compute_internal_force(dNdx, _cauchy, fint);        
-
-        return;
-    }
-    
-    void compute_internal_force(const int &i, const double (&dNdx)[3], const Vector_9 &cauchy, double &fint_i){
-        /*!================================
-        |    compute_internal_force    |
-        ================================
-
-        Compute the internal force given the gradient 
-        of the shape function and the cauchy stress on 
-        one of the components.
-
-        */
-        
-        if( i == 0 ){
-            fint_i = -(dNdx[0]*cauchy[0] + dNdx[1]*cauchy[8] + dNdx[2]*cauchy[7]);
-        }
-        else if ( i == 1 ){
-            fint_i = -(dNdx[0]*cauchy[5] + dNdx[1]*cauchy[1] + dNdx[2]*cauchy[6]);
-        }
-        else if ( i == 2 ){
-            fint_i = -(dNdx[0]*cauchy[4] + dNdx[1]*cauchy[3] + dNdx[2]*cauchy[2]);
-        }
-        else{
-            std::cout << "Error: index beyond appropriate range.\n";
-            assert(1==0); //TODO: Replace with better error handling
-        }
-
-        return;
-    }
-
-    void compute_internal_force(const int &i, const double (&dNdx)[3], const std::vector<double> &cauchy, double &fint_i){
-        /*!================================
-        |    compute_internal_force    |
-        ================================
-
-        Compute the internal force given the gradient 
-        of the shape function and the cauchy stress on 
-        one of the components.
-
-        */
-
-        Vector_9 _cauchy;
-        map_vector_to_eigen(cauchy,_cauchy);
-        compute_internal_force(i, dNdx, _cauchy, fint_i);        
-
-        return;
-    }
-
-    void compute_body_force(const double &N, const double &density, const double (&b)[3], double (&fb)[3]){
-        /*!============================
-        |    compute_body_force    |
-        ============================
-
-        Compute the body force given the body force per unit density
-        on one of the components.
-
-        */
-        
-        for (int i=0; i<3; i++){
-            fb[i] = N*density*b[i];
-        }
-
-        return;
-    }
-    
-    void compute_body_force(const int &i, const double &N, const double &density, const double (&b)[3], double &fb_i){
-        /*!============================
-        |    compute_body_force    |
-        ============================
-
-        Compute the body force given the body force per unit density
-        on one of the components.
-
-        */
-        
-        fb_i = N*density*b[i];
-
-        return;
-    }
-
-    void compute_kinematic_force(const double &N, const double &density, const double (&a)[3], double (&fkin)[3]){
-        /*!=================================
-        |    compute_kinematic_force    |
-        =================================
-
-        Compute the kinimatic force given the shape 
-        function, density, and acceleration.
-
-        */
-        
-        for (int i=0; i<3; i++){
-            fkin[i] = -N*density*a[i];
-        }
-
-        return;
-    }
-    
-    void compute_kinematic_force(const int &i, const double &N, const double &density, const double (&a)[3], double &fkin_i){
-        /*!=================================
-        |    compute_kinematic_force    |
-        =================================
-
-        Compute the kinimatic force given the shape 
-        function, density, and acceleration.
-
-        */
-        
-        fkin_i = -N*density*a[i];
-
-        return;
-    }
-    
-    void compute_internal_couple(const double &N, const double (&dNdX)[3], const Matrix_3x3 &F, const Matrix_3x3 &chi, const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M, double (&cint)[9]){
+    void compute_body_force( const double &N, const double &density, const double ( &b )[ 3 ], double ( &fb )[ 3 ] ){
         /*!
-        =================================
-        |    compute_internal_couple    |
-        =================================
-
-        Compute the internal couple for all 
-        indices in the reference configuration.
-
-        Note, the internal couple is defined as:
-        cint_ij = N F_iI (PK2_IJ - SIGMA_IJ) F_jJ - N_{,K} F_jJ chi_iI M_KJI
+         * Compute the body force
+         *
+         * :param const double &N: The value of the shape function
+         * :param const double &density: The density in the current configuration
+         * :param const double ( &b )[ 3 ]: The body force in the current configuration
+         * :param const double ( &fb )[ 3 ]: The body force in the current configuration
+         */
         
-        such that the total balance of first moment of momentum is
-        cint_ij + cext_ij + ckin_ij = 0
-        
-        */
-        
-        //Compute the first part of the internal couple.
-        
-        int sot_to_voigt_map[3][3] = {{0,5,4},
-                                      {8,1,3},
-                                      {7,6,2}};
-                                      
-        int tot_to_voigt_map[3][3][3];
-        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
-        
-        double tmp;
-        double tmp1;
-        double tmp2;
-        int Itmp;
-        int Jtmp;
-        
-        for (int i=0; i<3; i++){
-            for (int j=0; j<3; j++){
-                tmp = 0;
-                Itmp = sot_to_voigt_map[i][j];
-                for (int I=0; I<3; I++){
-                    tmp1 = F(i,I);
-                    for (int J=0; J<3; J++){
-                        Jtmp = sot_to_voigt_map[I][J];
-                        tmp += N*tmp1*(PK2(Jtmp) - SIGMA(Jtmp))*F(j,J);
-                    }
-                }
-                
-                cint[Itmp] = tmp;
-            }
+        for ( int i = 0; i < 3; i++ ){
+            fb[ i ] = compute_body_force( i, N, density, b, fb[ i ] );
         }
-        
-        //Compute the divergence of the higher order stress tensor.
-        for (int i=0; i<3; i++){
-            for (int j=0; j<3; j++){
-                tmp = 0;
-                Itmp = sot_to_voigt_map[i][j];
-                //cint[Itmp] = 0.; //TODO: Delete this
-                
-                for (int I=0; I<3; I++){
-                    tmp1 = chi(i,I);
-                    for (int J=0; J<3; J++){
-                        tmp2 = F(j,J);
-                        for (int K=0; K<3; K++){
-                            Jtmp = tot_to_voigt_map[K][J][I];
-                            tmp -= dNdX[K]*tmp1*tmp2*M(Jtmp);
-                        }
-                    }
-                }
-                
-                cint[Itmp] += tmp;
-            }
-        }
-        
+
         return;
     }
     
-    void compute_internal_couple(const int &component_i, const int &component_j,
-                                 const double &N, const double (&dNdX)[3], const Matrix_3x3 &F, const Matrix_3x3 &chi,
-                                 const Vector_9 &PK2, const Vector_9 &SIGMA, const Vector_27 &M, double &cint_ij){
+    void compute_body_force( const int &i, const double &N, const double &density, const double ( &b )[ 3 ], double &fb_i ){
         /*!
-        =================================
-        |    compute_internal_couple    |
-        =================================
+         * Compute a single component of the body force
+         *
+         * :param const int &i: The component to compute the body force on
+         * :param const double &N: The value of the shape function
+         * :param const double &density: The density in the current configuration
+         * :param const double ( &b )[ 3 ]: The body force in the current configuration
+         * :param const double fb_i: The body force in the current configuration in direction i
+         */
+        
+        fb_i = N * density * b[ i ];
 
-        Compute the internal couple for all 
-        indices in the reference configuration.
+        return;
+    }
 
-        */
+    void compute_inertial_force( const double &N, const double &density, const double ( &a )[ 3 ], double ( &finertial )[ 3 ] ){
+        /*!
+         * Compute the inertial force
+         *
+         * :param const double &N: The shape function value
+         * :param const double &density: The density in the current configuration
+         * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
+         * :param const double ( &finertial )[ 3 ]: The inertial force in the current configuration
+         */
         
-        //Compute the first part of the internal couple.
-        
-        int sot_to_voigt_map[3][3] = {{0,5,4},
-                                      {8,1,3},
-                                      {7,6,2}};
-                                      
-        int tot_to_voigt_map[3][3][3];
-        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
-        
-        double tmp1;
-        double tmp2;
-        //int Itmp;
-        int Jtmp;
-        
+        for (int i=0; i<3; i++){
+            compute_inertial_force( N, density, a, finertial[ i ];
+        }
 
-        //Compute the first term.
+        return;
+    }
+
+    void compute_inertial_force( const int &i, const double &N, const double &density, const double ( &a )[ 3 ], double finertial_i ){
+        /*!
+         * Compute the inertial force for the ith component.
+         *
+         * :param const int &i: The component to compute the inertial force on
+         * :param const double &N: The shape function value
+         * :param const double &density: The density in the current configuration
+         * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
+         * :param const double ( &finertial )[ 3 ]: The inertial force in the current configuration in direction i
+         */
+       
+        finertial_i = N * density * a[ i ]; 
+
+        return;
+    }
+    
+    void compute_internal_couple( const double &N, const double ( &dNdX )[ 3 ], const variableVector &F, const variableVector &chi,
+                                  const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
+                                  double ( &cint )[ 9 ] ){
+        /*!
+         * Compute the internal couple defined as
+         * cint_{ ij } = N F_{ iI } ( PK2_{ IJ } - SIGMA_{ IJ } ) F_{ jJ } - N_{ ,K } F_{ jJ } \chi_{ iI } M_{ KJI }
+         *
+         * :param const double &N: The shape-function value
+         * :param const double ( &dNdX )[ 3 ]: The gradient of the shape function w.r.t. the reference configuration
+         * :param const variableVector &F: The deformation gradient
+         * :param const variableVector &chi: The micro-deformation
+         * :param const variableVector &PK2: The second Piola-Kirchoff stress
+         * :param const variableVector &SIGMA: The symmetric micro stress in the reference configuration.
+         * :param const variableVector &M: The higher order stress in the reference configuration.
+         * :param double ( &cint )[ 9 ] ): The internal couple stored as
+         *     [ cint_{ 11 }, cint_{ 12 }, cint_{ 13 }, cint_{ 21 }, cint_{ 22 }, cint_{ 23 }, cint_{ 31 }, cint_{ 32 }, cint_{ 33 } ]
+         */
+
+        //Assume 3d
+        const unsigned int dim = 3;
+
+        for ( unsigned int i = 0; i < dim; i++ ){
+            for ( unsigned int j = 0; j < dim; j++ ){
+                compute_internal_couple( i, j, N, dNdX, F, chi, PK2, SIGMA, M, cint[ dim * i + j ] );
+            }
+        }
+
+        return;
+    }
+
+    void compute_internal_couple( const int &i, const int &j, const double &N, const double ( &dNdX )[ 3 ],
+                                  const variableVector &F, const variableVector &chi,
+                                  const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
+                                  double cint_ij ){
+        /*!
+         * Compute the internal couple at index ij defined as
+         * cint_{ ij } = N F_{ iI } ( PK2_{ IJ } - SIGMA_{ IJ } ) F_{ jJ } - N_{ ,K } F_{ jJ } \chi_{ iI } M_{ KJI }
+         *
+         * :param const int &i: The first index.
+         * :param const int &j: The second index.
+         * :param const double &N: The shape-function value
+         * :param const double ( &dNdX )[ 3 ]: The gradient of the shape function w.r.t. the reference configuration
+         * :param const variableVector &F: The deformation gradient
+         * :param const variableVector &chi: The micro-deformation
+         * :param const variableVector &PK2: The second Piola-Kirchoff stress
+         * :param const variableVector &SIGMA: The symmetric micro stress in the reference configuration.
+         * :param const variableVector &M: The higher order stress in the reference configuration.
+         * :param double ( &cint )[ 9 ] ): The internal couple stored as
+         *     [ cint_{ 11 }, cint_{ 12 }, cint_{ 13 }, cint_{ 21 }, cint_{ 22 }, cint_{ 23 }, cint_{ 31 }, cint_{ 32 }, cint_{ 33 } ]
+         */
+
+        //Assume 3D
+        const unsigned int dim = 3;
+
         cint_ij = 0;
-        for (int I=0; I<3; I++){
-            tmp1 = F(component_i,I);
-            for (int J=0; J<3; J++){
-                Jtmp = sot_to_voigt_map[I][J];
-                cint_ij += N*tmp1*(PK2(Jtmp) - SIGMA(Jtmp))*F(component_j,J);
-            }
-        }
-        
-        //Compute the divergence of the higher-order stress tensor
-        for (int I=0; I<3; I++){
-            tmp1 = chi(component_i,I);
-            for (int J=0; J<3; J++){
-                tmp2 = F(component_j,J);
-                for (int K=0; K<3; K++){
-                    Jtmp = tot_to_voigt_map[K][J][I];
-                    cint_ij -= dNdX[K]*tmp1*tmp2*M(Jtmp);
+        for ( unsigned int I = 0; I < dim; I++ ){
+            for ( unsigned int J = 0; J < dim; J++ ){
+                cint_ij += N * F[ dim * i + I ] * ( PK2[ dim * I + J ] - SIGMA[ dim * I + J ] ) * F[ dim * j + J ];
+
+                for ( unsigned int K = 0; K < dim; K++ ){
+                    cint_ij -= dNdX[ K ] * F[ dim * j + J ] * chi[ dim * i + I ] * M[ dim * dim * K + dim * J + I ];
                 }
             }
         }
+
+        return;
+    }
+    
+    void compute_body_couple( const double &N, const double &density, const double ( &l )[ 9 ], double ( &cb )[ 9 ] ){
+        /*!
+         * Compute the body couple term
+         *
+         * couple_body_{ ij } = N * density * l_{ ji }
+         *
+         * :param const double &N: The shape-function value.
+         * :param const double &density: The density in the current configuration.
+         * :param const double ( %l )[ 9 ]: The body-force couple in the current configuration.
+         * :param const double ( &cb )[ 9 ]: The couple term.
+         */
+        
+        //Assume 3D
+        const unsigned int dim = 3;
+
+        for ( unsigned int i = 0; i < dim; i++ ){
+            for ( unsigned int j = 0; j < dim; j++ ){
+                compute_body_couple( N, density, l, cb[ dim * i + j ] );
+            }
+        }
+        
+        return;
+    }
+
+    void compute_body_couple( const int &i, const int &j, const double &N, const double &density, const double ( &l )[ 9 ], 
+                              double cb_ij ){
+        /*!
+         * Compute the body couple term for the indices i and j
+         *
+         * couple_body_{ ij } = N * density * l_{ ji }
+         *
+         * :param const int &i: The first index.
+         * :param const int &j: The second index.
+         * :param const double &N: The shape-function value.
+         * :param const double &density: The density in the current configuration.
+         * :param const double ( %l )[ 9 ]: The body-force couple in the current configuration.
+         * :param const double ( &cb )[ 9 ]: The couple term.
+         */
+
+        //Assume 3D
+        const unsigned int dim = 3;
+        
+        cb_ij = N * density * l[ dim * j + i ];
         
         return;
     }
     
-    void compute_internal_couple(const double &N, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<std::vector<double>> &chi,
-                                 const std::vector<double> &PK2, const std::vector<double> &SIGMA, const std::vector<double> &M,
-                                 double (&cint)[9]){
-        /*!=================================
-        |    compute_internal_couple    |
-        =================================
+    void compute_inertial_couple( const double &N, const double &density, const double ( &omega )[ 9 ], double ( &cinertial )[ 9 ] ){
+        /*!
+         * Compute the inertial couple in the current configuration
+         *
+         * cinertial_{ ij } = -N * density * omega_{ ji }
+         *
+         * :param const double &N: The shape-function value
+         * :param const double &density: The density in the current configuration
+         * :param const double ( &omega )[ 9 ]: The micro-inertia tensor in the current configuration.
+         * :param const double ( &cinertial )[ 9 ]: The inertial couple.
+         */
 
-        Compute the internal couple for all 
-        indices in the reference configuration.
+        //Assume 3D
+        const unsigned int dim = 3;
 
-        */
-        
-        //Map the standard vectors to matrices
-        Matrix_3x3 _F;
-        Matrix_3x3 _chi;
-        Vector_9   _PK2;
-        Vector_9   _SIGMA;
-        Vector_27  _M;
-        
-        map_vector_to_eigen(F,_F);
-        map_vector_to_eigen(chi,_chi);
-        map_vector_to_eigen(PK2,_PK2);
-        map_vector_to_eigen(SIGMA,_SIGMA);
-        map_vector_to_eigen(M,_M);
-        
-        //Compute the internal couple
-        compute_internal_couple(N, dNdX, _F, _chi,
-                                _PK2, _SIGMA, _M,
-                                cint);
-        
-        return;    
-    }
-                                 
-    void compute_internal_couple(const int &component_i, const int &component_j,
-                                 const double &N, const double (&dNdX)[3], const std::vector<std::vector<double>> &F, const std::vector<std::vector<double>> &chi,
-                                 const std::vector<double> &PK2, const std::vector<double> &SIGMA, const std::vector<double> &M,
-                                 double &cint_ij){
-        /*!=================================
-        |    compute_internal_couple    |
-        =================================
-
-        Compute the internal couple for all 
-        indices in the reference configuration.
-
-        */
-        
-        //Map the standard vectors to matrices
-        Matrix_3x3 _F;
-        Matrix_3x3 _chi;
-        Vector_9   _PK2;
-        Vector_9   _SIGMA;
-        Vector_27  _M;
-        
-        map_vector_to_eigen(F,_F);
-        map_vector_to_eigen(chi,_chi);
-        map_vector_to_eigen(PK2,_PK2);
-        map_vector_to_eigen(SIGMA,_SIGMA);
-        map_vector_to_eigen(M,_M);
-        
-        //Compute the internal couple
-        compute_internal_couple(component_i, component_j,
-                                N, dNdX, _F, _chi,
-                                _PK2, _SIGMA, _M,
-                                cint_ij);
-        
-        return;
-    }
-    
-
-    void compute_internal_couple(const double &N, const double (&dNdx)[3], const Vector_9 &cauchy, const Vector_9 &s, const Vector_27 &m, double (&cint)[9]){
-        /*!=================================
-        |    compute_internal_couple    |
-        =================================
-
-        Compute the internal couple for all 
-        indices.
-
-        */
-        
-        cint[0] = -(N*(cauchy[0] - s[0]) - (dNdx[0]*m[0]+dNdx[1]*m[9]+dNdx[2]*m[18]));
-        cint[1] = -(N*(cauchy[1] - s[1]) - (dNdx[0]*m[1]+dNdx[1]*m[10]+dNdx[2]*m[19]));
-        cint[2] = -(N*(cauchy[2] - s[2]) - (dNdx[0]*m[2]+dNdx[1]*m[11]+dNdx[2]*m[20]));
-        cint[3] = -(N*(cauchy[3] - s[3]) - (dNdx[0]*m[6]+dNdx[1]*m[15]+dNdx[2]*m[24]));
-        cint[4] = -(N*(cauchy[4] - s[4]) - (dNdx[0]*m[7]+dNdx[1]*m[16]+dNdx[2]*m[25]));
-        cint[5] = -(N*(cauchy[5] - s[5]) - (dNdx[0]*m[8]+dNdx[1]*m[17]+dNdx[2]*m[26]));
-        cint[6] = -(N*(cauchy[6] - s[6]) - (dNdx[0]*m[3]+dNdx[1]*m[12]+dNdx[2]*m[21]));
-        cint[7] = -(N*(cauchy[7] - s[7]) - (dNdx[0]*m[4]+dNdx[1]*m[13]+dNdx[2]*m[22]));
-        cint[8] = -(N*(cauchy[8] - s[8]) - (dNdx[0]*m[5]+dNdx[1]*m[14]+dNdx[2]*m[23]));
-        
-        return;
-    }
-    
-    void compute_internal_couple(const double &N, const double (&dNdx)[3], const std::vector<double> &cauchy, const std::vector<double> &s, const std::vector<double> &m, double (&cint)[9]){
-        /*!=================================
-        |    compute_internal_couple    |
-        =================================
-
-        Compute the internal couple for all 
-        indices.
-
-        */
-
-        Vector_9  _cauchy;
-        Vector_9  _s;
-        Vector_27 _m;
-        
-        map_vector_to_eigen(cauchy,_cauchy);
-        map_vector_to_eigen(s,_s);
-        map_vector_to_eigen(m,_m);
-        compute_internal_couple(N, dNdx, _cauchy, _s, _m, cint);
-        
-        return;
-    }
-
-    void compute_internal_couple(const int &i, const int &j, const double &N, const double (&dNdx)[3], const Vector_9 &cauchy, const Vector_9 &s, const Vector_27 &m, double &cint_ij){
-        /*!=================================
-        |    compute_internal_couple    |
-        =================================
-
-        Compute the internal couple at a given 
-        component pair.
-
-        */
-        
-        if ( ( i == 0 ) && ( j == 0 ) ){
-            cint_ij = -(N*(cauchy[0] - s[0]) - (dNdx[0]*m[0]+dNdx[1]*m[ 9]+dNdx[2]*m[18]));
-        }
-        else if ( ( i == 1 ) && ( j == 1 ) ){
-            cint_ij = -(N*(cauchy[1] - s[1]) - (dNdx[0]*m[1]+dNdx[1]*m[10]+dNdx[2]*m[19]));
-        }
-        else if ( ( i == 2 ) && ( j == 2 ) ){
-            cint_ij = -(N*(cauchy[2] - s[2]) - (dNdx[0]*m[2]+dNdx[1]*m[11]+dNdx[2]*m[20]));
-        }
-        else if ( ( i == 1 ) && ( j == 2 ) ){
-            cint_ij = -(N*(cauchy[3] - s[3]) - (dNdx[0]*m[6]+dNdx[1]*m[15]+dNdx[2]*m[24]));
-        }
-        else if ( ( i == 0 ) && ( j == 2 ) ){
-            cint_ij = -(N*(cauchy[4] - s[4]) - (dNdx[0]*m[7]+dNdx[1]*m[16]+dNdx[2]*m[25]));
-        }
-        else if ( ( i == 0 ) && ( j == 1 ) ){
-            cint_ij = -(N*(cauchy[5] - s[5]) - (dNdx[0]*m[8]+dNdx[1]*m[17]+dNdx[2]*m[26]));
-        }
-        else if ( ( i == 2 ) && ( j == 1 ) ){
-            cint_ij = -(N*(cauchy[6] - s[6]) - (dNdx[0]*m[3]+dNdx[1]*m[12]+dNdx[2]*m[21]));
-        }
-        else if ( ( i == 2 ) && ( j == 0 ) ){
-            cint_ij = -(N*(cauchy[7] - s[7]) - (dNdx[0]*m[4]+dNdx[1]*m[13]+dNdx[2]*m[22]));
-        }
-        else if ( ( i == 1 ) && ( j == 0 ) ){
-            cint_ij = -(N*(cauchy[8] - s[8]) - (dNdx[0]*m[5]+dNdx[1]*m[14]+dNdx[2]*m[23]));
-        }
-        else{
-            std::cout << "Error: Index out of range\n";
-            assert(1==2); //TODO: Replace with better error handling
-        }
-        
-        return;
-    }
-
-    void compute_internal_couple(const int &i, const int &j, const double &N, const double (&dNdx)[3], const std::vector<double> &cauchy, const std::vector<double> &s, const std::vector<double> &m, double &cint_ij){
-        /*!=================================
-        |    compute_internal_couple    |
-        =================================
-
-        Compute the internal couple at a given 
-        component pair.
-
-        */
-
-        Vector_9  _cauchy;
-        Vector_9  _s;
-        Vector_27 _m;
-        
-        map_vector_to_eigen(cauchy,_cauchy);
-        map_vector_to_eigen(s,_s);
-        map_vector_to_eigen(m,_m);
-        compute_internal_couple(i, j, N, dNdx, _cauchy, _s, _m, cint_ij);
-
-        return;
-    }
-
-    
-    void compute_body_couple(const double &N, const double &density, const double (&l)[9], double (&cb)[9]){
-        /*!=============================
-        |    compute_body_couple    |
-        =============================
-        
-        Compute the body couple term.
-        
-        */
-        
-        cb[0] = N*density*l[0];
-        cb[1] = N*density*l[1];;
-        cb[2] = N*density*l[2];;
-        cb[3] = N*density*l[6];;
-        cb[4] = N*density*l[7];;
-        cb[5] = N*density*l[8];;
-        cb[6] = N*density*l[3];;
-        cb[7] = N*density*l[4];;
-        cb[8] = N*density*l[5];;
-        
-        return;
-    }
-    
-    void compute_body_couple(const int &i, const int &j, const double &N, const double &density, const double (&l)[9], double &cb_ij){
-        /*!=============================
-        |    compute_body_couple    |
-        =============================
-        
-        Compute the body couple term.
-        
-        */
-        
-        if ( ( i == 0 ) && ( j == 0 ) ){
-            cb_ij = N*density*l[0];
-        }
-        else if ( ( i == 1 ) && ( j == 1 ) ){
-            cb_ij = N*density*l[1];
-        }
-        else if ( ( i == 2 ) && ( j == 2 ) ){
-            cb_ij = N*density*l[2];
-        }
-        else if ( ( i == 1 ) && ( j == 2 ) ){
-            cb_ij = N*density*l[6];
-        }
-        else if ( ( i == 0 ) && ( j == 2 ) ){
-            cb_ij = N*density*l[7];
-        }
-        else if ( ( i == 0 ) && ( j == 1 ) ){
-            cb_ij = N*density*l[8];
-        }
-        else if ( ( i == 2 ) && ( j == 1 ) ){
-            cb_ij = N*density*l[3];
-        }
-        else if ( ( i == 2 ) && ( j == 0 ) ){
-            cb_ij = N*density*l[4];
-        }
-        else if ( ( i == 1 ) && ( j == 0 ) ){
-            cb_ij = N*density*l[5];
-        }
-        else{
-            std::cout << "Error: Index out of range\n";
-            assert(2==3); //TODO: Replace with better error handling
+        for ( unsigned int i = 0; i < dim; i++ ){
+            for ( unsigned int j = 0; j < dim; j++ ){
+                compute_internal_couple( i, j, N, density, omega, cinertial[ dim * i + j ] );
+            }
         }
         
         return;
     }
     
-    void compute_kinematic_couple(const double &N, const double &density, const double (&omega)[9], double (&ckin)[9]){
-        /*!=============================
-        |    compute_body_couple    |
-        =============================
-        
-        Compute the body couple term.
-        
-        */
-        
-        ckin[0] = -N*density*omega[0];
-        ckin[1] = -N*density*omega[1];;
-        ckin[2] = -N*density*omega[2];;
-        ckin[3] = -N*density*omega[6];;
-        ckin[4] = -N*density*omega[7];;
-        ckin[5] = -N*density*omega[8];;
-        ckin[6] = -N*density*omega[3];;
-        ckin[7] = -N*density*omega[4];;
-        ckin[8] = -N*density*omega[5];;
-        
-        return;
-    }
-    
-    void compute_kinematic_couple(const int &i, const int &j, const double &N, const double &density, const double (&omega)[9], double &ckin_ij){
-        /*!=============================
-        |    compute_body_couple    |
-        =============================
-        
-        Compute the body couple term.
-        
-        */
-        
-        if ( ( i == 0 ) && ( j == 0 ) ){
-            ckin_ij = -N*density*omega[0];
-        }
-        else if ( ( i == 1 ) && ( j == 1 ) ){
-            ckin_ij = -N*density*omega[1];
-        }
-        else if ( ( i == 2 ) && ( j == 2 ) ){
-            ckin_ij = -N*density*omega[2];
-        }
-        else if ( ( i == 1 ) && ( j == 2 ) ){
-            ckin_ij = -N*density*omega[6];
-        }
-        else if ( ( i == 0 ) && ( j == 2 ) ){
-            ckin_ij = -N*density*omega[7];
-        }
-        else if ( ( i == 0 ) && ( j == 1 ) ){
-            ckin_ij = -N*density*omega[8];
-        }
-        else if ( ( i == 2 ) && ( j == 1 ) ){
-            ckin_ij = -N*density*omega[3];
-        }
-        else if ( ( i == 2 ) && ( j == 0 ) ){
-            ckin_ij = -N*density*omega[4];
-        }
-        else if ( ( i == 1 ) && ( j == 0 ) ){
-            ckin_ij = -N*density*omega[5];
-        }
-        else{
-            std::cout << "Error: Index out of range\n";
-            assert(3==4); //TODO: Replace with better error handling
-        }
+    void compute_inertial_couple( const int &i, const int &j, const double &N, const double &density, const double ( &omega )[ 9 ], 
+                                  double cinertial_ij ){
+        /*!
+         * Compute the inertial couple in the current configuration for the indices i and j
+         *
+         * cinertial_{ ij } = -N * density * omega_{ ji }
+         *
+         * :param const int &i: The first index.
+         * :param const int &j: The second index.
+         * :param const double &N: The shape-function value
+         * :param const double &density: The density in the current configuration
+         * :param const double ( &omega )[ 9 ]: The micro-inertia tensor in the current configuration.
+         * :param const double ( &cinertial )[ 9 ]: The inertial couple.
+         */
+
+        //Assume 3D
+        const unsigned int dim = 3;
+
+        cinertial_ij = - N * density * omega[ dim * j + i ];
         
         return;
     }
