@@ -384,16 +384,16 @@ namespace balance_equations{
             for ( unsigned int I = 0; I < dim; I++ ){
                 for ( unsigned int J = 0; J < dim; J++ ){
                     for ( unsigned int K = 0; K < dim; K++ ){
-                        DfintDU_ij += dNdX[ I ] * DPK2Dgrad_u[ dim * I + J ][ dim * j + K ] * F[ dim * i + J ] * detadX[ K ];
+                        DfintDU_ij -= dNdX[ I ] * DPK2Dgrad_u[ dim * I + J ][ dim * j + K ] * F[ dim * i + J ] * detadX[ K ];
                     }
 
                     if ( i == j ){
-                        DfintDU_ij += dNdX[ I ] * PK2[ dim * I + J ] * detadX[ J ];
+                        DfintDU_ij -= dNdX[ I ] * PK2[ dim * I + J ] * detadX[ J ];
                     }
                 }
             }
         }
-        else if ( ( j < 12 ) && ( j > 3 ) ){
+        else if ( ( j < 12 ) && ( j >= 3 ) ){
 
             for ( unsigned int I = 0; I < dim; I++ ){
                 for ( unsigned int J = 0; J < dim; J++ ){
