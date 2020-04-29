@@ -58,17 +58,17 @@ namespace balance_equations{
     void compute_internal_couple( const int &i, const int &j, const double &N, const double ( &dNdX )[ 3 ],
                                   const variableVector &F, const variableVector &chi,
                                   const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
-                                  double cint_ij );
+                                  double &cint_ij );
 
     void compute_body_couple( const double &N, const double &density, const double ( &l )[ 9 ], double ( &cb )[ 9 ] );
 
     void compute_body_couple( const int &i, const int &j, const double &N, const double &density, const double ( &l )[ 9 ],
-                              double cb_ij );
+                              double &cb_ij );
 
     void compute_inertial_couple( const double &N, const double &density, const double ( &omega )[ 9 ], double ( &cinertial )[ 9 ] );
 
     void compute_inertial_couple( const int &i, const int &j, const double &N, const double &density, const double ( &omega )[ 9 ],
-                                  double cinertial_ij );
+                                  double &cinertial_ij );
     
 //    //Compute the jacobians of the balance of linear momentum w.r.t. the indicated displacement dof (Total-Lagrangian formulation)
 //    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], const Matrix_3x3 &F, 

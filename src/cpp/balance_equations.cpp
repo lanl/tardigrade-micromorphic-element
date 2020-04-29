@@ -179,7 +179,7 @@ namespace balance_equations{
     void compute_internal_couple( const int &i, const int &j, const double &N, const double ( &dNdX )[ 3 ],
                                   const variableVector &F, const variableVector &chi,
                                   const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
-                                  double cint_ij ){
+                                  double &cint_ij ){
         /*!
          * Compute the internal couple at index ij defined as
          * cint_{ ij } = N F_{ iI } ( PK2_{ IJ } - SIGMA_{ IJ } ) F_{ jJ } - N_{ ,K } F_{ jJ } \chi_{ iI } M_{ KJI }
@@ -238,7 +238,7 @@ namespace balance_equations{
     }
 
     void compute_body_couple( const int &i, const int &j, const double &N, const double &density, const double ( &l )[ 9 ], 
-                              double cb_ij ){
+                              double &cb_ij ){
         /*!
          * Compute the body couple term for the indices i and j
          *
@@ -249,7 +249,7 @@ namespace balance_equations{
          * :param const double &N: The shape-function value.
          * :param const double &density: The density in the current configuration.
          * :param const double ( %l )[ 9 ]: The body-force couple in the current configuration.
-         * :param const double cb_ij: The ij'th body force couple term.
+         * :param const double &cb_ij: The ij'th body force couple term.
          */
 
         //Assume 3D
@@ -285,7 +285,7 @@ namespace balance_equations{
     }
     
     void compute_inertial_couple( const int &i, const int &j, const double &N, const double &density, const double ( &omega )[ 9 ], 
-                                  double cinertial_ij ){
+                                  double &cinertial_ij ){
         /*!
          * Compute the inertial couple in the current configuration for the indices i and j
          *
@@ -296,7 +296,7 @@ namespace balance_equations{
          * :param const double &N: The shape-function value
          * :param const double &density: The density in the current configuration
          * :param const double ( &omega )[ 9 ]: The micro-inertia tensor in the current configuration.
-         * :param const double cinternal_ij: The ij'th inertial couple.
+         * :param const double &cinternal_ij: The ij'th inertial couple.
          */
 
         //Assume 3D
