@@ -7,5 +7,4 @@
 run_tests.py
 results.txt
 results.tex
-makefile
 *.swp

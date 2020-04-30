@@ -52,5 +52,17 @@ SOLVERHEADER = $(ROOTDIR)/solver_tools/src/cpp/solver_tools.h
 INC+=-I$(ROOTDIR)/solver_tools/src/cpp
 LIB+=-L$(ROOTDIR)/solver_tools/src/cpp
 
+#==
+#
+# Material Models
+#
+#==
+
+# Add the location of the linear elastic material model
+LINEARELASTICITYSOURCE = $(ROOTDIR)/micromorphic_linear_elasticity/src/cpp/micromorphic_linear_elasticity.cpp
+LINEARELASTICITYHEADER = $(ROOTDIR)/micromorphic_linear_elasticity/src/cpp/micromorphic_linear_elasticity.h
+INC+=-I$(ROOTDIR)/micromorphic_linear_elasticity/src/cpp
+LIB+=-I$(ROOTDIR)/micromorphic_linear_elasticity/src/cpp
+
 # The python command
 PYTHON=/apps/anaconda3/bin/python
