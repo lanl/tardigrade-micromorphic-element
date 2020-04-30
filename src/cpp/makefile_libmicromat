@@ -15,6 +15,9 @@ CONSTITUTIVEOBJECT=constitutive_tools.o
 ERROROBJECT=error_tools.o
 MICROMORPHICMATERIALLIBOBJECT=micromorphic_material_library.o
 
+LIBRARYNAME=libmicromat.so
+VERSION=$(LIBRARYNAME).1
+
 #Object files for the material models
 
 LINEARELASTICITYOBJECT=micromorphic_linear_elasticity.o
@@ -36,12 +39,12 @@ ifeq ($(METHOD),oprof)
   DBG = -pg
 endif
 
-all: libmicromat.so
+all: $(LIBRARYNAME)
 
-libmicromat.so: libmicromat.so.1
-	ln -s libmicromat.so.1 $@
+$(LIBRARYNAME): $(VERSION)
+	ln -s $< $@
 
-libmicromat.so.1: $(OBJECTS)
+$(VERSION): $(OBJECTS)
 	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -shared -Wl,-soname,$@ -o $@ $< $(CFLAGS)
 
 $(MICROMORPHICTOOLSOBJECT): $(MICROMORPHICTOOLSSOURCE) $(MICROMORPHICTOOLSHEADER) $(CONSITUTIVEHEADER) $(VECTORHEADER) $(ERRORHEADER)
@@ -66,6 +69,6 @@ $(LINEARELASTICITYOBJECT): $(LINEARELASTICITYSOURCE) $(LINEARELASTICITYHEADER) $
 	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
 
 clean:
-	rm -f $(OBJECTS)
+	rm -f $(OBJECTS) $(LIBRARYNAME) $(VERSION)
 
 .PHONY: all clean
