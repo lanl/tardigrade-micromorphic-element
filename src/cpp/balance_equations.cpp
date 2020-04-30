@@ -791,16 +791,16 @@ namespace balance_equations{
                 for ( unsigned int J = 0; J < dim; J++ ){
                     for ( unsigned int K = 0; K < dim; K++ ){
                         DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( DPK2Dgrad_u[ dim * I + J ][ dim * j + K ]
-                                                                     - DPK2Dgrad_u[ dim * I + J ][ dim * j + K ]
+                                                                     - DSIGMADgrad_u[ dim * I + J ][ dim * j + K ]
                                                                      ) * detadX[ K ] * F[ dim * ( i % 3 ) + J ];
 
                         for ( unsigned int L = 0; L < dim; L++ ){
-                            DcintDU_ij += dNdX[ K ] * F[ dim * ( i % 3 ) + J ] * chi[ dim * ( i / 3 ) + I ]
-                                        * DMDgrad_u[ dim * dim * dim * K + dim * J + I ][ dim * j + L ] * detadX[ L ];
+                            DcintDU_ij -= dNdX[ K ] * F[ dim * ( i % 3 ) + J ] * chi[ dim * ( i / 3 ) + I ]
+                                        * DMDgrad_u[ dim * dim * K + dim * J + I ][ dim * j + L ] * detadX[ L ];
                         }
                         
                         if ( ( i % 3) == j ){
-                            DcintDU_ij += dNdX[ K ] * detadX[ J ] * chi[ dim * ( i / 3 ) + I ] * M[ dim * dim * K + dim * J + I ];
+                            DcintDU_ij -= dNdX[ K ] * detadX[ J ] * chi[ dim * ( i / 3 ) + I ] * M[ dim * dim * K + dim * J + I ];
                         }
                     }
 
@@ -812,8 +812,7 @@ namespace balance_equations{
                         DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( PK2[ dim * I + J ] - SIGMA[ dim * I + J ] ) * detadX[ J ];
                     }
                 }
-            } 
-
+            }
         }
 
         return 0;

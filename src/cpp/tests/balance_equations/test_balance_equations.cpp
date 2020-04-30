@@ -1353,6 +1353,197 @@ int test_compute_internal_force_jacobian( std::ofstream &results ){
     return 1;
 }
 
+int test_compute_internal_couple_jacobian( std::ofstream &results ){
+    /*!
+     * Test the computation of the internal couple jacobian
+     *
+     * :param std::ofstream &results: The output file.
+     */
+
+    variableVector etas = { 0.36852295, 0.97637554, 0.73179659, 0.68487472, 0.39762759, 0.31758111, 0.77389198, 0.61821572 };
+
+    variableMatrix detadX =
+        {
+            { -0.29444605,  0.07238605,  0.43713906 },
+            { -0.04698417, -0.40157226,  0.16954795 },
+            {  0.13448525,  0.03186528, -0.30307097 },
+            { -0.24891382,  0.3754754 ,  0.28469287 },
+            { -0.44101342,  0.33897349,  0.30851798 },
+            { -0.41890348,  0.37183943, -0.07587246 },
+            { -0.16728468,  0.04201381,  0.06121883 },
+            { -0.19766519, -0.32000607, -0.46894013 }
+        };
+
+
+    variableType N = 0.271;
+    variableType dNdX[ 3 ] = { 0.282, -.771, .420 };
+
+    variableMatrix values =
+        {
+            {  0.17731668, -0.15865735,  0.34206721, -0.0840164 ,  0.22072846,  0.19713675, -0.05521133, -0.06724891 },
+            {  0.36570213, -0.49773919, -0.0468549 , -0.14928391,  0.3566579 ,  0.05454419,  0.30139775,  0.10009692 },
+            {  0.02839771, -0.27099594,  0.3268313 , -0.40346198,  0.23107736, -0.0216891 ,  0.07994532, -0.28122228 },
+            {  0.08438573, -0.10177786, -0.32459302,  0.00686261,  0.34034989, -0.28430275, -0.43718291,  0.14568342 },
+            { -0.35720521, -0.43625961,  0.39841842,  0.17191936, -0.36538435, -0.49708906,  0.11851704, -0.26731614 },
+            { -0.3717092 ,  0.04059797, -0.20701823,  0.19374649, -0.07539915, -0.28326464, -0.29816502,  0.46869672 },
+            { -0.3283136 , -0.20761489, -0.41540895,  0.33912041,  0.20656594,  0.38157274,  0.03904779, -0.24227912 },
+            {  0.15126979,  0.3511807 ,  0.33206935,  0.44103036, -0.14856347, -0.44038337, -0.0889653 , -0.11631477 },
+            {  0.41895973, -0.22126793,  0.48640171, -0.32228643,  0.18169337,  0.36786474,  0.05204352, -0.47173868 },
+            { -0.07257373,  0.07680379,  0.18734109, -0.06067456, -0.35509802,  0.18593935, -0.37953488,  0.42246967 },
+            { -0.45442497,  0.11123504, -0.42798247,  0.44491971, -0.08782663, -0.16396531, -0.20379889,  0.48399711 },
+            {  0.01555576, -0.06202483, -0.35382355, -0.08608767,  0.24526508,  0.24108876,  0.46201566, -0.2337636  }
+        };
+
+    //Form the numeric gradients
+    variableVector eye( 9 );
+    vectorTools::eye( eye );
+
+    unsigned int n = 0;
+    variableType eps = 1e-6;
+
+    variableMatrix DcintDU_numeric( 9, variableVector( 12, 0 ) );
+
+    int errorCode;
+
+    for ( unsigned int i = 0; i < 12; i++ ){
+        variableMatrix delta( 12, variableVector( 8, 0 ) );
+        delta[ i ][ n ] = eps * fabs( values[ i ][ n ] ) + eps;
+
+        variableVector utilde_P, utilde_M;
+        variableMatrix dUtildedX_P, dUtildedX_M;
+
+        variableVector PK2_P, SIGMA_P, M_P,
+                       PK2_M, SIGMA_M, M_M;
+
+        double cint_P[ 9 ], cint_M[ 9 ];
+
+        //Compute the positive perturbation
+        interpolate_values( etas, values + delta, utilde_P );
+        interpolate_gradients( detadX, values + delta, dUtildedX_P );
+
+        variableVector F_P = vectorTools::appendVectors( { dUtildedX_P[ 0 ], dUtildedX_P[ 1 ], dUtildedX_P[ 2 ] } );
+        F_P += eye;
+
+        variableVector chi_P( utilde_P.begin() + 3, utilde_P.begin() + 12 );
+        chi_P += eye;
+
+        errorOut error = evaluate_model( etas, detadX, values + delta, PK2_P, SIGMA_P, M_P );
+
+        if ( error ){
+            error->print();
+            results << "test_compute_internal_couple_jacobian & False\n";
+            return 1;
+        }
+
+        errorCode = balance_equations::compute_internal_couple( N, dNdX, F_P, chi_P, PK2_P, SIGMA_P, M_P, cint_P );
+
+        if ( errorCode != 0 ){
+            std::cout << "errorCode positive perturbation: " << errorCode << "\n";
+            results << "test_compute_internal_couple_jacobian & False\n";
+            return 1;
+        }
+
+        //Compute the negative perturbation
+        interpolate_values( etas, values - delta, utilde_M );
+        interpolate_gradients( detadX, values - delta, dUtildedX_M );
+
+        variableVector F_M = vectorTools::appendVectors( { dUtildedX_M[ 0 ], dUtildedX_M[ 1 ], dUtildedX_M[ 2 ] } );
+        F_M += eye;
+
+        variableVector chi_M( utilde_M.begin() + 3, utilde_M.begin() + 12 );
+        chi_M += eye;
+
+        error = evaluate_model( etas, detadX, values - delta, PK2_M, SIGMA_M, M_M );
+
+        if ( error ){
+            error->print();
+            results << "test_compute_internal_couple_jacobian & False\n";
+            return 1;
+        }
+
+        errorCode = balance_equations::compute_internal_couple( N, dNdX, F_M, chi_M, PK2_M, SIGMA_M, M_M, cint_M );
+
+        if ( errorCode != 0 ){
+            std::cout << "errorCode negative perturbation: " << errorCode << "\n";
+            results << "test_compute_internal_couple_jacobian & False\n";
+            return 1;
+        }
+        
+        for ( unsigned int j = 0; j < 9; j++ ){
+            DcintDU_numeric[ j ][ i ] = ( cint_P[ j ] - cint_M[ j ] ) / ( 2 * delta[ i ][ n ] );
+        }
+    }
+
+    std::cout << "DcintDU_numeric:\n";
+    vectorTools::print( DcintDU_numeric );
+
+    variableVector utilde;
+    interpolate_values( etas, values, utilde );
+
+    variableMatrix dUtildedX;
+    interpolate_gradients( detadX, values, dUtildedX );
+
+    variableVector F = vectorTools::appendVectors( { dUtildedX[ 0 ], dUtildedX[ 1 ], dUtildedX[ 2 ] } ) + eye;
+    variableVector chi = variableVector( utilde.begin() + 3, utilde.begin() + 12 ) + eye;
+
+    variableVector PK2, SIGMA, M;
+    variableMatrix DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
+                   DSIGMADgrad_u, DSIGMADphi, DSIGMADgrad_phi,
+                   DMDgrad_u, DMDphi, DMDgrad_phi;
+
+    errorOut error = evaluate_model( etas, detadX, values, PK2, SIGMA, M, DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
+                                     DSIGMADgrad_u, DSIGMADphi, DSIGMADgrad_phi,
+                                     DMDgrad_u, DMDphi, DMDgrad_phi );
+
+    if ( error ){
+        error->print();
+        results << "test_compute_internal_couple_jacobian & False\n";
+        return 1;
+    }
+
+    //Evaluate the analytic gradients
+    std::cout << "evaluating the analytic gradients\n";
+    variableMatrix DcintDU_analytic;
+    variableType detadX_n[ 3 ] = { detadX[ n ][ 0 ], detadX[ n ][ 1 ], detadX[ n ][ 2 ] };
+    std::cout << "entering the computation\n";
+    errorCode = balance_equations::compute_internal_couple_jacobian( N, dNdX, etas[ n ], detadX_n, F, chi,
+                                                                     PK2, SIGMA, M,
+                                                                     DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
+                                                                     DSIGMADgrad_u, DSIGMADphi, DSIGMADgrad_phi,
+                                                                     DMDgrad_u, DMDphi, DMDgrad_phi,
+                                                                     DcintDU_analytic );
+
+    if ( errorCode != 0 ){
+        std::cout << "errorCode internal couple jacobian: " << errorCode << "\n";
+        results << "test_compute_internal_couple_jacobian & False\n";
+        return 1;
+    }
+
+    std::cout << "DcintDU_analytic:\n";
+    vectorTools::print( DcintDU_analytic );
+//
+//    if ( !vectorTools::fuzzyEquals( DfintDU_numeric, DfintDU_analytic ) ){
+//        results << "test_compute_internal_couple_jacobian (test 1) & False\n";
+//        return 1;
+//    }
+//
+//    for ( unsigned int i = 0; i < 3; i++ ){
+//        for ( unsigned int j = 0; j < 12; j++ ){
+//            variableType DfintDU_ij;
+//            balance_equations::compute_internal_force_jacobian( i, j, N, dNdX, etas[ n ], detadX_n, F, PK2,
+//                                                                DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi, DfintDU_ij );
+//
+//            if ( !vectorTools::fuzzyEquals( DfintDU_ij, DfintDU_numeric[ i ][ j ] ) ){
+//                results << "test_compute_internal_couple_jacobian (test 2) & False\n";
+//                return 1;
+//            }
+//        }
+//    }
+
+    results << "test_compute_internal_couple_jacobian & True\n";
+    return 1;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -1384,6 +1575,9 @@ int main(){
 
     //Tests of the Jacobians of the balance of linear momentum
     test_compute_internal_force_jacobian( results );
+
+    //Tests of the Jacobians of the balance of the first moment of momentum
+    test_compute_internal_couple_jacobian( results );
 
     //Close the results file
     results.close();
