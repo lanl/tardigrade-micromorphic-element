@@ -850,7 +850,7 @@ errorOut evaluate_model( const variableVector &etas, const variableMatrix &detad
     SIGMA = vectorTools::dot( DSIGMADgrad_u, grad_u ) + vectorTools::dot( DSIGMADphi, phi )
           + vectorTools::dot( DSIGMADgrad_phi, grad_phi );
 
-    M     = vectorTools::dot( DMDgrad_u, grad_u )     + vectorTools::dot( DMDphi, phi )     
+    M     = vectorTools::dot( DMDgrad_u, grad_u )     + vectorTools::dot( DMDphi, phi )
           + vectorTools::dot( DMDgrad_phi, grad_phi );
 
     return NULL;
@@ -1474,9 +1474,6 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
         }
     }
 
-    std::cout << "DcintDU_numeric:\n";
-    vectorTools::print( DcintDU_numeric );
-
     variableVector utilde;
     interpolate_values( etas, values, utilde );
 
@@ -1502,10 +1499,8 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
     }
 
     //Evaluate the analytic gradients
-    std::cout << "evaluating the analytic gradients\n";
     variableMatrix DcintDU_analytic;
     variableType detadX_n[ 3 ] = { detadX[ n ][ 0 ], detadX[ n ][ 1 ], detadX[ n ][ 2 ] };
-    std::cout << "entering the computation\n";
     errorCode = balance_equations::compute_internal_couple_jacobian( N, dNdX, etas[ n ], detadX_n, F, chi,
                                                                      PK2, SIGMA, M,
                                                                      DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
@@ -1519,26 +1514,29 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
         return 1;
     }
 
-    std::cout << "DcintDU_analytic:\n";
-    vectorTools::print( DcintDU_analytic );
-//
-//    if ( !vectorTools::fuzzyEquals( DfintDU_numeric, DfintDU_analytic ) ){
-//        results << "test_compute_internal_couple_jacobian (test 1) & False\n";
-//        return 1;
-//    }
-//
-//    for ( unsigned int i = 0; i < 3; i++ ){
-//        for ( unsigned int j = 0; j < 12; j++ ){
-//            variableType DfintDU_ij;
-//            balance_equations::compute_internal_force_jacobian( i, j, N, dNdX, etas[ n ], detadX_n, F, PK2,
-//                                                                DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi, DfintDU_ij );
-//
-//            if ( !vectorTools::fuzzyEquals( DfintDU_ij, DfintDU_numeric[ i ][ j ] ) ){
-//                results << "test_compute_internal_couple_jacobian (test 2) & False\n";
-//                return 1;
-//            }
-//        }
-//    }
+    if ( !vectorTools::fuzzyEquals( DcintDU_numeric, DcintDU_analytic ) ){
+        results << "test_compute_internal_couple_jacobian (test 1) & False\n";
+        return 1;
+    }
+
+    for ( unsigned int i = 0; i < 3; i++ ){
+        for ( unsigned int j = 0; j < 12; j++ ){
+            variableType DcintDU_ij;
+            balance_equations::compute_internal_couple_jacobian( i, j,
+                                                                 N, dNdX, etas[ n ], detadX_n, F, chi,
+                                                                 PK2, SIGMA, M,
+                                                                 DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
+                                                                 DSIGMADgrad_u, DSIGMADphi, DSIGMADgrad_phi,
+                                                                 DMDgrad_u, DMDphi, DMDgrad_phi,
+                                                                 DcintDU_ij );
+
+
+            if ( !vectorTools::fuzzyEquals( DcintDU_ij, DcintDU_numeric[ i ][ j ] ) ){
+                results << "test_compute_internal_couple_jacobian (test 2) & False\n";
+                return 1;
+            }
+        }
+    }
 
     results << "test_compute_internal_couple_jacobian & True\n";
     return 1;

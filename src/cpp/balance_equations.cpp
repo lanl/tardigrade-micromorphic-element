@@ -555,6 +555,14 @@ namespace balance_equations{
          * Compute the jacobian of the internal couple
          * cint_{ ij } = N F_{ iI } ( PK2_{ IJ } - SIGMA_{ IJ } ) F_{ jJ } - N_{ ,K } F_{ jJ } \chi_{ iI } M_{ KJI }
          *
+         * Returns 0 if there are no errors, 1 if F has an incorrect size, 2 if chi has an incorrect size,
+         * 3 if PK2 has an incorrect size, 4 if SIGMA has an incorrect size, 5 if M has an incorrect size,
+         * 6 if DPK2Dgrad_u has an incorrect size, 7 if DPK2Dphi has an incorrect size, 8 if DPK2Dgrad_phi
+         * has an incorrect size, 9 if DSIGMADgrad_u has an incorrect size, 10 if DSIGMADphi has an incorrect
+         * size, 11 if DSIGMADgrad_phi has an incorrect size, 12 if DMDgrad_u has an incorrect size, 13 if
+         * DMDphi has an incorrect size, 14 if DMDgrad_phi has an incorrect size, 15 if i is out of range
+         * and 16 if j is out of range.
+         *
          * :param const double &N: The shape function value
          * :param const double ( &dNdX )[ 3 ]: The gradient of the shape function w.r.t. the reference coordinates.
          * :param const double &eta: The interpolation function value
@@ -630,6 +638,14 @@ namespace balance_equations{
         /*!
          * Compute the jacobian of the internal couple
          * cint_{ ij } = N F_{ iI } ( PK2_{ IJ } - SIGMA_{ IJ } ) F_{ jJ } - N_{ ,K } F_{ jJ } \chi_{ iI } M_{ KJI }
+         *
+         * Returns 0 if there are no errors, 1 if F has an incorrect size, 2 if chi has an incorrect size,
+         * 3 if PK2 has an incorrect size, 4 if SIGMA has an incorrect size, 5 if M has an incorrect size,
+         * 6 if DPK2Dgrad_u has an incorrect size, 7 if DPK2Dphi has an incorrect size, 8 if DPK2Dgrad_phi
+         * has an incorrect size, 9 if DSIGMADgrad_u has an incorrect size, 10 if DSIGMADphi has an incorrect
+         * size, 11 if DSIGMADgrad_phi has an incorrect size, 12 if DMDgrad_u has an incorrect size, 13 if
+         * DMDphi has an incorrect size, 14 if DMDgrad_phi has an incorrect size, 15 if i is out of range
+         * and 16 if j is out of range.
          *
          * :param const unsigned int &i: The row index of the Jacobian ( the internal couple vector index )
          * :param const unsigned int &j: The column index of the Jacobian ( the degree of freedom vector index )
@@ -782,11 +798,19 @@ namespace balance_equations{
             }
         }
 
+        if ( i > dim * dim ){
+            return 15;
+        }
+
+        if ( j > NDOF ){
+            return 16;
+        }
+
 #endif
 
+        DcintDU_ij = 0;
         if ( j < 3 ){
 
-            DcintDU_ij = 0;
             for ( unsigned int I = 0; I < dim; I++ ){
                 for ( unsigned int J = 0; J < dim; J++ ){
                     for ( unsigned int K = 0; K < dim; K++ ){
@@ -813,6 +837,33 @@ namespace balance_equations{
                     }
                 }
             }
+        }
+        else if ( ( j >= 3 ) && ( j < 12 ) ){
+
+            for ( unsigned int I = 0; I < dim; I++ ){
+                for ( unsigned int J = 0; J < dim; J++ ){
+                    DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( DPK2Dphi[ dim * I + J ][ j - 3 ]
+                                                                 - DSIGMADphi[ dim * I + J ][ j - 3 ]
+                                                                 ) * eta * F[ dim * ( i % 3 ) + J ];
+                    for ( unsigned int K = 0; K < dim; K++ ){
+                        DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( DPK2Dgrad_phi[ dim * I + J ][ dim * ( j - 3 ) + K ]
+                                                                     - DSIGMADgrad_phi[ dim * I + J ][ dim * ( j - 3 ) + K ]
+                                                                     ) * detadX[ K ] * F[ dim * ( i % 3 ) + J ];
+
+                        DcintDU_ij -= dNdX[ K ] * F[ dim * ( i % 3 ) + J ] * chi[ dim * ( i / 3 ) + I ]
+                                    * DMDphi[ dim * dim * K + dim * J + I ][ j - 3 ] * eta;
+
+                        for ( unsigned int L = 0; L < dim; L++ ){
+                            DcintDU_ij -= dNdX[ K ] * F[ dim * ( i % 3 ) + J ] * chi[ dim * ( i / 3 ) + I ] * DMDgrad_phi[ dim * dim * K + dim * J + I ][ dim * ( j - 3 ) + L ] * detadX[ L ];
+                        }
+
+                        if ( ( dim * ( i / 3 ) + I ) == ( j - 3 ) ){
+                            DcintDU_ij -= dNdX[ K ] * F[ dim * ( i % 3 ) + J ] * eta * M[ dim * dim * K + dim * J + I ];
+                        }
+                    }
+                }
+            }
+
         }
 
         return 0;
