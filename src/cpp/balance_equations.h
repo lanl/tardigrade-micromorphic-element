@@ -33,59 +33,86 @@ namespace balance_equations{
     | Forces from the balance of linear momentum |
     ============================================*/
 
-    void compute_internal_force( const double (&dNdX)[3], const variableVector &F, const variableVector &PK2, double ( &fint )[ 3 ] );
+    int compute_internal_force( const double (&dNdX)[3], const variableVector &F, const variableVector &PK2, double ( &fint )[ 3 ] );
 
-    void compute_internal_force( const int &i,  const double (&dNdX)[3], const variableVector &F, const variableVector &PK2,
-                                 double &fint_i );
+    int compute_internal_force( const unsigned int &i,  const double (&dNdX)[3], const variableVector &F, const variableVector &PK2,
+                                double &fint_i );
 
-    void compute_body_force(const double &N, const double &density, const double (&b)[3], double (&fb)[3]);
+    void compute_body_force( const double &N, const double &density, const double (&b)[3], double (&fb)[3]);
     
-    void compute_body_force(const int &i, const double &N, const double &density, const double (&b)[3], double &fb);
+    void compute_body_force( const unsigned int &i, const double &N, const double &density, const double (&b)[3], double &fb);
 
     void compute_inertial_force( const double &N, const double &density, const double ( &a )[ 3 ], double ( &finertial )[ 3 ] );
     
-    void compute_inertial_force( const int &i, const double &N, const double &density, const double ( &a )[ 3 ], double &finertial_i );
+    void compute_inertial_force( const unsigned int &i, const double &N, const double &density, const double ( &a )[ 3 ],
+                                 double &finertial_i );
 
     /*===========================================================
     | Stresses from the balance of the first moment of momentum |
     ===========================================================*/
 
     //Stresses from the balance of first moment of momentum
-    void compute_internal_couple( const double &N, const double ( &dNdX )[ 3 ], const variableVector &F, const variableVector &chi,
-                                  const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
-                                  double ( &cint )[ 9 ] );
+    int compute_internal_couple( const double &N, const double ( &dNdX )[ 3 ], const variableVector &F, const variableVector &chi,
+                                 const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
+                                 double ( &cint )[ 9 ] );
 
-    void compute_internal_couple( const int &i, const int &j, const double &N, const double ( &dNdX )[ 3 ],
-                                  const variableVector &F, const variableVector &chi,
-                                  const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
-                                  double &cint_ij );
+    int compute_internal_couple( const unsigned int &i, const unsigned int &j, const double &N, const double ( &dNdX )[ 3 ],
+                                 const variableVector &F, const variableVector &chi,
+                                 const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
+                                 double &cint_ij );
 
     void compute_body_couple( const double &N, const double &density, const double ( &l )[ 9 ], double ( &cb )[ 9 ] );
 
-    void compute_body_couple( const int &i, const int &j, const double &N, const double &density, const double ( &l )[ 9 ],
-                              double &cb_ij );
+    void compute_body_couple( const unsigned int &i, const unsigned int &j,
+                              const double &N, const double &density, const double ( &l )[ 9 ], double &cb_ij );
 
     void compute_inertial_couple( const double &N, const double &density, const double ( &omega )[ 9 ], double ( &cinertial )[ 9 ] );
 
-    void compute_inertial_couple( const int &i, const int &j, const double &N, const double &density, const double ( &omega )[ 9 ],
-                                  double &cinertial_ij );
+    void compute_inertial_couple( const unsigned int &i, const unsigned int &j,
+                                  const double &N, const double &density, const double ( &omega )[ 9 ], double &cinertial_ij );
 
     /*=======================================================
     | The Jacobians of the balance of linear momentum terms |
     =======================================================*/
 
-    void compute_internal_force_jacobian( const double &N, const double ( &dNdX )[ 3 ], const double &eta, const double ( &detadX )[ 3 ],
-                                          const variableVector &F, const variableVector &PK2,
-                                          const variableMatrix &DPK2Dgrad_u, const variableMatrix &DPK2Dphi,
-                                          const variableMatrix &DPK2Dgrad_phi,
-                                          variableMatrix &DfintDU );
+    int compute_internal_force_jacobian( const double &N, const double ( &dNdX )[ 3 ], const double &eta, const double ( &detadX )[ 3 ],
+                                         const variableVector &F, const variableVector &PK2,
+                                         const variableMatrix &DPK2Dgrad_u, const variableMatrix &DPK2Dphi,
+                                         const variableMatrix &DPK2Dgrad_phi,
+                                         variableMatrix &DfintDU );
 
-    void compute_internal_force_jacobian( const int &i, const int &j,
-                                          const double &N, const double ( &dNdX )[ 3 ], const double &eta, const double ( &detadX )[ 3 ],
-                                          const variableVector &F, const variableVector &PK2,
+    int compute_internal_force_jacobian( const unsigned int &i, const unsigned int &j,
+                                         const double &N, const double ( &dNdX )[ 3 ], const double &eta, const double ( &detadX )[ 3 ],
+                                         const variableVector &F, const variableVector &PK2,
+                                         const variableMatrix &DPK2Dgrad_u, const variableMatrix &DPK2Dphi,
+                                         const variableMatrix &DPK2Dgrad_phi,
+                                         variableType &DfintDU_ij );
+
+    int compute_internal_couple_jacobian( const double &N, const double ( &dNdX )[ 3 ],
+                                          const double &eta, const double ( &detadX )[ 3 ],
+                                          const variableVector &F, const variableVector &chi,
+                                          const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
                                           const variableMatrix &DPK2Dgrad_u, const variableMatrix &DPK2Dphi,
                                           const variableMatrix &DPK2Dgrad_phi,
-                                          variableType &DfintDU_ij );
+                                          const variableMatrix &DSIGMADgrad_u, const variableMatrix &DSIGMADphi,
+                                          const variableMatrix &SIGMA2Dgrad_phi,
+                                          const variableMatrix &DMDgrad_u, const variableMatrix &DMDphi,
+                                          const variableMatrix &DMDgrad_phi,
+                                          variableMatrix &DcintDU );
+
+    int compute_internal_couple_jacobian( const unsigned int &i, const unsigned int &j,
+                                          const double &N, const double ( &dNdX )[ 3 ],
+                                          const double &eta, const double ( &detadX )[ 3 ],
+                                          const variableVector &F, const variableVector &chi,
+                                          const variableVector &PK2, const variableVector &SIGMA, const variableVector &M,
+                                          const variableMatrix &DPK2Dgrad_u, const variableMatrix &DPK2Dphi,
+                                          const variableMatrix &DPK2Dgrad_phi,
+                                          const variableMatrix &DSIGMADgrad_u, const variableMatrix &DSIGMADphi,
+                                          const variableMatrix &DSIGMADgrad_phi,
+                                          const variableMatrix &DMDgrad_u, const variableMatrix &DMDphi,
+                                          const variableMatrix &DMDgrad_phi,
+                                          variableType &DcintDU_ij );
+
     
 //    //Compute the jacobians of the balance of linear momentum w.r.t. the indicated displacement dof (Total-Lagrangian formulation)
 //    void compute_internal_force_jacobian(const double &N, const double(&dNdx)[3], const double &eta, const double(&detadx)[3], const Matrix_3x3 &F, 
