@@ -1,0 +1,53 @@
+# Micromorphic material library
+#
+# Author: Nathan A. Miller ( LANL / CU Boulder )
+# Email:  nathanm@lanl.gov
+# Date:   April 30, 2020
+#
+# This is the makefile for the micromoprhic material model library. This library 
+# collects the developed micromorphic material models which can then be called
+# by name and executed to return stress information.
+
+include ../../config.mk
+
+BALANCESOURCE=balance_equations.cpp
+BALANCEHEADER=balance_equations.h
+
+BALANCEOBJECT=balance_equations.o
+ERROROBJECT=error_tools.o
+
+OBJECTS = $(BALANCEOBJECT) $(ERROROBJECT)
+
+LIBRARYNAME=libmicrobalance.so
+VERSION=$(LIBRARYNAME).1
+
+INC+=-I.
+LOCAL_CFLAGS = -fPIC
+
+#Set the mode due to the method variable
+DBG =
+ifeq ($(METHOD),dbg)
+  DBG = -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -g
+endif
+ifeq ($(METHOD),oprof)
+  DBG = -pg
+endif
+
+all: $(LIBRARYNAME)
+
+$(LIBRARYNAME): $(VERSION)
+	ln -s $< $@
+
+$(VERSION): $(OBJECTS)
+	$(CXX) $(LOCAL_CFLAGS) $(INC) $(LIB) $(DBG) -shared -Wl,-soname,$@ -o $@ $< $(CFLAGS)
+
+$(BALANCEOBJECT): $(BALANCESOURCE) $(BALANCEHEADER) $(VECTORHEADER)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
+
+$(ERROROBJECT): $(ERRORSOURCE) $(ERRORHEADER)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
+
+clean:
+	rm -f $(OBJECTS) $(LIBRARYNAME) $(VERSION)
+
+.PHONY: all clean
