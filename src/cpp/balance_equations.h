@@ -16,6 +16,9 @@
   |        eigen.tuxfamily.org.                               |
   =============================================================*/
 
+//Required to fix linking problems
+//__asm__(".symver memcpy,memcpy@GLIBC_2.14");
+
 #ifndef BALANCE_EQUATIONS_H
 #define BALANCE_EQUATIONS_H
 

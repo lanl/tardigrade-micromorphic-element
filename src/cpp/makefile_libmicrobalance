@@ -39,7 +39,7 @@ $(LIBRARYNAME): $(VERSION)
 	ln -s $< $@
 
 $(VERSION): $(OBJECTS)
-	$(CXX) $(LOCAL_CFLAGS) $(INC) $(LIB) $(DBG) -shared -Wl,-soname,$@ -o $@ $< $(CFLAGS)
+	$(CXX) $(LOCAL_CFLAGS) $(INC) $(LIB) $(DBG) -shared -lc -Wl,-soname,$@ -o $@ $< $(CFLAGS)
 
 $(BALANCEOBJECT): $(BALANCESOURCE) $(BALANCEHEADER) $(VECTORHEADER)
 	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11

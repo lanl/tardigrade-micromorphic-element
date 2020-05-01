@@ -15,15 +15,18 @@
 =====================================================================
 */
 
+//Required to fix linking problems
+//__asm__(".symver memcpy,memcpy@GLIBC_2.14");
+
+#ifndef MICROMORPHIC_MATERIAL_LIBRARY_H
+#define MICROMORPHIC_MATERIAL_LIBRARY_H
+
 #include<vector>
 #include<math.h>
 #include<list>
 #include<string>
 #include<map>
 #include<memory>
-
-#ifndef MICROMORPHIC_MATERIAL_LIBRARY_H
-#define MICROMORPHIC_MATERIAL_LIBRARY_H
 
 namespace micromorphic_material_library{
 
