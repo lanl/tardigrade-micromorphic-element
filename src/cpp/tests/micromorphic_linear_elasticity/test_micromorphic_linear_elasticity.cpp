@@ -4268,6 +4268,7 @@ int test_materialLibraryInterface( std::ofstream &results ){
                                                  { 0, 0, 0},
                                                  { 0, 0, 0} };
 
+
     std::vector< double > SDVS;
     const std::vector< double > current_ADD_DOF, previous_ADD_DOF;
     const std::vector< std::vector< double > > current_ADD_grad_DOF, previous_ADD_grad_DOF;
@@ -4374,6 +4375,11 @@ int test_materialLibraryInterface( std::ofstream &results ){
                                           ADD_TERMS, ADD_JACOBIANS,
                                           output_message
                                         );
+
+    if ( errorCode != 0 ){
+        std::cout << output_message << "\n";
+        results << "test_evaluate_model & False\n";
+    }
 
     if ( !vectorTools::fuzzyEquals( PK2_result, PK2_answer ) ){
         results << "test_evaluate_model (test 4) & False\n";
