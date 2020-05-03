@@ -62,7 +62,13 @@ LIB+=-L$(ROOTDIR)/solver_tools/src/cpp
 LINEARELASTICITYSOURCE = $(ROOTDIR)/micromorphic_linear_elasticity/src/cpp/micromorphic_linear_elasticity.cpp
 LINEARELASTICITYHEADER = $(ROOTDIR)/micromorphic_linear_elasticity/src/cpp/micromorphic_linear_elasticity.h
 INC+=-I$(ROOTDIR)/micromorphic_linear_elasticity/src/cpp
-LIB+=-I$(ROOTDIR)/micromorphic_linear_elasticity/src/cpp
+LIB+=-L$(ROOTDIR)/micromorphic_linear_elasticity/src/cpp
+
+# Add the location of the linear elastic, Drucker-Prager plasticity model
+DPPLASTICITYSOURCE = $(ROOTDIR)/micromorphic_elasto_plasticity/src/cpp/micromorphic_elasto_plasticity.cpp
+DPPLASTICITYHEADER = $(ROOTDIR)/micromorphic_elasto_plasticity/src/cpp/micromorphic_elasto_plasticity.h
+INC+=-I$(ROOTDIR)/micromorphic_elasto_plasticity/src/cpp
+LIB+=-L$(ROOTDIR)/micromorphic_elasto_plasticity/src/cpp
 
 # The python command
 PYTHON=/apps/anaconda3/bin/python
