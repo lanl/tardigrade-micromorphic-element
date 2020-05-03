@@ -31,3 +31,4 @@ src/python/tests/regression_tests/linear_u/results.tex
 results.txt
 results.txt
 run_tests.py
+*.swp
