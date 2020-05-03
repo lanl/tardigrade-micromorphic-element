@@ -119,6 +119,7 @@ namespace micromorphic_material_library {
          */
 
         //Evaluate the model at the set point
+        std::vector< double > SDVS_previous = SDVS;
         int errorCode = evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi,
                                         previous_grad_u, previous_phi, previous_grad_phi,
                                         SDVS, current_ADD_DOF, current_ADD_grad_DOF,
@@ -179,10 +180,14 @@ namespace micromorphic_material_library {
     
             std::vector< double > PK2_P, SIGMA_P, M_P,
                                   PK2_M, SIGMA_M, M_M;
+
+            std::vector< double > SDVS_P, SDVS_M;
+            SDVS_P = SDVS_previous;
+            SDVS_M = SDVS_previous;
     
             errorCode = evaluate_model( time, fparams, current_grad_u_P, current_phi, current_grad_phi,
                                         previous_grad_u, previous_phi, previous_grad_phi,
-                                        SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                        SDVS_P, current_ADD_DOF, current_ADD_grad_DOF,
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_P, SIGMA_P, M_P,
                                         ADD_TERMS, output_message
@@ -194,7 +199,7 @@ namespace micromorphic_material_library {
     
             errorCode = evaluate_model( time, fparams, current_grad_u_M, current_phi, current_grad_phi,
                                         previous_grad_u, previous_phi, previous_grad_phi,
-                                        SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                        SDVS_M, current_ADD_DOF, current_ADD_grad_DOF,
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_M, SIGMA_M, M_M,
                                         ADD_TERMS, output_message
@@ -236,10 +241,14 @@ namespace micromorphic_material_library {
     
             std::vector< double > PK2_P, SIGMA_P, M_P,
                                   PK2_M, SIGMA_M, M_M;
+
+            std::vector< double > SDVS_P, SDVS_M;
+            SDVS_P = SDVS_previous;
+            SDVS_M = SDVS_previous;
     
             errorCode = evaluate_model( time, fparams, current_grad_u, current_phi_P, current_grad_phi,
                                         previous_grad_u, previous_phi, previous_grad_phi,
-                                        SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                        SDVS_P, current_ADD_DOF, current_ADD_grad_DOF,
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_P, SIGMA_P, M_P,
                                         ADD_TERMS, output_message
@@ -251,7 +260,7 @@ namespace micromorphic_material_library {
     
             errorCode = evaluate_model( time, fparams, current_grad_u, current_phi_M, current_grad_phi,
                                         previous_grad_u, previous_phi, previous_grad_phi,
-                                        SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                        SDVS_M, current_ADD_DOF, current_ADD_grad_DOF,
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_M, SIGMA_M, M_M,
                                         ADD_TERMS, output_message
@@ -380,9 +389,13 @@ namespace micromorphic_material_library {
             std::vector< double > PK2_P, SIGMA_P, M_P,
                                   PK2_M, SIGMA_M, M_M;
     
+            std::vector< double > SDVS_P, SDVS_M;
+            SDVS_P = SDVS_previous;
+            SDVS_M = SDVS_previous;
+
             errorCode = evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi_P,
                                         previous_grad_u, previous_phi, previous_grad_phi,
-                                        SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                        SDVS_P, current_ADD_DOF, current_ADD_grad_DOF,
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_P, SIGMA_P, M_P,
                                         ADD_TERMS, output_message
@@ -394,7 +407,7 @@ namespace micromorphic_material_library {
     
             errorCode = evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi_M,
                                         previous_grad_u, previous_phi, previous_grad_phi,
-                                        SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                        SDVS_M, current_ADD_DOF, current_ADD_grad_DOF,
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_M, SIGMA_M, M_M,
                                         ADD_TERMS, output_message
