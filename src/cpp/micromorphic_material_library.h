@@ -47,7 +47,11 @@ namespace micromorphic_material_library{
                                     const std::vector< std::vector< double > > &previous_ADD_grad_DOF,
                                     std::vector< double > &PK2, std::vector< double > &SIGMA, std::vector< double > &M,
                                     std::vector< std::vector< double > > &ADD_TERMS,
-                                    std::string &output_message ){
+                                    std::string &output_message
+#ifdef DEBUG_MODE
+                                    , std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > &debug
+#endif
+                                  ){
             /*!
              * Evaluate the jacobian of the material model using a numeric gradient
              * TODO: Add Jacobians of the additional terms
@@ -119,6 +123,9 @@ namespace micromorphic_material_library{
                                     std::vector< std::vector< double > > &ADD_TERMS,
                                     std::vector< std::vector< std::vector< double > > > &ADD_JACOBIANS,
                                     std::string &output_message
+#ifdef DEBUG_MODE
+                                    , std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > &debug
+#endif
                                   ){
             /*!
              * Evaluate the jacobian of the material model using a numeric gradient
@@ -214,7 +221,11 @@ namespace micromorphic_material_library{
                                     std::vector< std::vector< double > > &DMDgrad_phi,
                                     std::vector< std::vector< double > > &ADD_TERMS,
                                     std::vector< std::vector< std::vector< double > > > &ADD_JACOBIANS,
-                                    std::string &output_message, double delta = 1e-6
+                                    std::string &output_message,
+#ifdef DEBUG_MODE
+                                    std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > &debug,
+#endif
+                                    double delta = 1e-6
                                   );
     };
 

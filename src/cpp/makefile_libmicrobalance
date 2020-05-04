@@ -36,7 +36,7 @@ endif
 all: $(LIBRARYNAME)
 
 $(LIBRARYNAME): $(VERSION)
-	ln -s $< $@
+	ln -s -f $< $@
 
 $(VERSION): $(OBJECTS)
 	$(CXX) $(LOCAL_CFLAGS) $(INC) $(LIB) $(DBG) -shared -lc -Wl,-soname,$@ -o $@ $< $(CFLAGS)

@@ -47,7 +47,12 @@ namespace micromorphic_material_library {
                                     std::vector< std::vector< double > > &DMDgrad_phi,
                                     std::vector< std::vector< double > > &ADD_TERMS,
                                     std::vector< std::vector< std::vector< double > > > &ADD_JACOBIANS,
-                                    std::string &output_message, double delta
+                                    std::string &output_message,
+#ifdef DEBUG_MODE
+                                    std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > &DEBUG,
+
+#endif
+                                    double delta
                                   ){
 
         /*!
@@ -126,7 +131,14 @@ namespace micromorphic_material_library {
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2, SIGMA, M,
                                         ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG
+#endif
                                       );
+
+#ifdef DEBUG_MODE
+        DEBUG.clear();
+#endif
 
         if ( errorCode > 0 ){
             return errorCode;
@@ -184,6 +196,10 @@ namespace micromorphic_material_library {
             std::vector< double > SDVS_P, SDVS_M;
             SDVS_P = SDVS_previous;
             SDVS_M = SDVS_previous;
+
+#ifdef DEBUG_MODE
+            std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > DEBUG_P, DEBUG_M;
+#endif
     
             errorCode = evaluate_model( time, fparams, current_grad_u_P, current_phi, current_grad_phi,
                                         previous_grad_u, previous_phi, previous_grad_phi,
@@ -191,6 +207,9 @@ namespace micromorphic_material_library {
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_P, SIGMA_P, M_P,
                                         ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_P
+#endif
                                       );
     
             if ( errorCode > 0 ){
@@ -203,6 +222,9 @@ namespace micromorphic_material_library {
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_M, SIGMA_M, M_M,
                                         ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_M
+#endif
                                       );
     
             if ( errorCode > 0 ){
@@ -245,6 +267,10 @@ namespace micromorphic_material_library {
             std::vector< double > SDVS_P, SDVS_M;
             SDVS_P = SDVS_previous;
             SDVS_M = SDVS_previous;
+
+#ifdef DEBUG_MODE
+            std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > DEBUG_P, DEBUG_M;
+#endif
     
             errorCode = evaluate_model( time, fparams, current_grad_u, current_phi_P, current_grad_phi,
                                         previous_grad_u, previous_phi, previous_grad_phi,
@@ -252,6 +278,9 @@ namespace micromorphic_material_library {
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_P, SIGMA_P, M_P,
                                         ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_P
+#endif
                                       );
     
             if ( errorCode > 0 ){
@@ -264,6 +293,9 @@ namespace micromorphic_material_library {
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_M, SIGMA_M, M_M,
                                         ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_M
+#endif
                                       );
     
             if ( errorCode > 0 ){
@@ -393,12 +425,19 @@ namespace micromorphic_material_library {
             SDVS_P = SDVS_previous;
             SDVS_M = SDVS_previous;
 
+#ifdef DEBUG_MODE
+            std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > DEBUG_P, DEBUG_M;
+#endif
+
             errorCode = evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi_P,
                                         previous_grad_u, previous_phi, previous_grad_phi,
                                         SDVS_P, current_ADD_DOF, current_ADD_grad_DOF,
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_P, SIGMA_P, M_P,
                                         ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_P
+#endif
                                       );
     
             if ( errorCode > 0 ){
@@ -411,6 +450,9 @@ namespace micromorphic_material_library {
                                         previous_ADD_DOF, previous_ADD_grad_DOF,
                                         PK2_M, SIGMA_M, M_M,
                                         ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_P
+#endif
                                       );
     
             if ( errorCode > 0 ){
