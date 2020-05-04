@@ -264,11 +264,11 @@ namespace micromorphicLinearElasticity{
                                 std::vector< double > &PK2, std::vector< double > &SIGMA, std::vector< double > &M,
                                 std::vector< std::vector< double > > &ADD_TERMS,
                                 std::string &output_message
+#ifdef DEBUG_MODE
+                                , std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > &DEBUG
+#endif
                               )
             {
-#ifdef DEBUG_MODE
-                std::map< std::string, std::vector< double > > DEBUG;
-#endif
                 return micromorphicLinearElasticity::evaluate_model(
                                          time, fparams,
                                          current_grad_u, current_phi, current_grad_phi,
@@ -279,9 +279,6 @@ namespace micromorphicLinearElasticity{
                                          PK2, SIGMA, M,
                                          ADD_TERMS,
                                          output_message
-#ifdef DEBUG_MODE
-                                         , DEBUG
-#endif
                                          );
             }
         
@@ -307,11 +304,11 @@ namespace micromorphicLinearElasticity{
                                 std::vector< std::vector< double > > &ADD_TERMS,
                                 std::vector< std::vector< std::vector< double > > > &ADD_JACOBIANS,
                                 std::string &output_message
+#ifdef DEBUG_MODE
+                                , std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > &DEBUG
+#endif
                               )
             {
-#ifdef DEBUG_MODE
-                std::map< std::string, std::vector< double > > DEBUG;
-#endif
                 return micromorphicLinearElasticity::evaluate_model(
                                          time, fparams,
                                          current_grad_u, current_phi, current_grad_phi,
@@ -325,9 +322,6 @@ namespace micromorphicLinearElasticity{
                                          DMDgrad_u, DMDphi, DMDgrad_phi,
                                          ADD_TERMS, ADD_JACOBIANS,
                                          output_message
-#ifdef DEBUG_MODE
-                                         , DEBUG
-#endif
                                          );
             }
     };
