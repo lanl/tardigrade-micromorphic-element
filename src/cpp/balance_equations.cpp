@@ -179,7 +179,7 @@ namespace balance_equations{
                                  double ( &cint )[ 9 ] ){
         /*!
          * Compute the internal couple defined as
-         * cint_{ ij } = N F_{ iI } ( PK2_{ IJ } - SIGMA_{ IJ } ) F_{ jJ } - N_{ ,K } F_{ jJ } \chi_{ iI } M_{ KJI }
+         * cint_{ ij } = N F_{ jJ } ( PK2_{ JI } - SIGMA_{ JI } ) F_{ iI } - N_{ ,K } F_{ iI } \chi_{ jJ } M_{ KIJ }
          *
          * :param const double &N: The shape-function value
          * :param const double ( &dNdX )[ 3 ]: The gradient of the shape function w.r.t. the reference configuration
@@ -217,7 +217,7 @@ namespace balance_equations{
                                  double &cint_ij ){
         /*!
          * Compute the internal couple at index ij defined as
-         * cint_{ ij } = N F_{ iI } ( PK2_{ IJ } - SIGMA_{ IJ } ) F_{ jJ } - N_{ ,K } F_{ jJ } \chi_{ iI } M_{ KJI }
+         * cint_{ ij } = N F_{ jJ } ( PK2_{ JI } - SIGMA_{ JI } ) F_{ iI } - N_{ ,K } F_{ iI } \chi_{ jJ } M_{ KIJ }
          *
          * Function returns 0 for no errors, 1 if F is the wrong size, 2 if chi is the wrong size,
          * 3 if PK2 is the wrong size, 4 if SIGMA is the wrong size, and 5 if M is the wrong size
@@ -262,10 +262,10 @@ namespace balance_equations{
         cint_ij = 0;
         for ( unsigned int I = 0; I < dim; I++ ){
             for ( unsigned int J = 0; J < dim; J++ ){
-                cint_ij += N * F[ dim * i + I ] * ( PK2[ dim * I + J ] - SIGMA[ dim * I + J ] ) * F[ dim * j + J ];
+                cint_ij += N * F[ dim * j + J ] * ( PK2[ dim * J + I ] - SIGMA[ dim * J + I ] ) * F[ dim * i + I ];
 
                 for ( unsigned int K = 0; K < dim; K++ ){
-                    cint_ij -= dNdX[ K ] * F[ dim * j + J ] * chi[ dim * i + I ] * M[ dim * dim * K + dim * J + I ];
+                    cint_ij -= dNdX[ K ] * F[ dim * i + I ] * chi[ dim * j + J ] * M[ dim * dim * K + dim * I + J ];
                 }
             }
         }
@@ -277,7 +277,7 @@ namespace balance_equations{
         /*!
          * Compute the body couple term
          *
-         * couple_body_{ ij } = N * density * l_{ ji }
+         * couple_body_{ ij } = N * density * l_{ ij }
          *
          * :param const double &N: The shape-function value.
          * :param const double &density: The density in the current configuration.
@@ -302,7 +302,7 @@ namespace balance_equations{
         /*!
          * Compute the body couple term for the indices i and j
          *
-         * couple_body_{ ij } = N * density * l_{ ji }
+         * couple_body_{ ij } = N * density * l_{ ij }
          *
          * :param const unsigned int &i: The first index.
          * :param const unsigned int &j: The second index.
@@ -315,7 +315,7 @@ namespace balance_equations{
         //Assume 3D
         const unsigned int dim = 3;
         
-        cb_ij = N * density * l[ dim * j + i ];
+        cb_ij = N * density * l[ dim * i + j ];
         
         return;
     }
@@ -324,7 +324,7 @@ namespace balance_equations{
         /*!
          * Compute the inertial couple in the current configuration
          *
-         * cinertial_{ ij } = -N * density * omega_{ ji }
+         * cinertial_{ ij } = -N * density * omega_{ ij }
          *
          * :param const double &N: The shape-function value
          * :param const double &density: The density in the current configuration
@@ -349,7 +349,7 @@ namespace balance_equations{
         /*!
          * Compute the inertial couple in the current configuration for the indices i and j
          *
-         * cinertial_{ ij } = -N * density * omega_{ ji }
+         * cinertial_{ ij } = -N * density * omega_{ ij }
          *
          * :param const unsigned int &i: The first index.
          * :param const unsigned int &j: The second index.
@@ -362,7 +362,7 @@ namespace balance_equations{
         //Assume 3D
         const unsigned int dim = 3;
 
-        cinertial_ij = - N * density * omega[ dim * j + i ];
+        cinertial_ij = - N * density * omega[ dim * i + j ];
         
         return;
     }
@@ -553,7 +553,7 @@ namespace balance_equations{
                                           variableMatrix &DcintDU ){
         /*!
          * Compute the jacobian of the internal couple
-         * cint_{ ij } = N F_{ iI } ( PK2_{ IJ } - SIGMA_{ IJ } ) F_{ jJ } - N_{ ,K } F_{ jJ } \chi_{ iI } M_{ KJI }
+         * cint_{ ij } = N F_{ iI } ( PK2_{ JI } - SIGMA_{ JI } ) F_{ jJ } - N_{ ,K } F_{ iI } \chi_{ jJ } M_{ KIJ }
          *
          * Returns 0 if there are no errors, 1 if F has an incorrect size, 2 if chi has an incorrect size,
          * 3 if PK2 has an incorrect size, 4 if SIGMA has an incorrect size, 5 if M has an incorrect size,
@@ -637,7 +637,7 @@ namespace balance_equations{
                                           variableType &DcintDU_ij ){
         /*!
          * Compute the jacobian of the internal couple
-         * cint_{ ij } = N F_{ iI } ( PK2_{ IJ } - SIGMA_{ IJ } ) F_{ jJ } - N_{ ,K } F_{ jJ } \chi_{ iI } M_{ KJI }
+         * cint_{ ij } = N F_{ iI } ( PK2_{ JI } - SIGMA_{ JI } ) F_{ jJ } - N_{ ,K } F_{ iI } \chi_{ jJ } M_{ KIJ }
          *
          * Returns 0 if there are no errors, 1 if F has an incorrect size, 2 if chi has an incorrect size,
          * 3 if PK2 has an incorrect size, 4 if SIGMA has an incorrect size, 5 if M has an incorrect size,
@@ -814,26 +814,26 @@ namespace balance_equations{
             for ( unsigned int I = 0; I < dim; I++ ){
                 for ( unsigned int J = 0; J < dim; J++ ){
                     for ( unsigned int K = 0; K < dim; K++ ){
-                        DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( DPK2Dgrad_u[ dim * I + J ][ dim * j + K ]
-                                                                     - DSIGMADgrad_u[ dim * I + J ][ dim * j + K ]
+                        DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( DPK2Dgrad_u[ dim * J + I ][ dim * j + K ]
+                                                                     - DSIGMADgrad_u[ dim * J + I ][ dim * j + K ]
                                                                      ) * detadX[ K ] * F[ dim * ( i % 3 ) + J ];
 
                         for ( unsigned int L = 0; L < dim; L++ ){
-                            DcintDU_ij -= dNdX[ K ] * F[ dim * ( i % 3 ) + J ] * chi[ dim * ( i / 3 ) + I ]
-                                        * DMDgrad_u[ dim * dim * K + dim * J + I ][ dim * j + L ] * detadX[ L ];
+                            DcintDU_ij -= dNdX[ K ] * F[ dim * ( i / 3 ) + I ] * chi[ dim * ( i % 3 ) + J ]
+                                        * DMDgrad_u[ dim * dim * K + dim * I + J ][ dim * j + L ] * detadX[ L ];
                         }
                         
-                        if ( ( i % 3) == j ){
-                            DcintDU_ij -= dNdX[ K ] * detadX[ J ] * chi[ dim * ( i / 3 ) + I ] * M[ dim * dim * K + dim * J + I ];
+                        if ( ( i / 3) == j ){
+                            DcintDU_ij -= dNdX[ K ] * detadX[ I ] * chi[ dim * ( i % 3 ) + J ] * M[ dim * dim * K + dim * I + J ];
                         }
                     }
 
                     if ( ( i / 3 ) == j ){
-                        DcintDU_ij += N * detadX[ I ] * ( PK2[ dim * I + J ] - SIGMA[ dim * I + J ] ) * F[ dim * ( i % 3 ) + J ];
+                        DcintDU_ij += N * detadX[ I ] * ( PK2[ dim * J + I ] - SIGMA[ dim * J + I ] ) * F[ dim * ( i % 3 ) + J ];
                     }
 
                     if ( ( i % 3 ) == j ){
-                        DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( PK2[ dim * I + J ] - SIGMA[ dim * I + J ] ) * detadX[ J ];
+                        DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( PK2[ dim * J + I ] - SIGMA[ dim * J + I ] ) * detadX[ J ];
                     }
                 }
             }
@@ -842,23 +842,23 @@ namespace balance_equations{
 
             for ( unsigned int I = 0; I < dim; I++ ){
                 for ( unsigned int J = 0; J < dim; J++ ){
-                    DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( DPK2Dphi[ dim * I + J ][ j - 3 ]
-                                                                 - DSIGMADphi[ dim * I + J ][ j - 3 ]
+                    DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( DPK2Dphi[ dim * J + I ][ j - 3 ]
+                                                                 - DSIGMADphi[ dim * J + I ][ j - 3 ]
                                                                  ) * eta * F[ dim * ( i % 3 ) + J ];
                     for ( unsigned int K = 0; K < dim; K++ ){
-                        DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( DPK2Dgrad_phi[ dim * I + J ][ dim * ( j - 3 ) + K ]
-                                                                     - DSIGMADgrad_phi[ dim * I + J ][ dim * ( j - 3 ) + K ]
+                        DcintDU_ij += N * F[ dim * ( i / 3 ) + I ] * ( DPK2Dgrad_phi[ dim * J + I ][ dim * ( j - 3 ) + K ]
+                                                                     - DSIGMADgrad_phi[ dim * J + I ][ dim * ( j - 3 ) + K ]
                                                                      ) * detadX[ K ] * F[ dim * ( i % 3 ) + J ];
 
-                        DcintDU_ij -= dNdX[ K ] * F[ dim * ( i % 3 ) + J ] * chi[ dim * ( i / 3 ) + I ]
-                                    * DMDphi[ dim * dim * K + dim * J + I ][ j - 3 ] * eta;
+                        DcintDU_ij -= dNdX[ K ] * F[ dim * ( i / 3 ) + I ] * chi[ dim * ( i % 3 ) + J ]
+                                    * DMDphi[ dim * dim * K + dim * I + J ][ j - 3 ] * eta;
 
                         for ( unsigned int L = 0; L < dim; L++ ){
-                            DcintDU_ij -= dNdX[ K ] * F[ dim * ( i % 3 ) + J ] * chi[ dim * ( i / 3 ) + I ] * DMDgrad_phi[ dim * dim * K + dim * J + I ][ dim * ( j - 3 ) + L ] * detadX[ L ];
+                            DcintDU_ij -= dNdX[ K ] * F[ dim * ( i / 3 ) + I ] * chi[ dim * ( i % 3 ) + J ] * DMDgrad_phi[ dim * dim * K + dim * I + J ][ dim * ( j - 3 ) + L ] * detadX[ L ];
                         }
 
-                        if ( ( dim * ( i / 3 ) + I ) == ( j - 3 ) ){
-                            DcintDU_ij -= dNdX[ K ] * F[ dim * ( i % 3 ) + J ] * eta * M[ dim * dim * K + dim * J + I ];
+                        if ( ( dim * ( i % 3 ) + J ) == ( j - 3 ) ){
+                            DcintDU_ij -= dNdX[ K ] * F[ dim * ( i / 3 ) + I ] * eta * M[ dim * dim * K + dim * I + J ];
                         }
                     }
                 }
