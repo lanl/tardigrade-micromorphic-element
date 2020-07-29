@@ -74,6 +74,13 @@ namespace balance_equations{
     void compute_inertial_couple( const unsigned int &i, const unsigned int &j,
                                   const double &N, const double &density, const double ( &omega )[ 9 ], double &cinertial_ij );
 
+    void compute_inertial_couple( const double &N, const double &density, const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ],
+                                  const double ( &referenceInertia )[ 9 ], double ( &cinertial )[ 9 ] );
+
+    void compute_inertial_couple( const unsigned int &i, const unsigned int &j, const double &N, const double &density,
+                                  const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ], const double ( &referenceInertia )[ 9 ],
+                                  double &cinertial_ij );
+
     /*=======================================================
     | The Jacobians of the balance of linear momentum terms |
     =======================================================*/

@@ -1544,6 +1544,73 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
     return 1;
 }
 
+int test_compute_inertial_couple2( std::ofstream &results ){
+    /*!
+     * Test the computation of the inertial couple from the reference inertia
+     *
+     * :param std::ofstream &results: The output file
+     */
+
+    const unsigned int dim = 3;
+
+    const double N = 0.3371389492810266;
+
+    const double density = 1043.6283367753965;
+
+    const double chi[ 9 ] = { 0.85797594,  0.05294924,  0.87252168,
+                              0.9070523 ,  0.26088588, -0.1660408 ,
+                             -0.52573607,  0.18003511, -0.32771471 };
+
+    const double d2chidt2[ 9 ] = { 0.75606571, -0.07025688,  1.2479219 ,
+                                   0.13319623,  1.17223211, -0.10365243,
+                                  -1.80243195, -0.05143313,  0.63628868 };
+
+    const double microInertia[ 9 ] = { -0.20347042,  0.14105765,  0.41256371,
+                                       -0.19506964,  0.62635855, -0.95446547,
+                                        0.18102142,  0.22379139,  0.03727777 };
+
+    const double answer[ 9 ] = { 162.88863477,   33.89950296,  -43.26956434,
+                                -397.07694359,   41.75746339,  220.13324203,
+                                 -60.10805413,  182.97025566,  -22.77962088 };
+
+    double result[ 9 ];
+
+    balance_equations::compute_inertial_couple( N, density, chi, d2chidt2, microInertia, result );
+
+    for ( unsigned int i = 0; i < dim * dim; i++ ){
+
+        if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
+
+            results << "test_compute_inertial_couple2 (test 1) & False\n";
+            return 1;
+
+        }
+
+    }
+
+    double result_ij;
+
+    for ( unsigned int i = 0; i < dim; i++ ){
+
+        for ( unsigned int j = 0; j < dim; j++ ){
+
+            balance_equations::compute_inertial_couple( i, j, N, density, chi, d2chidt2, microInertia, result_ij );
+
+            if ( !vectorTools::fuzzyEquals( result_ij, answer[ dim * i + j ] ) ){
+
+                results << "test_compute_inertial_couple2 (test 2) & False\n";
+                return 1;
+
+            }
+
+        }
+
+    }
+
+    results << "test_compute_inertial_couple2 & True\n";
+    return 1;
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -1572,6 +1639,7 @@ int main(){
     test_compute_internal_couple( results );
     test_compute_body_couple( results );
     test_compute_inertial_couple( results );
+    test_compute_inertial_couple2( results );
 
     //Tests of the Jacobians of the balance of linear momentum
     test_compute_internal_force_jacobian( results );

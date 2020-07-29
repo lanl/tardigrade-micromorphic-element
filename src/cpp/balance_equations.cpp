@@ -367,6 +367,71 @@ namespace balance_equations{
         return;
     }
 
+    void compute_inertial_couple( const double &N, const double &density,
+                                  const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ],
+                                  const double ( &referenceInertia )[ 9 ], double ( &cinertia )[ 9 ] ){
+        /*!
+         * Compute the inertial couple in the reference configuration
+         *
+         * :param const double &N: The shape function value
+         * :param const double &density: The density in the reference configuration.
+         * :param const double ( &chi )[ 9 ]: The micro deformation tensor
+         * :param const double ( &D2ChiDt2 )[ 9 ]: The second temporal derivative of the micro deformation tensor
+         * :param const double ( &referenceInertia )[ 9 ]: The moment of inertia in the reference configuration
+         * :param double ( &cinertia )[ 9 ]: The inertia couple
+         */
+
+        //Assume 3D
+        const unsigned int dim = 3;
+
+        for ( unsigned int i = 0; i < dim; i++ ){
+
+            for ( unsigned int j = 0; j < dim; j++ ){
+
+                compute_inertial_couple( i, j, N, density, chi, D2ChiDt2, referenceInertia, cinertia[ dim * i + j ] );
+
+            }
+
+        }
+
+        return;
+
+    }
+
+    void compute_inertial_couple( const unsigned int &i, const unsigned int &j, const double &N, const double &density,
+                                  const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ], const double ( &referenceInertia )[ 9 ],
+                                  double &cinertia_ij ){
+        /*!
+         * Compute the ij index of the inertial couple
+         *
+         * :param const unsigned int &i: The row index of the inertial couple
+         * :param const unsigned int &j: The column index of the inertial couple
+         * :param const double &N: The shape function value
+         * :param const double &density: The density in the reference configuration.
+         * :param const double ( &chi )[ 9 ]: The micro deformation tensor
+         * :param const double ( &D2ChiDt2 )[ 9 ]: The second temporal derivative of the micro deformation tensor
+         * :param const double ( &referenceInertia )[ 9 ]: The moment of inertia in the reference configuration
+         * :param double ( &cinertia_ij )[ 9 ]: The inertia couple
+         */
+
+        //Assume 3D
+        const unsigned int dim = 3;
+
+        cinertia_ij = 0;
+
+        for ( unsigned int I = 0; I < dim; I++ ){
+
+            for ( unsigned int J = 0; J < dim; J++ ){
+
+                cinertia_ij += N * D2ChiDt2[ dim * i + I ] * chi[ dim * j + J ] * density * referenceInertia[ dim * I + J ];
+
+            }
+
+        }
+
+        return;
+    }
+
     int compute_internal_force_jacobian( const double &N, const double ( &dNdX )[ 3 ], const double &eta, const double ( &detadX )[ 3 ],
                                          const variableVector &F, const variableVector &PK2,
                                          const variableMatrix &DPK2Dgrad_u, const variableMatrix &DPK2Dphi,
@@ -868,4 +933,5 @@ namespace balance_equations{
 
         return 0;
     }
+
 }
