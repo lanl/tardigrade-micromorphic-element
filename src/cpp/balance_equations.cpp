@@ -102,7 +102,7 @@ namespace balance_equations{
          * :param const double &N: The value of the shape function
          * :param const double &density: The density in the current configuration
          * :param const double ( &b )[ 3 ]: The body force in the current configuration
-         * :param const double ( &fb )[ 3 ]: The body force in the current configuration
+         * :param double ( &fb )[ 3 ]: The body force in the current configuration
          */
 
         //Assume 3D
@@ -125,7 +125,7 @@ namespace balance_equations{
          * :param const double &N: The value of the shape function
          * :param const double &density: The density in the current configuration
          * :param const double ( &b )[ 3 ]: The body force in the current configuration
-         * :param const double fb_i: The body force in the current configuration in direction i
+         * :param double fb_i: The body force in the current configuration in direction i
          */
         
         fb_i = N * density * b[ i ];
@@ -133,7 +133,7 @@ namespace balance_equations{
         return;
     }
 
-    void compute_inertia_force( const double &N, const double &density, const double ( &a )[ 3 ], double ( &finertia )[ 3 ] ){
+    int compute_inertia_force( const double &N, const double &density, const double ( &a )[ 3 ], double ( &finertia )[ 3 ] ){
         /*!
          * Compute the inertia force
          *
@@ -142,7 +142,7 @@ namespace balance_equations{
          * :param const double &N: The shape function value
          * :param const double &density: The density in the current configuration
          * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
-         * :param const double ( &finertia )[ 3 ]: The inertia force in the current configuration
+         * :param double ( &finertia )[ 3 ]: The inertia force in the current configuration
          */
 
         //Assume 3D
@@ -152,11 +152,11 @@ namespace balance_equations{
             compute_inertia_force( i, N, density, a, finertia[ i ] );
         }
 
-        return;
+        return 0;
     }
 
-    void compute_inertia_force( const unsigned int &i,
-                                const double &N, const double &density, const double ( &a )[ 3 ], double &finertia_i ){
+    int compute_inertia_force( const unsigned int &i,
+                               const double &N, const double &density, const double ( &a )[ 3 ], double &finertia_i ){
         /*!
          * Compute the inertia force for the ith component.
          *
@@ -166,12 +166,12 @@ namespace balance_equations{
          * :param const double &N: The shape function value
          * :param const double &density: The density in the current configuration
          * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
-         * :param const double finertia_i: The inertia force in the current configuration in direction i
+         * :param double finertia_i: The inertia force in the current configuration in direction i
          */
        
         finertia_i = -N * density * a[ i ]; 
 
-        return;
+        return 0;
     }
     
     int compute_internal_couple( const double &N, const double ( &dNdX )[ 3 ], const variableVector &F, const variableVector &chi,
@@ -367,9 +367,9 @@ namespace balance_equations{
         return;
     }
 
-    void compute_inertia_couple( const double &N, const double &density,
-                                 const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ],
-                                 const double ( &referenceInertia )[ 9 ], double ( &cinertia )[ 9 ] ){
+    int compute_inertia_couple( const double &N, const double &density,
+                                const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ],
+                                const double ( &referenceInertia )[ 9 ], double ( &cinertia )[ 9 ] ){
         /*!
          * Compute the inertia couple in the reference configuration
          *
@@ -396,13 +396,13 @@ namespace balance_equations{
 
         }
 
-        return;
+        return 0;
 
     }
 
-    void compute_inertia_couple( const unsigned int &i, const unsigned int &j, const double &N, const double &density,
-                                 const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ], const double ( &referenceInertia )[ 9 ],
-                                 double &cinertia_ij ){
+    int compute_inertia_couple( const unsigned int &i, const unsigned int &j, const double &N, const double &density,
+                                const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ], const double ( &referenceInertia )[ 9 ],
+                                double &cinertia_ij ){
         /*!
          * Compute the ij index of the inertia couple
          *
@@ -433,7 +433,8 @@ namespace balance_equations{
 
         }
 
-        return;
+        return 0;
+
     }
 
     int compute_internal_force_jacobian( const double &N, const double ( &dNdX )[ 3 ], const double &eta, const double ( &detadX )[ 3 ],
@@ -1089,6 +1090,87 @@ namespace balance_equations{
         }
 
         return 0;
+    }
+
+    int compute_inertia_force_jacobian( const double &N, const double &eta, const double &density, const double ( &a )[ 3 ],
+                                        const variableMatrix &DaDu, variableMatrix &DfinertiaDU ){
+        /*!
+         * Compute the inertia force jacobian
+         *
+         * finertia_i = -N * \rho * a_i
+         *
+         * :param const double &N: The shape function value
+         * :param const double &eta: The interpolation function value
+         * :param const double &density: The density in the current configuration
+         * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
+         * :param const variableMatrix &DaDu: The jacobian of the acceleration w.r.t. the degree of freedom vector
+         *     [ u_1, u_2, u_3 ] is the ordering of the degree of freedom vector
+         * :param const double ( &finertia )[ 3 ]: The inertia force in the current configuration
+         */
+
+        //Assume 3D
+        const unsigned int dim = 3;
+
+        int errorCode = 0;
+
+        DfinertiaDU = variableMatrix( dim, variableVector( dim, 0 ) );
+
+        for ( unsigned int i = 0; i < dim; i++ ){
+
+            for ( unsigned int j = 0; j < dim; j++ ){
+
+                errorCode = compute_inertia_force_jacobian( i, j, N, eta, density, a, DaDu, DfinertiaDU[ i ][ j ] );
+
+                if ( errorCode != 0 ){
+
+                    return errorCode;
+
+                }
+
+            }
+
+        }
+
+        return 0;
+    }
+
+    int compute_inertia_force_jacobian( const unsigned int &i, const unsigned int &j,
+                                        const double &N, const double &eta, const double &density, const double ( &a )[ 3 ],
+                                        const variableMatrix &DaDu, variableType &DfinertiaDU_ij ){
+        /*!
+         * Compute the inertia force jacobian for the ith component in the reference configuration
+         *
+         * finertia_i = -N * \rho * a_i
+         *
+         * \frac{ \partial f^{inertia}_i }{ \partial U_j } = -N * \rho * \frac{\partial a_i }{ \partial U_j }
+         *
+         * return:
+         * 0 if no errors
+         * 1 if i is larger than DaDu
+         * 2 if j is larger than the ith row of DaDu
+         *
+         * :param const unsigned int &i: The component to compute the inertia force on
+         * :param const double &N: The shape function value
+         * :param const double &density: The density in the current configuration
+         * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
+         * :param const double finertia_i: The inertia force in the current configuration in direction i
+         */
+
+        if ( i >= DaDu.size( ) ){
+
+            return 1;
+
+        }
+        if ( j >= DaDu[ i ].size( ) ){
+
+            return 2;
+
+        }
+
+        DfinertiaDU_ij = -N * density * eta * DaDu[ i ][ j ];       
+
+        return 0;
+
     }
 
 }

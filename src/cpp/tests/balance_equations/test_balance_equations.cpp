@@ -1726,6 +1726,56 @@ int test_compute_inertia_couple_jacobian( std::ofstream &results ){
 
 }
 
+int test_compute_inertia_force_jacobian( std::ofstream &results ){
+    /*!
+     * Test the computation of the jacobian of the inertia force
+     *
+     * :param std::ofstream &results: The output file
+     */
+
+    const double N   = 0.3371389492810266;
+    const double eta = 0.5218141683876982;
+    const double density = 1857.9759435499668;
+    const double a[ 3 ] = { -0.34487936,  0.12991242,  0.28417081 };
+    const variableMatrix dadu =
+        {
+            { 0.05294924,  0.87252168,  0.9070523  },
+            { 0.26088588, -0.1660408 , -0.52573607 },
+            { 0.18003511, -0.32771471,  0.63010391 }
+        };
+
+    variableMatrix answer =
+        {
+            { -17.30711266, -285.19447479, -296.48123367 },
+            { -85.27376758,   54.27248466,  171.84332111 },
+            { -58.84669755,  107.1175973 , -205.9572379 }
+        };
+
+    variableMatrix result;
+
+    int errorCode = balance_equations::compute_inertia_force_jacobian( N, eta, density, a, dadu, result );
+
+    if ( errorCode != 0 ){
+
+        results << "test_compute_inertia_force_jacobian & False\n";
+        return 1;
+
+    }
+
+    if ( !vectorTools::fuzzyEquals( result, answer ) ){
+
+        vectorTools::print( result );
+
+        results << "test_compute_inertia_force_jacobian (test 1) & False\n";
+        return 1;
+
+    }
+
+    results << "test_compute_inertia_force_jacobian & True\n";
+    return 0;
+
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -1758,6 +1808,8 @@ int main(){
 
     //Tests of the Jacobians of the balance of linear momentum
     test_compute_internal_force_jacobian( results );
+
+    test_compute_inertia_force_jacobian( results );
 
     //Tests of the Jacobians of the balance of the first moment of momentum
     test_compute_internal_couple_jacobian( results );
