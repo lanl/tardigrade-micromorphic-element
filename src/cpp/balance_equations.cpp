@@ -373,7 +373,7 @@ namespace balance_equations{
         /*!
          * Compute the inertia couple in the reference configuration
          *
-         * integrand_ij = N \rho_0 I_{ IJ } \ddot{ \chi }_{iI} \chi_{jJ}
+         * integrand_ij = -N \rho_0 I_{ IJ } \ddot{ \chi }_{iI} \chi_{jJ}
          *
          * :param const double &N: The shape function value
          * :param const double &density: The density in the reference configuration.
@@ -406,7 +406,7 @@ namespace balance_equations{
         /*!
          * Compute the ij index of the inertia couple
          *
-         * integrand_ij = N \rho_0 I_{ IJ } \ddot{ \chi }_{iI} \chi_{jJ}
+         * integrand_ij = -N \rho_0 I_{ IJ } \ddot{ \chi }_{iI} \chi_{jJ}
          *
          * :param const unsigned int &i: The row index of the inertia couple
          * :param const unsigned int &j: The column index of the inertia couple
@@ -427,7 +427,7 @@ namespace balance_equations{
 
             for ( unsigned int J = 0; J < dim; J++ ){
 
-                cinertia_ij += N * D2ChiDt2[ dim * i + I ] * chi[ dim * j + J ] * density * referenceInertia[ dim * I + J ];
+                cinertia_ij -= N * D2ChiDt2[ dim * i + I ] * chi[ dim * j + J ] * density * referenceInertia[ dim * I + J ];
 
             }
 
@@ -944,7 +944,7 @@ namespace balance_equations{
         /*!
          * Compute the jacobian of the inertia couple term
          *
-         * integrand_kl = N \rho_0 I_{KL } \ddot{ \chi }_{kK} \chi_{lL}
+         * integrand_kl = -N \rho_0 I_{KL } \ddot{ \chi }_{kK} \chi_{lL}
          *
          * returns:
          * 0 if no errors
@@ -1018,7 +1018,7 @@ namespace balance_equations{
         /*
          * Compute the jacobian of the inertia couple term
          *
-         * integrand_kl = N \rho_0 I_{KL } \ddot{ \chi }_{kK} \chi_{lL}
+         * integrand_kl = -N \rho_0 I_{KL } \ddot{ \chi }_{kK} \chi_{lL}
          *
          * returns:
          * 0 if no errors
@@ -1075,12 +1075,12 @@ namespace balance_equations{
 
             for ( unsigned int L = 0; L < dim; L++ ){
 
-                DcinertiaDU_ij += N * eta * density * referenceInertia[ dim * K + L ]
+                DcinertiaDU_ij -= N * eta * density * referenceInertia[ dim * K + L ]
                                 * D3ChiDt2DChi[ dim * k + K ][ dim * m + M ] * chi[ dim * l + L ];
                 
                 if ( ( l == m ) && ( L == M ) ){
 
-                    DcinertiaDU_ij += N * eta * density * referenceInertia[ dim * K + L ] * D2ChiDt2[ dim * k + K ];
+                    DcinertiaDU_ij -= N * eta * density * referenceInertia[ dim * K + L ] * D2ChiDt2[ dim * k + K ];
 
                 }
 
