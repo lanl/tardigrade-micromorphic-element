@@ -1070,6 +1070,7 @@ namespace balance_equations{
         }
 #endif
 
+        DcinertiaDU_ij = 0;
         for ( unsigned int K = 0; K < dim; K++ ){
 
             for ( unsigned int L = 0; L < dim; L++ ){

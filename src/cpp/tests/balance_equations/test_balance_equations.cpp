@@ -1611,6 +1611,121 @@ int test_compute_inertia_couple2( std::ofstream &results ){
     return 1;
 }
 
+int test_compute_inertia_couple_jacobian( std::ofstream &results ){
+    /*!
+     * Test the computation of the jacobian of the inertia couple from the reference inertia
+     *
+     * :param std::ofstream &results: The output file
+     */
+
+    const unsigned int dim = 3;
+
+    const double N = 0.3371389492810266;
+
+    const double eta = 0.521814168387698;
+
+    const double density = 858.6764675999902;
+
+    const double chi[ 9 ] = { eta *  0.66455883, eta * -0.83306412, eta *  0.69335131,
+                              eta *  0.005052  , eta * -0.21722663, eta * -0.25540263,
+                              eta * -0.15143235, eta *  0.64940103, eta * -0.73065224 };
+
+    const double d2chidt2[ 9 ] = { 0.94122501, -0.72606278, -0.17218694,
+                                  -0.76891885,  1.58015067,  0.32186389,
+                                  -0.34086243,  0.4205032 ,  0.1171416 };
+
+    const variableMatrix d3chidt2dchi =
+        {
+            { 0.85797594,  0.05294924,  0.87252168,  0.9070523 ,  0.26088588, -0.1660408 , -0.52573607,  0.18003511, -0.32771471 },
+            { 0.63010391,  0.67208242, -0.9717281 ,  0.16685242, -0.02319047,  0.96557757, -0.15795252, -0.75081345,  0.19992355 },
+            {-0.20347042,  0.14105765,  0.41256371, -0.19506964,  0.62635855, -0.95446547,  0.18102142,  0.22379139,  0.03727777 },
+            {-0.9050347 , -0.10401204,  0.49128609,  0.5187148 ,  0.99560961,  0.06334863, -0.88077841,  0.1168137 ,  0.7149579  },
+            { 0.60390449, -0.98516057, -0.16363574,  0.53309756,  0.64467707,  0.49231261, -0.29513   ,  0.77342133, -0.1632979  },
+            { 0.68228327, -0.58456109,  0.20284328,  0.84920242,  0.41200542, -0.04509093, -0.44841252, -0.53372714, -0.60162398 },
+            { 0.16526605, -0.90657387,  0.48403505,  0.29371857,  0.94104919, -0.3128741 , -0.16388052,  0.28451236,  0.84113848 },
+            { 0.13668068, -0.17028126,  0.81950158,  0.96165898,  0.49045606,  0.92776846, -0.95233733, -0.13584313, -0.59277377 },
+            { 0.23636841, -0.32054603,  0.46435317,  0.34276682, -0.9781286 ,  0.96107119,  0.5003388 ,  0.66436978,  0.71750222 }
+        };
+
+
+    const double microInertia[ 9 ] = { 0.74762276, -0.88615253,  0.44407671,
+                                      -0.65955865,  0.52000489, -0.0636554 ,
+                                      -0.14379758, -0.44381996,  0.91984714 };
+
+    variableMatrix answer =
+        {
+            { 226.62659469, -203.41498183,  252.11067966,   84.25539781,   78.43014503, -158.49926046,  -39.52975053,   92.17567109,
+         -51.60871978 },
+            {   2.86838796,   -6.50201624,    8.83236617,  189.12970068, -176.47444293,   47.97428124,   -4.17510941,    4.63974232,
+          -4.125959   },
+            { -29.42366394,   10.98123108, -137.28292692,  -51.64135147,  -68.05835452,  120.71712411,  204.94751604, -231.06998344,
+          77.23893246 },
+            {-355.88546968,  221.91066835,   64.093447  ,   85.656731  ,  104.17796953,  -31.07020603, -118.05793775,  -79.98275993,
+          55.49581739 },
+            { -18.16182328,   13.5052885 ,    2.27245639, -261.40495726,  202.37317479,  -25.02508618,    1.49667171,    0.52272085,
+          12.56077654 },
+            {  44.84649585,   13.96097358,  -60.48589094,  -83.90844135,  -85.39267939,   17.06242206, -159.0144834 ,  265.14531286,
+         -40.87272305 },
+            { -55.71027406,  -50.20768371,   22.46971322,   -9.0460996 ,    8.7432289 ,  -35.93036756,   84.77172183,   92.16711165,
+         196.66651519 },
+            {  -2.59286522,   -1.05977731,   -8.3976076 ,  -92.36400466,   83.82222342,  -30.54052006,    0.94715941,   -4.36305845,
+           2.29212653 },
+            { -25.46978225,   89.61790515,  -41.73876434,  -12.12009465,   15.92292961,  -10.7118311 , -143.20399477,   -6.24878629,
+        -153.50826731 }
+        };
+
+    variableMatrix result;
+
+    int errorCode = balance_equations::compute_inertia_couple_jacobian( N, eta, density, chi, d2chidt2,
+                                                                        d3chidt2dchi, microInertia, result );
+
+    if ( errorCode != 0 ){
+
+        std::cout << "errorCode: " << errorCode << "\n";
+        results << "test_compute_inertia_couple_jacobian & False\n";
+        return 1;
+
+    }
+
+    if ( !vectorTools::fuzzyEquals( result, answer ) ){
+
+        results << "test_compute_inertia_couple_jacobian (test 1) & False\n";
+        return 1;
+
+    }
+
+    double result_ij;
+    for ( unsigned int i = 0; i < dim * dim; i++ ){
+
+        for ( unsigned int j = 0; j < dim * dim; j++ ){
+
+            errorCode = balance_equations::compute_inertia_couple_jacobian( i, j, N, eta, density, chi, d2chidt2,
+                                                                            d3chidt2dchi, microInertia, result_ij );
+
+            if ( errorCode != 0 ){
+
+                std::cout << "errorCode: " << errorCode << "\n";
+                results << "test_compute_inertia_couple_jacobian & False\n";
+                return 1;
+
+            }
+
+            if ( !vectorTools::fuzzyEquals( result_ij, answer[ i ][ j ] ) ){
+
+                results << "test_compute_inertia_couple_jacobian (test 2) & False\n";
+                return 1;
+
+            }
+
+        }
+
+    }
+
+    results << "test_compute_inertia_couple_jacobian & True\n";
+    return 0;
+
+}
+
 int main(){
     /*!==========================
     |         main            |
@@ -1646,6 +1761,9 @@ int main(){
 
     //Tests of the Jacobians of the balance of the first moment of momentum
     test_compute_internal_couple_jacobian( results );
+
+    //Test of the jacobians of the inertia couple
+    test_compute_inertia_couple_jacobian( results );
 
     //Close the results file
     results.close();
