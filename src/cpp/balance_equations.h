@@ -45,10 +45,10 @@ namespace balance_equations{
     
     void compute_body_force( const unsigned int &i, const double &N, const double &density, const double (&b)[3], double &fb);
 
-    void compute_inertial_force( const double &N, const double &density, const double ( &a )[ 3 ], double ( &finertial )[ 3 ] );
+    void compute_inertia_force( const double &N, const double &density, const double ( &a )[ 3 ], double ( &finertia )[ 3 ] );
     
-    void compute_inertial_force( const unsigned int &i, const double &N, const double &density, const double ( &a )[ 3 ],
-                                 double &finertial_i );
+    void compute_inertia_force( const unsigned int &i, const double &N, const double &density, const double ( &a )[ 3 ],
+                                double &finertia_i );
 
     /*===========================================================
     | Stresses from the balance of the first moment of momentum |
@@ -69,17 +69,17 @@ namespace balance_equations{
     void compute_body_couple( const unsigned int &i, const unsigned int &j,
                               const double &N, const double &density, const double ( &l )[ 9 ], double &cb_ij );
 
-    void compute_inertial_couple( const double &N, const double &density, const double ( &omega )[ 9 ], double ( &cinertial )[ 9 ] );
+    void compute_inertia_couple( const double &N, const double &density, const double ( &omega )[ 9 ], double ( &cinertia )[ 9 ] );
 
-    void compute_inertial_couple( const unsigned int &i, const unsigned int &j,
-                                  const double &N, const double &density, const double ( &omega )[ 9 ], double &cinertial_ij );
+    void compute_inertia_couple( const unsigned int &i, const unsigned int &j,
+                                 const double &N, const double &density, const double ( &omega )[ 9 ], double &cinertia_ij );
 
-    void compute_inertial_couple( const double &N, const double &density, const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ],
-                                  const double ( &referenceInertia )[ 9 ], double ( &cinertial )[ 9 ] );
+    void compute_inertia_couple( const double &N, const double &density, const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ],
+                                 const double ( &referenceInertia )[ 9 ], double ( &cinertia )[ 9 ] );
 
-    void compute_inertial_couple( const unsigned int &i, const unsigned int &j, const double &N, const double &density,
-                                  const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ], const double ( &referenceInertia )[ 9 ],
-                                  double &cinertial_ij );
+    void compute_inertia_couple( const unsigned int &i, const unsigned int &j, const double &N, const double &density,
+                                 const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ], const double ( &referenceInertia )[ 9 ],
+                                 double &cinertia_ij );
 
     /*=======================================================
     | The Jacobians of the balance of linear momentum terms |
@@ -122,6 +122,15 @@ namespace balance_equations{
                                           const variableMatrix &DMDgrad_u, const variableMatrix &DMDphi,
                                           const variableMatrix &DMDgrad_phi,
                                           variableType &DcintDU_ij );
+
+    int compute_inertia_couple_jacobian( const double &N, const double &eta, const double &density, const double ( &chi )[ 9 ],
+                                         const double ( &D2ChiDt2 )[ 9 ], const variableMatrix &D3ChiDt2dChi,
+                                         const double ( &referenceInertia )[ 9 ], variableMatrix &DcinertiaDU );
+
+    int compute_inertia_couple_jacobian( const unsigned int &i, const unsigned int &j,
+                                         const double &N, const double &eta, const double &density, const double ( &chi )[ 9 ],
+                                         const double ( &D2ChiDt2 )[ 9 ], const variableMatrix &D3ChiDt2dChi,
+                                         const double ( &referenceInertia )[ 9 ], double &DcinertiaDU_ij );
 }
 
 #endif

@@ -133,43 +133,43 @@ namespace balance_equations{
         return;
     }
 
-    void compute_inertial_force( const double &N, const double &density, const double ( &a )[ 3 ], double ( &finertial )[ 3 ] ){
+    void compute_inertia_force( const double &N, const double &density, const double ( &a )[ 3 ], double ( &finertia )[ 3 ] ){
         /*!
-         * Compute the inertial force
+         * Compute the inertia force
          *
-         * finertial_i = -N * \rho * a_i
+         * finertia_i = -N * \rho * a_i
          *
          * :param const double &N: The shape function value
          * :param const double &density: The density in the current configuration
          * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
-         * :param const double ( &finertial )[ 3 ]: The inertial force in the current configuration
+         * :param const double ( &finertia )[ 3 ]: The inertia force in the current configuration
          */
 
         //Assume 3D
         const unsigned int dim = 3;
         
         for ( unsigned int i = 0; i < dim; i++ ){
-            compute_inertial_force( i, N, density, a, finertial[ i ] );
+            compute_inertia_force( i, N, density, a, finertia[ i ] );
         }
 
         return;
     }
 
-    void compute_inertial_force( const unsigned int &i,
-                                 const double &N, const double &density, const double ( &a )[ 3 ], double &finertial_i ){
+    void compute_inertia_force( const unsigned int &i,
+                                const double &N, const double &density, const double ( &a )[ 3 ], double &finertia_i ){
         /*!
-         * Compute the inertial force for the ith component.
+         * Compute the inertia force for the ith component.
          *
-         * finertial_i = -N * \rho * a_i
+         * finertia_i = -N * \rho * a_i
          *
-         * :param const unsigned int &i: The component to compute the inertial force on
+         * :param const unsigned int &i: The component to compute the inertia force on
          * :param const double &N: The shape function value
          * :param const double &density: The density in the current configuration
          * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
-         * :param const double finertial_i: The inertial force in the current configuration in direction i
+         * :param const double finertia_i: The inertia force in the current configuration in direction i
          */
        
-        finertial_i = -N * density * a[ i ]; 
+        finertia_i = -N * density * a[ i ]; 
 
         return;
     }
@@ -320,16 +320,16 @@ namespace balance_equations{
         return;
     }
     
-    void compute_inertial_couple( const double &N, const double &density, const double ( &omega )[ 9 ], double ( &cinertial )[ 9 ] ){
+    void compute_inertia_couple( const double &N, const double &density, const double ( &omega )[ 9 ], double ( &cinertia )[ 9 ] ){
         /*!
-         * Compute the inertial couple in the current configuration
+         * Compute the inertia couple in the current configuration
          *
-         * cinertial_{ ij } = -N * density * omega_{ ij }
+         * cinertia_{ ij } = -N * density * omega_{ ij }
          *
          * :param const double &N: The shape-function value
          * :param const double &density: The density in the current configuration
          * :param const double ( &omega )[ 9 ]: The micro-inertia tensor in the current configuration.
-         * :param const double ( &cinertial )[ 9 ]: The inertial couple.
+         * :param const double ( &cinertia )[ 9 ]: The inertia couple.
          */
 
         //Assume 3D
@@ -337,41 +337,43 @@ namespace balance_equations{
 
         for ( unsigned int i = 0; i < dim; i++ ){
             for ( unsigned int j = 0; j < dim; j++ ){
-                compute_inertial_couple( i, j, N, density, omega, cinertial[ dim * i + j ] );
+                compute_inertia_couple( i, j, N, density, omega, cinertia[ dim * i + j ] );
             }
         }
         
         return;
     }
     
-    void compute_inertial_couple( const unsigned int &i, const unsigned int &j,
-                                  const double &N, const double &density, const double ( &omega )[ 9 ], double &cinertial_ij ){
+    void compute_inertia_couple( const unsigned int &i, const unsigned int &j,
+                                 const double &N, const double &density, const double ( &omega )[ 9 ], double &cinertia_ij ){
         /*!
-         * Compute the inertial couple in the current configuration for the indices i and j
+         * Compute the inertia couple in the current configuration for the indices i and j
          *
-         * cinertial_{ ij } = -N * density * omega_{ ij }
+         * cinertia_{ ij } = -N * density * omega_{ ij }
          *
          * :param const unsigned int &i: The first index.
          * :param const unsigned int &j: The second index.
          * :param const double &N: The shape-function value
          * :param const double &density: The density in the current configuration
          * :param const double ( &omega )[ 9 ]: The micro-inertia tensor in the current configuration.
-         * :param const double &cinternal_ij: The ij'th inertial couple.
+         * :param const double &cinternal_ij: The ij'th inertia couple.
          */
 
         //Assume 3D
         const unsigned int dim = 3;
 
-        cinertial_ij = - N * density * omega[ dim * i + j ];
+        cinertia_ij = - N * density * omega[ dim * i + j ];
         
         return;
     }
 
-    void compute_inertial_couple( const double &N, const double &density,
-                                  const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ],
-                                  const double ( &referenceInertia )[ 9 ], double ( &cinertia )[ 9 ] ){
+    void compute_inertia_couple( const double &N, const double &density,
+                                 const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ],
+                                 const double ( &referenceInertia )[ 9 ], double ( &cinertia )[ 9 ] ){
         /*!
-         * Compute the inertial couple in the reference configuration
+         * Compute the inertia couple in the reference configuration
+         *
+         * integrand_ij = N \rho_0 I_{ IJ } \ddot{ \chi }_{iI} \chi_{jJ}
          *
          * :param const double &N: The shape function value
          * :param const double &density: The density in the reference configuration.
@@ -388,7 +390,7 @@ namespace balance_equations{
 
             for ( unsigned int j = 0; j < dim; j++ ){
 
-                compute_inertial_couple( i, j, N, density, chi, D2ChiDt2, referenceInertia, cinertia[ dim * i + j ] );
+                compute_inertia_couple( i, j, N, density, chi, D2ChiDt2, referenceInertia, cinertia[ dim * i + j ] );
 
             }
 
@@ -398,14 +400,16 @@ namespace balance_equations{
 
     }
 
-    void compute_inertial_couple( const unsigned int &i, const unsigned int &j, const double &N, const double &density,
-                                  const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ], const double ( &referenceInertia )[ 9 ],
-                                  double &cinertia_ij ){
+    void compute_inertia_couple( const unsigned int &i, const unsigned int &j, const double &N, const double &density,
+                                 const double ( &chi )[ 9 ], const double ( &D2ChiDt2 )[ 9 ], const double ( &referenceInertia )[ 9 ],
+                                 double &cinertia_ij ){
         /*!
-         * Compute the ij index of the inertial couple
+         * Compute the ij index of the inertia couple
          *
-         * :param const unsigned int &i: The row index of the inertial couple
-         * :param const unsigned int &j: The column index of the inertial couple
+         * integrand_ij = N \rho_0 I_{ IJ } \ddot{ \chi }_{iI} \chi_{jJ}
+         *
+         * :param const unsigned int &i: The row index of the inertia couple
+         * :param const unsigned int &j: The column index of the inertia couple
          * :param const double &N: The shape function value
          * :param const double &density: The density in the reference configuration.
          * :param const double ( &chi )[ 9 ]: The micro deformation tensor
@@ -927,6 +931,158 @@ namespace balance_equations{
                         }
                     }
                 }
+            }
+
+        }
+
+        return 0;
+    }
+
+    int compute_inertia_couple_jacobian( const double &N, const double &eta, const double &density, const double ( &chi )[ 9 ],
+                                         const double ( &D2ChiDt2 )[ 9 ], const variableMatrix &D3ChiDt2DChi,
+                                         const double ( &referenceInertia )[ 9 ], variableMatrix &DcinertiaDU ){
+        /*!
+         * Compute the jacobian of the inertia couple term
+         *
+         * integrand_kl = N \rho_0 I_{KL } \ddot{ \chi }_{kK} \chi_{lL}
+         *
+         * returns:
+         * 0 if no errors
+         * 1 if D3ChiDt2DChi doesn't have the proper number of rows
+         * 2 if D3ChiDt2DChi doesn't have the proper number of columns
+         *
+         * :param const double &N: The shapefunction value
+         * :param const double &eta: The interpolation function value
+         * :param const double &density: The density in the reference configuration
+         * :param const double ( &chi )[ 9 ]: The micro-deformation
+         * :param const double ( &D2ChiDt2 )[ 9 ]: The second temporal derivative of the micro-deformation
+         * :param const double ( &D3ChiDt2DChi )[ 9 ]: The derivative of the second temporal derivative of 
+         *     the micro-deformation w.r.t. the micro-deformation
+         * :param const double ( &referenceInertia )[ 9 ]: The mass moment of inertia in the reference configuration
+         * :param variableMatrix &DcinertiaDU: The Jacobian of the inertia couple term w.r.t. the degree of freedom vector
+         */
+
+        //Assume 3d
+        const unsigned int dim = 3;
+
+        //Error handling
+#ifndef SKIP_ERROR_HANDING
+        if ( D3ChiDt2DChi.size( ) != dim * dim ){
+
+            //Return the error code
+            return 1;
+
+        }
+
+        for ( unsigned int i = 0; i < D3ChiDt2DChi.size( ); i++ ){
+
+            if ( D3ChiDt2DChi[ i ].size( ) != dim * dim ){
+
+                return 2;
+
+            }
+
+        }
+#endif
+
+        DcinertiaDU = variableMatrix( dim * dim, variableVector( dim * dim, 0 ) );
+
+        int errorCode;
+
+        for ( unsigned int i = 0; i < dim * dim; i++ ){
+
+            for ( unsigned int j = 0; j < dim * dim; j++ ){
+
+                errorCode = compute_inertia_couple_jacobian( i, j, N, eta, density, chi, D2ChiDt2,
+                                                             D3ChiDt2DChi, referenceInertia, DcinertiaDU[ i ][ j ] );
+
+#ifndef SKIP_ERROR_HANDLING
+                if ( errorCode != 0 ){
+
+                    return errorCode;
+
+                }
+#endif
+
+            }
+
+        }
+
+        return 0;
+    }
+
+    int compute_inertia_couple_jacobian( const unsigned int &i, const unsigned int &j,
+                                         const double &N, const double &eta, const double &density, const double ( &chi )[ 9 ],
+                                         const double ( &D2ChiDt2 )[ 9 ], const variableMatrix &D3ChiDt2DChi,
+                                         const double ( &referenceInertia )[ 9 ], double &DcinertiaDU_ij ){
+        /*
+         * Compute the jacobian of the inertia couple term
+         *
+         * integrand_kl = N \rho_0 I_{KL } \ddot{ \chi }_{kK} \chi_{lL}
+         *
+         * returns:
+         * 0 if no errors
+         * 1 if D3ChiDt2DChi doesn't have the proper number of rows
+         * 2 if D3ChiDt2DChi doesn't have the proper number of columns
+         *
+         * :param const unsigned int &i: The row index of the Jacobian required the Jacobian rows are stored as
+         *     [ 11, 12, 13, 21, 22, 23, 31, 32, 33 ] where i refers to the index of the preceeding array
+         * :param const unsigned int &j: The column index of the Jacobian required which is stored as
+         *     [ 11, 12, 13, 21, 22, 23, 31, 32, 33 ] where j refers to the index of the preceeding array
+         * :param const double &N: The shapefunction value
+         * :param const double &eta: The interpolation function value
+         * :param const double &density: The density in the reference configuration
+         * :param const double ( &chi )[ 9 ]: The micro-deformation
+         * :param const double ( &D2ChiDt2 )[ 9 ]: The second temporal derivative of the micro-deformation
+         * :param const double ( &D3ChiDt2DChi )[ 9 ]: The derivative of the second temporal derivative of 
+         *     the micro-deformation w.r.t. the micro-deformation
+         * :param const double ( &referenceInertia )[ 9 ]: The mass moment of inertia in the reference configuration
+         * :param double &DcinertiaDU_ij: The Jacobian of the inertia couple term w.r.t. the degree of freedom vector
+         *     for the indices i and j
+         */
+
+        //Assume 3D
+        const unsigned int dim = 3;
+
+        const unsigned int k = i / dim;
+        const unsigned int l = i % dim;
+
+        const unsigned int m = j / dim;
+        const unsigned int M = j % dim;
+
+        //Error handling
+#ifndef SKIP_ERROR_HANDING
+        if ( D3ChiDt2DChi.size( ) != dim * dim ){
+
+            //Return the error code
+            return 1;
+
+        }
+
+        for ( unsigned int i = 0; i < D3ChiDt2DChi.size( ); i++ ){
+
+            if ( D3ChiDt2DChi[ i ].size( ) != dim * dim ){
+
+                return 2;
+
+            }
+
+        }
+#endif
+
+        for ( unsigned int K = 0; K < dim; K++ ){
+
+            for ( unsigned int L = 0; L < dim; L++ ){
+
+                DcinertiaDU_ij += N * eta * density * referenceInertia[ dim * K + L ]
+                                * D3ChiDt2DChi[ dim * k + K ][ dim * m + M ] * chi[ dim * l + L ];
+                
+                if ( ( l == m ) && ( L == M ) ){
+
+                    DcinertiaDU_ij += N * eta * density * referenceInertia[ dim * K + L ] * D2ChiDt2[ dim * k + K ];
+
+                }
+
             }
 
         }

@@ -1038,7 +1038,7 @@ int test_compute_body_force( std::ofstream &results ){
     return 0;
 }
 
-int test_compute_inertial_force( std::ofstream &results ){
+int test_compute_inertia_force( std::ofstream &results ){
     /*!
      * Test the computation of the intertial force term
      *
@@ -1052,24 +1052,24 @@ int test_compute_inertial_force( std::ofstream &results ){
     double answer[ 3 ] = { -0.07038893, -0.21062742, -0.13808097 };
     double result[ 3 ];
 
-    balance_equations::compute_inertial_force( N, density, a, result );
+    balance_equations::compute_inertia_force( N, density, a, result );
 
     for ( unsigned int i = 0; i < 3; i++ ){
         if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
-            results << "test_compute_inertial_force (test 1) & False\n";
+            results << "test_compute_inertia_force (test 1) & False\n";
             return 1;
         }
 
         double temp;
-        balance_equations::compute_inertial_force( i, N, density, a, temp );
+        balance_equations::compute_inertia_force( i, N, density, a, temp );
 
         if ( !vectorTools::fuzzyEquals( answer[ i ], temp ) ){
-            results << "test_compute_inertial_force (test 2) & False\n";
+            results << "test_compute_inertia_force (test 2) & False\n";
             return 1;
         }
     }
 
-    results << "test_compute_inertial_force & True\n";
+    results << "test_compute_inertia_force & True\n";
     return 0;
 }
 
@@ -1172,9 +1172,9 @@ int test_compute_body_couple( std::ofstream &results ){
     return 0;
 }
 
-int test_compute_inertial_couple( std::ofstream &results ){
+int test_compute_inertia_couple( std::ofstream &results ){
     /*!
-     * Test the computation of the inertial couple term
+     * Test the computation of the inertia couple term
      *
      * :param std::ofstream &results: The output file.
      */
@@ -1189,23 +1189,23 @@ int test_compute_inertial_couple( std::ofstream &results ){
                            -0.19873717, -0.42125375, -0.01539008 };
     double result[ 9 ];
 
-    balance_equations::compute_inertial_couple( N, density, omega, result );
+    balance_equations::compute_inertia_couple( N, density, omega, result );
 
     for ( unsigned int i = 0; i < 9; i++ ){
         if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
-            results << "test_compute_inertial_couple (test 1) & False\n";
+            results << "test_compute_inertia_couple (test 1) & False\n";
             return 1;
         }
 
         double temp;
-        balance_equations::compute_inertial_couple( i / 3, i % 3, N, density, omega, temp );
+        balance_equations::compute_inertia_couple( i / 3, i % 3, N, density, omega, temp );
         if ( !vectorTools::fuzzyEquals( temp, answer[ i ] ) ){
-            results << "test_compute_inertial_couple (test 2) & False\n";
+            results << "test_compute_inertia_couple (test 2) & False\n";
             return 1;
         }
     }
 
-    results << "test_compute_inertial_couple & True\n";
+    results << "test_compute_inertia_couple & True\n";
     return 0;
 }
 
@@ -1544,9 +1544,9 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
     return 1;
 }
 
-int test_compute_inertial_couple2( std::ofstream &results ){
+int test_compute_inertia_couple2( std::ofstream &results ){
     /*!
-     * Test the computation of the inertial couple from the reference inertia
+     * Test the computation of the inertia couple from the reference inertia
      *
      * :param std::ofstream &results: The output file
      */
@@ -1575,13 +1575,13 @@ int test_compute_inertial_couple2( std::ofstream &results ){
 
     double result[ 9 ];
 
-    balance_equations::compute_inertial_couple( N, density, chi, d2chidt2, microInertia, result );
+    balance_equations::compute_inertia_couple( N, density, chi, d2chidt2, microInertia, result );
 
     for ( unsigned int i = 0; i < dim * dim; i++ ){
 
         if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
 
-            results << "test_compute_inertial_couple2 (test 1) & False\n";
+            results << "test_compute_inertia_couple2 (test 1) & False\n";
             return 1;
 
         }
@@ -1594,11 +1594,11 @@ int test_compute_inertial_couple2( std::ofstream &results ){
 
         for ( unsigned int j = 0; j < dim; j++ ){
 
-            balance_equations::compute_inertial_couple( i, j, N, density, chi, d2chidt2, microInertia, result_ij );
+            balance_equations::compute_inertia_couple( i, j, N, density, chi, d2chidt2, microInertia, result_ij );
 
             if ( !vectorTools::fuzzyEquals( result_ij, answer[ dim * i + j ] ) ){
 
-                results << "test_compute_inertial_couple2 (test 2) & False\n";
+                results << "test_compute_inertia_couple2 (test 2) & False\n";
                 return 1;
 
             }
@@ -1607,7 +1607,7 @@ int test_compute_inertial_couple2( std::ofstream &results ){
 
     }
 
-    results << "test_compute_inertial_couple2 & True\n";
+    results << "test_compute_inertia_couple2 & True\n";
     return 1;
 }
 
@@ -1633,13 +1633,13 @@ int main(){
     //Tests of the terms in the balance of linear momentum
     test_compute_internal_force( results );
     test_compute_body_force( results );
-    test_compute_inertial_force( results );
+    test_compute_inertia_force( results );
 
     //Tests of the terms in the balance of the first moment of momentum
     test_compute_internal_couple( results );
     test_compute_body_couple( results );
-    test_compute_inertial_couple( results );
-    test_compute_inertial_couple2( results );
+    test_compute_inertia_couple( results );
+    test_compute_inertia_couple2( results );
 
     //Tests of the Jacobians of the balance of linear momentum
     test_compute_internal_force_jacobian( results );
