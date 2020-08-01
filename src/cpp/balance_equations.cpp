@@ -142,7 +142,7 @@ namespace balance_equations{
          * :param const double &N: The shape function value
          * :param const double &density: The density in the current configuration
          * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
-         * :param double ( &finertia )[ 3 ]: The inertia force in the current configuration
+         * :param double ( &finertia )[ 3 ]: The inertia force
          */
 
         //Assume 3D
@@ -1105,7 +1105,7 @@ namespace balance_equations{
          * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
          * :param const variableMatrix &DaDu: The jacobian of the acceleration w.r.t. the degree of freedom vector
          *     [ u_1, u_2, u_3 ] is the ordering of the degree of freedom vector
-         * :param const double ( &finertia )[ 3 ]: The inertia force in the current configuration
+         * :param variableMatrix &DfinertiaDU: The jacobian of the inertia force
          */
 
         //Assume 3D
