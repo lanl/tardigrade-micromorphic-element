@@ -1695,12 +1695,20 @@ int test_compute_inertia_couple_jacobian( std::ofstream &results ){
     }
 
     double result_ij;
+    variableVector d3chidt2dchi_j( dim * dim, 0 );
+
     for ( unsigned int i = 0; i < dim * dim; i++ ){
 
         for ( unsigned int j = 0; j < dim * dim; j++ ){
 
+            for ( unsigned int _i = 0; _i < dim * dim; _i++ ){
+
+                d3chidt2dchi_j[ _i ] = d3chidt2dchi[ _i ][ j ];
+
+            }
+
             errorCode = balance_equations::compute_inertia_couple_jacobian( i, j, N, eta, density, chi, d2chidt2,
-                                                                            d3chidt2dchi, microInertia, result_ij );
+                                                                            d3chidt2dchi_j, microInertia, result_ij );
 
             if ( errorCode != 0 ){
 

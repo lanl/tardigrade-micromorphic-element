@@ -957,7 +957,7 @@ namespace balance_equations{
          * :param const double &density: The density in the reference configuration
          * :param const double ( &chi )[ 9 ]: The micro-deformation
          * :param const double ( &D2ChiDt2 )[ 9 ]: The second temporal derivative of the micro-deformation
-         * :param const double ( &D3ChiDt2DChi )[ 9 ]: The derivative of the second temporal derivative of 
+         * :param const variableMatrix &D3ChiDt2DChi: The derivative of the second temporal derivative of 
          *     the micro-deformation w.r.t. the micro-deformation
          * :param const double ( &referenceInertia )[ 9 ]: The mass moment of inertia in the reference configuration
          * :param variableMatrix &DcinertiaDU: The Jacobian of the inertia couple term w.r.t. the degree of freedom vector
@@ -988,14 +988,22 @@ namespace balance_equations{
 
         DcinertiaDU = variableMatrix( dim * dim, variableVector( dim * dim, 0 ) );
 
+        variableVector D3ChiDt2DChi_j( dim * dim, 0 );
+
         int errorCode;
 
         for ( unsigned int i = 0; i < dim * dim; i++ ){
 
             for ( unsigned int j = 0; j < dim * dim; j++ ){
 
+                for ( unsigned int _i = 0; _i < dim * dim; _i++ ){
+
+                    D3ChiDt2DChi_j[ _i ] = D3ChiDt2DChi[ _i ][ j ];
+
+                }
+
                 errorCode = compute_inertia_couple_jacobian( i, j, N, eta, density, chi, D2ChiDt2,
-                                                             D3ChiDt2DChi, referenceInertia, DcinertiaDU[ i ][ j ] );
+                                                             D3ChiDt2DChi_j, referenceInertia, DcinertiaDU[ i ][ j ] );
 
 #ifndef SKIP_ERROR_HANDLING
                 if ( errorCode != 0 ){
@@ -1014,7 +1022,7 @@ namespace balance_equations{
 
     int compute_inertia_couple_jacobian( const unsigned int &i, const unsigned int &j,
                                          const double &N, const double &eta, const double &density, const double ( &chi )[ 9 ],
-                                         const double ( &D2ChiDt2 )[ 9 ], const variableMatrix &D3ChiDt2DChi,
+                                         const double ( &D2ChiDt2 )[ 9 ], const variableVector &D3ChiDt2DChi_j,
                                          const double ( &referenceInertia )[ 9 ], double &DcinertiaDU_ij ){
         /*
          * Compute the jacobian of the inertia couple term
@@ -1023,7 +1031,6 @@ namespace balance_equations{
          *
          * returns:
          * 0 if no errors
-         * 1 if D3ChiDt2DChi doesn't have the proper number of rows
          * 2 if D3ChiDt2DChi doesn't have the proper number of columns
          *
          * :param const unsigned int &i: The row index of the Jacobian required the Jacobian rows are stored as
@@ -1035,8 +1042,8 @@ namespace balance_equations{
          * :param const double &density: The density in the reference configuration
          * :param const double ( &chi )[ 9 ]: The micro-deformation
          * :param const double ( &D2ChiDt2 )[ 9 ]: The second temporal derivative of the micro-deformation
-         * :param const double ( &D3ChiDt2DChi )[ 9 ]: The derivative of the second temporal derivative of 
-         *     the micro-deformation w.r.t. the micro-deformation
+         * :param const variableVector &D3ChiDt2DChi_j: The derivative of the second temporal derivative of 
+         *     the micro-deformations w.r.t. the micro-deformation ( i.e. a column of the full Jacobian )
          * :param const double ( &referenceInertia )[ 9 ]: The mass moment of inertia in the reference configuration
          * :param double &DcinertiaDU_ij: The Jacobian of the inertia couple term w.r.t. the degree of freedom vector
          *     for the indices i and j
@@ -1053,20 +1060,9 @@ namespace balance_equations{
 
         //Error handling
 #ifndef SKIP_ERROR_HANDING
-        if ( D3ChiDt2DChi.size( ) != dim * dim ){
+        if ( D3ChiDt2DChi_j.size( ) != dim * dim ){
 
-            //Return the error code
-            return 1;
-
-        }
-
-        for ( unsigned int i = 0; i < D3ChiDt2DChi.size( ); i++ ){
-
-            if ( D3ChiDt2DChi[ i ].size( ) != dim * dim ){
-
-                return 2;
-
-            }
+            return 2;
 
         }
 #endif
@@ -1077,7 +1073,7 @@ namespace balance_equations{
             for ( unsigned int L = 0; L < dim; L++ ){
 
                 DcinertiaDU_ij -= N * eta * density * referenceInertia[ dim * K + L ]
-                                * D3ChiDt2DChi[ dim * k + K ][ dim * m + M ] * chi[ dim * l + L ];
+                                * D3ChiDt2DChi_j[ dim * k + K ] * chi[ dim * l + L ];
                 
                 if ( ( l == m ) && ( L == M ) ){
 

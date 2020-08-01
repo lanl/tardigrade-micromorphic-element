@@ -103,7 +103,7 @@ namespace balance_equations{
 
     int compute_inertia_force_jacobian( const unsigned int &i, const unsigned int &j,
                                         const double &N, const double &eta, const double &density, const double ( &a )[ 3 ],
-                                        const variableVector &DaDu, variableType &DfinertiaDU_ij );
+                                        const variableVector &DaDu_i, variableType &DfinertiaDU_ij );
 
     /*====================================================================
     | The Jacobians of the balance of the first moment of momentum terms |
@@ -140,7 +140,7 @@ namespace balance_equations{
 
     int compute_inertia_couple_jacobian( const unsigned int &i, const unsigned int &j,
                                          const double &N, const double &eta, const double &density, const double ( &chi )[ 9 ],
-                                         const double ( &D2ChiDt2 )[ 9 ], const variableMatrix &D3ChiDt2dChi,
+                                         const double ( &D2ChiDt2 )[ 9 ], const variableVector &D3ChiDt2dChi_j,
                                          const double ( &referenceInertia )[ 9 ], double &DcinertiaDU_ij );
 }
 
