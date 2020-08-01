@@ -1771,6 +1771,24 @@ int test_compute_inertia_force_jacobian( std::ofstream &results ){
 
     }
 
+    double result_ij;
+    for ( unsigned int i = 0; i < 3; i++ ){
+
+        for ( unsigned int j = 0; j < 3; j++ ){
+
+            errorCode = balance_equations::compute_inertia_force_jacobian( i, j, N, eta, density, a, dadu[ i ], result_ij );
+
+            if ( errorCode != 0 ){
+
+                results << "test_compute_inertia_force_jacobian (test 2) & False\n";
+                return 1;
+
+            }
+
+        }
+
+    }
+
     results << "test_compute_inertia_force_jacobian & True\n";
     return 0;
 

@@ -1099,6 +1099,10 @@ namespace balance_equations{
          *
          * finertia_i = -N * \rho * a_i
          *
+         * return:
+         * 0 if no errors
+         * 1 if DaDu is not consistent with the dimension
+         *
          * :param const double &N: The shape function value
          * :param const double &eta: The interpolation function value
          * :param const double &density: The density in the current configuration
@@ -1111,6 +1115,12 @@ namespace balance_equations{
         //Assume 3D
         const unsigned int dim = 3;
 
+        if ( dim != DaDu.size( ) ){
+
+            return 1;
+
+        }
+
         int errorCode = 0;
 
         DfinertiaDU = variableMatrix( dim, variableVector( dim, 0 ) );
@@ -1119,7 +1129,7 @@ namespace balance_equations{
 
             for ( unsigned int j = 0; j < dim; j++ ){
 
-                errorCode = compute_inertia_force_jacobian( i, j, N, eta, density, a, DaDu, DfinertiaDU[ i ][ j ] );
+                errorCode = compute_inertia_force_jacobian( i, j, N, eta, density, a, DaDu[ i ], DfinertiaDU[ i ][ j ] );
 
                 if ( errorCode != 0 ){
 
@@ -1136,7 +1146,7 @@ namespace balance_equations{
 
     int compute_inertia_force_jacobian( const unsigned int &i, const unsigned int &j,
                                         const double &N, const double &eta, const double &density, const double ( &a )[ 3 ],
-                                        const variableMatrix &DaDu, variableType &DfinertiaDU_ij ){
+                                        const variableVector &DaDu_i, variableType &DfinertiaDU_ij ){
         /*!
          * Compute the inertia force jacobian for the ith component in the reference configuration
          *
@@ -1146,28 +1156,23 @@ namespace balance_equations{
          *
          * return:
          * 0 if no errors
-         * 1 if i is larger than DaDu
          * 2 if j is larger than the ith row of DaDu
          *
          * :param const unsigned int &i: The component to compute the inertia force on
          * :param const double &N: The shape function value
          * :param const double &density: The density in the current configuration
          * :param const double ( &a )[ 3 ]: The acceleration in the current configuration
+         * :param const variableVector &DaDu_i: The ith row of the Jacobian of the acceleration w.r.t. the deformation.
          * :param const double finertia_i: The inertia force in the current configuration in direction i
          */
 
-        if ( i >= DaDu.size( ) ){
-
-            return 1;
-
-        }
-        if ( j >= DaDu[ i ].size( ) ){
+        if ( j >= DaDu_i.size( ) ){
 
             return 2;
 
         }
 
-        DfinertiaDU_ij = -N * density * eta * DaDu[ i ][ j ];       
+        DfinertiaDU_ij = -N * density * eta * DaDu_i[ j ];
 
         return 0;
 
