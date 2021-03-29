@@ -24,7 +24,6 @@ namespace micromorphic_material_library {
     
     //IMaterialRegistrar::~IMaterialRegistrar(){}
 
-
     int IMaterial::evaluate_model_numeric_gradients(
                                     const std::vector< double > &time,            const std::vector< double > ( &fparams ),
                                     const double ( &current_grad_u )[ 3 ][ 3 ],   const double ( &current_phi )[ 9 ],
