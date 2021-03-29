@@ -12,7 +12,7 @@ ifdef ICC_EXIST
     CXX=icc
     CFLAGS=-std=c++11 -Wall -ansi -pedantic -O3 -I. -fmax-errors=5
 else
-    CXX=g++
+    CXX=mpicxx
     CFLAGS=-std=gnu++11 -Wall -ansi -pedantic -O3 -I. -fmax-errors=5
 endif
 
