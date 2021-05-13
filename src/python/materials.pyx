@@ -153,8 +153,6 @@ def evaluate_model(object model_name,
             c_current_grad_phi[i][j]  = current_grad_phi[i,j]
             c_previous_grad_phi[i][j] = previous_grad_phi[i,j]
 
-    print("entering evaluate model")
-
     errorCode = materials.evaluate_model(c_model_name,\
                                          c_time, c_fparams,\
                                          c_current_grad_u,  c_current_phi,  c_current_grad_phi,\
