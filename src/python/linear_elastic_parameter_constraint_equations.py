@@ -3,7 +3,7 @@ A file which defines the constraint equations for the parameters required for fi
 """
 import numpy as np
 
-def evaluate_g1( l, s1 ):
+def evaluate_g1( l, s1, **kwargs ):
     """
     Evaluate the first constraint equation and also return the jacobians
 
@@ -13,7 +13,7 @@ def evaluate_g1( l, s1 ):
 
     return l - s1**2, {'lambda':1., 's1':- 2 * s1 }
 
-def evaluate_g2( kappa, nu, sigma, s2 ):
+def evaluate_g2( kappa, nu, sigma, s2, **kwargs ):
     """
     Evaluate the second constraint equation and also return the jacobians
 
@@ -25,7 +25,7 @@ def evaluate_g2( kappa, nu, sigma, s2 ):
 
     return kappa + nu - 2 * sigma - s2**2, {'kappa':1., 'nu':1., 'sigma':-2., 's2':-2 * s2 }
 
-def evaluate_g3( kappa, nu, sigma, mu, s3 ):
+def evaluate_g3( kappa, nu, sigma, mu, s3, **kwargs ):
     """
     Evaluate the third constraint equation and also return the jacobians
 
@@ -39,7 +39,7 @@ def evaluate_g3( kappa, nu, sigma, mu, s3 ):
     return ( kappa + nu - 2 * sigma ) * mu - 2 * sigma**2 - s3**2,\
            {'kappa':mu, 'nu':mu, 'sigma':-2 * mu - 4 * sigma, 'mu':( kappa + nu - 2 * sigma), 's3':-2 * s3 }
 
-def evaluate_g4( l, mu, s4 ):
+def evaluate_g4( l, mu, s4, **kwargs ):
     """
     Evaluate the fourth constraint equation and also return the jacobians
     Evaluate the constraint equation for lambda and mu and
@@ -52,7 +52,7 @@ def evaluate_g4( l, mu, s4 ):
 
     return 3 * l + 2 * mu - s4**2, { 'lambda':3., 'mu':2., 's4':-2 * s4 }
 
-def evaluate_g5( kappa, nu, eta, tau, sigma, s5 ):
+def evaluate_g5( kappa, nu, eta, tau, sigma, s5, **kwargs ):
     """
     Evaluate the fifth constraint equation and also return the jacobians
 
@@ -67,7 +67,7 @@ def evaluate_g5( kappa, nu, eta, tau, sigma, s5 ):
     return kappa + nu + 3 * eta - 3 * tau - 2 * sigma - s5**2,\
            { 'kappa':1., 'nu':1., 'eta':3., 'tau':-3., 'sigma':-2., 's5':-2*s5 }
 
-def evaluate_g6( kappa, nu, eta, tau, sigma, l, mu, s6 ):
+def evaluate_g6( kappa, nu, eta, tau, sigma, l, mu, s6, **kwargs ):
     """
     Evaluate the sixth constraint equation and also return the jacobians
     
@@ -89,7 +89,7 @@ def evaluate_g6( kappa, nu, eta, tau, sigma, l, mu, s6 ):
              'mu':2 * ( kappa + nu + 2 * eta - 3 * tau - 2 * sigma ),\
              's6':-2 * s6 }
 
-def evaluate_g7( kappa, nu, s7 ):
+def evaluate_g7( kappa, nu, s7, **kwargs ):
     """
     Evaluate the seventh constraint equation and also return the jacobian
 
@@ -100,7 +100,7 @@ def evaluate_g7( kappa, nu, s7 ):
 
     return kappa - nu - s7**2, {'kappa':1., 'nu':-1., 's7':-2*s7 }
 
-def evaluate_g8( mu, kappa, nu, sigma, s8 ):
+def evaluate_g8( mu, kappa, nu, sigma, s8, **kwargs ):
     """
     Evaluate the eighth constraint equation and also return the jacobian
 
@@ -114,7 +114,7 @@ def evaluate_g8( mu, kappa, nu, sigma, s8 ):
     return 4 * mu * ( kappa + nu - 2 * sigma ) - 2 * sigma - s8**2,\
            { 'mu':4 * ( kappa + nu - 2 * sigma ), 'kappa': 4 * mu, 'nu': 4 * mu, 'sigma':-8 * mu - 2, 's8':-2 * s8 }
 
-def evaluate_g9( tau7, tau8, tau9, tau10, tau11, s9 ):
+def evaluate_g9( tau7, tau8, tau9, tau10, tau11, s9, **kwargs ):
     """
     Evaluate the ninth constraint equation and also return the Jacobian
 
@@ -131,7 +131,7 @@ def evaluate_g9( tau7, tau8, tau9, tau10, tau11, s9 ):
               'tau10':float( -np.sign( tau10 ) ),\
               'tau11':( -np.sign( tau11 ) ), 's9':-2*s9 }
 
-def evaluate_g10( tau7, tau8, tau9, tau10, tau11, s10 ):
+def evaluate_g10( tau7, tau8, tau9, tau10, tau11, s10, **kwargs ):
     """
     Evaluate the tenth constraint equation and also return the Jacobian
 
@@ -160,7 +160,7 @@ def evaluate_g10( tau7, tau8, tau9, tau10, tau11, s10 ):
 
     return g10, { 'tau7':dg10dtau7, 'tau8':dg10dtau8, 'tau9':dg10dtau9, 'tau10':dg10dtau10, 'tau11':dg10dtau11, 's10':dg10ds10 }
 
-def evaluate_g11( tau1, tau2, tau3, tau4, tau5, tau6, tau7, tau8, tau9, tau10, tau11, s11, tol=1e-9 ):
+def evaluate_g11( tau1, tau2, tau3, tau4, tau5, tau6, tau7, tau8, tau9, tau10, tau11, s11, tol=1e-9, **kwargs ):
     """
     Construct the eleventh constraint equation
 
@@ -179,7 +179,7 @@ def evaluate_g11( tau1, tau2, tau3, tau4, tau5, tau6, tau7, tau8, tau9, tau10, t
 
     return g11, dict( [( 'tau{0}'.format(i+1), dg11dtau[i] ) for i in range( taus.size ) ] + [ ('s11', dg11ds11) ] )
 
-def evaluate_g12( tau1, tau2, tau3, tau4, tau5, tau6, tau7, tau8, tau9, tau10, tau11, s12, tol=1e-9 ):
+def evaluate_g12( tau1, tau2, tau3, tau4, tau5, tau6, tau7, tau8, tau9, tau10, tau11, s12, tol=1e-9, **kwargs ):
     """
     Construct the twelth constraint equation
 
@@ -204,7 +204,7 @@ def evaluate_g12( tau1, tau2, tau3, tau4, tau5, tau6, tau7, tau8, tau9, tau10, t
 
     return g12, dict( [( 'tau{0}'.format(i+1), dg12dtaus[i] ) for i in range( taus.size ) ] + [ ('s12', dg12ds12) ] )
 
-def evaluate_g13( tau1, tau2, tau3, tau4, tau5, tau6, tau7, tau8, tau9, tau10, tau11, s13, tol=1e-9 ):
+def evaluate_g13( tau1, tau2, tau3, tau4, tau5, tau6, tau7, tau8, tau9, tau10, tau11, s13, tol=1e-9, **kwargs ):
     """
     Construct the twelth constraint equation
 
