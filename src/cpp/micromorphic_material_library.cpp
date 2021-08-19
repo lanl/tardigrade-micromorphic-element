@@ -318,7 +318,7 @@ namespace micromorphic_material_library {
 
         for ( unsigned int i = 0; i < 27; i++ ){
             std::vector< std::vector< double > > deltaMatrix( 9, std::vector< double >( 3, 0 ) );
-            deltaMatrix[ i / 3 ][ i % 3 ] = delta * fabs( current_grad_u[ i / 3 ][ i % 3 ] ) + delta;
+            deltaMatrix[ i / 3 ][ i % 3 ] = delta * fabs( current_grad_phi[ i / 3 ][ i % 3 ] ) + delta;
 
             double current_grad_phi_P[ 9 ][ 3 ] =
             {
