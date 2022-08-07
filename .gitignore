@@ -1,34 +1,26 @@
-*
-!/**/
-!*.*
-*.pyc
-*.pdf
-*.aux
-*.nav
-*.snm
-*.toc
-*.bbl
-config.py
-src/python/tests/unittests/*.txt
-doc/TheoryManual/*.out
-doc/TheoryManual/*.log
-doc/TheoryManual/*.gz
-test_results.txt
-doc/Proposal/*.bbl
-doc/Proposal/*.blg
-doc/Report/*.bbl
-doc/Report/*.blg
-doc/Proposal/*.synctex.gz
-doc/Report/*.synctex.gz
-doc/Proposal/*.log
-doc/Proposal/tex/*.log
-doc/Proposal/*.out
-unittest_cpy.inp
-src/python/tests/regression_tests/const_u/description.tex
-src/python/tests/regression_tests/const_u/results.tex
-src/python/tests/regression_tests/linear_u/description.tex
-src/python/tests/regression_tests/linear_u/results.tex
-results.txt
-results.txt
-run_tests.py
+# Project files
+# Managed by GetVersionFromGitTag.cmake
+VERSION
+
+# Temp files
 *.swp
+
+# C++ and temp files
+*.o
+*.so
+*.nfs*
+build*/
+*_results.tex
+*results.tex
+
+# Abaqus output files
+*.com
+*.dat
+*.msg
+*.odb
+*.prt
+*.sim
+*.sta
+
+# PyCharm IDE
+.idea/
