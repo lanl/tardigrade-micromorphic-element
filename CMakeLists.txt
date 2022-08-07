@@ -51,9 +51,9 @@ endif()
 set(BALANCE_EQUATION_LIBRARY "microbalance")
 set(BALANCE_EQUATION_LIBRARY_FILENAME "balance_equations")
 
-#set(MATERIAL_MODEL_LIBRARY "micromat")
-#set(MATERIAL_MODEL_LIBRARY_FILENAME "micromorphic_material_library")
-#set(USER_SUBROUTINES "micromorphic_linear_elasticity" "micromorphic_elasto_plasticity")
+set(MATERIAL_MODEL_LIBRARY "micromat")
+set(MATERIAL_MODEL_LIBRARY_FILENAME "micromorphic_material_library")
+set(USER_SUBROUTINES "micromorphic_linear_elasticity" "micromorphic_elasto_plasticity")
 
 set(USER_INTERFACES "")
 foreach(user_subroutine ${USER_SUBROUTINES})
