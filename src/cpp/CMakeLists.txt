@@ -35,7 +35,6 @@ endforeach(user_subroutine)
 add_library (${MATERIAL_MODEL_LIBRARY} SHARED "${MATERIAL_MODEL_LIBRARY_FILENAME}.cpp" "${MATERIAL_MODEL_LIBRARY_FILENAME}.h")
 set_target_properties(${MATERIAL_MODEL_LIBRARY} PROPERTIES CXX_STANDARD 11
                                                 PUBLIC_HEADER "${MATERIAL_MODEL_LIBRARY_FILENAMEE}.h"
-                                                PREFIX ""
                                                 SUFFIX ".so")
 target_compile_options(${MATERIAL_MODEL_LIBRARY} PUBLIC)
 target_link_libraries(${MATERIAL_MODEL_LIBRARY} error_tools ${USER_INTERFACES})
