@@ -20,11 +20,11 @@ foreach(user_subroutine ${USER_SUBROUTINES})
 
     add_library("${user_subroutine}_interface" SHARED "${user_subroutine}_interface.h" "${user_subroutine}_interface.cpp")
     set_target_properties("${user_subroutine}_interface" PROPERTIES CXX_STANDARD 11
-                                                         PUBLIC_HEADER "${user_subroutine}_interface.h"
-                                                         PREFIX ""
-                                                         SUFFIX ".o")
+                                                         PUBLIC_HEADER "${user_subroutine}_interface.h")
+#                                                         PREFIX ""
+#                                                         SUFFIX ".o")
     target_compile_options("${user_subroutine}_interface" PUBLIC)
-    target_link_libraries("${user_subroutine}_interface" "${user_subroutine}")
+    target_link_libraries("${user_subroutine}_interface" -Wl,--whole-archive "${user_subroutine}" -Wl,--no-whole-archive)
     if(NOT cmake_build_type_lower STREQUAL "release")
         set(LOCAL_BUILD_INCLUDES ${LOCAL_BUILD_INCLUDES} "${${user_subroutine}_SOURCE_DIR}/${CPP_SRC_PATH}" )
         target_include_directories("${user_subroutine}_interface" PUBLIC "${${user_subroutine}_SOURCE_DIR}/${CPP_SRC_PATH}")
