@@ -255,6 +255,7 @@ namespace micromorphic_material_library{
         /* Get an instance of a material based on its name */
         /* throws out_of_range if material not found */
         std::unique_ptr<IMaterial> GetMaterial(std::string name);
+        void PrintMaterials( );
 
     private:
         /* Holds pointers to material registrars */
