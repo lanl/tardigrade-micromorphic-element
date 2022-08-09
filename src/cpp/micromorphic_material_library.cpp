@@ -482,8 +482,28 @@ namespace micromorphic_material_library {
 
     std::unique_ptr<IMaterial> MaterialFactory::GetMaterial(std::string name) {
         /* throws out_of_range if material unknown */
-        IMaterialRegistrar* registrar = registry_.at(name);
-        return registrar->GetMaterial();
+        try{
+            IMaterialRegistrar* registrar = registry_.at(name);
+            return registrar->GetMaterial( );
+        }
+        catch(...){
+            std::string message = "Exception when attempting to access: " + name + "\n";
+            message += "material models available are:\n";
+            for ( auto it = registry_.begin( ); it != registry_.end( ); it++ ){
+                message += it->first + "\n";
+            }
+            throw std::runtime_error( message );
+        }
+        return NULL;
+    }
+
+    void MaterialFactory::PrintMaterials( ){
+        /*! Prints all of the materials registered in the library*/
+        std::string message = "Materials available in the library:\n";
+        for ( auto it = registry_.begin( ); it != registry_.end( ); it++ ){
+            message += "    " + it->first + "\n";
+        }
+        std::cerr << message;
     }
 
 }

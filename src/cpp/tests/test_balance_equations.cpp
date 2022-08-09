@@ -5,10 +5,6 @@
    ----------------------------------------------------------------------------
    | The unit test file for balance_equations.h/cpp. This file tests the      |
    | classes and functions defined in balance_equations.h/cpp.                |
-   |                                                                          |
-   | Generated files:                                                         |
-   |    results.tex:  A LaTeX file which contains the results as they will be |
-   |                  included in the generated report.                       |
    ============================================================================
    | Dependencies:                                                            |
    | Eigen:  An implementation of various matrix commands. Available at       |
@@ -20,6 +16,9 @@
 #include<vector_tools.h>
 #include<error_tools.h>
 #include<balance_equations.h>
+
+#define BOOST_TEST_MODULE test_micromorphic_linear_elasticity
+#include <boost/test/included/unit_test.hpp>
 
 typedef errorTools::Node errorNode;
 typedef errorNode* errorOut;
@@ -54,7 +53,7 @@ errorOut interpolate_gradients( const variableMatrix &detadX, const variableMatr
     return NULL;
 }
 
-errorOut _test_interpolate_values( ){
+BOOST_AUTO_TEST_CASE( testInterpolate_values ){
     /*!
      * Internal test for the interpolate values
      */
@@ -83,22 +82,12 @@ errorOut _test_interpolate_values( ){
     variableVector result;
     errorOut error = interpolate_values( etas, values, result );
 
-    if ( error ){
-        errorOut result = new errorNode( "_test_interpolate_values", "Error in interpolation" );
-        result->addNext( error );
-        result->print();
-        assert( 1 == 0 );
-    }
+    BOOST_CHECK( !error );
 
-    if ( !vectorTools::fuzzyEquals( result, answer ) ){
-        errorOut result = new errorNode( "_test_interpolate_values", "The interpolated values are not correct" );
-        result->print();
-        assert( 1 == 0 );
-    }
-    return NULL;
+    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
 }
 
-errorOut _test_interpolate_gradients( ){
+BOOST_AUTO_TEST_CASE( testInterpolate_gradients ){
     /*!
      * Internal test for the interpolate values gradients
      */
@@ -149,19 +138,9 @@ errorOut _test_interpolate_gradients( ){
     variableMatrix result;
     errorOut error = interpolate_gradients( detadX, values, result );
 
-    if ( error ){
-        errorOut result = new errorNode( "_test_interpolate_gradients", "Error in interpolation" );
-        result->addNext( error );
-        result->print();
-        assert( 1 == 0 );
-    }
+    BOOST_CHECK( !error );
 
-    if ( !vectorTools::fuzzyEquals( result, answer ) ){
-        errorOut result = new errorNode( "_test_interpolate_gradients", "The interpolated gradients are not correct" );
-        result->print();
-        assert( 1 == 0 );
-    }
-    return NULL;
+    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
 }
 
 errorOut evaluate_model( const variableVector &etas, const variableMatrix &detadX, const variableMatrix &values,
@@ -203,19 +182,11 @@ errorOut evaluate_model( const variableVector &etas, const variableMatrix &detad
 
     errorOut error = interpolate_values( etas, values, utilde );
 
-    if ( error ){
-        errorOut result = new errorNode( "evaluate_model", "Error in the computation of the DOF" );
-        result->addNext( error );
-        return result;
-    }
+    BOOST_CHECK( !error );
 
     error = interpolate_gradients( detadX, values, dUtildedX );
 
-    if ( error ){
-        errorOut result = new errorNode( "evaluate_model", "Error in the computation of the gradient of the DOF" );
-        result->addNext( error );
-        return result;
-    }
+    BOOST_CHECK( !error );
 
     variableVector grad_u = vectorTools::appendVectors( { dUtildedX[ 0 ], dUtildedX[ 1 ], dUtildedX[ 2 ] } );
     variableVector phi( utilde.begin() + 3, utilde.begin() + 12 );
@@ -854,6 +825,7 @@ errorOut evaluate_model( const variableVector &etas, const variableMatrix &detad
           + vectorTools::dot( DMDgrad_phi, grad_phi );
 
     return NULL;
+
 }
 
 errorOut evaluate_model( const variableVector &etas, const variableMatrix &detadX, const variableMatrix &values,
@@ -880,7 +852,7 @@ errorOut evaluate_model( const variableVector &etas, const variableMatrix &detad
                            DMDgrad_u, DMDphi, DMDgrad_phi );
 }
 
-errorOut _test_evaluate_model( ){
+BOOST_AUTO_TEST_CASE( _test_evaluate_model ){
     /*!
      * Internal test of the pseudo model.
      */
@@ -933,35 +905,17 @@ errorOut _test_evaluate_model( ){
     
     errorOut error = evaluate_model( etas, detadX, values, PK2, SIGMA, M );
 
-    if ( error ){
-        errorOut result = new errorNode( "_test_evaluate_model", "Error in computation of pseudo model" );
-        result->addNext( error );
-        result->print();
-        assert( 1 == 0 );
-    }
+    BOOST_CHECK( !error );
 
-    if ( !vectorTools::fuzzyEquals( PK2, PK2Answer ) ){
-        errorOut result = new errorNode( "_test_evaluate_model", "The PK2 stress isn't what was expected" );
-        result->print();
-        assert( 1 == 0 );
-    }
+    BOOST_CHECK( vectorTools::fuzzyEquals( PK2, PK2Answer ) );
 
-    if ( !vectorTools::fuzzyEquals( SIGMA, SIGMAAnswer ) ){
-        errorOut result = new errorNode( "_test_evaluate_model", "The SIGMA stress isn't what was expected" );
-        result->print();
-        assert( 1 == 0 );
-    }
+    BOOST_CHECK( vectorTools::fuzzyEquals( SIGMA, SIGMAAnswer ) );
 
-    if ( !vectorTools::fuzzyEquals( M, MAnswer ) ){
-        errorOut result = new errorNode( "_test_evaluate_model", "The M stress isn't what was expected" );
-        result->print();
-        assert( 1 == 0 );
-    }
+    BOOST_CHECK( vectorTools::fuzzyEquals( M, MAnswer ) );
 
-    return NULL;
 }
 
-int test_compute_internal_force( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_internal_force ){
     /*!
      * Test the computation of the internal force.
      *
@@ -985,25 +939,17 @@ int test_compute_internal_force( std::ofstream &results ){
     balance_equations::compute_internal_force( dNdX, F, PK2, result );
 
     for ( unsigned int i = 0; i < 3; i++ ){
-        if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
-            results << "test_compute_internal_force (test 1) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_internal_force( i, dNdX, F, PK2, temp );
 
-        if ( !vectorTools::fuzzyEquals( answer[ i ], temp ) ){
-            results << "test_compute_internal_force (test 2) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( answer[ i ], temp ) );
     }
 
-    results << "test_compute_internal_force & True\n";
-    return 0;
 }
 
-int test_compute_body_force( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_body_force ){
     /*!
      * Test the computation of the body force term.
      *
@@ -1020,25 +966,17 @@ int test_compute_body_force( std::ofstream &results ){
     balance_equations::compute_body_force( N, density, b, result );
 
     for ( unsigned int i = 0; i < 3; i++ ){
-        if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
-            results << "test_compute_body_force (test 1) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_body_force( i, N, density, b, temp );
 
-        if ( !vectorTools::fuzzyEquals( answer[ i ], temp ) ){
-            results << "test_compute_body_force (test 2) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( answer[ i ], temp ) );
     }
 
-    results << "test_compute_body_force & True\n";
-    return 0;
 }
 
-int test_compute_inertia_force( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_inertia_force ){
     /*!
      * Test the computation of the intertial force term
      *
@@ -1055,25 +993,17 @@ int test_compute_inertia_force( std::ofstream &results ){
     balance_equations::compute_inertia_force( N, density, a, result );
 
     for ( unsigned int i = 0; i < 3; i++ ){
-        if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
-            results << "test_compute_inertia_force (test 1) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_inertia_force( i, N, density, a, temp );
 
-        if ( !vectorTools::fuzzyEquals( answer[ i ], temp ) ){
-            results << "test_compute_inertia_force (test 2) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( answer[ i ], temp ) );
     }
 
-    results << "test_compute_inertia_force & True\n";
-    return 0;
 }
 
-int test_compute_internal_couple( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_internal_couple ){
     /*!
      * Test the computation of the internal couple
      *
@@ -1115,25 +1045,16 @@ int test_compute_internal_couple( std::ofstream &results ){
     balance_equations::compute_internal_couple( N, dNdX, F, chi, PK2, SIGMA, M, result );
 
     for ( unsigned int i = 0; i < 9; i++ ){
-        if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
-            std::cout << i << "\n";
-            results << "test_compute_internal_couple (test 1) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_internal_couple( i / 3, i % 3, N, dNdX, F, chi, PK2, SIGMA, M, temp );
-        if ( !vectorTools::fuzzyEquals( answer[ i ], temp ) ){
-            results << "test_compute_internal_couple (test 2) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( answer[ i ], temp ) );
     }
 
-    results << "test_compute_internal_couple & True\n";
-    return 0;
 }
 
-int test_compute_body_couple( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_body_couple ){
     /*!
      * Test the computation of the body force couple
      *
@@ -1155,24 +1076,16 @@ int test_compute_body_couple( std::ofstream &results ){
     balance_equations::compute_body_couple( N, density, l, result );
 
     for ( unsigned int i = 0; i < 9; i++ ){
-        if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
-            results << "test_compute_body_couple (test 1) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_body_couple( i / 3, i % 3, N, density, l, temp );
-        if ( !vectorTools::fuzzyEquals( temp, answer[ i ] ) ){
-            results << "test_compute_body_couple (test 2) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( temp, answer[ i ] ) );
     }
 
-    results << "test_compute_body_couple & True\n";
-    return 0;
 }
 
-int test_compute_inertia_couple( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_inertia_couple ){
     /*!
      * Test the computation of the inertia couple term
      *
@@ -1192,24 +1105,16 @@ int test_compute_inertia_couple( std::ofstream &results ){
     balance_equations::compute_inertia_couple( N, density, omega, result );
 
     for ( unsigned int i = 0; i < 9; i++ ){
-        if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
-            results << "test_compute_inertia_couple (test 1) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_inertia_couple( i / 3, i % 3, N, density, omega, temp );
-        if ( !vectorTools::fuzzyEquals( temp, answer[ i ] ) ){
-            results << "test_compute_inertia_couple (test 2) & False\n";
-            return 1;
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( temp, answer[ i ] ) );
     }
 
-    results << "test_compute_inertia_couple & True\n";
-    return 0;
 }
 
-int test_compute_internal_force_jacobian( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_internal_force_jacobian ){
     /*!
      * Test the computation of the internal force jacobian
      *
@@ -1278,11 +1183,7 @@ int test_compute_internal_force_jacobian( std::ofstream &results ){
 
         errorOut error = evaluate_model( etas, detadX, values + delta, PK2_P, SIGMA_P, M_P );
 
-        if ( error ){
-            error->print();
-            results << "test_compute_internal_force_jacobian & False\n";
-            return 1;
-        }
+        BOOST_CHECK( !error );
 
         balance_equations::compute_internal_force( dNdX, F_P, PK2_P, fint_P );
 
@@ -1294,11 +1195,7 @@ int test_compute_internal_force_jacobian( std::ofstream &results ){
 
         error = evaluate_model( etas, detadX, values - delta, PK2_M, SIGMA_M, M_M );
 
-        if ( error ){
-            error->print();
-            results << "test_compute_internal_force_jacobian & False\n";
-            return 1;
-        }
+        BOOST_CHECK( !error );
 
         balance_equations::compute_internal_force( dNdX, F_M, PK2_M, fint_M );
         
@@ -1320,11 +1217,7 @@ int test_compute_internal_force_jacobian( std::ofstream &results ){
                                      DSIGMADgrad_u, DSIGMADphi, DSIGMADgrad_phi,
                                      DMDgrad_u, DMDphi, DMDgrad_phi );
 
-    if ( error ){
-        error->print();
-        results << "test_compute_internal_force_jacobian & False\n";
-        return 1;
-    }
+    BOOST_CHECK( !error );
 
     //Evaluate the analytic gradients
     variableMatrix DfintDU_analytic;
@@ -1333,10 +1226,7 @@ int test_compute_internal_force_jacobian( std::ofstream &results ){
                                                         DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
                                                         DfintDU_analytic );
 
-    if ( !vectorTools::fuzzyEquals( DfintDU_numeric, DfintDU_analytic ) ){
-        results << "test_compute_internal_force_jacobian (test 1) & False\n";
-        return 1;
-    }
+    BOOST_CHECK( vectorTools::fuzzyEquals( DfintDU_numeric, DfintDU_analytic ) );
 
     for ( unsigned int i = 0; i < 3; i++ ){
         for ( unsigned int j = 0; j < 12; j++ ){
@@ -1344,18 +1234,13 @@ int test_compute_internal_force_jacobian( std::ofstream &results ){
             balance_equations::compute_internal_force_jacobian( i, j, N, dNdX, etas[ n ], detadX_n, F, PK2,
                                                                 DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi, DfintDU_ij );
 
-            if ( !vectorTools::fuzzyEquals( DfintDU_ij, DfintDU_numeric[ i ][ j ] ) ){
-                results << "test_compute_internal_force_jacobian (test 2) & False\n";
-                return 1;
-            }
+            BOOST_CHECK( vectorTools::fuzzyEquals( DfintDU_ij, DfintDU_numeric[ i ][ j ] ) );
         }
     }
 
-    results << "test_compute_internal_force_jacobian & True\n";
-    return 1;
 }
 
-int test_compute_internal_couple_jacobian( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_internal_couple_jacobian ){
     /*!
      * Test the computation of the internal couple jacobian
      *
@@ -1431,19 +1316,11 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
 
         errorOut error = evaluate_model( etas, detadX, values + delta, PK2_P, SIGMA_P, M_P );
 
-        if ( error ){
-            error->print();
-            results << "test_compute_internal_couple_jacobian & False\n";
-            return 1;
-        }
+        BOOST_CHECK( !error );
 
         errorCode = balance_equations::compute_internal_couple( N, dNdX, F_P, chi_P, PK2_P, SIGMA_P, M_P, cint_P );
 
-        if ( errorCode != 0 ){
-            std::cout << "errorCode positive perturbation: " << errorCode << "\n";
-            results << "test_compute_internal_couple_jacobian & False\n";
-            return 1;
-        }
+        BOOST_CHECK( errorCode == 0 );
 
         //Compute the negative perturbation
         interpolate_values( etas, values - delta, utilde_M );
@@ -1457,19 +1334,11 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
 
         error = evaluate_model( etas, detadX, values - delta, PK2_M, SIGMA_M, M_M );
 
-        if ( error ){
-            error->print();
-            results << "test_compute_internal_couple_jacobian & False\n";
-            return 1;
-        }
+        BOOST_CHECK( !error );
 
         errorCode = balance_equations::compute_internal_couple( N, dNdX, F_M, chi_M, PK2_M, SIGMA_M, M_M, cint_M );
 
-        if ( errorCode != 0 ){
-            std::cout << "errorCode negative perturbation: " << errorCode << "\n";
-            results << "test_compute_internal_couple_jacobian & False\n";
-            return 1;
-        }
+        BOOST_CHECK( errorCode == 0 );
         
         for ( unsigned int j = 0; j < 9; j++ ){
             DcintDU_numeric[ j ][ i ] = ( cint_P[ j ] - cint_M[ j ] ) / ( 2 * delta[ i ][ n ] );
@@ -1494,11 +1363,7 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
                                      DSIGMADgrad_u, DSIGMADphi, DSIGMADgrad_phi,
                                      DMDgrad_u, DMDphi, DMDgrad_phi );
 
-    if ( error ){
-        error->print();
-        results << "test_compute_internal_couple_jacobian & False\n";
-        return 1;
-    }
+    BOOST_CHECK( !error );
 
     //Evaluate the analytic gradients
     variableMatrix DcintDU_analytic;
@@ -1510,16 +1375,9 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
                                                                      DMDgrad_u, DMDphi, DMDgrad_phi,
                                                                      DcintDU_analytic );
 
-    if ( errorCode != 0 ){
-        std::cout << "errorCode internal couple jacobian: " << errorCode << "\n";
-        results << "test_compute_internal_couple_jacobian & False\n";
-        return 1;
-    }
+    BOOST_CHECK( errorCode == 0 );
 
-    if ( !vectorTools::fuzzyEquals( DcintDU_numeric, DcintDU_analytic ) ){
-        results << "test_compute_internal_couple_jacobian (test 1) & False\n";
-        return 1;
-    }
+    BOOST_CHECK( vectorTools::fuzzyEquals( DcintDU_numeric, DcintDU_analytic ) );
 
     for ( unsigned int i = 0; i < 3; i++ ){
         for ( unsigned int j = 0; j < 12; j++ ){
@@ -1533,18 +1391,12 @@ int test_compute_internal_couple_jacobian( std::ofstream &results ){
                                                                  DcintDU_ij );
 
 
-            if ( !vectorTools::fuzzyEquals( DcintDU_ij, DcintDU_numeric[ i ][ j ] ) ){
-                results << "test_compute_internal_couple_jacobian (test 2) & False\n";
-                return 1;
-            }
+            BOOST_CHECK( vectorTools::fuzzyEquals( DcintDU_ij, DcintDU_numeric[ i ][ j ] ) );
         }
     }
-
-    results << "test_compute_internal_couple_jacobian & True\n";
-    return 1;
 }
 
-int test_compute_inertia_couple2( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_inertia_couple2 ){
     /*!
      * Test the computation of the inertia couple from the reference inertia
      *
@@ -1579,12 +1431,7 @@ int test_compute_inertia_couple2( std::ofstream &results ){
 
     for ( unsigned int i = 0; i < dim * dim; i++ ){
 
-        if ( !vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) ){
-
-            results << "test_compute_inertia_couple2 (test 1) & False\n";
-            return 1;
-
-        }
+        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
     }
 
@@ -1596,22 +1443,15 @@ int test_compute_inertia_couple2( std::ofstream &results ){
 
             balance_equations::compute_inertia_couple( i, j, N, density, chi, d2chidt2, microInertia, result_ij );
 
-            if ( !vectorTools::fuzzyEquals( result_ij, answer[ dim * i + j ] ) ){
-
-                results << "test_compute_inertia_couple2 (test 2) & False\n";
-                return 1;
-
-            }
+            BOOST_CHECK( vectorTools::fuzzyEquals( result_ij, answer[ dim * i + j ] ) );
 
         }
 
     }
 
-    results << "test_compute_inertia_couple2 & True\n";
-    return 1;
 }
 
-int test_compute_inertia_couple_jacobian( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_inertia_couple_jacobian ){
     /*!
      * Test the computation of the jacobian of the inertia couple from the reference inertia
      *
@@ -1679,20 +1519,9 @@ int test_compute_inertia_couple_jacobian( std::ofstream &results ){
     int errorCode = balance_equations::compute_inertia_couple_jacobian( N, eta, density, chi, d2chidt2,
                                                                         d3chidt2dchi, microInertia, result );
 
-    if ( errorCode != 0 ){
+    BOOST_CHECK( errorCode == 0 );
 
-        std::cout << "errorCode: " << errorCode << "\n";
-        results << "test_compute_inertia_couple_jacobian & False\n";
-        return 1;
-
-    }
-
-    if ( !vectorTools::fuzzyEquals( result, answer ) ){
-
-        results << "test_compute_inertia_couple_jacobian (test 1) & False\n";
-        return 1;
-
-    }
+    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
 
     double result_ij;
     variableVector d3chidt2dchi_j( dim * dim, 0 );
@@ -1710,31 +1539,17 @@ int test_compute_inertia_couple_jacobian( std::ofstream &results ){
             errorCode = balance_equations::compute_inertia_couple_jacobian( i, j, N, eta, density, chi, d2chidt2,
                                                                             d3chidt2dchi_j, microInertia, result_ij );
 
-            if ( errorCode != 0 ){
+            BOOST_CHECK( errorCode == 0 );
 
-                std::cout << "errorCode: " << errorCode << "\n";
-                results << "test_compute_inertia_couple_jacobian & False\n";
-                return 1;
-
-            }
-
-            if ( !vectorTools::fuzzyEquals( result_ij, answer[ i ][ j ] ) ){
-
-                results << "test_compute_inertia_couple_jacobian (test 2) & False\n";
-                return 1;
-
-            }
+            BOOST_CHECK( vectorTools::fuzzyEquals( result_ij, answer[ i ][ j ] ) );
 
         }
 
     }
 
-    results << "test_compute_inertia_couple_jacobian & True\n";
-    return 0;
-
 }
 
-int test_compute_inertia_force_jacobian( std::ofstream &results ){
+BOOST_AUTO_TEST_CASE( testCompute_inertia_force_jacobian ){
     /*!
      * Test the computation of the jacobian of the inertia force
      *
@@ -1763,21 +1578,9 @@ int test_compute_inertia_force_jacobian( std::ofstream &results ){
 
     int errorCode = balance_equations::compute_inertia_force_jacobian( N, eta, density, a, dadu, result );
 
-    if ( errorCode != 0 ){
+    BOOST_CHECK( errorCode == 0 );
 
-        results << "test_compute_inertia_force_jacobian & False\n";
-        return 1;
-
-    }
-
-    if ( !vectorTools::fuzzyEquals( result, answer ) ){
-
-        vectorTools::print( result );
-
-        results << "test_compute_inertia_force_jacobian (test 1) & False\n";
-        return 1;
-
-    }
+    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
 
     double result_ij;
     for ( unsigned int i = 0; i < 3; i++ ){
@@ -1786,63 +1589,10 @@ int test_compute_inertia_force_jacobian( std::ofstream &results ){
 
             errorCode = balance_equations::compute_inertia_force_jacobian( i, j, N, eta, density, a, dadu[ i ], result_ij );
 
-            if ( errorCode != 0 ){
-
-                results << "test_compute_inertia_force_jacobian (test 2) & False\n";
-                return 1;
-
-            }
+            BOOST_CHECK( errorCode == 0 );
 
         }
 
     }
 
-    results << "test_compute_inertia_force_jacobian & True\n";
-    return 0;
-
-}
-
-int main(){
-    /*!==========================
-    |         main            |
-    ===========================
-    
-    The main loop which runs the tests defined in the 
-    accompanying functions. Each function should output
-    the function name followed by & followed by True or 
-    False if the test passes or fails respectively.*/
-
-    std::ofstream results;
-    //Open the results file
-    results.open ("results.tex");
-
-    //Internal tests
-    _test_interpolate_values( );
-    _test_interpolate_gradients( );
-    _test_evaluate_model( );
-
-    //Tests of the terms in the balance of linear momentum
-    test_compute_internal_force( results );
-    test_compute_body_force( results );
-    test_compute_inertia_force( results );
-
-    //Tests of the terms in the balance of the first moment of momentum
-    test_compute_internal_couple( results );
-    test_compute_body_couple( results );
-    test_compute_inertia_couple( results );
-    test_compute_inertia_couple2( results );
-
-    //Tests of the Jacobians of the balance of linear momentum
-    test_compute_internal_force_jacobian( results );
-
-    test_compute_inertia_force_jacobian( results );
-
-    //Tests of the Jacobians of the balance of the first moment of momentum
-    test_compute_internal_couple_jacobian( results );
-
-    //Test of the jacobians of the inertia couple
-    test_compute_inertia_couple_jacobian( results );
-
-    //Close the results file
-    results.close();
 }
