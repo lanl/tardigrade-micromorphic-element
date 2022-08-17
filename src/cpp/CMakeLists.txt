@@ -24,10 +24,11 @@ foreach(user_subroutine ${USER_SUBROUTINES})
 #                                                         PREFIX ""
 #                                                         SUFFIX ".o")
     target_compile_options("${user_subroutine}_interface" PUBLIC)
-    target_link_libraries("${user_subroutine}_interface" -Wl,--whole-archive "${user_subroutine}" -Wl,--no-whole-archive)
+    target_link_libraries("${user_subroutine}_interface" error_tools ${user_subroutine})
     if(NOT cmake_build_type_lower STREQUAL "release")
         set(LOCAL_BUILD_INCLUDES ${LOCAL_BUILD_INCLUDES} "${${user_subroutine}_SOURCE_DIR}/${CPP_SRC_PATH}" )
-        target_include_directories("${user_subroutine}_interface" PUBLIC "${${user_subroutine}_SOURCE_DIR}/${CPP_SRC_PATH}")
+        target_include_directories("${user_subroutine}_interface" PUBLIC
+                                     "${${user_subroutine}_SOURCE_DIR}/${CPP_SRC_PATH}")
     endif()
 endforeach(user_subroutine)
 
@@ -37,7 +38,10 @@ set_target_properties(${MATERIAL_MODEL_LIBRARY} PROPERTIES CXX_STANDARD 11
                                                 PUBLIC_HEADER "${MATERIAL_MODEL_LIBRARY_FILENAMEE}.h"
                                                 SUFFIX ".so")
 target_compile_options(${MATERIAL_MODEL_LIBRARY} PUBLIC)
-target_link_libraries(${MATERIAL_MODEL_LIBRARY} error_tools ${USER_INTERFACES})
+target_link_libraries(${MATERIAL_MODEL_LIBRARY} PUBLIC error_tools ${USER_INTERFACES})
+foreach(user_interface ${USER_INTERFACES})
+    target_link_options(${MATERIAL_MODEL_LIBRARY} PUBLIC "SHELL:-Wl,--whole-archive $<TARGET_FILE:${user_interface}> -Wl,--no-whole-archive")
+endforeach(user_interface)
 
 # Local builds of upstream projects require local include paths
 if(NOT cmake_build_type_lower STREQUAL "release")
