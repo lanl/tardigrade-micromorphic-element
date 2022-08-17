@@ -28,6 +28,9 @@ foreach(user_subroutine ${USER_SUBROUTINES})
                                    ${Boost_INCLUDE_DIRS}  # Required for MacOSX CMake builds. Not sure if it's a CMake or clang issue.
                                    ${vector_tools_SOURCE_DIR}/${CPP_SRC_PATH}
                                    ${error_tools_SOURCE_DIR}/${CPP_SRC_PATH}
+                                   ${constitutive_tools_SOURCE_DIR}/${CPP_SRC_PATH}
+                                   ${micromorphic_tools_SOURCE_DIR}/${CPP_SRC_PATH}
+                                   ${solver_tools_SOURCE_DIR}/${CPP_SRC_PATH}
                                    ${user_subroutine_SOURCE_DIR}/${CPP_SRC_PATH})
     endif()
 endforeach(user_subroutine)
