@@ -1,6 +1,6 @@
 /*!
 =====================================================================
-|                  micromorphic_material_library.h                  |
+|                 micromorphic_material_library.cpp                 |
 =====================================================================
 | A header file which defines a class which registers all of the    |
 | available micromorphic material models and their interface. The   |
@@ -16,582 +16,458 @@
 */
 
 #include "micromorphic_material_library.h"
+#include<iostream>
 
 namespace micromorphic_material_library {
 
     //IMaterial::~Imaterial(){}
-    
     //IMaterialRegistrar::~IMaterialRegistrar(){}
 
 
-    void IMaterial::evaluate_model_numeric_gradients(const std::vector<double> &time,        const std::vector<double> (&fparams),
-                                   const double (&grad_u)[3][3],           const double (&phi)[9],
-                                   const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
-                                   const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                                   std::vector<double> &PK2,                        std::vector<double> &SIGMA,                   std::vector<double> &M,
-                                   std::vector<std::vector<double>> &DPK2Dgrad_u,   std::vector<std::vector<double>> &DPK2Dphi,   std::vector<std::vector<double>> &DPK2Dgrad_phi,
-                                   std::vector<std::vector<double>> &DSIGMADgrad_u, std::vector<std::vector<double>> &DSIGMADphi, std::vector<std::vector<double>> &DSIGMADgrad_phi,
-                                   std::vector<std::vector<double>> &DMDgrad_u,     std::vector<std::vector<double>> &DMDphi,     std::vector<std::vector<double>> &DMDgrad_phi,
-                                   std::vector<std::vector<double>> &ADD_TERMS,     std::vector<std::vector<std::vector<double>>> &ADD_JACOBIANS, double delta){
+    int IMaterial::evaluate_model_numeric_gradients(
+                                    const std::vector< double > &time,            const std::vector< double > ( &fparams ),
+                                    const double ( &current_grad_u )[ 3 ][ 3 ],   const double ( &current_phi )[ 9 ],
+                                    const double ( &current_grad_phi )[ 9 ][ 3 ], const double ( &previous_grad_u )[ 3 ][ 3 ],
+                                    const double ( &previous_phi )[ 9 ],          const double ( &previous_grad_phi )[ 9 ][ 3 ],
+                                    std::vector< double > &SDVS,
+                                    const std::vector< double > &current_ADD_DOF,
+                                    const std::vector< std::vector< double > > &current_ADD_grad_DOF,
+                                    const std::vector< double > &previous_ADD_DOF,
+                                    const std::vector< std::vector< double > > &previous_ADD_grad_DOF,
+                                    std::vector< double > &PK2, std::vector< double > &SIGMA, std::vector< double > &M,
+                                    std::vector< std::vector< double > > &DPK2Dgrad_u,
+                                    std::vector< std::vector< double > > &DPK2Dphi,
+                                    std::vector< std::vector< double > > &DPK2Dgrad_phi,
+                                    std::vector< std::vector< double > > &DSIGMADgrad_u,
+                                    std::vector< std::vector< double > > &DSIGMADphi,
+                                    std::vector< std::vector< double > > &DSIGMADgrad_phi,
+                                    std::vector< std::vector< double > > &DMDgrad_u,
+                                    std::vector< std::vector< double > > &DMDphi,
+                                    std::vector< std::vector< double > > &DMDgrad_phi,
+                                    std::vector< std::vector< double > > &ADD_TERMS,
+                                    std::vector< std::vector< std::vector< double > > > &ADD_JACOBIANS,
+                                    std::string &output_message,
+#ifdef DEBUG_MODE
+                                    std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > &DEBUG,
+
+#endif
+                                    double delta
+                                  ){
+
         /*!
-        ==========================================
-        |    evaluate_model_numeric_gradients    |
-        ==========================================
+         * Evaluate the jacobian of the material model using a numeric gradient
+         * TODO: Add Jacobians of the additional terms
+         *
+         * :param const std::vector< double > &time: The current time and the timestep
+         *     [ current_t, dt ]
+         * :param const std::vector< double > ( &fparams ): The parameters for the constitutive model
+         * :param const double ( &current_grad_u )[ 3 ][ 3 ]: The current displacement gradient
+         *     Assumed to be of the form [ [ u_{1,1}, u_{1,2}, u_{1,3} ],
+         *                                 [ u_{2,1}, u_{2,2}, u_{2,3} ],
+         *                                 [ u_{3,1}, u_{3,2}, u_{3,3} ] ]
+         * :param const double ( &current_phi )[ 9 ]: The current micro displacment values.
+         *     Assumed to be of the form [ \phi_{11}, \phi_{12}, \phi_{13}, \phi_{21}, \phi_{22}, \phi_{23}, \phi_{31}, \phi_{32}, \phi_{33} ]
+         * :param const double ( &current_grad_phi )[ 9 ][ 3 ]: The current micro displacement gradient
+         *     Assumed to be of the form [ [ \phi_{11,1}, \phi_{11,2}, \phi_{11,3} ],
+         *                                 [ \phi_{12,1}, \phi_{12,2}, \phi_{12,3} ],
+         *                                 [ \phi_{13,1}, \phi_{13,2}, \phi_{13,3} ],
+         *                                 [ \phi_{21,1}, \phi_{21,2}, \phi_{21,3} ],
+         *                                 [ \phi_{22,1}, \phi_{22,2}, \phi_{22,3} ],
+         *                                 [ \phi_{23,1}, \phi_{23,2}, \phi_{23,3} ],
+         *                                 [ \phi_{31,1}, \phi_{31,2}, \phi_{31,3} ],
+         *                                 [ \phi_{32,1}, \phi_{32,2}, \phi_{32,3} ],
+         *                                 [ \phi_{33,1}, \phi_{33,2}, \phi_{33,3} ] ]
+         * :param const double ( &previous_grad_u )[ 3 ][ 3 ]: The previous displacement gradient.
+         * :param const double ( &previous_phi )[ 9 ]: The previous micro displacement.
+         * :param const double ( &previous_grad_phi )[ 9 ][ 3 ]: The previous micro displacement gradient.
+         * :param std::vector< double > &SDVS: The previously converged values of the state variables
+         * :param std::vector< double > &current_ADD_DOF: The current values of the additional degrees of freedom
+         * :param std::vector< std::vector< double > > &current_ADD_grad_DOF: The current values of the gradients of the
+         *     additional degrees of freedom
+         * :param std::vector< double > &current_PK2: The current value of the second Piola Kirchhoff stress tensor. The format is
+         *     [ S_{11}, S_{12}, S_{13}, S_{21}, S_{22}, S_{23}, S_{31}, S_{32}, S_{33} ]
+         * :param std::vector< double > &current_SIGMA: The current value of the reference micro stress. The format is
+         *     [ S_{11}, S_{12}, S_{13}, S_{21}, S_{22}, S_{23}, S_{31}, S_{32}, S_{33} ]
+         * :param std::vector< double > &current_M: The current value of the reference higher order stress. The format is
+         *     [ M_{111}, M_{112}, M_{113}, M_{121}, M_{122}, M_{123}, M_{131}, M_{132}, M_{133},
+         *       M_{211}, M_{212}, M_{213}, M_{221}, M_{222}, M_{223}, M_{231}, M_{232}, M_{233},
+         *       M_{311}, M_{312}, M_{313}, M_{321}, M_{322}, M_{323}, M_{331}, M_{332}, M_{333} ]
+         * :param std::vector< std::vector< double > > &DPK2Dgrad_u: The Jacobian of the PK2 stress w.r.t. the
+         *     gradient of macro displacement.
+         * :param std::vector< std::vector< double > > &DPK2Dphi: The Jacobian of the PK2 stress w.r.t. the
+         *     micro displacement.
+         * :param std::vector< std::vector< double > > &DPK2Dgrad_phi: The Jacobian of the PK2 stress w.r.t.
+         *     the gradient of the micro displacement.
+         * :param std::vector< std::vector< double > > &DSIGMAdgrad_u: The Jacobian of the reference symmetric
+         *     micro stress w.r.t. the gradient of the macro displacement.
+         * :param std::vector< std::vector< double > > &DSIGMAdphi: The Jacobian of the reference symmetric micro
+         *     stress w.r.t. the micro displacement.
+         * :param std::vector< std::vector< double > > &DSIGMAdgrad_phi: The Jacobian of the reference symmetric
+         *     micro stress w.r.t. the gradient of the micro displacement.
+         * :param std::vector< std::vector< double > > &DMDgrad_u: The Jacobian of the reference higher order
+         *     stress w.r.t. the gradient of the macro displacement.
+         * :param std::vector< std::vector< double > > &DMDphi: The Jacobian of the reference higher order stress
+         *     w.r.t. the micro displacement.
+         * :param std::vector< std::vector< double > > &DMDgrad_phi: The Jacobian of the reference higher order stress
+         *     w.r.t. the gradient of the micro displacement.
+         * :param std::vector< std::vector< double > > &ADD_TERMS: Additional terms
+         * :param std::vector< std::vector< std::vector< double > > > &ADD_JACOBIANS: The jacobians of the additional
+         *     terms w.r.t. the deformation
+         * :param std::string &output_message: The output message string.
+         * :param double delta = 1e-6: The perturbation to be applied to the incoming degrees of freedom.
+         *
+         * Returns:
+         *     0: No errors. Solution converged.
+         *     1: Convergence Error. Request timestep cutback.
+         *     2: Fatal Errors encountered. Terminate the simulation.
+         */
 
-        Evaluates the model and computes the numeric gradients of the stress measures w.r.t the degrees of freedom and their gradients.
+        //Evaluate the model at the set point
+        std::vector< double > SDVS_previous = SDVS;
+        int errorCode = evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi,
+                                        previous_grad_u, previous_phi, previous_grad_phi,
+                                        SDVS, current_ADD_DOF, current_ADD_grad_DOF,
+                                        previous_ADD_DOF, previous_ADD_grad_DOF,
+                                        PK2, SIGMA, M,
+                                        ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG
+#endif
+                                      );
 
-        TODO: Add gradients of the additional terms.
+#ifdef DEBUG_MODE
+        DEBUG.clear();
+#endif
 
-        */
-
-        //Create temporary matrices and vectors
-        Vector_9  _PK2;
-        Vector_9  _SIGMA;
-        Vector_27 _M;
-
-        Vector_9  _PK2_p;
-        Vector_9  _SIGMA_p;
-        Vector_27 _M_p;
-
-        Vector_9  _PK2_n;
-        Vector_9  _SIGMA_n;
-        Vector_27 _M_n;
-
-        std::vector<Eigen::VectorXd> _ADD_TERMS;
-
-        //Evaluate the model at the reference point
-        evaluate_model(time, fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                       _PK2, _SIGMA,   _M, _ADD_TERMS);
-
-        //Populate the stress outputs
-        map_eigen_to_vector(_PK2,PK2);
-        map_eigen_to_vector(_SIGMA,SIGMA);
-        map_eigen_to_vector(_M,M);
-
-        //Populate the additional terms
-        ADD_TERMS.resize(_ADD_TERMS.size());
-        for (unsigned int i=0; i<_ADD_TERMS.size(); i++){map_eigen_to_vector(_ADD_TERMS[i], ADD_TERMS[i]);}
-
-        //Form the total vector
-        std::vector<double> U(45);
-
-        //Transfer the reference point for grad_u
-        U[0] = grad_u[0][0];
-        U[1] = grad_u[1][1];
-        U[2] = grad_u[2][2];
-        U[3] = grad_u[1][2];
-        U[4] = grad_u[0][2];
-        U[5] = grad_u[0][1];
-        U[6] = grad_u[2][1];
-        U[7] = grad_u[2][0];
-        U[8] = grad_u[1][0];
-
-        //Transfer the reference point for phi
-        for (int i=0; i<9; i++){
-            U[i+9] = phi[i];
+        if ( errorCode > 0 ){
+            return errorCode;
         }
 
-        //Transfer the reference point for grad_phi
-        int sot_to_voigt_map[3][3]    = {{0,5,4},
-                                         {8,1,3},
-                                         {7,6,2}};
-        int tot_to_voigt_map[3][3][3];
-        deformation_measures::get_tot_to_voigt_map(tot_to_voigt_map);
-        int voigt_to_tot_map[81];
-        deformation_measures::get_voigt_to_tot_map(voigt_to_tot_map);
+        //Assemble the Jacobians w.r.t. the macro displacement gradient
+        DPK2Dgrad_u   = std::vector< std::vector< double > >( PK2.size(),   std::vector< double >( 9, 0 ) );
+        DSIGMADgrad_u = std::vector< std::vector< double > >( SIGMA.size(), std::vector< double >( 9, 0 ) );
+        DMDgrad_u     = std::vector< std::vector< double > >( M.size(),     std::vector< double >( 9, 0 ) );
+        for ( unsigned int i = 0; i < 9; i++ ){
+            std::vector< std::vector< double > > deltaMatrix( 3, std::vector< double >( 3, 0 ) );
+            deltaMatrix[ i / 3 ][ i % 3 ] = delta * fabs( current_grad_u[ i / 3 ][ i % 3 ] ) + delta;
 
-        for (int i=0; i<3; i++){
-            for (int j=0; j<3; j++){
-                for (int k=0; k<3; k++){
-                    U[tot_to_voigt_map[i][j][k]+18] = grad_phi[sot_to_voigt_map[i][j]][k];
+            double current_grad_u_P[ 3 ][ 3 ] =
+            {
+                {
+                    current_grad_u[ 0 ][ 0 ] + deltaMatrix[ 0 ][ 0 ],
+                    current_grad_u[ 0 ][ 1 ] + deltaMatrix[ 0 ][ 1 ],
+                    current_grad_u[ 0 ][ 2 ] + deltaMatrix[ 0 ][ 2 ]
+                },
+                { 
+                    current_grad_u[ 1 ][ 0 ] + deltaMatrix[ 1 ][ 0 ],
+                    current_grad_u[ 1 ][ 1 ] + deltaMatrix[ 1 ][ 1 ],
+                    current_grad_u[ 1 ][ 2 ] + deltaMatrix[ 1 ][ 2 ]
+                },
+                {
+                    current_grad_u[ 2 ][ 0 ] + deltaMatrix[ 2 ][ 0 ],
+                    current_grad_u[ 2 ][ 1 ] + deltaMatrix[ 2 ][ 1 ],
+                    current_grad_u[ 2 ][ 2 ] + deltaMatrix[ 2 ][ 2 ]
                 }
-            }
-        }
-
-        double _grad_u[3][3];
-        double _phi[9];
-        double _grad_phi[9][3];
-
-        std::vector<std::vector<double>> STRESS_MATRIX(45);
-        for (int I=0; I<45; I++){STRESS_MATRIX[I].resize(45);}
-
-        for (int J=0; J<45; J++){
-
-            //Perturb the state in the positive direction
-            U[J] += delta;
-
-            //Extract the perturbed state
-            _grad_u[0][0] = U[0];
-            _grad_u[1][1] = U[1];
-            _grad_u[2][2] = U[2];
-            _grad_u[1][2] = U[3];
-            _grad_u[0][2] = U[4];
-            _grad_u[0][1] = U[5];
-            _grad_u[2][1] = U[6];
-            _grad_u[2][0] = U[7];
-            _grad_u[1][0] = U[8];
-
-            for (int i=0; i<9; i++){_phi[i] = U[i+9];}
-
-            for (int i=0; i<3; i++){
-                for (int j=0; j<3; j++){
-                    for (int k=0; k<3; k++){
-                        _grad_phi[sot_to_voigt_map[i][j]][k] = U[tot_to_voigt_map[i][j][k]+18];
-                    }
+            };
+    
+            double current_grad_u_M[ 3 ][ 3 ] =
+            {
+                {
+                    current_grad_u[ 0 ][ 0 ] - deltaMatrix[ 0 ][ 0 ],
+                    current_grad_u[ 0 ][ 1 ] - deltaMatrix[ 0 ][ 1 ],
+                    current_grad_u[ 0 ][ 2 ] - deltaMatrix[ 0 ][ 2 ]
+                },
+                { 
+                    current_grad_u[ 1 ][ 0 ] - deltaMatrix[ 1 ][ 0 ],
+                    current_grad_u[ 1 ][ 1 ] - deltaMatrix[ 1 ][ 1 ],
+                    current_grad_u[ 1 ][ 2 ] - deltaMatrix[ 1 ][ 2 ]
+                },
+                {
+                    current_grad_u[ 2 ][ 0 ] - deltaMatrix[ 2 ][ 0 ],
+                    current_grad_u[ 2 ][ 1 ] - deltaMatrix[ 2 ][ 1 ],
+                    current_grad_u[ 2 ][ 2 ] - deltaMatrix[ 2 ][ 2 ]
                 }
+            };
+    
+            std::vector< double > PK2_P, SIGMA_P, M_P,
+                                  PK2_M, SIGMA_M, M_M;
+
+            std::vector< double > SDVS_P, SDVS_M;
+            SDVS_P = SDVS_previous;
+            SDVS_M = SDVS_previous;
+
+#ifdef DEBUG_MODE
+            std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > DEBUG_P, DEBUG_M;
+#endif
+    
+            errorCode = evaluate_model( time, fparams, current_grad_u_P, current_phi, current_grad_phi,
+                                        previous_grad_u, previous_phi, previous_grad_phi,
+                                        SDVS_P, current_ADD_DOF, current_ADD_grad_DOF,
+                                        previous_ADD_DOF, previous_ADD_grad_DOF,
+                                        PK2_P, SIGMA_P, M_P,
+                                        ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_P
+#endif
+                                      );
+    
+            if ( errorCode > 0 ){
+                return errorCode;
+            }
+    
+            errorCode = evaluate_model( time, fparams, current_grad_u_M, current_phi, current_grad_phi,
+                                        previous_grad_u, previous_phi, previous_grad_phi,
+                                        SDVS_M, current_ADD_DOF, current_ADD_grad_DOF,
+                                        previous_ADD_DOF, previous_ADD_grad_DOF,
+                                        PK2_M, SIGMA_M, M_M,
+                                        ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_M
+#endif
+                                      );
+    
+            if ( errorCode > 0 ){
+                return errorCode;
             }
 
-            //Evaluate the model (positive shift)
-            evaluate_model(  time,  fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                           _PK2_p, _SIGMA_p,     _M_p,    _ADD_TERMS);
+            for ( unsigned int j = 0; j < PK2.size(); j++ ){
+                DPK2Dgrad_u[ j ][ i ]   = ( PK2_P[ j ] - PK2_M[ j ] ) / ( 2 * deltaMatrix[ i / 3 ][ i % 3 ] );
+                DSIGMADgrad_u[ j ][ i ] = ( SIGMA_P[ j ] - SIGMA_M[ j ] ) / ( 2 * deltaMatrix[ i / 3 ][ i % 3 ] );
+            }
+            for ( unsigned int j = 0; j < M.size(); j++ ){
+                DMDgrad_u[ j ][ i ]     = ( M_P[ j ] - M_M[ j ] ) / ( 2 * deltaMatrix[ i / 3 ][ i % 3 ] );
+            }
+        }
 
-            //Perturb the state in the positive direction
-            U[J] -= 2*delta;
+        //Assemble the Jacobians w.r.t. the micro displacement
+        DPK2Dphi   = std::vector< std::vector< double > >(  9, std::vector< double >( 9, 0 ) );
+        DSIGMADphi = std::vector< std::vector< double > >(  9, std::vector< double >( 9, 0 ) );
+        DMDphi     = std::vector< std::vector< double > >( 27, std::vector< double >( 9, 0 ) );
+        for ( unsigned int i = 0; i < 9; i++ ){
+            std::vector< double > deltaVector( 9, 0 );
+            deltaVector[ i ] = delta * fabs( current_phi[ i ] ) + delta;
+    
+            double current_phi_P[ 9 ] = { current_phi[ 0 ] + deltaVector[ 0 ], current_phi[ 1 ] + deltaVector[ 1 ],
+                                          current_phi[ 2 ] + deltaVector[ 2 ], current_phi[ 3 ] + deltaVector[ 3 ],
+                                          current_phi[ 4 ] + deltaVector[ 4 ], current_phi[ 5 ] + deltaVector[ 5 ],
+                                          current_phi[ 6 ] + deltaVector[ 6 ], current_phi[ 7 ] + deltaVector[ 7 ],
+                                          current_phi[ 8 ] + deltaVector[ 8 ]};
 
-            //Extract the perturbed state
-            _grad_u[0][0] = U[0];
-            _grad_u[1][1] = U[1];
-            _grad_u[2][2] = U[2];
-            _grad_u[1][2] = U[3];
-            _grad_u[0][2] = U[4];
-            _grad_u[0][1] = U[5];
-            _grad_u[2][1] = U[6];
-            _grad_u[2][0] = U[7];
-            _grad_u[1][0] = U[8];
+            double current_phi_M[ 9 ] = { current_phi[ 0 ] - deltaVector[ 0 ], current_phi[ 1 ] - deltaVector[ 1 ],
+                                          current_phi[ 2 ] - deltaVector[ 2 ], current_phi[ 3 ] - deltaVector[ 3 ],
+                                          current_phi[ 4 ] - deltaVector[ 4 ], current_phi[ 5 ] - deltaVector[ 5 ],
+                                          current_phi[ 6 ] - deltaVector[ 6 ], current_phi[ 7 ] - deltaVector[ 7 ],
+                                          current_phi[ 8 ] - deltaVector[ 8 ]};
+    
+    
+            std::vector< double > PK2_P, SIGMA_P, M_P,
+                                  PK2_M, SIGMA_M, M_M;
 
-            for (int i=0; i<9; i++){_phi[i] = U[i+9];}
+            std::vector< double > SDVS_P, SDVS_M;
+            SDVS_P = SDVS_previous;
+            SDVS_M = SDVS_previous;
 
-            for (int i=0; i<3; i++){
-                for (int j=0; j<3; j++){
-                    for (int k=0; k<3; k++){
-                        _grad_phi[sot_to_voigt_map[i][j]][k] = U[tot_to_voigt_map[i][j][k]+18];
-                    }
+#ifdef DEBUG_MODE
+            std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > DEBUG_P, DEBUG_M;
+#endif
+    
+            errorCode = evaluate_model( time, fparams, current_grad_u, current_phi_P, current_grad_phi,
+                                        previous_grad_u, previous_phi, previous_grad_phi,
+                                        SDVS_P, current_ADD_DOF, current_ADD_grad_DOF,
+                                        previous_ADD_DOF, previous_ADD_grad_DOF,
+                                        PK2_P, SIGMA_P, M_P,
+                                        ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_P
+#endif
+                                      );
+    
+            if ( errorCode > 0 ){
+                return errorCode;
+            }
+    
+            errorCode = evaluate_model( time, fparams, current_grad_u, current_phi_M, current_grad_phi,
+                                        previous_grad_u, previous_phi, previous_grad_phi,
+                                        SDVS_M, current_ADD_DOF, current_ADD_grad_DOF,
+                                        previous_ADD_DOF, previous_ADD_grad_DOF,
+                                        PK2_M, SIGMA_M, M_M,
+                                        ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_M
+#endif
+                                      );
+    
+            if ( errorCode > 0 ){
+                return errorCode;
+            }
+
+            for ( unsigned int j = 0; j < PK2.size(); j++ ){
+                DPK2Dphi[ j ][ i ]   = ( PK2_P[ j ] - PK2_M[ j ] ) / ( 2 * deltaVector[ i ] );
+                DSIGMADphi[ j ][ i ] = ( SIGMA_P[ j ] - SIGMA_M[ j ] ) / ( 2 * deltaVector[ i ] );
+            }
+            for ( unsigned int j = 0; j < M.size(); j++ ){
+                DMDphi[ j ][ i ]     = ( M_P[ j ] - M_M[ j ] ) / ( 2 * deltaVector[ i ] );
+            }
+        }
+
+        //Assemble the Jacobians w.r.t. the gradient of the micro displacement
+        DPK2Dgrad_phi   = std::vector< std::vector< double > >( PK2.size(),   std::vector< double >( 27, 0 ) );
+        DSIGMADgrad_phi = std::vector< std::vector< double > >( SIGMA.size(), std::vector< double >( 27, 0 ) );
+        DMDgrad_phi     = std::vector< std::vector< double > >( M.size(),     std::vector< double >( 27, 0 ) );
+
+        for ( unsigned int i = 0; i < 27; i++ ){
+            std::vector< std::vector< double > > deltaMatrix( 9, std::vector< double >( 3, 0 ) );
+            deltaMatrix[ i / 3 ][ i % 3 ] = delta * fabs( current_grad_phi[ i / 3 ][ i % 3 ] ) + delta;
+
+            double current_grad_phi_P[ 9 ][ 3 ] =
+            {
+                {
+                    current_grad_phi[ 0 ][ 0 ] + deltaMatrix[ 0 ][ 0 ],
+                    current_grad_phi[ 0 ][ 1 ] + deltaMatrix[ 0 ][ 1 ],
+                    current_grad_phi[ 0 ][ 2 ] + deltaMatrix[ 0 ][ 2 ]
+                },
+                { 
+                    current_grad_phi[ 1 ][ 0 ] + deltaMatrix[ 1 ][ 0 ],
+                    current_grad_phi[ 1 ][ 1 ] + deltaMatrix[ 1 ][ 1 ],
+                    current_grad_phi[ 1 ][ 2 ] + deltaMatrix[ 1 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 2 ][ 0 ] + deltaMatrix[ 2 ][ 0 ],
+                    current_grad_phi[ 2 ][ 1 ] + deltaMatrix[ 2 ][ 1 ],
+                    current_grad_phi[ 2 ][ 2 ] + deltaMatrix[ 2 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 3 ][ 0 ] + deltaMatrix[ 3 ][ 0 ],
+                    current_grad_phi[ 3 ][ 1 ] + deltaMatrix[ 3 ][ 1 ],
+                    current_grad_phi[ 3 ][ 2 ] + deltaMatrix[ 3 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 4 ][ 0 ] + deltaMatrix[ 4 ][ 0 ],
+                    current_grad_phi[ 4 ][ 1 ] + deltaMatrix[ 4 ][ 1 ],
+                    current_grad_phi[ 4 ][ 2 ] + deltaMatrix[ 4 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 5 ][ 0 ] + deltaMatrix[ 5 ][ 0 ],
+                    current_grad_phi[ 5 ][ 1 ] + deltaMatrix[ 5 ][ 1 ],
+                    current_grad_phi[ 5 ][ 2 ] + deltaMatrix[ 5 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 6 ][ 0 ] + deltaMatrix[ 6 ][ 0 ],
+                    current_grad_phi[ 6 ][ 1 ] + deltaMatrix[ 6 ][ 1 ],
+                    current_grad_phi[ 6 ][ 2 ] + deltaMatrix[ 6 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 7 ][ 0 ] + deltaMatrix[ 7 ][ 0 ],
+                    current_grad_phi[ 7 ][ 1 ] + deltaMatrix[ 7 ][ 1 ],
+                    current_grad_phi[ 7 ][ 2 ] + deltaMatrix[ 7 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 8 ][ 0 ] + deltaMatrix[ 8 ][ 0 ],
+                    current_grad_phi[ 8 ][ 1 ] + deltaMatrix[ 8 ][ 1 ],
+                    current_grad_phi[ 8 ][ 2 ] + deltaMatrix[ 8 ][ 2 ]
                 }
+            };
+    
+            double current_grad_phi_M[ 9 ][ 3 ] =
+            {
+                {
+                    current_grad_phi[ 0 ][ 0 ] - deltaMatrix[ 0 ][ 0 ],
+                    current_grad_phi[ 0 ][ 1 ] - deltaMatrix[ 0 ][ 1 ],
+                    current_grad_phi[ 0 ][ 2 ] - deltaMatrix[ 0 ][ 2 ]
+                },
+                { 
+                    current_grad_phi[ 1 ][ 0 ] - deltaMatrix[ 1 ][ 0 ],
+                    current_grad_phi[ 1 ][ 1 ] - deltaMatrix[ 1 ][ 1 ],
+                    current_grad_phi[ 1 ][ 2 ] - deltaMatrix[ 1 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 2 ][ 0 ] - deltaMatrix[ 2 ][ 0 ],
+                    current_grad_phi[ 2 ][ 1 ] - deltaMatrix[ 2 ][ 1 ],
+                    current_grad_phi[ 2 ][ 2 ] - deltaMatrix[ 2 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 3 ][ 0 ] - deltaMatrix[ 3 ][ 0 ],
+                    current_grad_phi[ 3 ][ 1 ] - deltaMatrix[ 3 ][ 1 ],
+                    current_grad_phi[ 3 ][ 2 ] - deltaMatrix[ 3 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 4 ][ 0 ] - deltaMatrix[ 4 ][ 0 ],
+                    current_grad_phi[ 4 ][ 1 ] - deltaMatrix[ 4 ][ 1 ],
+                    current_grad_phi[ 4 ][ 2 ] - deltaMatrix[ 4 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 5 ][ 0 ] - deltaMatrix[ 5 ][ 0 ],
+                    current_grad_phi[ 5 ][ 1 ] - deltaMatrix[ 5 ][ 1 ],
+                    current_grad_phi[ 5 ][ 2 ] - deltaMatrix[ 5 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 6 ][ 0 ] - deltaMatrix[ 6 ][ 0 ],
+                    current_grad_phi[ 6 ][ 1 ] - deltaMatrix[ 6 ][ 1 ],
+                    current_grad_phi[ 6 ][ 2 ] - deltaMatrix[ 6 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 7 ][ 0 ] - deltaMatrix[ 7 ][ 0 ],
+                    current_grad_phi[ 7 ][ 1 ] - deltaMatrix[ 7 ][ 1 ],
+                    current_grad_phi[ 7 ][ 2 ] - deltaMatrix[ 7 ][ 2 ]
+                },
+                {
+                    current_grad_phi[ 8 ][ 0 ] - deltaMatrix[ 8 ][ 0 ],
+                    current_grad_phi[ 8 ][ 1 ] - deltaMatrix[ 8 ][ 1 ],
+                    current_grad_phi[ 8 ][ 2 ] - deltaMatrix[ 8 ][ 2 ]
+                }
+            };
+    
+            std::vector< double > PK2_P, SIGMA_P, M_P,
+                                  PK2_M, SIGMA_M, M_M;
+    
+            std::vector< double > SDVS_P, SDVS_M;
+            SDVS_P = SDVS_previous;
+            SDVS_M = SDVS_previous;
+
+#ifdef DEBUG_MODE
+            std::map< std::string, std::map< std::string, std::map< std::string, std::vector< double > > > > DEBUG_P, DEBUG_M;
+#endif
+
+            errorCode = evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi_P,
+                                        previous_grad_u, previous_phi, previous_grad_phi,
+                                        SDVS_P, current_ADD_DOF, current_ADD_grad_DOF,
+                                        previous_ADD_DOF, previous_ADD_grad_DOF,
+                                        PK2_P, SIGMA_P, M_P,
+                                        ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_P
+#endif
+                                      );
+    
+            if ( errorCode > 0 ){
+                return errorCode;
+            }
+    
+            errorCode = evaluate_model( time, fparams, current_grad_u, current_phi, current_grad_phi_M,
+                                        previous_grad_u, previous_phi, previous_grad_phi,
+                                        SDVS_M, current_ADD_DOF, current_ADD_grad_DOF,
+                                        previous_ADD_DOF, previous_ADD_grad_DOF,
+                                        PK2_M, SIGMA_M, M_M,
+                                        ADD_TERMS, output_message
+#ifdef DEBUG_MODE
+                                        , DEBUG_P
+#endif
+                                      );
+    
+            if ( errorCode > 0 ){
+                return errorCode;
             }
 
-            //Evaluate the model (positive shift)
-            evaluate_model(time,    fparams,  _grad_u, _phi, _grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                           _PK2_n, _SIGMA_n,     _M_n,    _ADD_TERMS);
-
-            //Extract the response
-            for (int I=0; I<9;  I++){STRESS_MATRIX[I   ][J] = 0.5*(_PK2_p(I)   - _PK2_n[I])/delta;}
-            for (int I=0; I<9;  I++){STRESS_MATRIX[I+9 ][J] = 0.5*(_SIGMA_p(I) - _SIGMA_n[I])/delta;}
-            for (int I=0; I<27; I++){STRESS_MATRIX[I+18][J] = 0.5*(_M_p(I)     - _M_n[I])/delta;}
-
-            U[J] += delta;
-
-        }
-
-        //Output the matrix to the terminal
-//        std::cout << "STRESS_MATRIX:\n";
-//        for (int I=0; I<45; I++){
-//            for (int J=0; J<45; J++){
-//                std::cout << STRESS_MATRIX[I][J] << " ";
-//            }
-//            std::cout << "\n";
-//        }
-
-        //Extract the stress jacobians
-        //std::cout << "dcauchydgrad_u\n";
-        DPK2Dgrad_u.resize(9);
-        for (int I=0; I<9; I++){
-            DPK2Dgrad_u[I].resize(9);
-            for (int J=0; J<9; J++){
-                DPK2Dgrad_u[I][J] = STRESS_MATRIX[I][J];
+            for ( unsigned int j = 0; j < PK2.size(); j++ ){
+                DPK2Dgrad_phi[ j ][ i ]   = ( PK2_P[ j ] - PK2_M[ j ] ) / ( 2 * deltaMatrix[ i / 3 ][ i % 3 ] );
+                DSIGMADgrad_phi[ j ][ i ] = ( SIGMA_P[ j ] - SIGMA_M[ j ] ) / ( 2 * deltaMatrix[ i / 3 ][ i % 3 ] );
             }
-        }
-        //std::cout << "dcauchydphi\n";
-        DPK2Dphi.resize(9);
-        for (int I=0; I<9; I++){
-            DPK2Dphi[I].resize(9);
-            for (int J=0; J<9; J++){
-                DPK2Dphi[I][J] = STRESS_MATRIX[I][J+9];
-            }
-        }
-        //std::cout << "dcauchydgrad_phi\n";
-        DPK2Dgrad_phi.resize(9);
-        for (int I=0; I<9; I++){
-            DPK2Dgrad_phi[I].resize(27);
-            for (int J=0; J<27; J++){
-                DPK2Dgrad_phi[I][J] = STRESS_MATRIX[I][J+18];
-            }
-        }
-        //std::cout << "dsdgrad_u\n";
-        DSIGMADgrad_u.resize(9);
-        for (int I=0; I<9; I++){
-            DSIGMADgrad_u[I].resize(9);
-            for (int J=0; J<9; J++){
-                DSIGMADgrad_u[I][J] = STRESS_MATRIX[I+9][J];
-            }
-        }
-        //std::cout << "dsdphi\n";
-        DSIGMADphi.resize(9);
-        for (int I=0; I<9; I++){
-            DSIGMADphi[I].resize(9);
-            for (int J=0; J<9; J++){
-                DSIGMADphi[I][J] = STRESS_MATRIX[I+9][J+9];
-            }
-        }
-        //std::cout << "dsdgrad_phi\n";
-        DSIGMADgrad_phi.resize(9);
-        for (int I=0; I<9; I++){
-            DSIGMADgrad_phi[I].resize(27);
-            for (int J=0; J<27; J++){
-                DSIGMADgrad_phi[I][J] = STRESS_MATRIX[I+9][J+18];
-            }
-        }
-        //std::cout << "dmdgrad_u\n";
-        DMDgrad_u.resize(27);
-        for (int I=0; I<27; I++){
-            DMDgrad_u[I].resize(9);
-            for (int J=0; J<9; J++){
-                DMDgrad_u[I][J] = STRESS_MATRIX[I+18][J];
-            }
-        }
-        //std::cout << "dmdphi\n";
-        DMDphi.resize(27);
-        for (int I=0; I<27; I++){
-            DMDphi[I].resize(9);
-            for (int J=0; J<9; J++){
-                DMDphi[I][J] = STRESS_MATRIX[I+18][J+9];
-            }
-        }
-        //std::cout << "dmdgrad_phi\n";
-        DMDgrad_phi.resize(27);
-        for (int I=0; I<27; I++){
-            DMDgrad_phi[I].resize(27);
-            for (int J=0; J<27; J++){
-                DMDgrad_phi[I][J] = STRESS_MATRIX[I+18][J+18];
-            }
-        }
-
-        return;
-
-    }
-
-    void IMaterial::evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
-                                   const double (&grad_u)[3][3],           const double (&phi)[9],
-                                   const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
-                                   const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                                   std::vector<double> &PK2,               std::vector<double> &SIGMA,                           std::vector<double> &M,
-                                   std::vector<std::vector<double>> &ADD_TERMS){
-
-        /*!
-        ========================
-        |    evaluate_model    |
-        ========================
-
-        Copies values from vectors to eigen matrices, 
-        submits to the Eigen::Matrix based function, 
-        and then passes those values back.
-
-        */
-
-        //Create temporary matrices and vectors
-        Vector_9  _PK2;
-        Vector_9  _SIGMA;
-        Vector_27 _M;
-
-        std::vector<Eigen::VectorXd> _ADD_TERMS;
-
-        //Evaluate the model
-        evaluate_model(time,    fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                       _PK2,     _SIGMA,      _M, _ADD_TERMS);
-
-        //Populate the stress outputs
-        map_eigen_to_vector(_PK2,PK2);
-        map_eigen_to_vector(_SIGMA,SIGMA);
-        map_eigen_to_vector(_M,M);
-
-        //Populate the additional terms
-        ADD_TERMS.resize(_ADD_TERMS.size());
-        for (unsigned int i=0; i<_ADD_TERMS.size(); i++){map_eigen_to_vector(_ADD_TERMS[i], ADD_TERMS[i]);}
-
-    }
-
-    void IMaterial::evaluate_model(const std::vector<double> &time,        const std::vector<double> (&fparams),
-                                   const double (&grad_u)[3][3],           const double (&phi)[9],
-                                   const double (&grad_phi)[9][3],         std::vector<double> &SDVS,
-                                   const std::vector<double> &ADD_DOF,     const std::vector<std::vector<double>> &ADD_grad_DOF,
-                                   std::vector<double> &PK2,                        std::vector<double> &SIGMA,                   std::vector<double> &M,
-                                   std::vector<std::vector<double>> &DPK2Dgrad_u,   std::vector<std::vector<double>> &DPK2Dphi,   std::vector<std::vector<double>> &DPK2Dgrad_phi,
-                                   std::vector<std::vector<double>> &DSIGMADgrad_u, std::vector<std::vector<double>> &DSIGMADphi, std::vector<std::vector<double>> &DSIGMADgrad_phi,
-                                   std::vector<std::vector<double>> &DMDgrad_u,     std::vector<std::vector<double>> &DMDphi,     std::vector<std::vector<double>> &DMDgrad_phi,
-                                   std::vector<std::vector<double>> &ADD_TERMS,     std::vector<std::vector<std::vector<double>>> &ADD_JACOBIANS){
-
-        /*!
-        ========================
-        |    evaluate_model    |
-        ========================
-
-        Copies values from vectors to eigen matrices, 
-        submits to the Eigen::Matrix based function, 
-        and then passes those values back.
-
-        */
-
-        //std::cout << "In evaluate_model";
-
-        //Create temporary matrices and vectors
-        Vector_9  _PK2;
-        Vector_9  _SIGMA;
-        Vector_27 _M;
-
-        Matrix_9x9  _DPK2Dgrad_u;
-        Matrix_9x9  _DPK2Dphi;
-        Matrix_9x27 _DPK2Dgrad_phi;
-
-        Matrix_9x9  _DSIGMADgrad_u;
-        Matrix_9x9  _DSIGMADphi;
-        Matrix_9x27 _DSIGMADgrad_phi;
-
-        Matrix_27x9  _DMDgrad_u;
-        Matrix_27x9  _DMDphi;
-        Matrix_27x27 _DMDgrad_phi;
-
-        std::vector<Eigen::VectorXd> _ADD_TERMS;
-        std::vector<Eigen::MatrixXd> _ADD_JACOBIANS;
-
-        //Evaluate the model
-        //std::cout << "temporary matrices created\n";
-        //assert(-1==0);
-        evaluate_model(time,    fparams,  grad_u, phi, grad_phi, SDVS, ADD_DOF, ADD_grad_DOF,
-                       _PK2,           _SIGMA,      _M,
-                       _DPK2Dgrad_u,   _DPK2Dphi,   _DPK2Dgrad_phi,
-                       _DSIGMADgrad_u, _DSIGMADphi, _DSIGMADgrad_phi,
-                       _DMDgrad_u,     _DMDphi,     _DMDgrad_phi,
-                       _ADD_TERMS,     _ADD_JACOBIANS);
-
-        //assert(0==1);
-
-        //Populate the stress outputs
-        map_eigen_to_vector(_PK2,PK2);
-        map_eigen_to_vector(_SIGMA,SIGMA);
-        map_eigen_to_vector(_M,M);
-
-        //assert(1==2);
-
-        //Populate the jacobian outputs
-        map_eigen_to_vector(_DPK2Dgrad_u,   DPK2Dgrad_u);
-        map_eigen_to_vector(_DPK2Dphi,      DPK2Dphi);
-        map_eigen_to_vector(_DPK2Dgrad_phi, DPK2Dgrad_phi);
-
-        //assert(2==3);
-
-        map_eigen_to_vector(_DSIGMADgrad_u,   DSIGMADgrad_u);
-        map_eigen_to_vector(_DSIGMADphi,      DSIGMADphi);
-        map_eigen_to_vector(_DSIGMADgrad_phi, DSIGMADgrad_phi);
-
-        //assert(3==4);
-
-        map_eigen_to_vector(_DMDgrad_u,   DMDgrad_u);
-        map_eigen_to_vector(_DMDphi,      DMDphi);
-        map_eigen_to_vector(_DMDgrad_phi, DMDgrad_phi);
-
-        //assert(4==5);
-        ADD_TERMS.resize(_ADD_TERMS.size());
-        for (unsigned int i=0; i<_ADD_TERMS.size(); i++){map_eigen_to_vector(_ADD_TERMS[i], ADD_TERMS[i]);}
-
-        ADD_JACOBIANS.resize(_ADD_JACOBIANS.size());
-        for (unsigned int i=0; i<_ADD_JACOBIANS.size(); i++){map_eigen_to_vector(_ADD_JACOBIANS[i], ADD_JACOBIANS[i]);}
-
-        //assert(5==6);
-
-        return;
-    }
-
-    void IMaterial::map_eigen_to_vector(const Vector_9 &V, std::vector<double> &v){
-        /*!
-        =============================
-        |    map_eigen_to_vector    |
-        =============================
-
-        Map an eigen matrix to a standard vector.
-
-        */
-
-        unsigned int A = V.size();
-        unsigned int a = v.size();
-
-        if(a<A){v.resize(A);}
-
-        for (unsigned int i=0; i<A; i++){v[i] = V[i];}
-
-        return;
-    }
-
-    void IMaterial::map_eigen_to_vector(const Vector_27 &V, std::vector<double> &v){
-        /*!
-        =============================
-        |    map_eigen_to_vector    |
-        =============================
-
-        Map an eigen matrix to a standard vector.
-
-        */
-
-        unsigned int A = V.size();
-        unsigned int a = v.size();
-
-        if(a<A){v.resize(A);}
-
-        for (unsigned int i=0; i<A; i++){v[i] = V[i];}
-
-        return;
-    }
-
-    void IMaterial::map_eigen_to_vector(const Eigen::VectorXd &V, std::vector<double> &v){
-        /*!
-        =============================
-        |    map_eigen_to_vector    |
-        =============================
-
-        Map an eigen matrix to a standard vector.
-
-        */
-
-        unsigned int A = V.size();
-        unsigned int a = v.size();
-
-        if(a<A){v.resize(A);}
-
-        for (unsigned int i=0; i<A; i++){v[i] = V[i];}
-
-        return;
-    }
-
-   void IMaterial::map_eigen_to_vector(const Matrix_9x9 &M, std::vector<std::vector<double>> &v){
-        /*!
-        =============================
-        |    map_eigen_to_vector    |
-        =============================
-
-        Map an eigen matrix to a standard vector.
-
-        */
-
-        unsigned int A = M.rows();
-        unsigned int B = M.cols();
-
-        unsigned int a = v.size();
-
-        if(a<A){v.resize(A);}
-
-        for (unsigned int i=0; i<A; i++){
-            if(v[i].size()<B){v[i].resize(B);}
-            for (unsigned int j=0; j<B; j++){
-                v[i][j] = M(i,j);
+            for ( unsigned int j = 0; j < M.size(); j++ ){
+                DMDgrad_phi[ j ][ i ]     = ( M_P[ j ] - M_M[ j ] ) / ( 2 * deltaMatrix[ i / 3 ][ i % 3 ] );
             }
         }
 
-        return;
-    }
-
-    void IMaterial::map_eigen_to_vector(const Matrix_9x27 &M, std::vector<std::vector<double>> &v){
-        /*!
-        =============================
-        |    map_eigen_to_vector    |
-        =============================
-
-        Map an eigen matrix to a standard vector.
-
-        */
-
-        unsigned int A = M.rows();
-        unsigned int B = M.cols();
-
-        unsigned int a = v.size();
-
-        if(a<A){v.resize(A);}
-
-        for (unsigned int i=0; i<A; i++){
-            if(v[i].size()<B){v[i].resize(B);}
-            for (unsigned int j=0; j<B; j++){
-                v[i][j] = M(i,j);
-            }
-        }
-
-        return;
-    }
-
-    void IMaterial::map_eigen_to_vector(const Matrix_27x9 &M, std::vector<std::vector<double>> &v){
-        /*!
-        =============================
-        |    map_eigen_to_vector    |
-        =============================
-
-        Map an eigen matrix to a standard vector.
-
-        */
-
-        unsigned int A = M.rows();
-        unsigned int B = M.cols();
-
-        unsigned int a = v.size();
-
-        if(a<A){v.resize(A);}
-
-        for (unsigned int i=0; i<A; i++){
-            if(v[i].size()<B){v[i].resize(B);}
-            for (unsigned int j=0; j<B; j++){
-                v[i][j] = M(i,j);
-            }
-        }
-
-        return;
-    }
-
-    void IMaterial::map_eigen_to_vector(const Matrix_27x27 &M, std::vector<std::vector<double>> &v){
-        /*!
-        =============================
-        |    map_eigen_to_vector    |
-        =============================
-
-        Map an eigen matrix to a standard vector.
-
-        */
-        unsigned int A = M.rows();
-        unsigned int B = M.cols();
-
-        unsigned int a = v.size();
-
-        if(a<A){v.resize(A);}
-
-        for (unsigned int i=0; i<A; i++){
-            if(v[i].size()<B){v[i].resize(B);}
-            for (unsigned int j=0; j<B; j++){
-                v[i][j] = M(i,j);
-            }
-        }
-
-        return;
-    }
-
-    void IMaterial::map_eigen_to_vector(const Eigen::MatrixXd &M, std::vector<std::vector<double>> &v){
-        /*!
-        =============================
-        |    map_eigen_to_vector    |
-        =============================
-
-        Map an eigen matrix to a standard vector.
-
-        */
-
-        unsigned int A = M.rows();
-        unsigned int B = M.cols();
-
-        unsigned int a = v.size();
-
-        if(a<A){v.resize(A);}
-
-        for (unsigned int i=0; i<A; i++){
-            if(v[i].size()<B){v[i].resize(B);}
-            for (unsigned int j=0; j<B; j++){
-                v[i][j] = M(i,j);
-            }
-        }
-
-        return;
+        return 0;
     }
 
     MaterialFactory& MaterialFactory::Instance() {
@@ -605,8 +481,28 @@ namespace micromorphic_material_library {
 
     std::unique_ptr<IMaterial> MaterialFactory::GetMaterial(std::string name) {
         /* throws out_of_range if material unknown */
-        IMaterialRegistrar* registrar = registry_.at(name);
-        return registrar->GetMaterial();
+        try{
+            IMaterialRegistrar* registrar = registry_.at(name);
+            return registrar->GetMaterial( );
+        }
+        catch(...){
+            std::string message = "Exception when attempting to access: " + name + "\n";
+            message += "material models available are:\n";
+            for ( auto it = registry_.begin( ); it != registry_.end( ); it++ ){
+                message += it->first + "\n";
+            }
+            throw std::runtime_error( message );
+        }
+        return NULL;
+    }
+
+    void MaterialFactory::PrintMaterials( ){
+        /*! Prints all of the materials registered in the library*/
+        std::string message = "Materials available in the library:\n";
+        for ( auto it = registry_.begin( ); it != registry_.end( ); it++ ){
+            message += "    " + it->first + "\n";
+        }
+        std::cerr << message;
     }
 
 }

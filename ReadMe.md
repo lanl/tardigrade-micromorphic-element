@@ -64,8 +64,11 @@ which is the implementation of micromorphic continuum mechanics.
 
 ** Python Requirements **
 
-Requires default python libraries (python.org) as well as numpy (numpy.org). These packages are 
-available for download in a convenient package at [continuum](www.continuum.io/downloads).
+Users should compile the code within the MOOSE conda environment. If the python interface is to be used then
+`cython` and `pytest` will also be needed. These can be installed via
+
+    conda activate moose
+    conda install cython pytest
 
 ** LaTeX Requirements **
 

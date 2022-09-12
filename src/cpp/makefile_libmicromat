@@ -1,0 +1,86 @@
+# Micromorphic material library
+#
+# Author: Nathan A. Miller ( LANL / CU Boulder )
+# Email:  nathanm@lanl.gov
+# Date:   April 30, 2020
+#
+# This is the makefile for the micromoprhic material model library. This library 
+# collects the developed micromorphic material models which can then be called
+# by name and executed to return stress information.
+
+include ../../config.mk
+
+MICROMORPHICTOOLSOBJECT=micromorphic_tools.o
+CONSTITUTIVEOBJECT=constitutive_tools.o
+ERROROBJECT=error_tools.o
+SOLVEROBJECT=solver_tools.o
+MICROMORPHICMATERIALLIBOBJECT=micromorphic_material_library.o
+
+MICROMORPHICMATERIALLIBSOURCE=micromorphic_material_library.cpp
+MICROMORPHICMATERIALLIBHEADER=micromorphic_material_library.h
+
+LIBRARYNAME=libmicromat.so
+VERSION=$(LIBRARYNAME).1
+
+#Object files for the material models
+
+LINEARELASTICITYOBJECT=micromorphic_linear_elasticity.o
+DPPLASTICITYOBJECT=micromorphic_elasto_plasticity.o
+
+OBJECTS = $(ERROROBJECT) $(CONSTITUTIVEOBJECT) $(MICROMORPHICTOOLSOBJECT)
+OBJECTS += $(MICROMORPHICMATERIALLIBOBJECT) $(SOLVEROBJECT)
+
+OBJECTS += $(LINEARELASTICITYOBJECT)
+OBJECTS += $(DPPLASTICITYOBJECT)
+
+INC+=-I.
+LOCAL_CFLAGS = -fPIC
+
+#Set the mode due to the method variable
+DBG =
+ifeq ($(METHOD),dbg)
+  DBG = -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -g -DDEBUG_MODE
+endif
+ifeq ($(METHOD),oprof)
+  DBG = -pg
+endif
+
+all: $(LIBRARYNAME)
+
+$(LIBRARYNAME): $(VERSION)
+	ln -s -f $< $@
+
+$(VERSION): $(OBJECTS)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -shared -lc -Wl,-soname,$@ -o $@ $^ $(CFLAGS)
+
+$(MICROMORPHICTOOLSOBJECT): $(MICROMORPHICTOOLSSOURCE) $(MICROMORPHICTOOLSHEADER) $(CONSITUTIVEHEADER) $(VECTORHEADER) $(ERRORHEADER)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
+
+$(ERROROBJECT): $(ERRORSOURCE) $(ERRORHEADER)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
+
+$(CONSTITUTIVEOBJECT): $(CONSTITUTIVESOURCE) $(CONSTITUTIVEHEADER) $(VECTORHEADER) $(ERRORHEADER)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
+
+$(SOLVEROBJECT): $(SOLVERSOURCE) $(SOLVERHEADER) $(VECTORHEADER) $(ERRORHEADER)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
+
+$(MICROMORPHICMATERIALLIBOBJECT): $(MICROMORPHICMATERIALLIBSOURCE) $(MICROMORPHICMATERIALLIBHEADER)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
+
+# Material Models included in the library follow here
+# If you add a new material model make sure you add it
+# to the OBJECTS variable which is passed to the linker
+# which generates the shared library. The location of
+# the source and header files should be defined in ../../config.mk
+
+$(LINEARELASTICITYOBJECT): $(LINEARELASTICITYSOURCE) $(LINEARELASTICITYHEADER) $(VECTORHEADER)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
+
+$(DPPLASTICITYOBJECT): $(DPPLASTICITYSOURCE) $(DPPLASTICITYHEADER) $(VECTORHEADER)
+	$(CXX) $(LOCAL_CFLAGS) $(EIGEN) $(INC) $(LIB) $(DBG) -c -o $@ $< $(CFLAGS) -lstdc++ -std=c++11
+
+clean:
+	rm -f $(OBJECTS) $(LIBRARYNAME) $(VERSION)
+
+.PHONY: all clean
