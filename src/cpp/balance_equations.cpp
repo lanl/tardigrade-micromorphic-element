@@ -1072,9 +1072,13 @@ namespace balance_equations{
 
             for ( unsigned int L = 0; L < dim; L++ ){
 
-                DcinertiaDU_ij -= N * eta * density * referenceInertia[ dim * K + L ]
-                                * D3ChiDt2DChi_j[ dim * k + K ] * chi[ dim * l + L ];
-                
+                if ( ( k == m ) && ( K == M ) ){
+
+                    DcinertiaDU_ij -= N * eta * density * referenceInertia[ dim * K + L ]
+                                    * D3ChiDt2DChi_j[ dim * k + K ] * chi[ dim * l + L ];
+
+                }
+
                 if ( ( l == m ) && ( L == M ) ){
 
                     DcinertiaDU_ij -= N * eta * density * referenceInertia[ dim * K + L ] * D2ChiDt2[ dim * k + K ];
