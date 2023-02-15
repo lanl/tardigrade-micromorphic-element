@@ -1466,15 +1466,19 @@ BOOST_AUTO_TEST_CASE( testCompute_inertia_couple_jacobian ){
 
     const double density = 858.6764675999902;
 
-    const double chi[ 9 ] = { eta *  0.66455883, eta * -0.83306412, eta *  0.69335131,
-                              eta *  0.005052  , eta * -0.21722663, eta * -0.25540263,
-                              eta * -0.15143235, eta *  0.64940103, eta * -0.73065224 };
+    double chi_node[ 9 ] = {   0.66455883, -0.83306412,  0.69335131,
+                               0.005052  , -0.21722663, -0.25540263,
+                              -0.15143235,  0.64940103, -0.73065224 };
 
-    const double d2chidt2[ 9 ] = { 0.94122501, -0.72606278, -0.17218694,
-                                  -0.76891885,  1.58015067,  0.32186389,
-                                  -0.34086243,  0.4205032 ,  0.1171416 };
+    double chi[ 9 ] = { eta * chi_node[ 0 ], eta * chi_node[ 1 ], eta * chi_node[ 2 ],
+                        eta * chi_node[ 3 ], eta * chi_node[ 4 ], eta * chi_node[ 5 ],
+                        eta * chi_node[ 6 ], eta * chi_node[ 7 ], eta * chi_node[ 8 ] };
 
-    const variableMatrix d3chidt2dchi =
+    double d2chidt2_base[ 9 ] = { 0.94122501, -0.72606278, -0.17218694,
+                                 -0.76891885,  1.58015067,  0.32186389,
+                                 -0.34086243,  0.4205032 ,  0.1171416 };
+
+    variableMatrix d3chidt2dchi =
         {
             { 0.85797594,  0.05294924,  0.87252168,  0.9070523 ,  0.26088588, -0.1660408 , -0.52573607,  0.18003511, -0.32771471 },
             { 0.63010391,  0.67208242, -0.9717281 ,  0.16685242, -0.02319047,  0.96557757, -0.15795252, -0.75081345,  0.19992355 },
@@ -1487,32 +1491,21 @@ BOOST_AUTO_TEST_CASE( testCompute_inertia_couple_jacobian ){
             { 0.23636841, -0.32054603,  0.46435317,  0.34276682, -0.9781286 ,  0.96107119,  0.5003388 ,  0.66436978,  0.71750222 }
         };
 
+    double d2chidt2[ 9 ] = { 0, 0, 0,
+                             0, 0, 0,
+                             0, 0, 0 };
+    for ( unsigned int i = 0; i < 9; i++ ){
+        d2chidt2[ i ] += d2chidt2_base[ i ];
+        for ( unsigned int j = 0; j < 9; j++ ){
+            d2chidt2[ i ] += d3chidt2dchi[ i ][ j ] * chi[ j ];
+        }
+    }
 
     const double microInertia[ 9 ] = { 0.74762276, -0.88615253,  0.44407671,
                                       -0.65955865,  0.52000489, -0.0636554 ,
                                       -0.14379758, -0.44381996,  0.91984714 };
 
-    variableMatrix answer =
-        {
-            {-226.62659469,  203.41498183, -252.11067966,  -84.25539781,  -78.43014503,  158.49926046,   39.52975053,  -92.17567109,
-          51.60871978 },
-            {  -2.86838796,    6.50201624,   -8.83236617, -189.12970068,  176.47444293,  -47.97428124,    4.17510941,   -4.63974232,
-           4.125959   },
-            {  29.42366394,  -10.98123108,  137.28292692,   51.64135147,   68.05835452, -120.71712411, -204.94751604,  231.06998344,
-         -77.23893246 },
-            { 355.88546968, -221.91066835,  -64.093447  ,  -85.656731  , -104.17796953,   31.07020603,  118.05793775,   79.98275993,
-         -55.49581739 },
-            {  18.16182328,  -13.5052885 ,   -2.27245639,  261.40495726, -202.37317479,   25.02508618,   -1.49667171,   -0.52272085,
-         -12.56077654 },
-            { -44.84649585,  -13.96097358,   60.48589094,   83.90844135,   85.39267939,  -17.06242206,  159.0144834 , -265.14531286,
-          40.87272305 },
-            {  55.71027406,   50.20768371,  -22.46971322,    9.0460996 ,   -8.7432289 ,   35.93036756,  -84.77172183,  -92.16711165,
-        -196.66651519 },
-            {   2.59286522,    1.05977731,    8.3976076 ,   92.36400466,  -83.82222342,   30.54052006,   -0.94715941,    4.36305845,
-          -2.29212653 },
-            {  25.46978225,  -89.61790515,   41.73876434,   12.12009465,  -15.92292961,   10.7118311 ,  143.20399477,    6.24878629,
-         153.50826731 }
-        };
+    variableMatrix answer( 9, variableVector( 9, 0 ) );
 
     variableMatrix result;
 
@@ -1521,31 +1514,68 @@ BOOST_AUTO_TEST_CASE( testCompute_inertia_couple_jacobian ){
 
     BOOST_CHECK( errorCode == 0 );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
-
-    double result_ij;
-    variableVector d3chidt2dchi_j( dim * dim, 0 );
+    const double eps = 1e-5;
 
     for ( unsigned int i = 0; i < dim * dim; i++ ){
 
+        double delta = eps * std::fabs( chi_node[ i ] ) + eps;
+
+        double chi_nodep[ 9 ] = { chi_node[ 0 ], chi_node[ 1 ], chi_node[ 2 ],
+                                  chi_node[ 3 ], chi_node[ 4 ], chi_node[ 5 ],
+                                  chi_node[ 6 ], chi_node[ 7 ], chi_node[ 8 ] };
+
+        double chi_nodem[ 9 ] = { chi_node[ 0 ], chi_node[ 1 ], chi_node[ 2 ],
+                                  chi_node[ 3 ], chi_node[ 4 ], chi_node[ 5 ],
+                                  chi_node[ 6 ], chi_node[ 7 ], chi_node[ 8 ] };;
+
+        chi_nodep[ i ] += delta;
+        chi_nodem[ i ] -= delta;
+
+        double chip[ 9 ] = { eta * chi_nodep[ 0 ], eta * chi_nodep[ 1 ], eta * chi_nodep[ 2 ],
+                             eta * chi_nodep[ 3 ], eta * chi_nodep[ 4 ], eta * chi_nodep[ 5 ],
+                             eta * chi_nodep[ 6 ], eta * chi_nodep[ 7 ], eta * chi_nodep[ 8 ] };
+
+        double chim[ 9 ] = { eta * chi_nodem[ 0 ], eta * chi_nodem[ 1 ], eta * chi_nodem[ 2 ],
+                             eta * chi_nodem[ 3 ], eta * chi_nodem[ 4 ], eta * chi_nodem[ 5 ],
+                             eta * chi_nodem[ 6 ], eta * chi_nodem[ 7 ], eta * chi_nodem[ 8 ] };
+
+        double d2chidt2p[ 9 ] = { 0, 0, 0,
+                                  0, 0, 0,
+                                  0, 0, 0 };
+
+        double d2chidt2m[ 9 ] = { 0, 0, 0,
+                                  0, 0, 0,
+                                  0, 0, 0 };
+
+        for ( unsigned int _i = 0; _i < 9; _i++ ){
+            d2chidt2p[ _i ] += d2chidt2_base[ _i ];
+            d2chidt2m[ _i ] += d2chidt2_base[ _i ];
+            for ( unsigned int _j = 0; _j < 9; _j++ ){
+                d2chidt2p[ _i ] += d3chidt2dchi[ _i ][ _j ] * chip[ _j ];
+                d2chidt2m[ _i ] += d3chidt2dchi[ _i ][ _j ] * chim[ _j ];
+            }
+        }
+
+        double result_ijp[ 9 ];
+        double result_ijm[ 9 ];
+
+        errorCode = balance_equations::compute_inertia_couple( N, density, chip, d2chidt2p, microInertia, result_ijp );
+
+        BOOST_CHECK( errorCode == 0 );
+
+        errorCode = balance_equations::compute_inertia_couple( N, density, chim, d2chidt2m, microInertia, result_ijm );
+        
+        BOOST_CHECK( errorCode == 0 );
+
         for ( unsigned int j = 0; j < dim * dim; j++ ){
 
-            for ( unsigned int _i = 0; _i < dim * dim; _i++ ){
-
-                d3chidt2dchi_j[ _i ] = d3chidt2dchi[ _i ][ j ];
-
-            }
-
-            errorCode = balance_equations::compute_inertia_couple_jacobian( i, j, N, eta, density, chi, d2chidt2,
-                                                                            d3chidt2dchi_j, microInertia, result_ij );
-
-            BOOST_CHECK( errorCode == 0 );
-
-            BOOST_CHECK( vectorTools::fuzzyEquals( result_ij, answer[ i ][ j ] ) );
+            answer[ j ][ i ] = ( result_ijp[ j ] - result_ijm[ j ] ) / ( 2 * delta );
 
         }
 
     }
+
+    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
 
 }
 
