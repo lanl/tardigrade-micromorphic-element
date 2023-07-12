@@ -68,7 +68,7 @@ test:
   source_files:
     - CMakeLists.txt
     - src/cpp/tests/CMakeLists.txt
-    - src/cpp/tests/test_micromorphic_element.cpp
+    - src/cpp/tests/*.cpp
   commands:
     - mkdir build-tests
     - cd build-tests
