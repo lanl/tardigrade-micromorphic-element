@@ -51,7 +51,7 @@ if(NOT cmake_build_type_lower STREQUAL "release")
                                ${LOCAL_BUILD_INCLUDES})
 endif()
 
-foreach(package ${BALANCE_EQUATION_LIBRARY} ${MATERIAL_MODEL_LIBRARY})
+foreach(package ${BALANCE_EQUATION_LIBRARY} ${MATERIAL_MODEL_LIBRARY} ${USER_INTERFACES})
     install(TARGETS ${package}
             EXPORT ${package}_Targets
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
