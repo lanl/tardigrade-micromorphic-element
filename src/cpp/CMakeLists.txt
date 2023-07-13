@@ -21,8 +21,6 @@ foreach(user_subroutine ${USER_SUBROUTINES})
     add_library("${user_subroutine}_interface" SHARED "${user_subroutine}_interface.h" "${user_subroutine}_interface.cpp")
     set_target_properties("${user_subroutine}_interface" PROPERTIES CXX_STANDARD 11
                                                          PUBLIC_HEADER "${user_subroutine}_interface.h")
-#                                                         PREFIX ""
-#                                                         SUFFIX ".o")
     target_compile_options("${user_subroutine}_interface" PUBLIC)
     target_link_libraries("${user_subroutine}_interface" error_tools ${user_subroutine})
     if(NOT cmake_build_type_lower STREQUAL "release")
@@ -35,7 +33,7 @@ endforeach(user_subroutine)
 # Project
 add_library (${MATERIAL_MODEL_LIBRARY} SHARED "${MATERIAL_MODEL_LIBRARY_FILENAME}.cpp" "${MATERIAL_MODEL_LIBRARY_FILENAME}.h")
 set_target_properties(${MATERIAL_MODEL_LIBRARY} PROPERTIES CXX_STANDARD 11
-                                                PUBLIC_HEADER "${MATERIAL_MODEL_LIBRARY_FILENAMEE}.h"
+                                                PUBLIC_HEADER "${MATERIAL_MODEL_LIBRARY_FILENAME}.h"
                                                 SUFFIX ".so")
 target_compile_options(${MATERIAL_MODEL_LIBRARY} PUBLIC)
 target_link_libraries(${MATERIAL_MODEL_LIBRARY} PUBLIC error_tools ${USER_INTERFACES})
@@ -51,7 +49,7 @@ if(NOT cmake_build_type_lower STREQUAL "release")
                                ${LOCAL_BUILD_INCLUDES})
 endif()
 
-foreach(package ${BALANCE_EQUATION_LIBRARY} ${MATERIAL_MODEL_LIBRARY})
+foreach(package ${BALANCE_EQUATION_LIBRARY} ${MATERIAL_MODEL_LIBRARY} ${USER_INTERFACES})
     install(TARGETS ${package}
             EXPORT ${package}_Targets
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
