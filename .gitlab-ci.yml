@@ -150,6 +150,8 @@ conda-build:
     - umask 0022
     - mkdir ${conda_artifacts_directory}
     - croot="/scratch/$USER/$(basename $PWD)/${conda_artifacts_directory}"
+    # TODO: fix the test linking and remove ``no-test`` option
+    # https://re-git.lanl.gov/aea/material-models/micromorphic_element/-/issues/6
     - VERSION=$(python -m setuptools_scm) conda build recipe --channel file://${aea_conda_channel} --channel conda-forge --no-anaconda-upload --croot ${croot} --output-folder ${conda_artifacts_directory} ${variants} --no-test
     - conda build purge --croot ${croot}
   artifacts:
