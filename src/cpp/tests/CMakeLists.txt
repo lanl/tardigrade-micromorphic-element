@@ -22,7 +22,9 @@ foreach(user_subroutine ${USER_SUBROUTINES})
     set_target_properties(${TEST_NAME} PROPERTIES CXX_STANDARD 11)
     target_compile_options(${TEST_NAME} PRIVATE "-lrt")
     target_link_libraries(${TEST_NAME} PUBLIC ${MATERIAL_MODEL_LIBRARY})
-    target_link_options(${TEST_NAME} PUBLIC ${test_link_options})
+    foreach(user_interface ${USER_INTERFACES})
+        target_link_options(${TEST_NAME} PUBLIC "SHELL:-Wl,--whole-archive $<TARGET_FILE:${user_interface}> -Wl,--no-whole-archive")
+    endforeach(user_interface)
 
     if(NOT cmake_build_type_lower STREQUAL "release")
         target_include_directories(${TEST_NAME} PUBLIC
