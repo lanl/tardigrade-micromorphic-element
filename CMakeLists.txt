@@ -24,6 +24,20 @@ elseif(cmake_build_type_lower STREQUAL "conda-test")
     set(not_conda_test "false")
 endif()
 
+set(test_link_options "")
+foreach(user_interface ${USER_INTERFACES})
+    if(cmake_build_type_lower STREQUAL "release")
+        set(test_link_options "${test_link_options} SHELL:-Wl,--whole-archive $<TARGET_FILE:${user_interface}> -Wl,--no-whole-archive")
+    elseif(cmake_build_type_lower STREQUAL "conda-test")
+        find_file(user_interface_file
+                  "lib${user_interface}.so"
+                  PATHS "$ENV{CONDA_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
+                  NO_CACHE
+                  REQUIRED)
+        set(test_link_options "${test_link_options} -Wl,--whole-archive ${user_interface_file} -Wl,--no-whole-archive")
+    endif()
+endforeach(user_interface)
+
 # Get version number from Git
 if(${not_conda_test} STREQUAL "true")
     # TODO: On osx-arm64 some c++ projects struggle to find $PREFIX/bin/python during conda-builds and others don't.
