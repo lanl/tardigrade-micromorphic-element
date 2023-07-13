@@ -15,13 +15,16 @@ if(NOT cmake_build_type_lower STREQUAL "release")
 endif()
 
 #Set the tests for the user subroutine interfaces
-foreach(user_subroutine ${USER_SUBROUTINES}) 
+foreach(user_subroutine ${USER_SUBROUTINES})
     set(TEST_NAME "test_${user_subroutine}_interface")
     add_executable(${TEST_NAME} "${TEST_NAME}.cpp")
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
     set_target_properties(${TEST_NAME} PROPERTIES CXX_STANDARD 11)
     target_compile_options(${TEST_NAME} PRIVATE "-lrt")
     target_link_libraries(${TEST_NAME} PUBLIC ${MATERIAL_MODEL_LIBRARY})
+    foreach(user_interface ${USER_INTERFACES})
+        target_link_options(${TEST_NAME} PUBLIC "SHELL:-Wl,--whole-archive $<TARGET_FILE:${user_interface}> -Wl,--no-whole-archive")
+    endforeach(user_interface)
 
     if(NOT cmake_build_type_lower STREQUAL "release")
         target_include_directories(${TEST_NAME} PUBLIC
