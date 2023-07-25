@@ -4,14 +4,14 @@
 add_library (${BALANCE_EQUATION_LIBRARY} SHARED "${BALANCE_EQUATION_LIBRARY_FILENAME}.cpp" "${BALANCE_EQUATION_LIBRARY_FILENAME}.h")
 set_target_properties(${BALANCE_EQUATION_LIBRARY} PROPERTIES CXX_STANDARD 11
                                                  PUBLIC_HEADER ${BALANCE_EQUATION_LIBRARY_FILENAME}.h)
-target_link_libraries(${BALANCE_EQUATION_LIBRARY} error_tools)
+target_link_libraries(${BALANCE_EQUATION_LIBRARY} tardigrade_error_tools)
 target_compile_options(${BALANCE_EQUATION_LIBRARY} PUBLIC)
 
 # Local builds of upstream projects require local include paths
 if(NOT cmake_build_type_lower STREQUAL "release")
     target_include_directories(${BALANCE_EQUATION_LIBRARY} PUBLIC
-                               "${vector_tools_SOURCE_DIR}/${CPP_SRC_PATH}"
-                               "${error_tools_SOURCE_DIR}/${CPP_SRC_PATH}")
+                               "${tardigrade_vector_tools_SOURCE_DIR}/${CPP_SRC_PATH}"
+                               "${tardigrade_error_tools_SOURCE_DIR}/${CPP_SRC_PATH}")
 endif()
 
 # Build the micromorphic material model library
@@ -22,7 +22,7 @@ foreach(user_subroutine ${USER_SUBROUTINES})
     set_target_properties("${user_subroutine}_interface" PROPERTIES CXX_STANDARD 11
                                                          PUBLIC_HEADER "${user_subroutine}_interface.h")
     target_compile_options("${user_subroutine}_interface" PUBLIC)
-    target_link_libraries("${user_subroutine}_interface" error_tools ${user_subroutine})
+    target_link_libraries("${user_subroutine}_interface" tardigrade_error_tools ${user_subroutine})
     if(NOT cmake_build_type_lower STREQUAL "release")
         set(LOCAL_BUILD_INCLUDES ${LOCAL_BUILD_INCLUDES} "${${user_subroutine}_SOURCE_DIR}/${CPP_SRC_PATH}" )
         target_include_directories("${user_subroutine}_interface" PUBLIC
@@ -36,7 +36,7 @@ set_target_properties(${MATERIAL_MODEL_LIBRARY} PROPERTIES CXX_STANDARD 11
                                                 PUBLIC_HEADER "${MATERIAL_MODEL_LIBRARY_FILENAME}.h"
                                                 SUFFIX ".so")
 target_compile_options(${MATERIAL_MODEL_LIBRARY} PUBLIC)
-target_link_libraries(${MATERIAL_MODEL_LIBRARY} PUBLIC error_tools ${USER_INTERFACES})
+target_link_libraries(${MATERIAL_MODEL_LIBRARY} PUBLIC tardigrade_error_tools ${USER_INTERFACES})
 foreach(user_interface ${USER_INTERFACES})
     target_link_options(${MATERIAL_MODEL_LIBRARY} PUBLIC "SHELL:-Wl,--whole-archive $<TARGET_FILE:${user_interface}> -Wl,--no-whole-archive")
 endforeach(user_interface)
@@ -44,8 +44,8 @@ endforeach(user_interface)
 # Local builds of upstream projects require local include paths
 if(NOT cmake_build_type_lower STREQUAL "release")
     target_include_directories(${MATERIAL_MODEL_LIBRARY} PUBLIC
-                               "${vector_tools_SOURCE_DIR}/${CPP_SRC_PATH}"
-                               "${error_tools_SOURCE_DIR}/${CPP_SRC_PATH}"
+                               "${tardigrade_vector_tools_SOURCE_DIR}/${CPP_SRC_PATH}"
+                               "${tardigrade_error_tools_SOURCE_DIR}/${CPP_SRC_PATH}"
                                ${LOCAL_BUILD_INCLUDES})
 endif()
 

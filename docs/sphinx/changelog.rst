@@ -203,7 +203,7 @@ Internal Changes
 
 Enhancements
 ============
-- Add error reporting to the Abaqus interface from the ``error_tools`` package (:jira:`334`, :pull:`32`). By `Kyle Brindley`_.
+- Add error reporting to the Abaqus interface from the ``tardigrade_error_tools`` package (:jira:`334`, :pull:`32`). By `Kyle Brindley`_.
 
 
 ******************
@@ -212,7 +212,7 @@ Enhancements
 
 Internal Changes
 ================
-- Use ``abaqus_tools`` from a dedicated project (:jira:`535`, :pull:`23`). By `Kyle Brindley`_.
+- Use ``tardigrade_abaqus_tools`` from a dedicated project (:jira:`535`, :pull:`23`). By `Kyle Brindley`_.
 - Add ``bibtex_bibfiles`` variable to Sphinx configuration for newer version of ``sphinxcontrib.bibtex`` extension in
   Anaconda 2020 (:jira:`526`, :pull:`21`). By `Kyle Brindley`_.
 - Add explicit list of documentation source files for better conditional CMake documentation re-builds (:jira:`526`,
@@ -249,7 +249,7 @@ Internal Changes
 ================
 - Use BOOST and ctest for unit testing (:jira:`357`, :pull:`4`). By `Kyle Brindley`_.
 - Update Jenkins CI configuration and store with version controlled repository (:jira:`442`, :pull:`5`). By `Kyle Brindley`_.
-- Demonstrate c++ ``vector_tools`` library for unit testing (:jira:`506`, :pull:`7`). By `Kyle Brindley`_.
+- Demonstrate c++ ``tardigrade_vector_tools`` library for unit testing (:jira:`506`, :pull:`7`). By `Kyle Brindley`_.
 - Add integration tests for Abaqus UMAT interface (:jira:`504`, :pull:`10`). By `Kyle Brindley`_.
 - Move project Abaqus interface into project files. Treat UMAT Fortran/c++ subroutine as a UMAT selection and pass
   through subroutine (:jira:`523`, :pull:`18`). By `Kyle Brindley`_.

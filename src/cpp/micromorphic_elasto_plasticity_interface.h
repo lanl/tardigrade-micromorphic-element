@@ -1,9 +1,9 @@
-#ifndef MICROMORPHIC_ELASTO_PLASTICITY_INTERFACE_H
-#define MICROMORPHIC_ELASTO_PLASTICITY_INTERFACE_H
+#ifndef TARDIGRADE_MICROMORPHIC_ELASTO_PLASTICITY_INTERFACE_H
+#define TARDIGRADE_MICROMORPHIC_ELASTO_PLASTICITY_INTERFACE_H
 
-#include<micromorphic_elasto_plasticity.h>
+#include<tardigrade_micromorphic_elasto_plasticity.h>
 #include<micromorphic_material_library.h>
-namespace micromorphicElastoPlasticity{
+namespace tardigradeMicromorphicElastoPlasticity{
     class LinearElasticityDruckerPragerPlasticity: public micromorphic_material_library::IMaterial{
         /*!
          * The class which is called when evaluating a
@@ -28,11 +28,11 @@ namespace micromorphicElastoPlasticity{
                                 std::vector< std::vector< double > > &ADD_TERMS,
                                 std::string &output_message
 #ifdef DEBUG_MODE
-                                , solverTools::homotopyMap &DEBUG
+                                , tardigradeSolverTools::homotopyMap &DEBUG
 #endif
                               )
             {
-                return micromorphicElastoPlasticity::evaluate_model(
+                return tardigradeMicromorphicElastoPlasticity::evaluate_model(
                                          time, fparams,
                                          current_grad_u, current_phi, current_grad_phi,
                                          previous_grad_u, previous_phi, previous_grad_phi,
@@ -71,12 +71,12 @@ namespace micromorphicElastoPlasticity{
                                 std::vector< std::vector< std::vector< double > > > &ADD_JACOBIANS,
                                 std::string &output_message
 #ifdef DEBUG_MODE
-                                , solverTools::homotopyMap &DEBUG
+                                , tardigradeSolverTools::homotopyMap &DEBUG
 #endif
                               )
             {
 
-                return micromorphicElastoPlasticity::evaluate_model(
+                return tardigradeMicromorphicElastoPlasticity::evaluate_model(
                                          time, fparams,
                                          current_grad_u, current_phi, current_grad_phi,
                                          previous_grad_u, previous_phi, previous_grad_phi,

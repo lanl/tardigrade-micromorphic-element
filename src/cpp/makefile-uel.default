@@ -26,11 +26,11 @@ usub.o: uel.o micro_element.o micro_material.o tensor.o
 uel.o: uel.h uel.cpp micro_element.h tensor.h
 	$(CC) $(STD) -o $@ -c uel.cpp $(CFLAGS) $(EIGEN) $(ABAQUS) $(ERRORFLG) $(DBG)
 
-micro_element.o: micro_element.h tensor.h micro_element.cpp micromorphic_linear_elasticity.h
+micro_element.o: micro_element.h tensor.h micro_element.cpp tardigrade_micromorphic_linear_elasticity.h
 	$(CC) $(STD) -o $@ -c micro_element.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
-micro_material.o: tensor.h micromorphic_linear_elasticity.h micromorphic_linear_elasticity.cpp
-	$(CC) $(STD) -o $@ -c micromorphic_linear_elasticity.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+micro_material.o: tensor.h tardigrade_micromorphic_linear_elasticity.h tardigrade_micromorphic_linear_elasticity.cpp
+	$(CC) $(STD) -o $@ -c tardigrade_micromorphic_linear_elasticity.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 tensor.o: tensor.h tensor.cpp
 	$(CC) $(STD) -o $@ -c tensor.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)

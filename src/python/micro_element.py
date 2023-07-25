@@ -3,7 +3,7 @@ import hex8
 import unittest
 import os
 import finite_difference as fd
-import micromorphic_linear_elasticity as micro_LE
+import tardigrade_micromorphic_linear_elasticity as micro_LE
 from hex8 import T_to_V_mapping as T2V
 from hex8 import V_to_T_mapping as V2T
 from hex8 import V_to_M_mapping as V2M
@@ -799,7 +799,7 @@ def compute_stress(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU,props,state_variables)
         PK2,SIGMA,M,\
         dpk2dC,dpk2dPsi,dpk2dGamma,\
         dSigmadC,dSigmadPsi,dSigmadGamma,\
-        dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,props)
+        dMdC,dMdPsi,dMdGamma = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,props)
             
     else:
         print "Error: Constitutive model not recognized."
@@ -1550,7 +1550,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            PK2 = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[0]
+            PK2 = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[0]
             PK2     = hex8.convert_V_to_M(PK2,[3,3])
             return np.reshape(PK2,[9,])
         
@@ -1558,7 +1558,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         dPK2dUn = fd.numeric_gradient(PK2_parser,U,1e-6)
         dPK2dU  = compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)
         
@@ -1608,7 +1608,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            Sigma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[1]
+            Sigma = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[1]
             Sigma     = hex8.convert_V_to_M(Sigma,[3,3])
             return np.reshape(Sigma,[9,])
         
@@ -1616,7 +1616,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         dSigmadUn = fd.numeric_gradient(Sigma_parser,U,1e-6)
         dSigmadU  = compute_dsymmetric_stressdU(dSigmadC,dSigmadPsi,dSigmadGamma,dCdU,dPsidU,dGammadU)
         
@@ -1666,7 +1666,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            M = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[2]
+            M = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[2]
             M     = hex8.convert_V_to_T(M,[3,3,3])
             return self._TOTtensor_to_vector(M)
         
@@ -1674,7 +1674,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         dMdUn = fd.numeric_gradient(M_parser,U,1e-6)
         dMdU = compute_dho_stressdU(dMdC,dMdPsi,dMdGamma,dCdU,dPsidU,dGammadU)
         
@@ -1767,7 +1767,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            PK2 = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[0]
+            PK2 = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)[0]
             N_values,grad_N_ref_vectors,detJhat = hex8.get_all_shape_function_info(xi_vec,rcoords)
             return compute_BLM_residual_gpt(N_values,F,grad_N_ref_vectors,detJhat,PK2,RHO0,ACCEL,BODYF,dxidX,TRACTION)
         
@@ -1776,7 +1776,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         dPK2dU  = compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)
         dBLMdU = compute_dBLMdU(dNdXes,PK2,F,dPK2dU,dFdU,detJhat)
         
@@ -1883,7 +1883,7 @@ class TestMicroElement(unittest.TestCase):
             node_us,node_phis = parse_dof_vector(Uin)
             node_xs  = [[u1+rc1,u2+rc2,u3+rc3] for (u1,u2,u3),(rc1,rc2,rc3) in zip(node_us,rcoords)]
             F,chi,grad_chi = interpolate_dof(xi_vec,node_phis,node_xs,rcoords)
-            PK2,SIGMA,M,_,_,_,_,_,_,_,_,_ = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
+            PK2,SIGMA,M,_,_,_,_,_,_,_,_,_ = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
             N_values,grad_N_ref_vectors,detJhat = hex8.get_all_shape_function_info(xi_vec,rcoords)
             return compute_FMOM_residual_gpt(N_values,F,chi,grad_N_ref_vectors,detJhat,PK2,SIGMA,M,RHO0,MICROSPIN,BODYCOUPLE,COUPLE_TRACTION)
         
@@ -1893,7 +1893,7 @@ class TestMicroElement(unittest.TestCase):
         F,chi,grad_chi = interpolate_dof(xi_vec,phi_vectors,ccoords,rcoords)
         dFdU,dchidU,dgrad_chidU = compute_fundamental_derivatives(xi_vec,rcoords)
         dCdU,dPsidU,dGammadU = compute_DM_derivatives(F,chi,grad_chi,dFdU,dchidU,dgrad_chidU)
-        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
+        PK2,SIGMA,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micro_LE.tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         
         #Compute the stress tangents
         dPK2dU   = compute_dpk2dU(dpk2dC,dpk2dPsi,dpk2dGamma,dCdU,dPsidU,dGammadU)

@@ -1,11 +1,11 @@
 /*!============================================================================
    |                                                                          |
-   |              test_micromorphic_linear_elasticity_voigt.cpp               |
+   |              test_tardigrade_micromorphic_linear_elasticity_voigt.cpp               |
    |                                                                          |
    ----------------------------------------------------------------------------
-   | The unit test file for micromorphic_linear_elasticity_voigt.h/cpp. This  |
+   | The unit test file for tardigrade_micromorphic_linear_elasticity_voigt.h/cpp. This  |
    | file tests the classes and functions defined in                          |
-   | micromorphic_linear_elasticity_voigt.h/cpp.                              |
+   | tardigrade_micromorphic_linear_elasticity_voigt.h/cpp.                              |
    |                                                                          |
    | Generated files:                                                         |
    |    results.tex:  A LaTeX file which contains the results as they will be |
@@ -23,7 +23,7 @@ typedef std::chrono::high_resolution_clock Clock;
 #include<finite_difference.h>
 #include<deformation_measures.h>
 #include<balance_equations.h>
-#include<micromorphic_linear_elasticity_voigt.h>
+#include<tardigrade_micromorphic_linear_elasticity_voigt.h>
 #include<micromorphic_material_library.h>
 
 bool compare_std_vectors(const std::vector<double> v1, const std::vector<double> v2, double tol = 1e-6){

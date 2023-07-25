@@ -1,28 +1,28 @@
-//Tests for constitutive_tools
+//Tests for tardigrade_constitutive_tools
 
-#include<micromorphic_linear_elasticity.h>
-#include<micromorphic_linear_elasticity_interface.h>
+#include<tardigrade_micromorphic_linear_elasticity.h>
+#include<tardigrade_micromorphic_linear_elasticity_interface.h>
 #include<sstream>
 #include<fstream>
 #include<iostream>
 
-#define BOOST_TEST_MODULE test_micromorphic_linear_elasticity_interface
+#define BOOST_TEST_MODULE test_tardigrade_micromorphic_linear_elasticity_interface
 #include <boost/test/included/unit_test.hpp>
 
-typedef micromorphicTools::constantType constantType;
-typedef micromorphicTools::constantVector constantVector;
-typedef micromorphicTools::constantMatrix constantMatrix;
+typedef tardigradeMicromorphicTools::constantType constantType;
+typedef tardigradeMicromorphicTools::constantVector constantVector;
+typedef tardigradeMicromorphicTools::constantMatrix constantMatrix;
 
-typedef micromorphicTools::parameterType parameterType;
-typedef micromorphicTools::parameterVector parameterVector;
-typedef micromorphicTools::parameterMatrix parameterMatrix;
+typedef tardigradeMicromorphicTools::parameterType parameterType;
+typedef tardigradeMicromorphicTools::parameterVector parameterVector;
+typedef tardigradeMicromorphicTools::parameterMatrix parameterMatrix;
 
-typedef micromorphicTools::variableType variableType;
-typedef micromorphicTools::variableVector variableVector;
-typedef micromorphicTools::variableMatrix variableMatrix;
+typedef tardigradeMicromorphicTools::variableType variableType;
+typedef tardigradeMicromorphicTools::variableVector variableVector;
+typedef tardigradeMicromorphicTools::variableMatrix variableMatrix;
 
-typedef micromorphicTools::errorNode errorNode;
-typedef micromorphicTools::errorOut errorOut;
+typedef tardigradeMicromorphicTools::errorNode errorNode;
+typedef tardigradeMicromorphicTools::errorOut errorOut;
 
 BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
     /*!
@@ -120,11 +120,11 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
 
     BOOST_CHECK( errorCode <= 0 );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( PK2_result, PK2_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( PK2_result, PK2_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( M_result, M_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( M_result, M_answer ) );
 
     //Check the Jacobian using the previously tested jacobian
     std::vector< std::vector< double > > DPK2Dgrad_u_answer, DPK2Dphi_answer, DPK2Dgrad_phi_answer,
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
 
     std::vector< std::vector< std::vector< double > > > ADD_JACOBIANS;
 
-    errorCode = micromorphicLinearElasticity::evaluate_model( 
+    errorCode = tardigradeMicromorphicLinearElasticity::evaluate_model( 
                                 time, fparams,
                                 current_grad_u, current_phi, current_grad_phi,
                                 previous_grad_u, previous_phi, previous_grad_phi,
@@ -174,29 +174,29 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
 
     BOOST_CHECK( errorCode == 0 );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( PK2_result, PK2_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( PK2_result, PK2_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( M_result, M_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( M_result, M_answer ) );
     
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dgrad_u_result, DPK2Dgrad_u_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dgrad_u_result, DPK2Dgrad_u_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dphi_result, DPK2Dphi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dphi_result, DPK2Dphi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dgrad_phi_result, DPK2Dgrad_phi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dgrad_phi_result, DPK2Dgrad_phi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADgrad_u_result, DSIGMADgrad_u_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADgrad_u_result, DSIGMADgrad_u_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADphi_result, DSIGMADphi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADphi_result, DSIGMADphi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADgrad_phi_result, DSIGMADgrad_phi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADgrad_phi_result, DSIGMADgrad_phi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDgrad_u_result, DMDgrad_u_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDgrad_u_result, DMDgrad_u_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDphi_result, DMDphi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDphi_result, DMDphi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDgrad_phi_result, DMDgrad_phi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDgrad_phi_result, DMDgrad_phi_answer ) );
 
     //Test the computed numeric Jacobian values
     errorCode = material->evaluate_model_numeric_gradients( time, fparams,
@@ -214,28 +214,28 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
 
     BOOST_CHECK( errorCode <= 0 );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( PK2_result, PK2_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( PK2_result, PK2_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( M_result, M_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( M_result, M_answer ) );
     
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dgrad_u_result, DPK2Dgrad_u_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dgrad_u_result, DPK2Dgrad_u_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dphi_result, DPK2Dphi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dphi_result, DPK2Dphi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dgrad_phi_result, DPK2Dgrad_phi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dgrad_phi_result, DPK2Dgrad_phi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADgrad_u_result, DSIGMADgrad_u_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADgrad_u_result, DSIGMADgrad_u_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADphi_result, DSIGMADphi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADphi_result, DSIGMADphi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADgrad_phi_result, DSIGMADgrad_phi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADgrad_phi_result, DSIGMADgrad_phi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDgrad_u_result, DMDgrad_u_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDgrad_u_result, DMDgrad_u_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDphi_result, DMDphi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDphi_result, DMDphi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDgrad_phi_result, DMDgrad_phi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDgrad_phi_result, DMDgrad_phi_answer ) );
 
 }

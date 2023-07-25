@@ -10,10 +10,10 @@
 
 include ../../config.mk
 
-MICROMORPHICTOOLSOBJECT=micromorphic_tools.o
-CONSTITUTIVEOBJECT=constitutive_tools.o
-ERROROBJECT=error_tools.o
-SOLVEROBJECT=solver_tools.o
+MICROMORPHICTOOLSOBJECT=tardigrade_micromorphic_tools.o
+CONSTITUTIVEOBJECT=tardigrade_constitutive_tools.o
+ERROROBJECT=tardigrade_error_tools.o
+SOLVEROBJECT=tardigrade_solver_tools.o
 MICROMORPHICMATERIALLIBOBJECT=micromorphic_material_library.o
 
 MICROMORPHICMATERIALLIBSOURCE=micromorphic_material_library.cpp
@@ -24,8 +24,8 @@ VERSION=$(LIBRARYNAME).1
 
 #Object files for the material models
 
-LINEARELASTICITYOBJECT=micromorphic_linear_elasticity.o
-DPPLASTICITYOBJECT=micromorphic_elasto_plasticity.o
+LINEARELASTICITYOBJECT=tardigrade_micromorphic_linear_elasticity.o
+DPPLASTICITYOBJECT=tardigrade_micromorphic_elasto_plasticity.o
 
 OBJECTS = $(ERROROBJECT) $(CONSTITUTIVEOBJECT) $(MICROMORPHICTOOLSOBJECT)
 OBJECTS += $(MICROMORPHICMATERIALLIBOBJECT) $(SOLVEROBJECT)

@@ -24,22 +24,22 @@ Abaqus options after setting the system environment variable ``LD_LIBRARY_PATH``
 .. code:: bash
 
    $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:path/to/conda/environment/lib64
-   $ abaqus -job <my_input_file> -user path/to/conda/environment/lib64/micromorphic_element_umat.o
+   $ abaqus -job <my_input_file> -user path/to/conda/environment/lib64/tardigrade_micromorphic_element_umat.o
 
 Where the appropriate path can be found with
 
 .. code:: bash
 
-   $ find path/to/conda/environment -name "libmicromorphic_element.so"
+   $ find path/to/conda/environment -name "libtardigrade_micromorphic_element.so"
 
 For instance, with the W-13 "aea-release" environment on ``sstelmo``
 
 .. code:: bash
 
-   $ find /projects/aea_compute/aea-release -name "libmicromorphic_element.so"
-   /projects/aea_compute/aea-release/lib64/libmicromorphic_element.so
+   $ find /projects/aea_compute/aea-release -name "libtardigrade_micromorphic_element.so"
+   /projects/aea_compute/aea-release/lib64/libtardigrade_micromorphic_element.so
    $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/projects/aea_compute/aea-release/lib64
-   $ abaqus -job <my_input_file> -user /projects/aea_compute/aea-release/lib64/micromorphic_element_umat.o
+   $ abaqus -job <my_input_file> -user /projects/aea_compute/aea-release/lib64/tardigrade_micromorphic_element_umat.o
 
 As a convenience, the following code may be used to determine the correct, active Conda environment at Abaqus execution.
 The following bash code is provided as an example for end users and not supported by this project. End users who wish to
@@ -52,7 +52,7 @@ learn more about bash scripting are directed to the online Bash documentation.
    # Export the conda environment library path
    $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${conda_env_path}/lib64
    # Execute Abaqus with current Conda environment's installation of this project
-   $ abaqus -job <my_input_file> -user ${conda_env_path}/lib64/micromorphic_element_umat.o
+   $ abaqus -job <my_input_file> -user ${conda_env_path}/lib64/tardigrade_micromorphic_element_umat.o
 
 ***************************
 Use after build from source
@@ -62,7 +62,7 @@ The template UMAT can be used after build with the following Abaqus options
 
 .. code:: bash
 
-   $ abaqus -job <my_input_file> -user relative/path/to/micromorphic_element/build/src/cpp/micromorphic_element_umat.o
+   $ abaqus -job <my_input_file> -user relative/path/to/tardigrade_micromorphic_element/build/src/cpp/tardigrade_micromorphic_element_umat.o
 
 It is strongly recommended that anyone building from source make use of the CMake ``--install`` options in a local Conda
 environment. It is also possible to install to more traditional system paths, but this may require significantly more
@@ -72,14 +72,14 @@ Unless the template repository and all upstream c++ libraries are built and inst
 recommended that the subroutines are left in the project build directory. However, it is possible to copy the shared
 library files to any other directory provided the upstream projects ``{error,vector,stress,solver,constitutive}_tools``
 are present in the build directory, e.g.
-``micromorphic_element/build/_deps/{error,vector,stress,solver,constitutive}_tools-build/``.
+``tardigrade_micromorphic_element/build/_deps/{error,vector,stress,solver,constitutive}_tools-build/``.
 
 .. code:: bash
 
    $ pwd
    /path/to/my/abaqus/job
-   $ cp /path/to/micromorphic_element/build/src/cpp/{micromorphic_element_umat.o,libmicromorphic_element.so} .
-   $ abaqus -job <my_input_file> -user micromorphic_element_umat.o
+   $ cp /path/to/tardigrade_micromorphic_element/build/src/cpp/{tardigrade_micromorphic_element_umat.o,libtardigrade_micromorphic_element.so} .
+   $ abaqus -job <my_input_file> -user tardigrade_micromorphic_element_umat.o
 
 ******************************
 Input File Material Definition
@@ -91,22 +91,22 @@ Input File Material Definition
    "incorrect" lengths to check the thrown exceptions. If your real constitutive model actually using a length of one
    for either vector, the integration test expectation must be updated.
 
-micromorphic_element requires 2 material constants and 2 state variables. The c++ micromorphic_element interface, material constants, and state
+tardigrade_micromorphic_element requires 2 material constants and 2 state variables. The c++ tardigrade_micromorphic_element interface, material constants, and state
 variables are described in the :ref:`sphinx_api`. The fixed expectations for the abaqus interface are defined in the
-"Variables" section of the :ref:`sphinx_api` for :ref:`micromorphic_element_source`. A complete discussion about the constants and their
-meaning is not included here. Instead users are directed to calibrated material parameters found in micromorphic_element entries in the
+"Variables" section of the :ref:`sphinx_api` for :ref:`tardigrade_micromorphic_element_source`. A complete discussion about the constants and their
+meaning is not included here. Instead users are directed to calibrated material parameters found in tardigrade_micromorphic_element entries in the
 `Granta/MIMS`_ `Material Database`_ :cite:`MIMS`. Material parameter calibration sets should be availble for download
 with the correct Abaqus input file formatting from MIMS.
 
-The micromorphic_element project contains abaqus integration tests for the micromorphic_element abaqus interface. These tests perform actual abaqus
-simulations using the same dummy parameters used for unit and integration testing of the micromorphic_element c++ code. The micromorphic_element
-Abaqus input files used for integration testing can be found in the micromorphic_element source code repository with the following bash
+The tardigrade_micromorphic_element project contains abaqus integration tests for the tardigrade_micromorphic_element abaqus interface. These tests perform actual abaqus
+simulations using the same dummy parameters used for unit and integration testing of the tardigrade_micromorphic_element c++ code. The tardigrade_micromorphic_element
+Abaqus input files used for integration testing can be found in the tardigrade_micromorphic_element source code repository with the following bash
 command
 
 .. code:: bash
 
    $ pwd
-   /path/to/my/micromorphic_element
+   /path/to/my/tardigrade_micromorphic_element
    $ find . -path ./build -prune -false -o -name "*.inp"
    ./src/abaqus/single_element_c3d8.inp
 
@@ -115,7 +115,7 @@ The material definition from an integration test input file is included below fo
 .. warning::
 
    The material constants used in this example material definition are *NOT* calibrated for any real material data.
-   For calibrated material parameters, see the micromorphic_element entry for materials found in the `Granta/MIMS`_ `Material
+   For calibrated material parameters, see the tardigrade_micromorphic_element entry for materials found in the `Granta/MIMS`_ `Material
    Database`_ :cite:`MIMS`.
 
 .. literalinclude:: ../../src/abaqus/single_element_c3d8.inp

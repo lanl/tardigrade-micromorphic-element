@@ -19,7 +19,7 @@ before_script:
   - module use ${aea_modulefiles}
   - module use ${PWD}/modulefiles
   # Prefer the CI environment and fall back to AEA environment(s)
-  - project_environment='micromorphic_element-env'
+  - project_environment='tardigrade_micromorphic_element-env'
   - environment_choices="${project_environment} aea-beta aea-release"
   - for env in ${environment_choices}; do if [[ -d "${aea_compute_path}/${env}" ]]; then environment=${env}; break; fi; done
   - echo ${environment}
@@ -65,7 +65,7 @@ environment:
     - cp ${PWD}/modulefiles/* ${aea_modulefiles}
   tags:
     # FIXME: troubleshoot sstbigbird/RHEL8 python interpretter mismatch
-    # https://re-git.lanl.gov/aea/material-models/micromorphic_tools/-/issues/9
+    # https://re-git.lanl.gov/aea/material-models/tardigrade_micromorphic_tools/-/issues/9
     - sstelmo-shell-aea
 
 microbump:
@@ -103,7 +103,7 @@ microbump:
     - git push oauth2-origin --tags
   tags:
     # FIXME: troubleshoot sstbigbird/RHEL8 python interpretter mismatch
-    # https://re-git.lanl.gov/aea/material-models/micromorphic_tools/-/issues/9
+    # https://re-git.lanl.gov/aea/material-models/tardigrade_micromorphic_tools/-/issues/9
     - sstelmo-shell-aea
 
 fast-test:
@@ -151,16 +151,16 @@ conda-build:
     - mkdir ${conda_artifacts_directory}
     - croot="/scratch/$USER/$(basename $PWD)/${conda_artifacts_directory}"
     # TODO: fix the test linking and remove ``no-test`` option
-    # https://re-git.lanl.gov/aea/material-models/micromorphic_element/-/issues/6
+    # https://re-git.lanl.gov/aea/material-models/tardigrade_micromorphic_element/-/issues/6
     - VERSION=$(python -m setuptools_scm) conda build recipe --channel file://${aea_conda_channel} --channel conda-forge --no-anaconda-upload --croot ${croot} --output-folder ${conda_artifacts_directory} ${variants} --no-test
     - conda build purge --croot ${croot}
   artifacts:
     expire_in: '2 hrs'
     paths:
-      - conda-bld/linux-64/micromorphic_element-*-*.tar.bz2
+      - conda-bld/linux-64/tardigrade_micromorphic_element-*-*.tar.bz2
   tags:
     # FIXME: troubleshoot sstbigbird/RHEL8 python interpretter mismatch
-    # https://re-git.lanl.gov/aea/material-models/micromorphic_tools/-/issues/9
+    # https://re-git.lanl.gov/aea/material-models/tardigrade_micromorphic_tools/-/issues/9
     - sstelmo-shell-aea
 
 deploy:
@@ -178,16 +178,16 @@ deploy:
     # Override default permissions. Set group to rx with no write permissions.
     - umask 0022
     # Copy Conda package to AEA Conda Channel
-    - cp ${conda_artifacts_directory}/linux-64/micromorphic_element-*-*.tar.bz2 ${aea_conda_channel}/linux-64
+    - cp ${conda_artifacts_directory}/linux-64/tardigrade_micromorphic_element-*-*.tar.bz2 ${aea_conda_channel}/linux-64
     # Change group for access by all W-13 staff and prevent accidental modification by institutional account in CI jobs
-    - chgrp w13users ${aea_conda_channel}/linux-64/micromorphic_element-*-*.tar.bz2 || true
-    - chmod 555 ${aea_conda_channel}/linux-64/micromorphic_element-*-*.tar.bz2 || true
+    - chgrp w13users ${aea_conda_channel}/linux-64/tardigrade_micromorphic_element-*-*.tar.bz2 || true
+    - chmod 555 ${aea_conda_channel}/linux-64/tardigrade_micromorphic_element-*-*.tar.bz2 || true
     # Update the AEA Conda Channel index
     - conda index ${aea_conda_channel}
-    - conda search --channel file://${aea_conda_channel}/ --override-channels micromorphic_element
+    - conda search --channel file://${aea_conda_channel}/ --override-channels tardigrade_micromorphic_element
   tags:
     # FIXME: troubleshoot sstbigbird/RHEL8 python interpretter mismatch
-    # https://re-git.lanl.gov/aea/material-models/micromorphic_tools/-/issues/9
+    # https://re-git.lanl.gov/aea/material-models/tardigrade_micromorphic_tools/-/issues/9
     - sstelmo-shell-aea
 
 

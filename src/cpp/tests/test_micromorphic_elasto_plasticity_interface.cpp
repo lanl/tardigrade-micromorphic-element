@@ -1,29 +1,29 @@
-//Tests for constitutive_tools
+//Tests for tardigrade_constitutive_tools
 
-#include<micromorphic_elasto_plasticity.h>
+#include<tardigrade_micromorphic_elasto_plasticity.h>
 #include<micromorphic_material_library.h>
 #include<sstream>
 #include<fstream>
 #include<iostream>
 #include<iomanip>
 
-#define BOOST_TEST_MODULE test_micromorphic_elasto_plasticity_interface
+#define BOOST_TEST_MODULE test_tardigrade_micromorphic_elasto_plasticity_interface
 #include <boost/test/included/unit_test.hpp>
 
-typedef micromorphicTools::constantType constantType;
-typedef micromorphicTools::constantVector constantVector;
-typedef micromorphicTools::constantMatrix constantMatrix;
+typedef tardigradeMicromorphicTools::constantType constantType;
+typedef tardigradeMicromorphicTools::constantVector constantVector;
+typedef tardigradeMicromorphicTools::constantMatrix constantMatrix;
 
-typedef micromorphicTools::parameterType parameterType;
-typedef micromorphicTools::parameterVector parameterVector;
-typedef micromorphicTools::parameterMatrix parameterMatrix;
+typedef tardigradeMicromorphicTools::parameterType parameterType;
+typedef tardigradeMicromorphicTools::parameterVector parameterVector;
+typedef tardigradeMicromorphicTools::parameterMatrix parameterMatrix;
 
-typedef micromorphicTools::variableType variableType;
-typedef micromorphicTools::variableVector variableVector;
-typedef micromorphicTools::variableMatrix variableMatrix;
+typedef tardigradeMicromorphicTools::variableType variableType;
+typedef tardigradeMicromorphicTools::variableVector variableVector;
+typedef tardigradeMicromorphicTools::variableMatrix variableMatrix;
 
-typedef micromorphicTools::errorNode errorNode;
-typedef micromorphicTools::errorOut errorOut;
+typedef tardigradeMicromorphicTools::errorNode errorNode;
+typedef tardigradeMicromorphicTools::errorOut errorOut;
 
 BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
     /*!
@@ -157,25 +157,25 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
     std::string output_message;
 
 #ifdef DEBUG_MODE
-    solverTools::homotopyMap DEBUG;
+    tardigradeSolverTools::homotopyMap DEBUG;
 #endif
 
-    solverTools::floatVector PK2_answer = { 172.484,   15.3785,   -0.917177,
+    tardigradeSolverTools::floatVector PK2_answer = { 172.484,   15.3785,   -0.917177,
                                              13.4848, 142.823,    -0.0214307,
                                              -1.7635,   1.77719, 141.069 };
 
-    solverTools::floatVector SIGMA_answer = { 176.916,   15.8646,   -2.83731,
+    tardigradeSolverTools::floatVector SIGMA_answer = { 176.916,   15.8646,   -2.83731,
                                                15.8646, 144.538,     1.85836,
                                                -2.83731,  1.85836, 142.013 };
 
-    solverTools::floatVector M_answer = { 0.598283, -0.512218,  0.620664,    3.22636,   1.16682,
+    tardigradeSolverTools::floatVector M_answer = { 0.598283, -0.512218,  0.620664,    3.22636,   1.16682,
                                           1.20593,   0.562825, -2.52317,     1.62616,  -2.61391,
                                          -0.60994,  -1.02147,   0.668187,    0.49348,  -0.23916,
                                          -2.77419,   0.760483,  1.71784,    -0.499389,  2.62828,
                                          -0.761044,  1.23369,  -0.00778206, -2.25643,  -0.729551,
                                           0.743204,  0.910521 };
 
-    solverTools::floatVector SDVS_answer = { -1.79592e-24,  0.0243222,    0.0822384,    0.0430345,   0.0435752,
+    tardigradeSolverTools::floatVector SDVS_answer = { -1.79592e-24,  0.0243222,    0.0822384,    0.0430345,   0.0435752,
                                              -8.96006e-25,  0.00852191,   0.0465339,    0.0243507,   0.0246566,
                                               0.00742998,   0.00500421,  -0.000296486,  0.00498757, -0.00260492,
                                               0.000284355, -0.000367318,  0.000222511, -0.0015603,   0.00863313,
@@ -208,13 +208,13 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
 
     BOOST_CHECK( errorCode == 0 );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( PK2_result, PK2_answer, 1e-5, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( PK2_result, PK2_answer, 1e-5, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer, 1e-5, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer, 1e-5, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( M_result, M_answer, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( M_result, M_answer, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SDVS, SDVS_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SDVS, SDVS_answer ) );
 
     //Check the Jacobian using the previously tested jacobian
     std::vector< std::vector< double > > DPK2Dgrad_u_answer, DPK2Dphi_answer, DPK2Dgrad_phi_answer,
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
     DEBUG.clear();
 #endif
 
-    errorCode = micromorphicElastoPlasticity::evaluate_model(
+    errorCode = tardigradeMicromorphicElastoPlasticity::evaluate_model(
                                 time, fparams,
                                 current_grad_u, current_phi, current_grad_phi,
                                 previous_grad_u, previous_phi, previous_grad_phi,
@@ -276,31 +276,31 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
 #endif
                                         );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( PK2_result, PK2_answer, 1e-5, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( PK2_result, PK2_answer, 1e-5, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer, 1e-5, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer, 1e-5, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( M_result, M_answer, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( M_result, M_answer, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SDVS_answer, SDVS ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SDVS_answer, SDVS ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dgrad_u_result, DPK2Dgrad_u_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dgrad_u_result, DPK2Dgrad_u_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dphi_result, DPK2Dphi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dphi_result, DPK2Dphi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dgrad_phi_result, DPK2Dgrad_phi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dgrad_phi_result, DPK2Dgrad_phi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADgrad_u_result, DSIGMADgrad_u_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADgrad_u_result, DSIGMADgrad_u_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADphi_result, DSIGMADphi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADphi_result, DSIGMADphi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADgrad_phi_result, DSIGMADgrad_phi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADgrad_phi_result, DSIGMADgrad_phi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDgrad_u_result, DMDgrad_u_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDgrad_u_result, DMDgrad_u_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDphi_result, DMDphi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDphi_result, DMDphi_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDgrad_phi_result, DMDgrad_phi_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDgrad_phi_result, DMDgrad_phi_answer ) );
 
 #ifdef DEBUG_MODE
     DEBUG.clear();
@@ -327,31 +327,31 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface ){
 
     BOOST_CHECK( errorCode <= 0 );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( PK2_result, PK2_answer, 1e-5, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( PK2_result, PK2_answer, 1e-5, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer, 1e-5, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SIGMA_result, SIGMA_answer, 1e-5, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( M_result, M_answer, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( M_result, M_answer, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SDVS, SDVS_answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SDVS, SDVS_answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dgrad_u_result, DPK2Dgrad_u_answer, 1e-4 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dgrad_u_result, DPK2Dgrad_u_answer, 1e-4 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dphi_result, DPK2Dphi_answer, 1e-4 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dphi_result, DPK2Dphi_answer, 1e-4 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DPK2Dgrad_phi_result, DPK2Dgrad_phi_answer, 1e-4, 1e-5 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DPK2Dgrad_phi_result, DPK2Dgrad_phi_answer, 1e-4, 1e-5 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADgrad_u_result, DSIGMADgrad_u_answer, 1e-4 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADgrad_u_result, DSIGMADgrad_u_answer, 1e-4 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADphi_result, DSIGMADphi_answer, 1e-4 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADphi_result, DSIGMADphi_answer, 1e-4 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DSIGMADgrad_phi_result, DSIGMADgrad_phi_answer, 1e-4 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DSIGMADgrad_phi_result, DSIGMADgrad_phi_answer, 1e-4 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDgrad_u_result, DMDgrad_u_answer, 1e-4 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDgrad_u_result, DMDgrad_u_answer, 1e-4 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDphi_result, DMDphi_answer, 1e-4 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDphi_result, DMDphi_answer, 1e-4 ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DMDgrad_phi_result, DMDgrad_phi_answer, 1e-4 ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DMDgrad_phi_result, DMDgrad_phi_answer, 1e-4 ) );
 
 }
 
@@ -444,7 +444,7 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface2 ){
     std::string output_message;
 
 #ifdef DEBUG_MODE
-    solverTools::homotopyMap DEBUG;
+    tardigradeSolverTools::homotopyMap DEBUG;
 #endif
 
     std::vector< double > SDVS = SDVSDefault;
@@ -468,10 +468,10 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface2 ){
 
     BOOST_CHECK( errorCode <= 0 );
 
-//    std::cout << "SDVS:\n"; vectorTools::print( SDVS );
-//    std::cout << "PK2:\n"; vectorTools::print( PK2_result );
-//    std::cout << "SIGMA:\n"; vectorTools::print( SIGMA_result );
-//    std::cout << "M:\n"; vectorTools::print( M_result );
+//    std::cout << "SDVS:\n"; tardigradeVectorTools::print( SDVS );
+//    std::cout << "PK2:\n"; tardigradeVectorTools::print( PK2_result );
+//    std::cout << "SIGMA:\n"; tardigradeVectorTools::print( SIGMA_result );
+//    std::cout << "M:\n"; tardigradeVectorTools::print( M_result );
 
 #ifdef DEBUG_MODE
     for ( auto step = DEBUG.begin(); step != DEBUG.end(); step++ ){
@@ -481,7 +481,7 @@ BOOST_AUTO_TEST_CASE( testMaterialLibraryInterface2 ){
             for ( auto value = iteration->second.begin(); value != iteration->second.end(); value++ ){
                 if ( value->second.size() <= 27 ) {
                     std::cout << "        " << value->first << "\n";
-                    std::cout << "            "; vectorTools::print( value->second );
+                    std::cout << "            "; tardigradeVectorTools::print( value->second );
                 }
             }
         }
@@ -584,7 +584,7 @@ BOOST_AUTO_TEST_CASE( testEvaluate_model_history ){
     std::string output_message;
 
 #ifdef DEBUG_MODE
-    solverTools::homotopyMap DEBUG;
+    tardigradeSolverTools::homotopyMap DEBUG;
 #endif
 
     std::vector< double > SDVS = SDVSDefault;
@@ -808,7 +808,7 @@ BOOST_AUTO_TEST_CASE( testEvaluate_model_history ){
 #endif
                                                 );
 
-//        std::cout << "SDVS:\n"; vectorTools::print( SDVS );
+//        std::cout << "SDVS:\n"; tardigradeVectorTools::print( SDVS );
 
 #ifdef DEBUG_MODE
 
@@ -819,53 +819,53 @@ BOOST_AUTO_TEST_CASE( testEvaluate_model_history ){
 //                    if ( itr->first.compare( "converged_values" ) != 0 ){
 //                        std::cout << "    " << itr->first << "\n";
 //                        std::cout << "        currentMacroGamma:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMacroGamma" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMacroGamma" ] );
 //                        std::cout << "        currentMicroGamma:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMicroGamma" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMicroGamma" ] );
 //                        std::cout << "        currentMicroGradientGamma:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMicroGradientGamma" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMicroGradientGamma" ] );
 //                        std::cout << "        currentDeformationGradient:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentDeformationGradient" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentDeformationGradient" ] );
 //                        std::cout << "        currentElasticDeformationGradient:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentElasticDeformationGradient" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentElasticDeformationGradient" ] );
 //                        std::cout << "        currentPlasticDeformationGradient:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentPlasticDeformationGradient" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentPlasticDeformationGradient" ] );
 //                        std::cout << "        currentPK2Stress:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentPK2Stress" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentPK2Stress" ] );
 //                        std::cout << "        currentMacroCohesion:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMacroCohesion" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMacroCohesion" ] );
 //                        std::cout << "        dMacroCohesiondMacroStrainISV:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "dMacroCohesiondMacroStrainISV" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "dMacroCohesiondMacroStrainISV" ] );
 //                        std::cout << "        previousMacroFlowDirection:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "previousMacroFlowDirection" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "previousMacroFlowDirection" ] );
 //                        std::cout << "        previousMicroFlowDirection:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "previousMicroFlowDirection" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "previousMicroFlowDirection" ] );
 //                        std::cout << "        previousMicroGradientFlowDirection:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "previousMicroGradientFlowDirection" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "previousMicroGradientFlowDirection" ] );
 //                        std::cout << "        currentMacroFlowDirection:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMacroFlowDirection" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMacroFlowDirection" ] );
 //                        std::cout << "        currentMicroFlowDirection:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMicroFlowDirection" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMicroFlowDirection" ] );
 //                        std::cout << "        currentMicroGradientFlowDirection:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMicroGradientFlowDirection" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMicroGradientFlowDirection" ] );
 //                        std::cout << "        currentMacroStrainISV\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMacroStrainISV" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMacroStrainISV" ] );
 //                        std::cout << "        currentMicroStrainISV\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMicroStrainISV" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMicroStrainISV" ] );
 //                        std::cout << "        currentMicroGradientStrainISV\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "currentMicroGradientStrainISV" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "currentMicroGradientStrainISV" ] );
 //                        std::cout << "        macroYieldFunction:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "macroYieldFunction" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "macroYieldFunction" ] );
 //                        std::cout << "        microYieldFunction:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "microYieldFunction" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "microYieldFunction" ] );
 //                        std::cout << "        microGradientYieldFunction:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "microGradientYieldFunction" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "microGradientYieldFunction" ] );
 //                    }
 //                    else{
 //                        std::cout << "        convergedPlasticDeformationGradient:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "convergedPlasticDeformationGradient" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "convergedPlasticDeformationGradient" ] );
 //                        std::cout << "        convergedPlasticMicroDeformation:\n";
-//                        std::cout << "        "; vectorTools::print( itr->second[ "convergedPlasticMicroDeformation" ] );
+//                        std::cout << "        "; tardigradeVectorTools::print( itr->second[ "convergedPlasticMicroDeformation" ] );
 //                    }
 //                }
 //            }
@@ -978,13 +978,13 @@ BOOST_AUTO_TEST_CASE( testEvaluate_model_history ){
 #endif
     }
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SDVSAnswer, SDVS ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SDVSAnswer, SDVS ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( PK2Answer, PK2_result ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( PK2Answer, PK2_result ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SIGMAAnswer, SIGMA_result ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SIGMAAnswer, SIGMA_result ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( MAnswer, M_result ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( MAnswer, M_result ) );
     
 #ifdef DEBUG_MODE
     output_file.close();

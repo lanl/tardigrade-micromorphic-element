@@ -18,17 +18,17 @@ DBG = -ggdb
 
 all: profile_code
 
-profile_code: profile_code.o micromorphic_linear_elasticity_voigt.o deformation_measures.o balance_equations.o micromorphic_material_library.o
-	$(CC) $(STD) -o $@ profile_code.o micromorphic_linear_elasticity_voigt.o deformation_measures.o balance_equations.o micromorphic_material_library.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+profile_code: profile_code.o tardigrade_micromorphic_linear_elasticity_voigt.o deformation_measures.o balance_equations.o micromorphic_material_library.o
+	$(CC) $(STD) -o $@ profile_code.o tardigrade_micromorphic_linear_elasticity_voigt.o deformation_measures.o balance_equations.o micromorphic_material_library.o $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
-profile_code.o: profile_code.cpp ../micromorphic_linear_elasticity_voigt.h ../deformation_measures.h ../balance_equations.h ../micromorphic_material_library.h
+profile_code.o: profile_code.cpp ../tardigrade_micromorphic_linear_elasticity_voigt.h ../deformation_measures.h ../balance_equations.h ../micromorphic_material_library.h
 	$(CC) $(STD) -o $@ -c profile_code.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 micromorphic_material_library.o: ../micromorphic_material_library.h ../micromorphic_material_library.cpp
 	$(CC) $(STD) -o $@ -c ../micromorphic_material_library.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
-micromorphic_linear_elasticity_voigt.o: ../micromorphic_linear_elasticity_voigt.h ../micromorphic_linear_elasticity_voigt.cpp ../deformation_measures.h
-	$(CC) $(STD) -o $@ -c ../micromorphic_linear_elasticity_voigt.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+tardigrade_micromorphic_linear_elasticity_voigt.o: ../tardigrade_micromorphic_linear_elasticity_voigt.h ../tardigrade_micromorphic_linear_elasticity_voigt.cpp ../deformation_measures.h
+	$(CC) $(STD) -o $@ -c ../tardigrade_micromorphic_linear_elasticity_voigt.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 deformation_measures.o: ../deformation_measures.h ../deformation_measures.cpp
 	$(CC) $(STD) -o $@ -c ../deformation_measures.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)

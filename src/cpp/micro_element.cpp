@@ -19,7 +19,7 @@
 #include <vector>
 #include <tensor.h>
 #include <micro_element.h>
-#include <micromorphic_linear_elasticity.h>
+#include <tardigrade_micromorphic_linear_elasticity.h>
 #include <ctime>
   
 namespace micro_element

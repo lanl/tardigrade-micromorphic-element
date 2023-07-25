@@ -398,7 +398,7 @@ def compute_stress_derivatives_wrt_Gamma(E_macro,E_micro,AFOT,BFOT,CFOT,DFOT,Cin
     
 ###### Call the model ######
 
-def micromorphic_linear_elasticity(F,chi,grad_chi,params): #Test function written
+def tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,params): #Test function written
     """A constitutive model for micromorphic linear elasticity"""
     C,Psi,Gamma         = get_deformation_measures(F,chi,grad_chi)
     E_macro,E_micro     = compute_strain_measures(C,Psi)
@@ -411,7 +411,7 @@ class TestMicro_LE(unittest.TestCase):
 
     f                    = None
     original_directory   = ""
-    module_name           = "micromorphic_linear_elasticity"
+    module_name           = "tardigrade_micromorphic_linear_elasticity"
     output_file_name      = r"results.tex".format(module_name)
     output_file_location  = os.path.join(".","tests","unittests",module_name)#".\tests\unittests\{0}".format(module_name)
     currentResult         = None
@@ -1224,7 +1224,7 @@ class TestMicro_LE(unittest.TestCase):
         self.assertTrue(np.allclose(dMdPsiT,   dMdPsi))
         self.assertTrue(np.allclose(dMdGammaT, dMdGamma))
         
-    def test_micromorphic_linear_elasticity(self):
+    def test_tardigrade_micromorphic_linear_elasticity(self):
         """Test function for the micromorphic linear elasticity model"""
         RHO0   = 2.9
         LAMBDA = 2.4
@@ -1268,7 +1268,7 @@ class TestMicro_LE(unittest.TestCase):
         
         dCinvdC = compute_dCinvdC(Cinv)
         
-        PK2,Sigma,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
+        PK2,Sigma,M,dpk2dC,dpk2dPsi,dpk2dGamma,dSigmadC,dSigmadPsi,dSigmadGamma,dMdC,dMdPsi,dMdGamma = tardigrade_micromorphic_linear_elasticity(F,chi,grad_chi,PROPS)
         
         PK2T,SigmaT,MT      = compute_stresses(AS,BS,CS,DS,E_macro,E_micro,C,Gamma)
     
