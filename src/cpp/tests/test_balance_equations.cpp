@@ -13,14 +13,14 @@
 
 #include<iostream>
 #define USE_EIGEN
-#include<vector_tools.h>
-#include<error_tools.h>
+#include<tardigrade_vector_tools.h>
+#include<tardigrade_error_tools.h>
 #include<balance_equations.h>
 
-#define BOOST_TEST_MODULE test_micromorphic_linear_elasticity
+#define BOOST_TEST_MODULE test_tardigrade_micromorphic_linear_elasticity
 #include <boost/test/included/unit_test.hpp>
 
-typedef errorTools::Node errorNode;
+typedef tardigradeErrorTools::Node errorNode;
 typedef errorNode* errorOut;
 
 typedef balance_equations::variableType variableType;
@@ -36,7 +36,7 @@ errorOut interpolate_values( const variableVector &etas, const variableMatrix &v
      * :param variableVector &v: The output value
      */
 
-    v = vectorTools::dot( values, etas );
+    v = tardigradeVectorTools::dot( values, etas );
     return NULL;
 }
 
@@ -49,7 +49,7 @@ errorOut interpolate_gradients( const variableMatrix &detadX, const variableMatr
      * :param variableMatrix &dvdX: The gradients of the degrees of freedom.
      */
 
-    dvdX = vectorTools::dot( values, detadX );
+    dvdX = tardigradeVectorTools::dot( values, detadX );
     return NULL;
 }
 
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE( testInterpolate_values ){
 
     BOOST_CHECK( !error );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result, answer ) );
 }
 
 BOOST_AUTO_TEST_CASE( testInterpolate_gradients ){
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE( testInterpolate_gradients ){
 
     BOOST_CHECK( !error );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result, answer ) );
 }
 
 errorOut evaluate_model( const variableVector &etas, const variableMatrix &detadX, const variableMatrix &values,
@@ -188,9 +188,9 @@ errorOut evaluate_model( const variableVector &etas, const variableMatrix &detad
 
     BOOST_CHECK( !error );
 
-    variableVector grad_u = vectorTools::appendVectors( { dUtildedX[ 0 ], dUtildedX[ 1 ], dUtildedX[ 2 ] } );
+    variableVector grad_u = tardigradeVectorTools::appendVectors( { dUtildedX[ 0 ], dUtildedX[ 1 ], dUtildedX[ 2 ] } );
     variableVector phi( utilde.begin() + 3, utilde.begin() + 12 );
-    variableVector grad_phi = vectorTools::appendVectors( { dUtildedX[ 3 ], dUtildedX[  4 ], dUtildedX[  5 ],
+    variableVector grad_phi = tardigradeVectorTools::appendVectors( { dUtildedX[ 3 ], dUtildedX[  4 ], dUtildedX[  5 ],
                                                             dUtildedX[ 6 ], dUtildedX[  7 ], dUtildedX[  8 ],
                                                             dUtildedX[ 9 ], dUtildedX[ 10 ], dUtildedX[ 11 ] } );
 
@@ -815,14 +815,14 @@ errorOut evaluate_model( const variableVector &etas, const variableMatrix &detad
               7.5791447e-01,  1.0933231e-01,  2.9640682e-01 }
         };
 
-    PK2   = vectorTools::dot( DPK2Dgrad_u, grad_u )   + vectorTools::dot( DPK2Dphi, phi )
-          + vectorTools::dot( DPK2Dgrad_phi, grad_phi );
+    PK2   = tardigradeVectorTools::dot( DPK2Dgrad_u, grad_u )   + tardigradeVectorTools::dot( DPK2Dphi, phi )
+          + tardigradeVectorTools::dot( DPK2Dgrad_phi, grad_phi );
 
-    SIGMA = vectorTools::dot( DSIGMADgrad_u, grad_u ) + vectorTools::dot( DSIGMADphi, phi )
-          + vectorTools::dot( DSIGMADgrad_phi, grad_phi );
+    SIGMA = tardigradeVectorTools::dot( DSIGMADgrad_u, grad_u ) + tardigradeVectorTools::dot( DSIGMADphi, phi )
+          + tardigradeVectorTools::dot( DSIGMADgrad_phi, grad_phi );
 
-    M     = vectorTools::dot( DMDgrad_u, grad_u )     + vectorTools::dot( DMDphi, phi )
-          + vectorTools::dot( DMDgrad_phi, grad_phi );
+    M     = tardigradeVectorTools::dot( DMDgrad_u, grad_u )     + tardigradeVectorTools::dot( DMDphi, phi )
+          + tardigradeVectorTools::dot( DMDgrad_phi, grad_phi );
 
     return NULL;
 
@@ -907,11 +907,11 @@ BOOST_AUTO_TEST_CASE( _test_evaluate_model ){
 
     BOOST_CHECK( !error );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( PK2, PK2Answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( PK2, PK2Answer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( SIGMA, SIGMAAnswer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( SIGMA, SIGMAAnswer ) );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( M, MAnswer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( M, MAnswer ) );
 
 }
 
@@ -939,12 +939,12 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_force ){
     balance_equations::compute_internal_force( dNdX, F, PK2, result );
 
     for ( unsigned int i = 0; i < 3; i++ ){
-        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_internal_force( i, dNdX, F, PK2, temp );
 
-        BOOST_CHECK( vectorTools::fuzzyEquals( answer[ i ], temp ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( answer[ i ], temp ) );
     }
 
 }
@@ -966,12 +966,12 @@ BOOST_AUTO_TEST_CASE( testCompute_body_force ){
     balance_equations::compute_body_force( N, density, b, result );
 
     for ( unsigned int i = 0; i < 3; i++ ){
-        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_body_force( i, N, density, b, temp );
 
-        BOOST_CHECK( vectorTools::fuzzyEquals( answer[ i ], temp ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( answer[ i ], temp ) );
     }
 
 }
@@ -993,12 +993,12 @@ BOOST_AUTO_TEST_CASE( testCompute_inertia_force ){
     balance_equations::compute_inertia_force( N, density, a, result );
 
     for ( unsigned int i = 0; i < 3; i++ ){
-        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_inertia_force( i, N, density, a, temp );
 
-        BOOST_CHECK( vectorTools::fuzzyEquals( answer[ i ], temp ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( answer[ i ], temp ) );
     }
 
 }
@@ -1045,11 +1045,11 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_couple ){
     balance_equations::compute_internal_couple( N, dNdX, F, chi, PK2, SIGMA, M, result );
 
     for ( unsigned int i = 0; i < 9; i++ ){
-        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_internal_couple( i / 3, i % 3, N, dNdX, F, chi, PK2, SIGMA, M, temp );
-        BOOST_CHECK( vectorTools::fuzzyEquals( answer[ i ], temp ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( answer[ i ], temp ) );
     }
 
 }
@@ -1076,11 +1076,11 @@ BOOST_AUTO_TEST_CASE( testCompute_body_couple ){
     balance_equations::compute_body_couple( N, density, l, result );
 
     for ( unsigned int i = 0; i < 9; i++ ){
-        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_body_couple( i / 3, i % 3, N, density, l, temp );
-        BOOST_CHECK( vectorTools::fuzzyEquals( temp, answer[ i ] ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( temp, answer[ i ] ) );
     }
 
 }
@@ -1105,11 +1105,11 @@ BOOST_AUTO_TEST_CASE( testCompute_inertia_couple ){
     balance_equations::compute_inertia_couple( N, density, omega, result );
 
     for ( unsigned int i = 0; i < 9; i++ ){
-        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
         double temp;
         balance_equations::compute_inertia_couple( i / 3, i % 3, N, density, omega, temp );
-        BOOST_CHECK( vectorTools::fuzzyEquals( temp, answer[ i ] ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( temp, answer[ i ] ) );
     }
 
 }
@@ -1157,7 +1157,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_force_jacobian ){
 
     //Form the numeric gradients
     variableVector eye( 9 );
-    vectorTools::eye( eye );
+    tardigradeVectorTools::eye( eye );
 
     unsigned int n = 0;
     variableType eps = 1e-6;
@@ -1178,7 +1178,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_force_jacobian ){
         //Compute the positive perturbation
         interpolate_gradients( detadX, values + delta, dUtildedX_P );
 
-        variableVector F_P = vectorTools::appendVectors( { dUtildedX_P[ 0 ], dUtildedX_P[ 1 ], dUtildedX_P[ 2 ] } );
+        variableVector F_P = tardigradeVectorTools::appendVectors( { dUtildedX_P[ 0 ], dUtildedX_P[ 1 ], dUtildedX_P[ 2 ] } );
         F_P += eye;
 
         errorOut error = evaluate_model( etas, detadX, values + delta, PK2_P, SIGMA_P, M_P );
@@ -1190,7 +1190,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_force_jacobian ){
         //Compute the negative perturbation
         interpolate_gradients( detadX, values - delta, dUtildedX_M );
 
-        variableVector F_M = vectorTools::appendVectors( { dUtildedX_M[ 0 ], dUtildedX_M[ 1 ], dUtildedX_M[ 2 ] } );
+        variableVector F_M = tardigradeVectorTools::appendVectors( { dUtildedX_M[ 0 ], dUtildedX_M[ 1 ], dUtildedX_M[ 2 ] } );
         F_M += eye;
 
         error = evaluate_model( etas, detadX, values - delta, PK2_M, SIGMA_M, M_M );
@@ -1206,7 +1206,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_force_jacobian ){
 
     variableMatrix dUtildedX;
     interpolate_gradients( detadX, values, dUtildedX );
-    variableVector F = vectorTools::appendVectors( { dUtildedX[ 0 ], dUtildedX[ 1 ], dUtildedX[ 2 ] } ) + eye;
+    variableVector F = tardigradeVectorTools::appendVectors( { dUtildedX[ 0 ], dUtildedX[ 1 ], dUtildedX[ 2 ] } ) + eye;
 
     variableVector PK2, SIGMA, M;
     variableMatrix DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
@@ -1226,7 +1226,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_force_jacobian ){
                                                         DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi,
                                                         DfintDU_analytic );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DfintDU_numeric, DfintDU_analytic ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DfintDU_numeric, DfintDU_analytic ) );
 
     for ( unsigned int i = 0; i < 3; i++ ){
         for ( unsigned int j = 0; j < 12; j++ ){
@@ -1234,7 +1234,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_force_jacobian ){
             balance_equations::compute_internal_force_jacobian( i, j, N, dNdX, etas[ n ], detadX_n, F, PK2,
                                                                 DPK2Dgrad_u, DPK2Dphi, DPK2Dgrad_phi, DfintDU_ij );
 
-            BOOST_CHECK( vectorTools::fuzzyEquals( DfintDU_ij, DfintDU_numeric[ i ][ j ] ) );
+            BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DfintDU_ij, DfintDU_numeric[ i ][ j ] ) );
         }
     }
 
@@ -1283,7 +1283,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_couple_jacobian ){
 
     //Form the numeric gradients
     variableVector eye( 9 );
-    vectorTools::eye( eye );
+    tardigradeVectorTools::eye( eye );
 
     unsigned int n = 0;
     variableType eps = 1e-6;
@@ -1308,7 +1308,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_couple_jacobian ){
         interpolate_values( etas, values + delta, utilde_P );
         interpolate_gradients( detadX, values + delta, dUtildedX_P );
 
-        variableVector F_P = vectorTools::appendVectors( { dUtildedX_P[ 0 ], dUtildedX_P[ 1 ], dUtildedX_P[ 2 ] } );
+        variableVector F_P = tardigradeVectorTools::appendVectors( { dUtildedX_P[ 0 ], dUtildedX_P[ 1 ], dUtildedX_P[ 2 ] } );
         F_P += eye;
 
         variableVector chi_P( utilde_P.begin() + 3, utilde_P.begin() + 12 );
@@ -1326,7 +1326,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_couple_jacobian ){
         interpolate_values( etas, values - delta, utilde_M );
         interpolate_gradients( detadX, values - delta, dUtildedX_M );
 
-        variableVector F_M = vectorTools::appendVectors( { dUtildedX_M[ 0 ], dUtildedX_M[ 1 ], dUtildedX_M[ 2 ] } );
+        variableVector F_M = tardigradeVectorTools::appendVectors( { dUtildedX_M[ 0 ], dUtildedX_M[ 1 ], dUtildedX_M[ 2 ] } );
         F_M += eye;
 
         variableVector chi_M( utilde_M.begin() + 3, utilde_M.begin() + 12 );
@@ -1351,7 +1351,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_couple_jacobian ){
     variableMatrix dUtildedX;
     interpolate_gradients( detadX, values, dUtildedX );
 
-    variableVector F = vectorTools::appendVectors( { dUtildedX[ 0 ], dUtildedX[ 1 ], dUtildedX[ 2 ] } ) + eye;
+    variableVector F = tardigradeVectorTools::appendVectors( { dUtildedX[ 0 ], dUtildedX[ 1 ], dUtildedX[ 2 ] } ) + eye;
     variableVector chi = variableVector( utilde.begin() + 3, utilde.begin() + 12 ) + eye;
 
     variableVector PK2, SIGMA, M;
@@ -1377,7 +1377,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_couple_jacobian ){
 
     BOOST_CHECK( errorCode == 0 );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( DcintDU_numeric, DcintDU_analytic ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DcintDU_numeric, DcintDU_analytic ) );
 
     for ( unsigned int i = 0; i < 3; i++ ){
         for ( unsigned int j = 0; j < 12; j++ ){
@@ -1391,7 +1391,7 @@ BOOST_AUTO_TEST_CASE( testCompute_internal_couple_jacobian ){
                                                                  DcintDU_ij );
 
 
-            BOOST_CHECK( vectorTools::fuzzyEquals( DcintDU_ij, DcintDU_numeric[ i ][ j ] ) );
+            BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( DcintDU_ij, DcintDU_numeric[ i ][ j ] ) );
         }
     }
 }
@@ -1431,7 +1431,7 @@ BOOST_AUTO_TEST_CASE( testCompute_inertia_couple2 ){
 
     for ( unsigned int i = 0; i < dim * dim; i++ ){
 
-        BOOST_CHECK( vectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
+        BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result[ i ], answer[ i ] ) );
 
     }
 
@@ -1443,7 +1443,7 @@ BOOST_AUTO_TEST_CASE( testCompute_inertia_couple2 ){
 
             balance_equations::compute_inertia_couple( i, j, N, density, chi, d2chidt2, microInertia, result_ij );
 
-            BOOST_CHECK( vectorTools::fuzzyEquals( result_ij, answer[ dim * i + j ] ) );
+            BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result_ij, answer[ dim * i + j ] ) );
 
         }
 
@@ -1575,7 +1575,7 @@ BOOST_AUTO_TEST_CASE( testCompute_inertia_couple_jacobian ){
 
     }
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result, answer ) );
 
 }
 
@@ -1610,7 +1610,7 @@ BOOST_AUTO_TEST_CASE( testCompute_inertia_force_jacobian ){
 
     BOOST_CHECK( errorCode == 0 );
 
-    BOOST_CHECK( vectorTools::fuzzyEquals( result, answer ) );
+    BOOST_CHECK( tardigradeVectorTools::fuzzyEquals( result, answer ) );
 
     double result_ij;
     for ( unsigned int i = 0; i < 3; i++ ){

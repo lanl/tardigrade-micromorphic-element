@@ -12,7 +12,7 @@ EIGEN = -I EIGEN_LOCATION
 
 #Object files to produce (Add your model's object file output here)
 OBJ = micromorphic_material_library.o deformation_measures.o
-OBJ += micromorphic_linear_elasticity_voigt.o
+OBJ += tardigrade_micromorphic_linear_elasticity_voigt.o
 
 #Debugging flag
 DBG =
@@ -24,7 +24,7 @@ ifeq ($(METHOD),oprof)
 endif
 
 #Define the objects made by the makefile
-OBJECTS = libmicromat.so libmicromat.so.1 micromorphic_material_library.o deformation_measures.o micromorphic_linear_elasticity_voigt.o
+OBJECTS = libmicromat.so libmicromat.so.1 micromorphic_material_library.o deformation_measures.o tardigrade_micromorphic_linear_elasticity_voigt.o
 
 #Terminate after N errors
 ERRORFLG=-fmax-errors=5
@@ -47,8 +47,8 @@ deformation_measures.o: deformation_measures.h deformation_measures.cpp
 #If you add a new material model make sure you add it
 #to the linker at the top which generates the shared library
 
-micromorphic_linear_elasticity_voigt.o: micromorphic_linear_elasticity_voigt.h micromorphic_linear_elasticity_voigt.cpp deformation_measures.h
-	$(CC) $(STD) -o $@ -c micromorphic_linear_elasticity_voigt.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
+tardigrade_micromorphic_linear_elasticity_voigt.o: tardigrade_micromorphic_linear_elasticity_voigt.h tardigrade_micromorphic_linear_elasticity_voigt.cpp deformation_measures.h
+	$(CC) $(STD) -o $@ -c tardigrade_micromorphic_linear_elasticity_voigt.cpp $(CFLAGS) $(EIGEN) $(ERRORFLG) $(DBG)
 
 clean:
 	rm $(OBJECTS)

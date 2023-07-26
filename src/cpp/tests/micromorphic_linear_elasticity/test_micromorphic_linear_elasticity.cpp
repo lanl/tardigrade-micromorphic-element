@@ -1,12 +1,12 @@
 /*!=======================================================
   |                                                     |
-  |      test_micromorphic_linear_elasticity.cpp        |
+  |      test_tardigrade_micromorphic_linear_elasticity.cpp        |
   |                                                     |
   -------------------------------------------------------
   | The unit test file for                              |
-  | micromorphic_linear_elasticity.h/cpp. This file     |
+  | tardigrade_micromorphic_linear_elasticity.h/cpp. This file     |
   | tests the classes and functions defined in          |
-  | micromorphic_linear_elasticity.h/cpp.               |
+  | tardigrade_micromorphic_linear_elasticity.h/cpp.               |
   |                                                     |
   | Generated files:                                    |
   |    Results.tex:  A LaTeX file which contains the    |
@@ -32,7 +32,7 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <tensor.h>
-#include <micromorphic_linear_elasticity.h>
+#include <tardigrade_micromorphic_linear_elasticity.h>
 #include <finite_difference.h>
 #include <ctime>
 #include <stdlib.h>

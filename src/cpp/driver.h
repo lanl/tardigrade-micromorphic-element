@@ -16,7 +16,7 @@
   | micro_element: The definition of the micromorphic   |
   |                finite element. Currently, only a    |
   |                hexehedral element is defined.       |
-  | micromorphic_linear_elasticity:                     |
+  | tardigrade_micromorphic_linear_elasticity:                     |
   |                An implementation of the linear      |
   |                elastic model developed by Richard   |
   |                Regueiro (2010).                     |

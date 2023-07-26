@@ -14,7 +14,7 @@ BALANCESOURCE=balance_equations.cpp
 BALANCEHEADER=balance_equations.h
 
 BALANCEOBJECT=balance_equations.o
-ERROROBJECT=error_tools.o
+ERROROBJECT=tardigrade_error_tools.o
 
 OBJECTS = $(BALANCEOBJECT) $(ERROROBJECT)
 
