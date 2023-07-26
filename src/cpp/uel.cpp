@@ -4,7 +4,7 @@
 #include<Eigen/Dense>
 #include <tensor.h>
 #include <micro_element.h>
-#include <micromorphic_linear_elasticity.h>
+#include <tardigrade_micromorphic_linear_elasticity.h>
 #include <uel.h>
 #include <aba_for_c.h>
 

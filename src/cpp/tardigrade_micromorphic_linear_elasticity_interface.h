@@ -1,9 +1,9 @@
-#ifndef MICROMORPHIC_LINEAR_ELASTICITY_INTERFACE_H
-#define MICROMORPHIC_LINEAR_ELASTICITY_INTERFACE_H
+#ifndef TARDIGRADE_MICROMORPHIC_LINEAR_ELASTICITY_INTERFACE_H
+#define TARDIGRADE_MICROMORPHIC_LINEAR_ELASTICITY_INTERFACE_H
 
-#include<micromorphic_linear_elasticity.h>
+#include<tardigrade_micromorphic_linear_elasticity.h>
 #include<micromorphic_material_library.h>
-namespace micromorphicLinearElasticity{
+namespace tardigradeMicromorphicLinearElasticity{
     class LinearElasticity: public micromorphic_material_library::IMaterial{
         /*!
          * The class which is called when evaluating a
@@ -31,7 +31,7 @@ namespace micromorphicLinearElasticity{
 #endif
                               )
             {
-                return micromorphicLinearElasticity::evaluate_model(
+                return tardigradeMicromorphicLinearElasticity::evaluate_model(
                                          time, fparams,
                                          current_grad_u, current_phi, current_grad_phi,
                                          previous_grad_u, previous_phi, previous_grad_phi,
@@ -71,7 +71,7 @@ namespace micromorphicLinearElasticity{
 #endif
                               )
             {
-                return micromorphicLinearElasticity::evaluate_model(
+                return tardigradeMicromorphicLinearElasticity::evaluate_model(
                                          time, fparams,
                                          current_grad_u, current_phi, current_grad_phi,
                                          previous_grad_u, previous_phi, previous_grad_phi,
