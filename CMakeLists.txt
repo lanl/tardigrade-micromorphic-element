@@ -79,11 +79,17 @@ set(BALANCE_EQUATION_LIBRARY_FILENAME "balance_equations")
 set(MATERIAL_MODEL_LIBRARY "micromat")
 set(MATERIAL_MODEL_LIBRARY_FILENAME "micromorphic_material_library")
 set(USER_SUBROUTINES "tardigrade_micromorphic_linear_elasticity" "tardigrade_micromorphic_elasto_plasticity")
+set(USER_LIBRARIES ${BALANCE_EQUATION_LIBRARY} ${MATERIAL_MODEL_LIBRARY})
+foreach(library ${USER_LIBRARIES})
+    set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} "${library}")
+endforeach(library)
 
 set(USER_INTERFACES "")
 foreach(user_subroutine ${USER_SUBROUTINES})
     set(USER_INTERFACES ${USER_INTERFACES} "${user_subroutine}_interface")
+    set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} "${user_subroutine}_interface")
 endforeach(user_subroutine)
+message("EXPORTED_LIBRARIES: ${EXPORTED_LIBRARIES}")
 
 # Find related, but external, projects in installed environment
 include(FetchContent)
@@ -129,7 +135,7 @@ endif()
 
 #==================================================================================== SETUP INSTALLATION CMAKE FILES ===
 if(${not_conda_test} STREQUAL "true")
-    foreach(package ${BALANCE_EQUATION_LIBRARY} ${MATERIAL_MODEL_LIBRARY} ${USER_INTERFACES})
+    foreach(package ${PROJECT_NAME})
         include(CMakePackageConfigHelpers)
         write_basic_package_version_file("${package}ConfigVersion.cmake"
                                          VERSION ${PROJECT_VERSION}

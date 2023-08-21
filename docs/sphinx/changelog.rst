@@ -6,6 +6,14 @@ Changelog
 #########
 
 ******************
+1.4.0 (2023-08-21)
+******************
+
+Breaking Changes
+================
+- Changed the deployment to be collected under tardigrade_micromorphic_element rather than the indivitual libraries (:merge:`15`). By `Nathan Miller`_.
+
+******************
 1.3.1 (2023-07-25)
 ******************
 
