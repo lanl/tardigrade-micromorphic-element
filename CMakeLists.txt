@@ -129,7 +129,7 @@ endif()
 
 #==================================================================================== SETUP INSTALLATION CMAKE FILES ===
 if(${not_conda_test} STREQUAL "true")
-    foreach(package ${BALANCE_EQUATION_LIBRARY} ${MATERIAL_MODEL_LIBRARY} ${USER_INTERFACES})
+    foreach(package ${PROJECT_NAME})
         include(CMakePackageConfigHelpers)
         write_basic_package_version_file("${package}ConfigVersion.cmake"
                                          VERSION ${PROJECT_VERSION}
