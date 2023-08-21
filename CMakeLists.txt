@@ -79,11 +79,17 @@ set(BALANCE_EQUATION_LIBRARY_FILENAME "balance_equations")
 set(MATERIAL_MODEL_LIBRARY "micromat")
 set(MATERIAL_MODEL_LIBRARY_FILENAME "micromorphic_material_library")
 set(USER_SUBROUTINES "tardigrade_micromorphic_linear_elasticity" "tardigrade_micromorphic_elasto_plasticity")
+set(USER_LIBRARIES ${BALANCE_EQUATION_LIBRARY} ${MATERIAL_MODEL_LIBRARY})
+foreach(library ${USER_LIBRARIES})
+    set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} "${library}")
+endforeach(library)
 
 set(USER_INTERFACES "")
 foreach(user_subroutine ${USER_SUBROUTINES})
     set(USER_INTERFACES ${USER_INTERFACES} "${user_subroutine}_interface")
+    set(EXPORTED_LIBRARIES ${EXPORTED_LIBRARIES} "${user_subroutine}_interface")
 endforeach(user_subroutine)
+message("EXPORTED_LIBRARIES: ${EXPORTED_LIBRARIES}")
 
 # Find related, but external, projects in installed environment
 include(FetchContent)
@@ -143,8 +149,6 @@ if(${not_conda_test} STREQUAL "true")
         # CMake won't build the targets for local builds of upstream projects
         if(cmake_build_type_lower STREQUAL release)
             install(EXPORT ${package}_Targets
-                           ${BALANCE_EQUATION_LIBRARY}_Targets
-                           ${MATERIAL_MODEL_LIBRARY}_Targets
                     FILE ${package}Targets.cmake
                     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${package}/cmake)
         endif()
