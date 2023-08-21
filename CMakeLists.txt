@@ -143,6 +143,8 @@ if(${not_conda_test} STREQUAL "true")
         # CMake won't build the targets for local builds of upstream projects
         if(cmake_build_type_lower STREQUAL release)
             install(EXPORT ${package}_Targets
+                           ${BALANCE_EQUATION_LIBRARY}_Targets
+                           ${MATERIAL_MODEL_LIBRARY}_Targets
                     FILE ${package}Targets.cmake
                     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${package}/cmake)
         endif()
