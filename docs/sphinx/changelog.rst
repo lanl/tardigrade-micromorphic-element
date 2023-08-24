@@ -12,6 +12,7 @@ Changelog
 Breaking Changes
 ================
 - Changed the deployment to be collected under tardigrade_micromorphic_element rather than the indivitual libraries (:merge:`15`). By `Nathan Miller`_.
+- Corrected minor errors (:merge:`16`). By `Nathan Miller`_.
 
 ******************
 1.3.1 (2023-07-25)
