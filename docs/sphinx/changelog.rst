@@ -6,12 +6,24 @@ Changelog
 #########
 
 ******************
+1.4.2 (unreleased)
+******************
+
+Internal Changes
+================
+- Removing tardigrade_vector_tools from balance_equations.h. It isn't needed (:merge:`18`). By `Nathan Miller`_.
+
+******************
 1.4.0 (2023-08-21)
 ******************
 
+Release
+=======
+- Released version 1.4.0 (:merge:`17`). By `Nathan Miller`_.
+
 Breaking Changes
 ================
-- Changed the deployment to be collected under tardigrade_micromorphic_element rather than the indivitual libraries (:merge:`15`). By `Nathan Miller`_.
+- Changed the deployment to be collected under tardigrade_micromorphic_element rather than the individual libraries (:merge:`15`). By `Nathan Miller`_.
 - Corrected minor errors (:merge:`16`). By `Nathan Miller`_.
 
 ******************
