@@ -23,8 +23,7 @@
 #define BALANCE_EQUATIONS_H
 
 #define USE_EIGEN 
-#include<tardigrade_vector_tools.h>
-#include<tardigrade_error_tools.h>
+#include <vector>
 
 namespace balance_equations{
 
