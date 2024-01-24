@@ -6,8 +6,20 @@ Changelog
 #########
 
 ******************
-1.4.2 (unreleased)
+1.4.3 (unreleased)
 ******************
+
+Internal Changes
+================
+- Enabled github actions (:pull:`1`). By `Nathan Miller`_.
+
+******************
+1.4.2 (2023-09-29)
+******************
+
+Release
+=======
+- Released version 1.4.2
 
 Internal Changes
 ================
