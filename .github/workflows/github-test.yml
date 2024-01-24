@@ -51,7 +51,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DTARDIGRADE_MICROMORPHIC_ELEMENT_PYTHON_BINDINGS=OFF
+          cmake .. -DTARDIGRADE_MICROMORPHIC_ELEMENT_BUILD_PYTHON_BINDINGS=OFF
           make
       - name: Test
         shell: bash -el {0}
